@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      min-height: 100vh;
+      background: #1a1a1a;
+      padding: 40px;
+    }
+    .logo-container {
+      width: 200px;
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50px;
+    }
+    /* 민트/청록 */
+    .mint { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    /* 오렌지/레드 */
+    .orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    /* 블루 */
+    .blue { background: linear-gradient(135deg, #667eea 0%, #00d4ff 100%); }
+    /* 다크/골드 */
+    .dark { background: linear-gradient(135deg, #232526 0%, #414345 100%); }
+    /* 네이비 */
+    .navy { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
+    /* 선셋 */
+    .sunset { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    
+    .logo {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+    .lens {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      border: 6px solid rgba(255,255,255,0.9);
+      border-radius: 50%;
+      box-shadow: inset 0 0 30px rgba(255,255,255,0.3);
+    }
+    .dark .lens {
+      border-color: #ffd700;
+      box-shadow: inset 0 0 30px rgba(255,215,0,0.3);
+    }
+    .lens::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 16px;
+      height: 16px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50%;
+    }
+    .dark .lens::before {
+      background: rgba(255,215,0,0.6);
+    }
+    .core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      background: #fff;
+      border-radius: 50%;
+    }
+    .dark .core {
+      background: #ffd700;
+    }
+    .ring1 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 110px;
+      height: 110px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+    }
+    .dark .ring1 {
+      border-color: rgba(255,215,0,0.3);
+    }
+    .label {
+      color: #fff;
+      font-family: -apple-system, sans-serif;
+      font-size: 14px;
+      margin-top: 12px;
+      text-align: center;
+    }
+    .box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo-container mint">
+      <div class="logo">
+        <div class="ring1"></div>
+        <div class="lens"></div>
+        <div class="core"></div>
+      </div>
+    </div>
+    <div class="label">1. 민트</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container blue">
+      <div class="logo">
+        <div class="ring1"></div>
+        <div class="lens"></div>
+        <div class="core"></div>
+      </div>
+    </div>
+    <div class="label">2. 블루</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container orange">
+      <div class="logo">
+        <div class="ring1"></div>
+        <div class="lens"></div>
+        <div class="core"></div>
+      </div>
+    </div>
+    <div class="label">3. 핑크</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container dark">
+      <div class="logo">
+        <div class="ring1"></div>
+        <div class="lens"></div>
+        <div class="core"></div>
+      </div>
+    </div>
+    <div class="label">4. 다크골드</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container navy">
+      <div class="logo">
+        <div class="ring1"></div>
+        <div class="lens"></div>
+        <div class="core"></div>
+      </div>
+    </div>
+    <div class="label">5. 네이비</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container sunset">
+      <div class="logo">
+        <div class="ring1"></div>
+        <div class="lens"></div>
+        <div class="core"></div>
+      </div>
+    </div>
+    <div class="label">6. 선셋</div>
+  </div>
+</body>
+</html>

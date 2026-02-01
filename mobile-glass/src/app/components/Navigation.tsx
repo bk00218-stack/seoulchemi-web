@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 // 메뉴 구조 정의 (레티나 관리자 시스템 기반)
 export const menuStructure = {
@@ -155,9 +155,27 @@ interface NavigationProps {
 
 export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [currentMenu, setCurrentMenu] = useState<MenuKey>(activeMenu)
 
+  // URL에 따라 현재 메뉴 자동 감지
+  useEffect(() => {
+    if (pathname.startsWith('/admin/purchase')) setCurrentMenu('purchase')
+    else if (pathname.startsWith('/admin/products')) setCurrentMenu('products')
+    else if (pathname.startsWith('/admin/stores')) setCurrentMenu('stores')
+    else if (pathname.startsWith('/admin/stats')) setCurrentMenu('stats')
+    else if (pathname.startsWith('/admin/settings')) setCurrentMenu('settings')
+    else setCurrentMenu('order')
+  }, [pathname])
+
   const menu = menuStructure[currentMenu]
+
+  const handleMenuClick = (key: MenuKey) => {
+    setCurrentMenu(key)
+    // 해당 섹션의 첫 번째 페이지로 이동
+    const firstPage = menuStructure[key].sections[0].items[0].path
+    router.push(firstPage)
+  }
 
   return (
     <>
@@ -176,14 +194,14 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
           <Link href="/admin" style={{ textDecoration: 'none' }}>
             <h1 style={{ margin: 0, fontSize: '21px', fontWeight: 600, color: '#1d1d1f' }}>
-              OptiCore
+              렌즈초이스
             </h1>
           </Link>
           <nav style={{ display: 'flex', gap: '24px' }}>
             {Object.entries(menuStructure).map(([key, value]) => (
               <button
                 key={key}
-                onClick={() => setCurrentMenu(key as MenuKey)}
+                onClick={() => handleMenuClick(key as MenuKey)}
                 style={{ 
                   background: 'none',
                   border: 'none',

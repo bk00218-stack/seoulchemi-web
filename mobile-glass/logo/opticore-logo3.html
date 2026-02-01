@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      min-height: 100vh;
+      background: #1a1a1a;
+      padding: 40px;
+    }
+    .logo-container {
+      width: 200px;
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50px;
+      position: relative;
+    }
+    .mint { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .blue { background: linear-gradient(135deg, #667eea 0%, #00d4ff 100%); }
+    .orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .dark { background: linear-gradient(135deg, #232526 0%, #414345 100%); }
+    .navy { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
+    .sunset { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    
+    .bk-text {
+      font-family: 'Arial Black', 'Helvetica', sans-serif;
+      font-size: 72px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      letter-spacing: -2px;
+    }
+    .dark .bk-text {
+      color: #ffd700;
+    }
+    .label {
+      color: #fff;
+      font-family: -apple-system, sans-serif;
+      font-size: 14px;
+      margin-top: 12px;
+      text-align: center;
+    }
+    .box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo-container mint">
+      <div class="bk-text">B.K</div>
+    </div>
+    <div class="label">1. 민트</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container blue">
+      <div class="bk-text">B.K</div>
+    </div>
+    <div class="label">2. 블루</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container orange">
+      <div class="bk-text">B.K</div>
+    </div>
+    <div class="label">3. 핑크</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container dark">
+      <div class="bk-text">B.K</div>
+    </div>
+    <div class="label">4. 다크골드</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container navy">
+      <div class="bk-text">B.K</div>
+    </div>
+    <div class="label">5. 네이비</div>
+  </div>
+  
+  <div class="box">
+    <div class="logo-container sunset">
+      <div class="bk-text">B.K</div>
+    </div>
+    <div class="label">6. 선셋</div>
+  </div>
+</body>
+</html>

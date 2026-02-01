@@ -1,0 +1,36 @@
+{
+  "extractedAt": "2026-02-01T21:22:00+09:00",
+  "brands": {
+    "케미": {"count": 42, "extracted": true},
+    "하이텍": {"count": 11, "extracted": true},
+    "진명": {"count": 21, "extracted": true}
+  },
+  "totalProducts": 74,
+  "products": [
+    {"brand": "케미", "name": "1.56 착색", "optionType": "안경렌즈 RX", "bundleName": "착색", "refractiveIndex": "1.56", "sellingPrice": 6000},
+    {"brand": "케미", "name": "[케미 근적외선] 1.74", "optionType": "안경렌즈 여벌", "bundleName": "근적외선IR", "refractiveIndex": "1.74", "sellingPrice": 15000},
+    {"brand": "케미", "name": "[케미 근적외선] 고", "optionType": "안경렌즈 여벌", "bundleName": "근적외선IR", "refractiveIndex": "1.60", "sellingPrice": 4950},
+    {"brand": "케미", "name": "[케미 일반] 중", "optionType": "안경렌즈 여벌", "bundleName": "일반멀티", "refractiveIndex": "1.56", "sellingPrice": 1750},
+    {"brand": "케미", "name": "[케미 퍼펙트] 중", "optionType": "안경렌즈 여벌", "bundleName": "퍼펙트UV", "refractiveIndex": "1.56", "sellingPrice": 2250},
+    {"brand": "하이텍", "name": "[CR편광] 그레이", "optionType": "안경렌즈 여벌", "bundleName": "CR 편광", "refractiveIndex": "1.50", "sellingPrice": 10000},
+    {"brand": "하이텍", "name": "[CR편광] 그린", "optionType": "안경렌즈 여벌", "bundleName": "CR 편광", "refractiveIndex": "1.50", "sellingPrice": 10000},
+    {"brand": "하이텍", "name": "[CR편광] 브라운", "optionType": "안경렌즈 여벌", "bundleName": "CR 편광", "refractiveIndex": "1.50", "sellingPrice": 10000},
+    {"brand": "하이텍", "name": "[아이렌] 1.60", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 일반", "refractiveIndex": "1.60", "sellingPrice": 2900},
+    {"brand": "하이텍", "name": "[아이렌] 중", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 일반", "refractiveIndex": "1.56", "sellingPrice": 1450},
+    {"brand": "하이텍", "name": "[아이렌퍼펙트] 고", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 청광", "refractiveIndex": "1.60", "sellingPrice": 3250},
+    {"brand": "하이텍", "name": "[아이렌퍼펙트] 고비", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 청광", "refractiveIndex": "1.60", "sellingPrice": 3250},
+    {"brand": "하이텍", "name": "[아이렌퍼펙트] 중", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 청광", "refractiveIndex": "1.56", "sellingPrice": 2400},
+    {"brand": "하이텍", "name": "[아이렌퍼펙트] 초고비", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 청광", "refractiveIndex": "1.67", "sellingPrice": 5500},
+    {"brand": "하이텍", "name": "하이텍 [근적외선] 1.56 SP", "optionType": "안경렌즈 여벌", "bundleName": "근적외선", "refractiveIndex": "1.56", "sellingPrice": 3000},
+    {"brand": "하이텍", "name": "하이텍 [근적외선] 1.60 APS", "optionType": "안경렌즈 여벌", "bundleName": "근적외선", "refractiveIndex": "1.60", "sellingPrice": 4400},
+    {"brand": "진명", "name": "[가르마 20% 청광] 1.56 SP (B)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 20% 청광+근적외선", "refractiveIndex": "1.56", "sellingPrice": 3500},
+    {"brand": "진명", "name": "[가르마 20% 청광] 1.56 SP (G)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 20% 청광+근적외선", "refractiveIndex": "1.56", "sellingPrice": 3500},
+    {"brand": "진명", "name": "[가르마 20% 청광] 1.60 SP (B)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 20% 청광+근적외선", "refractiveIndex": "1.60", "sellingPrice": 5750},
+    {"brand": "진명", "name": "[가르마 20% 청광] 1.60 SP (G)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 20% 청광+근적외선", "refractiveIndex": "1.60", "sellingPrice": 5750},
+    {"brand": "진명", "name": "[가르마 80%] 1.56 (BC)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 80% 일반커브", "refractiveIndex": "1.56", "sellingPrice": 4500},
+    {"brand": "진명", "name": "[가르마 80%] 1.56 (SC)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 80% 일반커브", "refractiveIndex": "1.56", "sellingPrice": 4500},
+    {"brand": "진명", "name": "[가르마 80%] 1.60 (BC)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 80% 일반커브", "refractiveIndex": "1.60", "sellingPrice": 6500},
+    {"brand": "진명", "name": "[가르마 80%] 1.60 (SC)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 80% 일반커브", "refractiveIndex": "1.60", "sellingPrice": 6500},
+    {"brand": "진명", "name": "[가르마 반밀러] 1.56 (실버)", "optionType": "안경렌즈 여벌", "bundleName": "실버 반밀러", "refractiveIndex": "1.56", "sellingPrice": 5000}
+  ]
+}

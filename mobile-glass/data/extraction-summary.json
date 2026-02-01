@@ -1,0 +1,23 @@
+{
+  "extractedAt": "2026-02-01T21:24:00+09:00",
+  "status": "in_progress",
+  "brands": [
+    {"name": "케미", "count": 63, "extracted": 42},
+    {"name": "하이텍", "count": 11, "extracted": 11},
+    {"name": "진명", "count": 25, "extracted": 21},
+    {"name": "아큐브", "count": 21, "extracted": 21},
+    {"name": "알콘", "count": 2, "extracted": 2},
+    {"name": "케미기능성", "count": 21, "extracted": 21},
+    {"name": "케미누진", "count": "?", "extracted": 0},
+    {"name": "케미매직폼", "count": "?", "extracted": 0},
+    {"name": "K누진", "count": "?", "extracted": 0},
+    {"name": "[행사]영진컬러", "count": "?", "extracted": 0},
+    {"name": "데코비젼", "count": "?", "extracted": 0},
+    {"name": "바슈롬", "count": "?", "extracted": 0},
+    {"name": "인터로조", "count": "?", "extracted": 0},
+    {"name": "진광학", "count": "?", "extracted": 0},
+    {"name": "쿠퍼비전", "count": "?", "extracted": 0}
+  ],
+  "totalExtracted": 118,
+  "note": "ag-grid 가상 스크롤로 인해 일부 상품만 추출됨. 전체 추출 필요."
+}

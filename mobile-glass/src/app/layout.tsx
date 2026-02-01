@@ -1,7 +1,7 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'OptiCore - 안경렌즈 주문관리',
+  title: '렌즈초이스 - 안경렌즈 주문관리',
   description: '안경렌즈 주문관리 시스템',
 }
 
