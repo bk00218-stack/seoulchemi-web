@@ -1,0 +1,160 @@
+// MobileGlass - 모바일글라스 데이터베이스 스키마
+// 레티나 주문시스템 데이터 기반
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 브랜드 테이블
+model Brand {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique // 브랜드명 (케미, 하이텍, 진명 등)
+  stockManage   String?   // 출고 관리 (바코드, 미사용)
+  canExchange   Boolean   @default(false) // 교환 가능 여부
+  canReturn     Boolean   @default(false) // 반품 가능 여부
+  isActive      Boolean   @default(true)  // 상태 (사용/미사용)
+  displayOrder  Int       @default(0)     // 노출순서
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  products      Product[]
+}
+
+// 상품 테이블
+model Product {
+  id              Int       @id @default(autoincrement())
+  brandId         Int
+  brand           Brand     @relation(fields: [brandId], references: [id])
+  
+  name            String    // 상품명 (1.56 착색, [케미 근적외선] 1.74 등)
+  optionType      String    // 옵션타입 (안경렌즈 RX, 안경렌즈 여벌, 콘택트렌즈)
+  productType     String    // 상품구분
+  bundleName      String?   // 묶음상품명 (착색, 근적외선IR 등)
+  erpCode         String?   // ERP 상품코드
+  
+  // 안경렌즈 관련
+  refractiveIndex String?   // 굴절률 (1.56, 1.60, 1.67, 1.74)
+  optionName      String?   // 옵션 (1.56 착색, 고, 고비, 중 등)
+  
+  // 처방 옵션
+  hasSph          Boolean   @default(false) // SPH 사용 여부
+  hasCyl          Boolean   @default(false) // CYL 사용 여부
+  hasAxis         Boolean   @default(false) // AXIS 사용 여부
+  hasBc           Boolean   @default(false) // BC 사용 여부
+  hasDia          Boolean   @default(false) // DIA 사용 여부
+  
+  // 가격
+  purchasePrice   Int       @default(0)     // 매입단가 (VAT포함)
+  sellingPrice    Int       @default(0)     // 판매단가 (VAT포함)
+  
+  isActive        Boolean   @default(true)  // 상태
+  displayOrder    Int       @default(0)     // 순서
+  imageUrl        String?   // 이미지 URL
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  options         ProductOption[]
+  orderItems      OrderItem[]
+
+  @@index([brandId])
+  @@index([optionType])
+}
+
+// 상품 옵션 (재고 관리용)
+model ProductOption {
+  id            Int       @id @default(autoincrement())
+  productId     Int
+  product       Product   @relation(fields: [productId], references: [id])
+  
+  sph           String?   // SPH 값
+  cyl           String?   // CYL 값
+  axis          String?   // AXIS 값
+  optionName    String?   // 옵션이름
+  memo          String?   // 메모
+  barcode       String?   // 바코드
+  stock         Int       @default(0) // 재고
+  isActive      Boolean   @default(true) // 상태
+  location      String?   // 재고 위치
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([productId])
+  @@index([barcode])
+}
+
+// 가맹점 테이블
+model Store {
+  id            Int       @id @default(autoincrement())
+  name          String    // 가맹점명
+  code          String    @unique // 가맹점 코드
+  phone         String?   // 전화번호
+  address       String?   // 주소
+  ownerName     String?   // 대표자명
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  orders        Order[]
+}
+
+// 주문 테이블
+model Order {
+  id            Int       @id @default(autoincrement())
+  orderNo       String    @unique // 주문번호
+  storeId       Int
+  store         Store     @relation(fields: [storeId], references: [id])
+  
+  status        String    @default("pending") // pending, confirmed, shipped, delivered, cancelled
+  totalAmount   Int       @default(0) // 총 금액
+  memo          String?   // 메모
+  
+  orderedAt     DateTime  @default(now()) // 주문일시
+  confirmedAt   DateTime? // 확인일시
+  shippedAt     DateTime? // 출고일시
+  deliveredAt   DateTime? // 배송완료일시
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  items         OrderItem[]
+
+  @@index([storeId])
+  @@index([status])
+  @@index([orderedAt])
+}
+
+// 주문 상세 테이블
+model OrderItem {
+  id            Int       @id @default(autoincrement())
+  orderId       Int
+  order         Order     @relation(fields: [orderId], references: [id])
+  productId     Int
+  product       Product   @relation(fields: [productId], references: [id])
+  
+  quantity      Int       @default(1) // 수량
+  unitPrice     Int       // 단가
+  totalPrice    Int       // 소계
+  
+  // 처방 정보 (콘택트/안경렌즈용)
+  sph           String?
+  cyl           String?
+  axis          String?
+  bc            String?
+  dia           String?
+  
+  memo          String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+}
