@@ -192,10 +192,22 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-          <Link href="/admin" style={{ textDecoration: 'none' }}>
-            <h1 style={{ margin: 0, fontSize: '21px', fontWeight: 600, color: '#1d1d1f' }}>
-              렌즈초이스
-            </h1>
+          <Link href="/admin" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <svg width="160" height="32" viewBox="0 0 180 36">
+              <defs>
+                <linearGradient id="lensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style={{stopColor:'#007AFF'}}/>
+                  <stop offset="100%" style={{stopColor:'#5856D6'}}/>
+                </linearGradient>
+              </defs>
+              <circle cx="18" cy="18" r="14" fill="none" stroke="url(#lensGrad)" strokeWidth="2.5"/>
+              <circle cx="18" cy="18" r="8" fill="url(#lensGrad)" opacity="0.15"/>
+              <circle cx="18" cy="18" r="4" fill="url(#lensGrad)" opacity="0.3"/>
+              <circle cx="14" cy="14" r="2" fill="white" opacity="0.8"/>
+              <text x="42" y="24" fontFamily="Inter, -apple-system, sans-serif" fontSize="18" fontWeight="600" fill="#1d1d1f">
+                Lens<tspan fill="#007AFF">Choice</tspan>
+              </text>
+            </svg>
           </Link>
           <nav style={{ display: 'flex', gap: '24px' }}>
             {Object.entries(menuStructure).map(([key, value]) => (
