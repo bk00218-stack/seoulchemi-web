@@ -95,6 +95,346 @@ const labelStyle: React.CSSProperties = {
   color: '#1d1d1f',
 }
 
+// 매트릭스 도수생성 모달 컴포넌트
+function GenerateOptionsModal({
+  productName,
+  existingOptions,
+  onClose,
+  onGenerate,
+}: {
+  productName: string
+  existingOptions: ProductOption[]
+  onClose: () => void
+  onGenerate: (options: { sph: string; cyl: string }[]) => void
+}) {
+  // 탭: 근난시(-/-), 원난시(+/-)
+  const [activeTab, setActiveTab] = useState<'minus' | 'plus'>('minus')
+  
+  // 선택된 셀들 (Set으로 관리, "sph,cyl" 형태)
+  const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set())
+  
+  // 드래그 선택
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragMode, setDragMode] = useState<'select' | 'deselect'>('select')
+
+  // 기존 옵션들을 Set으로
+  const existingSet = new Set(existingOptions.map(o => `${o.sph},${o.cyl}`))
+
+  // SPH/CYL 값 생성
+  const formatValue = (v: number) => {
+    const rounded = Math.round(v * 100) / 100
+    if (rounded === 0) return '0.00'
+    return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2)
+  }
+
+  // CYL은 항상 마이너스 (0.00 ~ -4.00)
+  const cylValues: number[] = []
+  for (let c = 0; c >= -4; c -= 0.25) {
+    cylValues.push(c)
+  }
+
+  // SPH는 탭에 따라 다름
+  const sphValues: number[] = []
+  if (activeTab === 'minus') {
+    // 근난시: 0.00 ~ -8.00
+    for (let s = 0; s >= -8; s -= 0.25) {
+      sphValues.push(s)
+    }
+  } else {
+    // 원난시: +0.25 ~ +6.00
+    for (let s = 0.25; s <= 6; s += 0.25) {
+      sphValues.push(s)
+    }
+  }
+
+  const toggleCell = (sph: number, cyl: number) => {
+    const key = `${formatValue(sph)},${formatValue(cyl)}`
+    if (existingSet.has(key)) return // 기존 옵션은 선택 불가
+    
+    setSelectedCells(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(key)) {
+        newSet.delete(key)
+      } else {
+        newSet.add(key)
+      }
+      return newSet
+    })
+  }
+
+  const handleMouseDown = (sph: number, cyl: number) => {
+    const key = `${formatValue(sph)},${formatValue(cyl)}`
+    if (existingSet.has(key)) return
+    
+    setIsDragging(true)
+    setDragMode(selectedCells.has(key) ? 'deselect' : 'select')
+    toggleCell(sph, cyl)
+  }
+
+  const handleMouseEnter = (sph: number, cyl: number) => {
+    if (!isDragging) return
+    const key = `${formatValue(sph)},${formatValue(cyl)}`
+    if (existingSet.has(key)) return
+    
+    setSelectedCells(prev => {
+      const newSet = new Set(prev)
+      if (dragMode === 'select') {
+        newSet.add(key)
+      } else {
+        newSet.delete(key)
+      }
+      return newSet
+    })
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleSelectAll = () => {
+    const newSet = new Set(selectedCells)
+    sphValues.forEach(sph => {
+      cylValues.forEach(cyl => {
+        const key = `${formatValue(sph)},${formatValue(cyl)}`
+        if (!existingSet.has(key)) {
+          newSet.add(key)
+        }
+      })
+    })
+    setSelectedCells(newSet)
+  }
+
+  const handleClearAll = () => {
+    // 현재 탭의 선택만 해제
+    const newSet = new Set(selectedCells)
+    sphValues.forEach(sph => {
+      cylValues.forEach(cyl => {
+        const key = `${formatValue(sph)},${formatValue(cyl)}`
+        newSet.delete(key)
+      })
+    })
+    setSelectedCells(newSet)
+  }
+
+  const handleGenerate = () => {
+    const options = Array.from(selectedCells).map(key => {
+      const [sph, cyl] = key.split(',')
+      return { sph, cyl }
+    })
+    onGenerate(options)
+  }
+
+  const tabStyle = (active: boolean): React.CSSProperties => ({
+    padding: '10px 24px',
+    fontSize: 14,
+    fontWeight: active ? 600 : 400,
+    background: active ? '#fff' : 'var(--gray-100)',
+    border: 'none',
+    borderBottom: active ? '2px solid var(--primary)' : '2px solid transparent',
+    cursor: 'pointer',
+    color: active ? 'var(--primary)' : 'var(--gray-600)',
+  })
+
+  const cellStyle = (sph: number, cyl: number): React.CSSProperties => {
+    const key = `${formatValue(sph)},${formatValue(cyl)}`
+    const isExisting = existingSet.has(key)
+    const isSelected = selectedCells.has(key)
+    
+    return {
+      width: 28,
+      height: 24,
+      border: '1px solid var(--gray-200)',
+      cursor: isExisting ? 'not-allowed' : 'pointer',
+      background: isExisting 
+        ? 'var(--gray-300)' 
+        : isSelected 
+          ? 'var(--primary)' 
+          : '#fff',
+      transition: 'background 0.1s',
+    }
+  }
+
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+      }}
+      onClick={onClose}
+      onMouseUp={handleMouseUp}
+    >
+      <div 
+        style={{
+          background: '#fff',
+          borderRadius: 16,
+          width: 'auto',
+          maxWidth: '90vw',
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
+        <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--gray-200)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>도수생성</h3>
+            <button 
+              onClick={onClose}
+              style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--gray-400)' }}
+            >
+              ×
+            </button>
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>{productName}</div>
+        </div>
+
+        {/* 탭 */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)' }}>
+          <button style={tabStyle(activeTab === 'minus')} onClick={() => setActiveTab('minus')}>
+            근난시 (-/-)
+          </button>
+          <button style={tabStyle(activeTab === 'plus')} onClick={() => setActiveTab('plus')}>
+            원난시 (+/-)
+          </button>
+        </div>
+
+        {/* 매트릭스 */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+          <table style={{ borderCollapse: 'collapse', userSelect: 'none' }}>
+            <thead>
+              <tr>
+                <th style={{ 
+                  padding: '4px 8px', 
+                  fontSize: 11, 
+                  fontWeight: 600, 
+                  color: 'var(--gray-500)',
+                  position: 'sticky',
+                  top: 0,
+                  left: 0,
+                  background: '#fff',
+                  zIndex: 2,
+                }}>
+                  SPH\CYL
+                </th>
+                {cylValues.map(cyl => (
+                  <th key={cyl} style={{ 
+                    padding: '4px 2px', 
+                    fontSize: 10, 
+                    fontWeight: 500, 
+                    color: 'var(--gray-600)',
+                    position: 'sticky',
+                    top: 0,
+                    background: '#fff',
+                    zIndex: 1,
+                  }}>
+                    {formatValue(cyl)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sphValues.map(sph => (
+                <tr key={sph}>
+                  <td style={{ 
+                    padding: '2px 8px', 
+                    fontSize: 11, 
+                    fontWeight: 500, 
+                    color: 'var(--gray-600)',
+                    position: 'sticky',
+                    left: 0,
+                    background: '#fff',
+                    zIndex: 1,
+                  }}>
+                    {formatValue(sph)}
+                  </td>
+                  {cylValues.map(cyl => (
+                    <td 
+                      key={cyl}
+                      style={cellStyle(sph, cyl)}
+                      onMouseDown={() => handleMouseDown(sph, cyl)}
+                      onMouseEnter={() => handleMouseEnter(sph, cyl)}
+                    />
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 푸터 */}
+        <div style={{ 
+          padding: '12px 24px', 
+          borderTop: '1px solid var(--gray-200)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          background: 'var(--gray-50)',
+        }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button 
+              onClick={handleSelectAll}
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: 12, 
+                border: '1px solid var(--gray-300)', 
+                borderRadius: 6, 
+                background: '#fff',
+                cursor: 'pointer',
+              }}
+            >
+              전체선택
+            </button>
+            <button 
+              onClick={handleClearAll}
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: 12, 
+                border: '1px solid var(--gray-300)', 
+                borderRadius: 6, 
+                background: '#fff',
+                cursor: 'pointer',
+              }}
+            >
+              선택해제
+            </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontSize: 14, color: 'var(--gray-600)' }}>
+              총 <strong style={{ color: 'var(--primary)' }}>{selectedCells.size}</strong>개 선택
+            </span>
+            <button
+              onClick={handleGenerate}
+              disabled={selectedCells.size === 0}
+              style={{
+                padding: '8px 20px',
+                fontSize: 14,
+                fontWeight: 600,
+                border: 'none',
+                borderRadius: 8,
+                background: selectedCells.size > 0 ? 'var(--primary)' : 'var(--gray-300)',
+                color: '#fff',
+                cursor: selectedCells.size > 0 ? 'pointer' : 'not-allowed',
+              }}
+            >
+              생성하기
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProductsPage() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -329,49 +669,6 @@ export default function ProductsPage() {
     } catch (e) {
       console.error(e)
       alert('일괄 수정 실패')
-    }
-  }
-
-  // 도수 자동 생성
-  async function handleGenerateOptions(formData: FormData) {
-    const sphFrom = parseFloat(formData.get('sphFrom') as string) || -8
-    const sphTo = parseFloat(formData.get('sphTo') as string) || 4
-    const sphStep = parseFloat(formData.get('sphStep') as string) || 0.25
-    const cylFrom = parseFloat(formData.get('cylFrom') as string) || -2
-    const cylTo = parseFloat(formData.get('cylTo') as string) || 0
-    const cylStep = parseFloat(formData.get('cylStep') as string) || 0.25
-
-    const formatValue = (v: number) => {
-      const rounded = Math.round(v * 100) / 100
-      if (rounded === 0) return '0.00'
-      return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2)
-    }
-
-    const options: {sph: string, cyl: string}[] = []
-    for (let sph = sphFrom; sph <= sphTo + 0.001; sph += sphStep) {
-      for (let cyl = cylFrom; cyl <= cylTo + 0.001; cyl += cylStep) {
-        options.push({
-          sph: formatValue(sph),
-          cyl: formatValue(cyl),
-        })
-      }
-    }
-
-    try {
-      const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ options }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setShowGenerateModal(false)
-        if (selectedProduct) handleSelectProduct(selectedProduct)
-        alert(`${data.created}개의 옵션이 생성되었습니다.`)
-      }
-    } catch (e) {
-      console.error(e)
-      alert('도수 생성 실패')
     }
   }
 
@@ -991,44 +1288,31 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* 도수 생성 모달 */}
+      {/* 도수 생성 모달 (매트릭스 스타일) */}
       {showGenerateModal && (
-        <div style={modalOverlayStyle} onClick={() => setShowGenerateModal(false)}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>도수 자동 생성</h3>
-            <p style={{ fontSize: 13, color: 'var(--gray-500)', marginBottom: 16 }}>
-              SPH/CYL 범위를 지정하면 해당 범위의 모든 도수 옵션을 자동으로 생성합니다.
-            </p>
-            <form onSubmit={(e) => { e.preventDefault(); handleGenerateOptions(new FormData(e.currentTarget)) }}>
-              <div style={{ display: 'grid', gap: 16 }}>
-                <div>
-                  <label style={labelStyle}>SPH 범위</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: 8, alignItems: 'center' }}>
-                    <input name="sphFrom" type="number" step="0.25" defaultValue={-8} style={inputStyle} />
-                    <span>~</span>
-                    <input name="sphTo" type="number" step="0.25" defaultValue={4} style={inputStyle} />
-                    <span>간격</span>
-                    <input name="sphStep" type="number" step="0.25" defaultValue={0.25} style={inputStyle} />
-                  </div>
-                </div>
-                <div>
-                  <label style={labelStyle}>CYL 범위</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: 8, alignItems: 'center' }}>
-                    <input name="cylFrom" type="number" step="0.25" defaultValue={-2} style={inputStyle} />
-                    <span>~</span>
-                    <input name="cylTo" type="number" step="0.25" defaultValue={0} style={inputStyle} />
-                    <span>간격</span>
-                    <input name="cylStep" type="number" step="0.25" defaultValue={0.25} style={inputStyle} />
-                  </div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24 }}>
-                <button type="button" onClick={() => setShowGenerateModal(false)} style={actionBtnStyle}>취소</button>
-                <button type="submit" style={primaryBtnStyle}>생성</button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <GenerateOptionsModal
+          productName={selectedProduct?.name || ''}
+          existingOptions={options}
+          onClose={() => setShowGenerateModal(false)}
+          onGenerate={async (selectedCells) => {
+            try {
+              const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ options: selectedCells }),
+              })
+              if (res.ok) {
+                const data = await res.json()
+                setShowGenerateModal(false)
+                if (selectedProduct) handleSelectProduct(selectedProduct)
+                alert(`${data.created}개의 옵션이 생성되었습니다.`)
+              }
+            } catch (e) {
+              console.error(e)
+              alert('도수 생성 실패')
+            }
+          }}
+        />
       )}
     </Layout>
   )
