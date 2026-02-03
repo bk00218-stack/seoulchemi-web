@@ -1,63 +1,116 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
 import DataTable, { Column } from '../../../components/DataTable'
-import SearchFilter, { OutlineButton } from '../../../components/SearchFilter'
-import StatCard, { StatCardGrid } from '../../../components/StatCard'
+import SearchFilter from '../../../components/SearchFilter'
 
 interface PrintHistory {
   id: number
-  printedAt: string
+  orderId: number | null
   orderNo: string
-  store: string
+  storeName: string
   printType: string
   printedBy: string
   pageCount: number
+  printedAt: string
 }
 
-const sampleData: PrintHistory[] = [
-  { id: 1, printedAt: '2024-01-15 16:30:22', orderNo: 'ORD-2024-0001', store: '강남안경', printType: '거래명세서', printedBy: '관리자', pageCount: 1 },
-  { id: 2, printedAt: '2024-01-15 15:45:10', orderNo: 'ORD-2024-0002', store: '역삼안경원', printType: '출고명세서', printedBy: '관리자', pageCount: 2 },
-  { id: 3, printedAt: '2024-01-15 14:20:33', orderNo: 'RX-2024-0001', store: '신사안경', printType: '거래명세서', printedBy: '관리자', pageCount: 1 },
-  { id: 4, printedAt: '2024-01-15 13:15:44', orderNo: 'STK-2024-0003', store: '압구정광학', printType: '납품확인서', printedBy: '관리자', pageCount: 1 },
-  { id: 5, printedAt: '2024-01-15 11:30:55', orderNo: 'ORD-2024-0005', store: '청담안경', printType: '거래명세서', printedBy: '김대리', pageCount: 3 },
-  { id: 6, printedAt: '2024-01-14 17:20:11', orderNo: 'ORD-2024-0004', store: '강남안경', printType: '출고명세서', printedBy: '관리자', pageCount: 1 },
-  { id: 7, printedAt: '2024-01-14 16:10:22', orderNo: 'RX-2024-0002', store: '선릉안경', printType: '거래명세서', printedBy: '관리자', pageCount: 2 },
-]
+interface Stats {
+  todayCount: number
+  weekCount: number
+  monthCount: number
+  totalPages: number
+}
 
 export default function PrintHistoryPage() {
-  const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
+  const [history, setHistory] = useState<PrintHistory[]>([])
+  const [stats, setStats] = useState<Stats>({ todayCount: 0, weekCount: 0, monthCount: 0, totalPages: 0 })
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [printType, setPrintType] = useState('')
+  const [printedBy, setPrintedBy] = useState('')
+
+  useEffect(() => {
+    loadData()
+  }, [printType, printedBy])
+
+  const loadData = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (search) params.append('search', search)
+      if (printType) params.append('printType', printType)
+      if (printedBy) params.append('printedBy', printedBy)
+      
+      const res = await fetch(`/api/print-history?${params}`)
+      const data = await res.json()
+      setHistory(data.history || [])
+      setStats(data.stats || { todayCount: 0, weekCount: 0, monthCount: 0, totalPages: 0 })
+    } catch (error) {
+      console.error('Failed to load print history:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReprint = async (item: PrintHistory) => {
+    // 재출력 기록 추가
+    try {
+      await fetch('/api/print-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: item.orderId,
+          orderNo: item.orderNo,
+          storeName: item.storeName,
+          printType: item.printType,
+          printedBy: '관리자',
+          pageCount: item.pageCount
+        })
+      })
+      loadData()
+      alert(`${item.orderNo} 재출력이 기록되었습니다.`)
+    } catch (error) {
+      alert('재출력 기록에 실패했습니다.')
+    }
+  }
 
   const columns: Column<PrintHistory>[] = [
     { key: 'printedAt', label: '출력일시', render: (v) => (
-      <span style={{ color: '#1d1d1f', fontSize: '13px' }}>{v as string}</span>
-    )},
-    { key: 'orderNo', label: '주문번호', render: (v) => (
-      <span style={{ fontWeight: 500, color: '#007aff' }}>{v as string}</span>
-    )},
-    { key: 'store', label: '가맹점' },
-    { key: 'printType', label: '출력유형', render: (v) => (
-      <span style={{ 
-        background: v === '거래명세서' ? '#e8f5e9' : v === '출고명세서' ? '#e3f2fd' : '#fff3e0',
-        color: v === '거래명세서' ? '#2e7d32' : v === '출고명세서' ? '#007aff' : '#ff9500',
-        padding: '3px 8px',
-        borderRadius: '4px',
-        fontSize: '12px',
-        fontWeight: 500
-      }}>
-        {v as string}
+      <span style={{ fontSize: '12px', color: '#666' }}>
+        {new Date(v as string).toLocaleString('ko-KR')}
       </span>
     )},
-    { key: 'printedBy', label: '출력자', render: (v) => (
-      <span style={{ color: '#666' }}>{v as string}</span>
+    { key: 'orderNo', label: '주문번호', render: (v) => (
+      <span style={{ fontFamily: 'monospace', fontWeight: 500 }}>{v as string}</span>
     )},
+    { key: 'storeName', label: '가맹점' },
+    { key: 'printType', label: '출력유형', render: (v) => {
+      const types: Record<string, { bg: string; color: string }> = {
+        '거래명세서': { bg: '#e3f2fd', color: '#1565c0' },
+        '출고명세서': { bg: '#e8f5e9', color: '#2e7d32' },
+        '납품확인서': { bg: '#fff3e0', color: '#ef6c00' }
+      }
+      const style = types[v as string] || { bg: '#f5f5f5', color: '#666' }
+      return (
+        <span style={{ 
+          background: style.bg, 
+          color: style.color, 
+          padding: '3px 8px', 
+          borderRadius: '4px', 
+          fontSize: '12px' 
+        }}>
+          {v as string}
+        </span>
+      )
+    }},
+    { key: 'printedBy', label: '출력자' },
     { key: 'pageCount', label: '페이지', align: 'center', render: (v) => (
-      <span style={{ color: '#86868b' }}>{v as number}장</span>
+      <span>{v as number}장</span>
     )},
-    { key: 'id', label: '재출력', align: 'center', render: (v) => (
+    { key: 'id', label: '재출력', align: 'center', render: (_, row) => (
       <button
-        onClick={() => alert(`주문 ${v} 재출력`)}
+        onClick={() => handleReprint(row)}
         style={{
           padding: '4px 10px',
           borderRadius: '4px',
@@ -73,82 +126,113 @@ export default function PrintHistoryPage() {
     )},
   ]
 
+  // 출력자 목록 추출
+  const printers = [...new Set(history.map(h => h.printedBy))]
+
   return (
     <AdminLayout activeMenu="order">
       <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
         명세표 출력이력
       </h2>
 
-      <StatCardGrid>
-        <StatCard label="오늘 출력" value={5} unit="건" icon="🖨️" />
-        <StatCard label="이번 주 출력" value={32} unit="건" />
-        <StatCard label="이번 달 출력" value={147} unit="건" />
-        <StatCard label="총 페이지" value={203} unit="장" />
-      </StatCardGrid>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(4, 1fr)', 
+        gap: '16px', 
+        marginBottom: '24px' 
+      }}>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>오늘 출력</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#1d1d1f' }}>
+            🖨️ {stats.todayCount}
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>건</span>
+          </div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>이번 주 출력</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>
+            {stats.weekCount}
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>건</span>
+          </div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>이번 달 출력</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>
+            {stats.monthCount}
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>건</span>
+          </div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 페이지</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>
+            {stats.totalPages.toLocaleString()}
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>장</span>
+          </div>
+        </div>
+      </div>
 
       <SearchFilter
         placeholder="주문번호, 가맹점명 검색"
-        dateRange
+        value={search}
+        onChange={setSearch}
+        onSearch={() => { setLoading(true); loadData(); }}
         filters={[
-          { label: '출력유형', key: 'type', options: [
-            { label: '거래명세서', value: 'invoice' },
-            { label: '출고명세서', value: 'shipping' },
-            { label: '납품확인서', value: 'delivery' },
-          ]},
-          { label: '출력자', key: 'user', options: [
-            { label: '관리자', value: 'admin' },
-            { label: '김대리', value: 'kim' },
-          ]}
+          {
+            key: 'printType',
+            label: '출력유형',
+            options: [
+              { label: '출력유형', value: '' },
+              { label: '거래명세서', value: '거래명세서' },
+              { label: '출고명세서', value: '출고명세서' },
+              { label: '납품확인서', value: '납품확인서' }
+            ],
+            value: printType,
+            onChange: setPrintType
+          },
+          {
+            key: 'printedBy',
+            label: '출력자',
+            options: [
+              { label: '출력자', value: '' },
+              ...printers.map(p => ({ label: p, value: p }))
+            ],
+            value: printedBy,
+            onChange: setPrintedBy
+          }
         ]}
         actions={
-          <OutlineButton onClick={() => alert('출력 이력 내보내기')}>📥 내보내기</OutlineButton>
+          <button
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              background: '#fff',
+              color: '#1d1d1f',
+              border: '1px solid #e5e5e5',
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            📥 내보내기
+          </button>
         }
       />
 
       <DataTable
         columns={columns}
-        data={sampleData}
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
+        data={history}
+        loading={loading}
         emptyMessage="출력 이력이 없습니다"
       />
 
       <div style={{ 
         marginTop: '16px', 
-        padding: '16px 20px', 
+        padding: '12px 16px', 
         background: '#fff', 
-        borderRadius: '12px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
+        borderRadius: '8px',
+        fontSize: '13px',
+        color: '#666'
       }}>
-        <span style={{ fontSize: '13px', color: '#86868b' }}>
-          총 {sampleData.length}건의 출력 이력
-        </span>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={() => {
-              if (selectedIds.size === 0) {
-                alert('선택된 항목이 없습니다.')
-                return
-              }
-              alert(`${selectedIds.size}건 일괄 재출력`)
-            }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '6px',
-              background: '#007aff',
-              color: '#fff',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 500,
-              cursor: 'pointer'
-            }}
-          >
-            선택 재출력
-          </button>
-        </div>
+        총 {history.length}건의 출력 이력
       </div>
     </AdminLayout>
   )

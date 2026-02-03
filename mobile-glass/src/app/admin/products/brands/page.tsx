@@ -1,45 +1,137 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
 import DataTable, { StatusBadge, Column } from '../../../components/DataTable'
-import SearchFilter, { OutlineButton } from '../../../components/SearchFilter'
+import SearchFilter from '../../../components/SearchFilter'
 
 interface Brand {
   id: number
-  code: string
   name: string
-  nameEn: string
-  supplier: string
+  stockManage: string | null
+  canExchange: boolean
+  canReturn: boolean
+  isActive: boolean
+  displayOrder: number
   productCount: number
-  status: string
+  activeCount: number
+  inactiveCount: number
   createdAt: string
 }
 
-const sampleData: Brand[] = [
-  { id: 1, code: 'BRD001', name: '에실로', nameEn: 'Essilor', supplier: '에실로코리아', productCount: 45, status: 'active', createdAt: '2023-01-01' },
-  { id: 2, code: 'BRD002', name: '호야', nameEn: 'Hoya', supplier: '호야광학', productCount: 32, status: 'active', createdAt: '2023-01-15' },
-  { id: 3, code: 'BRD003', name: '칼자이스', nameEn: 'Carl Zeiss', supplier: '칼자이스코리아', productCount: 28, status: 'active', createdAt: '2023-02-01' },
-  { id: 4, code: 'BRD004', name: '니콘', nameEn: 'Nikon', supplier: '니콘광학', productCount: 18, status: 'active', createdAt: '2023-02-20' },
-  { id: 5, code: 'BRD005', name: '로덴스톡', nameEn: 'Rodenstock', supplier: '로덴스톡', productCount: 12, status: 'inactive', createdAt: '2023-03-10' },
-  { id: 6, code: 'BRD006', name: '케미', nameEn: 'Chemi', supplier: '케미렌즈', productCount: 22, status: 'active', createdAt: '2023-04-01' },
-]
-
 export default function BrandsPage() {
+  const [brands, setBrands] = useState<Brand[]>([])
+  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
+  const [search, setSearch] = useState('')
+  
+  // 폼 상태
+  const [formData, setFormData] = useState({
+    name: '',
+    stockManage: '',
+    canExchange: false,
+    canReturn: false,
+    isActive: true,
+    displayOrder: 0
+  })
+
+  useEffect(() => {
+    loadBrands()
+  }, [])
+
+  const loadBrands = async () => {
+    try {
+      const res = await fetch('/api/brands')
+      const data = await res.json()
+      setBrands(data)
+    } catch (error) {
+      console.error('Failed to load brands:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      const url = editingBrand ? `/api/brands/${editingBrand.id}` : '/api/brands'
+      const method = editingBrand ? 'PATCH' : 'POST'
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      
+      if (res.ok) {
+        setShowModal(false)
+        loadBrands()
+      } else {
+        const error = await res.json()
+        alert(error.error || '저장에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('저장에 실패했습니다.')
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('이 브랜드를 삭제하시겠습니까?')) return
+    
+    try {
+      const res = await fetch(`/api/brands/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        loadBrands()
+      } else {
+        const error = await res.json()
+        alert(error.error || '삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('삭제에 실패했습니다.')
+    }
+  }
+
+  const openEditModal = (brand: Brand | null) => {
+    if (brand) {
+      setFormData({
+        name: brand.name,
+        stockManage: brand.stockManage || '',
+        canExchange: brand.canExchange,
+        canReturn: brand.canReturn,
+        isActive: brand.isActive,
+        displayOrder: brand.displayOrder
+      })
+      setEditingBrand(brand)
+    } else {
+      setFormData({
+        name: '',
+        stockManage: '',
+        canExchange: false,
+        canReturn: false,
+        isActive: true,
+        displayOrder: brands.length
+      })
+      setEditingBrand(null)
+    }
+    setShowModal(true)
+  }
 
   const columns: Column<Brand>[] = [
-    { key: 'code', label: '코드', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
+    { key: 'displayOrder', label: '순서', width: '60px', align: 'center', render: (v) => (
+      <span style={{ color: '#86868b', fontSize: '12px' }}>{v as number}</span>
     )},
     { key: 'name', label: '브랜드명', render: (v) => (
       <span style={{ fontWeight: 600 }}>{v as string}</span>
     )},
-    { key: 'nameEn', label: '영문명', render: (v) => (
-      <span style={{ color: '#666' }}>{v as string}</span>
+    { key: 'stockManage', label: '출고관리', render: (v) => (
+      <span style={{ color: '#666', fontSize: '13px' }}>{v as string || '-'}</span>
     )},
-    { key: 'supplier', label: '매입처' },
+    { key: 'canExchange', label: '교환', align: 'center', render: (v) => (
+      <span style={{ color: v ? '#34c759' : '#86868b' }}>{v ? 'O' : 'X'}</span>
+    )},
+    { key: 'canReturn', label: '반품', align: 'center', render: (v) => (
+      <span style={{ color: v ? '#34c759' : '#86868b' }}>{v ? 'O' : 'X'}</span>
+    )},
     { key: 'productCount', label: '상품 수', align: 'center', render: (v) => (
       <span style={{ 
         background: '#e3f2fd', 
@@ -52,29 +144,50 @@ export default function BrandsPage() {
         {v as number}개
       </span>
     )},
-    { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} /> },
-    { key: 'createdAt', label: '등록일', render: (v) => (
-      <span style={{ color: '#86868b', fontSize: '12px' }}>{v as string}</span>
+    { key: 'isActive', label: '상태', render: (v) => (
+      <StatusBadge status={v ? 'active' : 'inactive'} />
     )},
     { key: 'id', label: '관리', align: 'center', render: (_, row) => (
-      <button
-        onClick={() => { setEditingBrand(row); setShowModal(true); }}
-        style={{
-          padding: '4px 10px',
-          borderRadius: '4px',
-          background: '#f5f5f7',
-          color: '#007aff',
-          border: 'none',
-          fontSize: '12px',
-          cursor: 'pointer'
-        }}
-      >
-        수정
-      </button>
+      <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+        <button
+          onClick={() => openEditModal(row)}
+          style={{
+            padding: '4px 10px',
+            borderRadius: '4px',
+            background: '#f5f5f7',
+            color: '#007aff',
+            border: 'none',
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          수정
+        </button>
+        <button
+          onClick={() => handleDelete(row.id)}
+          style={{
+            padding: '4px 10px',
+            borderRadius: '4px',
+            background: '#fff0f0',
+            color: '#ff3b30',
+            border: 'none',
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          삭제
+        </button>
+      </div>
     )},
   ]
 
-  const totalProducts = sampleData.reduce((sum, b) => sum + b.productCount, 0)
+  const filteredBrands = search 
+    ? brands.filter(b => b.name.toLowerCase().includes(search.toLowerCase()))
+    : brands
+
+  const totalProducts = brands.reduce((sum, b) => sum + b.productCount, 0)
+  const activeBrands = brands.filter(b => b.isActive).length
+  const inactiveBrands = brands.filter(b => !b.isActive).length
 
   return (
     <AdminLayout activeMenu="products">
@@ -91,21 +204,21 @@ export default function BrandsPage() {
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
           <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 브랜드</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#1d1d1f' }}>
-            {sampleData.length}
+            {brands.length}
             <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>개</span>
           </div>
         </div>
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
           <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>활성</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>
-            {sampleData.filter(b => b.status === 'active').length}
+            {activeBrands}
             <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>개</span>
           </div>
         </div>
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
           <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>비활성</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>
-            {sampleData.filter(b => b.status === 'inactive').length}
+            {inactiveBrands}
             <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>개</span>
           </div>
         </div>
@@ -120,9 +233,11 @@ export default function BrandsPage() {
 
       <SearchFilter
         placeholder="브랜드명 검색"
+        value={search}
+        onChange={setSearch}
         actions={
           <button
-            onClick={() => { setEditingBrand(null); setShowModal(true); }}
+            onClick={() => openEditModal(null)}
             style={{
               padding: '8px 16px',
               borderRadius: '6px',
@@ -141,7 +256,8 @@ export default function BrandsPage() {
 
       <DataTable
         columns={columns}
-        data={sampleData}
+        data={filteredBrands}
+        loading={loading}
         emptyMessage="등록된 브랜드가 없습니다"
       />
 
@@ -171,42 +287,78 @@ export default function BrandsPage() {
             
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>브랜드명 *</label>
-              <input type="text" defaultValue={editingBrand?.name} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+              <input 
+                type="text" 
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+              />
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>영문명</label>
-                <input type="text" defaultValue={editingBrand?.nameEn} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>출고관리</label>
+                <select 
+                  value={formData.stockManage}
+                  onChange={(e) => setFormData({ ...formData, stockManage: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                >
+                  <option value="">미사용</option>
+                  <option value="barcode">바코드</option>
+                  <option value="manual">수동</option>
+                </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>코드</label>
-                <input type="text" defaultValue={editingBrand?.code} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>순서</label>
+                <input 
+                  type="number" 
+                  value={formData.displayOrder}
+                  onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                />
               </div>
             </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>매입처</label>
-              <select defaultValue={editingBrand?.supplier} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
-                <option value="">선택</option>
-                <option value="에실로코리아">에실로코리아</option>
-                <option value="호야광학">호야광학</option>
-                <option value="칼자이스코리아">칼자이스코리아</option>
-                <option value="니콘광학">니콘광학</option>
-              </select>
-            </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상태</label>
-              <select defaultValue={editingBrand?.status || 'active'} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
-                <option value="active">활성</option>
-                <option value="inactive">비활성</option>
-              </select>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={formData.canExchange}
+                  onChange={(e) => setFormData({ ...formData, canExchange: e.target.checked })}
+                />
+                <span style={{ fontSize: '13px' }}>교환 가능</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={formData.canReturn}
+                  onChange={(e) => setFormData({ ...formData, canReturn: e.target.checked })}
+                />
+                <span style={{ fontSize: '13px' }}>반품 가능</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                />
+                <span style={{ fontSize: '13px' }}>활성</span>
+              </label>
             </div>
             
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-              <button onClick={() => setShowModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
-              <button onClick={() => { alert('저장되었습니다.'); setShowModal(false); }} style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>저장</button>
+              <button 
+                onClick={() => setShowModal(false)} 
+                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}
+              >
+                취소
+              </button>
+              <button 
+                onClick={handleSave} 
+                style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
+              >
+                저장
+              </button>
             </div>
           </div>
         </div>

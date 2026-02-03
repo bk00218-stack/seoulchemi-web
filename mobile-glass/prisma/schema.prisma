@@ -100,6 +100,22 @@ model Store {
   ownerName     String?   // 대표자명
   isActive      Boolean   @default(true)
   
+  // 배송 정보
+  deliveryContact   String?   // 배송 담당자
+  deliveryPhone     String?   // 배송 연락처
+  deliveryAddress   String?   // 배송 주소
+  deliveryZipcode   String?   // 우편번호
+  deliveryMemo      String?   // 배송 메모
+  
+  // 레티나 연동 정보
+  retinaCode        String?   // 레티나 가맹점 코드
+  retinaJoined      Boolean   @default(false) // 레티나 가입 여부
+  retinaJoinedAt    DateTime? // 레티나 가입일
+  
+  // 유통사 정보
+  distributorCode   String?   // 유통사 코드
+  distributorStatus String?   // 승인상태 (pending, approved, rejected)
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -175,6 +191,12 @@ model Supplier {
   memo          String?   // 메모
   isActive      Boolean   @default(true)
   
+  // 미납금 관리
+  outstandingAmount Int   @default(0) // 미납금액
+  creditLimit       Int   @default(0) // 신용한도
+  paymentTermDays   Int   @default(30) // 결제 기한 (일)
+  lastPaymentAt     DateTime? // 최근 결제일
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -231,4 +253,157 @@ model Setting {
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+// 가맹점 그룹 테이블
+model StoreGroup {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique // 그룹명
+  description   String?   // 설명
+  discountRate  Float     @default(0) // 기본 할인율 (%)
+  storeType     String    @default("normal") // 가맹점 타입 (normal, vip, wholesale 등)
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  stores        StoreGroupMember[]
+  brandDiscounts BrandDiscount[]
+}
+
+// 가맹점-그룹 연결 테이블
+model StoreGroupMember {
+  id            Int       @id @default(autoincrement())
+  storeId       Int
+  groupId       Int
+  group         StoreGroup @relation(fields: [groupId], references: [id])
+  
+  createdAt     DateTime  @default(now())
+  
+  @@unique([storeId, groupId])
+  @@index([storeId])
+  @@index([groupId])
+}
+
+// 브랜드별 할인율 테이블
+model BrandDiscount {
+  id            Int       @id @default(autoincrement())
+  groupId       Int
+  group         StoreGroup @relation(fields: [groupId], references: [id])
+  brandId       Int
+  discountRate  Float     // 할인율 (%)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([groupId, brandId])
+  @@index([groupId])
+  @@index([brandId])
+}
+
+// 공지사항 테이블
+model Notice {
+  id            Int       @id @default(autoincrement())
+  title         String    // 제목
+  content       String    // 내용
+  type          String    @default("notice") // notice, event, urgent
+  isImportant   Boolean   @default(false) // 중요 공지
+  isPinned      Boolean   @default(false) // 상단 고정
+  viewCount     Int       @default(0)     // 조회수
+  startDate     DateTime? // 게시 시작일
+  endDate       DateTime? // 게시 종료일
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// 출력 이력 테이블
+model PrintHistory {
+  id            Int       @id @default(autoincrement())
+  orderId       Int?      // 관련 주문
+  orderNo       String    // 주문번호
+  storeName     String    // 가맹점명
+  printType     String    // 출력유형 (거래명세서, 출고명세서, 납품확인서)
+  printedBy     String    // 출력자
+  pageCount     Int       @default(1) // 페이지 수
+  
+  printedAt     DateTime  @default(now())
+  
+  @@index([orderId])
+  @@index([printedAt])
+}
+
+// 묶음상품 테이블
+model BundleProduct {
+  id            Int       @id @default(autoincrement())
+  name          String    // 묶음상품명
+  description   String?   // 설명
+  discountRate  Float     @default(0) // 묶음 할인율 (%)
+  discountAmount Int      @default(0) // 묶음 할인액
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  items         BundleItem[]
+}
+
+// 묶음상품 구성 테이블
+model BundleItem {
+  id            Int       @id @default(autoincrement())
+  bundleId      Int
+  bundle        BundleProduct @relation(fields: [bundleId], references: [id])
+  productId     Int
+  quantity      Int       @default(1)
+  
+  @@index([bundleId])
+  @@index([productId])
+}
+
+// 상품 단축코드 테이블
+model ProductShortcut {
+  id            Int       @id @default(autoincrement())
+  shortcode     String    @unique // 단축코드
+  productId     Int       // 연결 상품
+  description   String?   // 설명
+  useCount      Int       @default(0) // 사용 횟수
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([productId])
+}
+
+// 배송 구역 테이블
+model ShippingZone {
+  id            Int       @id @default(autoincrement())
+  name          String    // 구역명
+  regions       String    // 지역 목록 (JSON array)
+  baseFee       Int       @default(0) // 기본 배송비
+  freeThreshold Int       @default(0) // 무료배송 기준금액
+  extraFee      Int       @default(0) // 추가 배송비 (도서산간)
+  deliveryDays  Int       @default(1) // 예상 배송일
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// 구분(카테고리) 설정 테이블
+model Category {
+  id            Int       @id @default(autoincrement())
+  type          String    // 구분 타입 (optionType, productType, orderStatus 등)
+  code          String    // 코드
+  name          String    // 표시명
+  description   String?   // 설명
+  displayOrder  Int       @default(0) // 표시 순서
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([type, code])
+  @@index([type])
 }

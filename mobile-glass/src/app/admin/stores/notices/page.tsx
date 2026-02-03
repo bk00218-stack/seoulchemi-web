@@ -1,99 +1,219 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
-import DataTable, { Column } from '../../../components/DataTable'
-import SearchFilter, { OutlineButton } from '../../../components/SearchFilter'
+import DataTable, { StatusBadge, Column } from '../../../components/DataTable'
+import SearchFilter from '../../../components/SearchFilter'
 
 interface Notice {
   id: number
   title: string
   content: string
-  author: string
-  targetGroups: string[]
+  type: string
+  isImportant: boolean
   isPinned: boolean
   viewCount: number
+  startDate: string | null
+  endDate: string | null
+  isActive: boolean
   createdAt: string
 }
 
-const sampleData: Notice[] = [
-  { id: 1, title: '2024년 1월 배송 일정 안내', content: '설 연휴 기간 배송 일정을 안내드립니다...', author: '관리자', targetGroups: ['전체'], isPinned: true, viewCount: 156, createdAt: '2024-01-15' },
-  { id: 2, title: '신상품 출시 안내 - 에실로 크리잘 뉴', content: '에실로 크리잘 뉴 라인이 출시되었습니다...', author: '관리자', targetGroups: ['A그룹', 'B그룹'], isPinned: true, viewCount: 98, createdAt: '2024-01-12' },
-  { id: 3, title: '가격 정책 변경 안내', content: '2024년 2월부터 일부 상품의 가격이 조정됩니다...', author: '관리자', targetGroups: ['전체'], isPinned: false, viewCount: 234, createdAt: '2024-01-10' },
-  { id: 4, title: '시스템 점검 안내', content: '1월 20일 새벽 2시-6시 시스템 점검...', author: '관리자', targetGroups: ['전체'], isPinned: false, viewCount: 67, createdAt: '2024-01-08' },
-  { id: 5, title: 'A그룹 할인 이벤트', content: 'A그룹 가맹점 대상 특별 할인 이벤트...', author: '관리자', targetGroups: ['A그룹'], isPinned: false, viewCount: 45, createdAt: '2024-01-05' },
-]
+interface Stats {
+  total: number
+  notice: number
+  event: number
+  urgent: number
+  pinned: number
+}
 
 export default function NoticesPage() {
+  const [notices, setNotices] = useState<Notice[]>([])
+  const [stats, setStats] = useState<Stats>({ total: 0, notice: 0, event: 0, urgent: 0, pinned: 0 })
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null)
-  const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    type: 'notice',
+    isImportant: false,
+    isPinned: false,
+    isActive: true
+  })
+
+  useEffect(() => {
+    loadData()
+  }, [typeFilter])
+
+  const loadData = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (search) params.append('search', search)
+      if (typeFilter) params.append('type', typeFilter)
+      
+      const res = await fetch(`/api/notices?${params}`)
+      const data = await res.json()
+      setNotices(data.notices || [])
+      setStats(data.stats || { total: 0, notice: 0, event: 0, urgent: 0, pinned: 0 })
+    } catch (error) {
+      console.error('Failed to load notices:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const openEditModal = (notice: Notice | null) => {
+    if (notice) {
+      setFormData({
+        title: notice.title,
+        content: notice.content,
+        type: notice.type,
+        isImportant: notice.isImportant,
+        isPinned: notice.isPinned,
+        isActive: notice.isActive
+      })
+      setEditingNotice(notice)
+    } else {
+      setFormData({
+        title: '',
+        content: '',
+        type: 'notice',
+        isImportant: false,
+        isPinned: false,
+        isActive: true
+      })
+      setEditingNotice(null)
+    }
+    setShowModal(true)
+  }
+
+  const handleSave = async () => {
+    try {
+      const url = editingNotice ? `/api/notices/${editingNotice.id}` : '/api/notices'
+      const method = editingNotice ? 'PATCH' : 'POST'
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      
+      if (res.ok) {
+        setShowModal(false)
+        loadData()
+      }
+    } catch (error) {
+      alert('저장에 실패했습니다.')
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('이 공지사항을 삭제하시겠습니까?')) return
+    
+    try {
+      const res = await fetch(`/api/notices/${id}`, { method: 'DELETE' })
+      if (res.ok) loadData()
+    } catch (error) {
+      alert('삭제에 실패했습니다.')
+    }
+  }
+
+  const togglePin = async (notice: Notice) => {
+    try {
+      await fetch(`/api/notices/${notice.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPinned: !notice.isPinned })
+      })
+      loadData()
+    } catch (error) {
+      console.error('Failed to toggle pin:', error)
+    }
+  }
 
   const columns: Column<Notice>[] = [
-    { key: 'isPinned', label: '', width: '30px', render: (v) => (
-      v ? <span style={{ color: '#ff9500' }}>📌</span> : null
+    { key: 'isPinned', label: '', width: '40px', render: (v) => (
+      v ? <span title="고정됨">📌</span> : null
     )},
+    { key: 'type', label: '구분', width: '80px', render: (v) => {
+      const types: Record<string, { bg: string; color: string; label: string }> = {
+        notice: { bg: '#e3f2fd', color: '#1565c0', label: '공지' },
+        event: { bg: '#e8f5e9', color: '#2e7d32', label: '이벤트' },
+        urgent: { bg: '#ffebee', color: '#c62828', label: '긴급' }
+      }
+      const style = types[v as string] || types.notice
+      return (
+        <span style={{ 
+          background: style.bg, 
+          color: style.color, 
+          padding: '3px 8px', 
+          borderRadius: '4px', 
+          fontSize: '11px',
+          fontWeight: 500
+        }}>
+          {style.label}
+        </span>
+      )
+    }},
     { key: 'title', label: '제목', render: (v, row) => (
       <div>
-        <span style={{ fontWeight: 500, cursor: 'pointer' }} onClick={() => { setEditingNotice(row); setShowModal(true); }}>
-          {v as string}
-        </span>
-        {row.isPinned && (
-          <span style={{ marginLeft: '8px', fontSize: '10px', background: '#fff3e0', color: '#ff9500', padding: '1px 6px', borderRadius: '4px' }}>
-            고정
-          </span>
-        )}
+        {row.isImportant && <span style={{ color: '#ff3b30', marginRight: '4px' }}>⚠️</span>}
+        <span style={{ fontWeight: 500 }}>{v as string}</span>
       </div>
     )},
-    { key: 'targetGroups', label: '대상', render: (v) => (
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-        {(v as string[]).map((group, idx) => (
-          <span key={idx} style={{ 
-            background: group === '전체' ? '#e3f2fd' : '#f5f5f7',
-            color: group === '전체' ? '#007aff' : '#666',
-            padding: '2px 6px', 
-            borderRadius: '4px', 
-            fontSize: '11px' 
-          }}>
-            {group}
-          </span>
-        ))}
-      </div>
+    { key: 'viewCount', label: '조회', width: '60px', align: 'center', render: (v) => (
+      <span style={{ color: '#86868b', fontSize: '12px' }}>{v as number}</span>
     )},
-    { key: 'author', label: '작성자', render: (v) => (
-      <span style={{ color: '#666' }}>{v as string}</span>
+    { key: 'createdAt', label: '등록일', width: '100px', render: (v) => (
+      <span style={{ color: '#86868b', fontSize: '12px' }}>
+        {new Date(v as string).toLocaleDateString('ko-KR')}
+      </span>
     )},
-    { key: 'viewCount', label: '조회', align: 'center', render: (v) => (
-      <span style={{ color: '#86868b' }}>{v as number}</span>
+    { key: 'isActive', label: '상태', width: '70px', render: (v) => (
+      <StatusBadge status={v ? 'active' : 'inactive'} />
     )},
-    { key: 'createdAt', label: '작성일', render: (v) => (
-      <span style={{ color: '#86868b', fontSize: '12px' }}>{v as string}</span>
-    )},
-    { key: 'id', label: '관리', align: 'center', render: (_, row) => (
+    { key: 'id', label: '관리', width: '140px', align: 'center', render: (_, row) => (
       <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
         <button
-          onClick={() => { setEditingNotice(row); setShowModal(true); }}
+          onClick={() => togglePin(row)}
           style={{
-            padding: '4px 10px',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            background: row.isPinned ? '#fff3e0' : '#f5f5f7',
+            color: row.isPinned ? '#ff9500' : '#666',
+            border: 'none',
+            fontSize: '11px',
+            cursor: 'pointer'
+          }}
+        >
+          {row.isPinned ? '고정해제' : '고정'}
+        </button>
+        <button
+          onClick={() => openEditModal(row)}
+          style={{
+            padding: '4px 8px',
             borderRadius: '4px',
             background: '#f5f5f7',
             color: '#007aff',
             border: 'none',
-            fontSize: '12px',
+            fontSize: '11px',
             cursor: 'pointer'
           }}
         >
           수정
         </button>
         <button
-          onClick={() => alert('삭제하시겠습니까?')}
+          onClick={() => handleDelete(row.id)}
           style={{
-            padding: '4px 10px',
+            padding: '4px 8px',
             borderRadius: '4px',
-            background: '#ffebee',
+            background: '#fff0f0',
             color: '#ff3b30',
             border: 'none',
-            fontSize: '12px',
+            fontSize: '11px',
             cursor: 'pointer'
           }}
         >
@@ -111,41 +231,54 @@ export default function NoticesPage() {
 
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(3, 1fr)', 
+        gridTemplateColumns: 'repeat(5, 1fr)', 
         gap: '16px', 
         marginBottom: '24px' 
       }}>
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 공지</div>
-          <div style={{ fontSize: '28px', fontWeight: 600 }}>{sampleData.length}개</div>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>전체</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{stats.total}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
         </div>
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>고정 공지</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>
-            {sampleData.filter(n => n.isPinned).length}개
-          </div>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>공지</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#1565c0' }}>{stats.notice}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
         </div>
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 조회수</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>
-            {sampleData.reduce((sum, n) => sum + n.viewCount, 0).toLocaleString()}
-          </div>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>이벤트</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#2e7d32' }}>{stats.event}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>긴급</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#c62828' }}>{stats.urgent}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>고정</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>{stats.pinned}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
         </div>
       </div>
 
       <SearchFilter
         placeholder="제목, 내용 검색"
+        value={search}
+        onChange={setSearch}
+        onSearch={() => { setLoading(true); loadData(); }}
         filters={[
-          { label: '대상 그룹', key: 'group', options: [
-            { label: '전체', value: 'all' },
-            { label: 'A그룹', value: 'A' },
-            { label: 'B그룹', value: 'B' },
-            { label: 'C그룹', value: 'C' },
-          ]}
+          {
+            key: 'type',
+            label: '구분',
+            options: [
+              { label: '전체', value: '' },
+              { label: '공지', value: 'notice' },
+              { label: '이벤트', value: 'event' },
+              { label: '긴급', value: 'urgent' }
+            ],
+            value: typeFilter,
+            onChange: setTypeFilter
+          }
         ]}
         actions={
           <button
-            onClick={() => { setEditingNotice(null); setShowModal(true); }}
+            onClick={() => openEditModal(null)}
             style={{
               padding: '8px 16px',
               borderRadius: '6px',
@@ -157,21 +290,19 @@ export default function NoticesPage() {
               cursor: 'pointer'
             }}
           >
-            + 공지 작성
+            + 공지 등록
           </button>
         }
       />
 
       <DataTable
         columns={columns}
-        data={sampleData}
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        emptyMessage="공지사항이 없습니다"
+        data={notices}
+        loading={loading}
+        emptyMessage="등록된 공지사항이 없습니다"
       />
 
-      {/* 작성/수정 모달 */}
+      {/* 등록/수정 모달 */}
       {showModal && (
         <div style={{
           position: 'fixed',
@@ -189,45 +320,88 @@ export default function NoticesPage() {
             background: '#fff',
             borderRadius: '16px',
             padding: '24px',
-            width: '600px',
-            maxHeight: '80vh',
+            width: '560px',
+            maxHeight: '90vh',
             overflow: 'auto'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editingNotice ? '공지사항 수정' : '공지사항 작성'}
+              {editingNotice ? '공지사항 수정' : '공지사항 등록'}
             </h3>
             
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>제목 *</label>
-              <input type="text" defaultValue={editingNotice?.title} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
-            </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>내용 *</label>
-              <textarea defaultValue={editingNotice?.content} rows={8} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px', resize: 'vertical' }} />
+              <input 
+                type="text" 
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+              />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>대상 그룹</label>
-                <select defaultValue={editingNotice?.targetGroups[0]} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
-                  <option value="전체">전체</option>
-                  <option value="A그룹">A그룹</option>
-                  <option value="B그룹">B그룹</option>
-                  <option value="C그룹">C그룹</option>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>구분</label>
+                <select 
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                >
+                  <option value="notice">공지</option>
+                  <option value="event">이벤트</option>
+                  <option value="urgent">긴급</option>
                 </select>
               </div>
-              <div style={{ display: 'flex', alignItems: 'end', paddingBottom: '10px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input type="checkbox" defaultChecked={editingNotice?.isPinned} style={{ width: '18px', height: '18px' }} />
-                  <span style={{ fontSize: '14px' }}>상단 고정</span>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', paddingTop: '24px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={formData.isImportant}
+                    onChange={(e) => setFormData({ ...formData, isImportant: e.target.checked })}
+                  />
+                  <span style={{ fontSize: '13px' }}>중요</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={formData.isPinned}
+                    onChange={(e) => setFormData({ ...formData, isPinned: e.target.checked })}
+                  />
+                  <span style={{ fontSize: '13px' }}>상단 고정</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  />
+                  <span style={{ fontSize: '13px' }}>활성</span>
                 </label>
               </div>
             </div>
             
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>내용 *</label>
+              <textarea 
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                rows={8}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px', resize: 'vertical' }} 
+              />
+            </div>
+            
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-              <button onClick={() => setShowModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
-              <button onClick={() => { alert('저장되었습니다.'); setShowModal(false); }} style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>저장</button>
+              <button 
+                onClick={() => setShowModal(false)} 
+                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}
+              >
+                취소
+              </button>
+              <button 
+                onClick={handleSave} 
+                style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
+              >
+                저장
+              </button>
             </div>
           </div>
         </div>
