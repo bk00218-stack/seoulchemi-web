@@ -39,7 +39,7 @@ export default function NewOrderPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetch('/api/stores').then(r => r.json()).then(setStores)
+    fetch('/api/stores').then(r => r.json()).then(data => setStores(data.stores || []))
     fetch('/api/products').then(r => r.json()).then(data => {
       const grouped: Record<string, Product[]> = {}
       data.forEach((p: Product) => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminLayout } from '../../components/Navigation'
 import DataTable, { StatusBadge, Column } from '../../components/DataTable'
 import SearchFilter, { FilterButtonGroup, OutlineButton } from '../../components/SearchFilter'
@@ -10,29 +10,53 @@ interface Product {
   id: number
   code: string
   brand: string
+  brandId: number
   name: string
   optionType: string
-  refractionIndex: string
-  price: number
-  stockPrice: number
-  stock: number
+  productType: string
+  bundleName: string | null
+  refractiveIndex: string | null
+  sellingPrice: number
+  purchasePrice: number
+  isActive: boolean
   status: string
 }
 
-const sampleData: Product[] = [
-  { id: 1, code: 'PRD001', brand: '에실로', name: '크리잘 사파이어', optionType: '단초점', refractionIndex: '1.60', price: 85000, stockPrice: 45000, stock: 120, status: 'active' },
-  { id: 2, code: 'PRD002', brand: '에실로', name: '크리잘 블루컷', optionType: '단초점', refractionIndex: '1.60', price: 75000, stockPrice: 40000, stock: 85, status: 'active' },
-  { id: 3, code: 'PRD003', brand: '호야', name: '블루컨트롤', optionType: '단초점', refractionIndex: '1.60', price: 68000, stockPrice: 38000, stock: 95, status: 'active' },
-  { id: 4, code: 'PRD004', brand: '에실로', name: '바리락스 X', optionType: '누진다초점', refractionIndex: '1.60', price: 350000, stockPrice: 180000, stock: 25, status: 'active' },
-  { id: 5, code: 'PRD005', brand: '칼자이스', name: '드라이브세이프', optionType: '단초점', refractionIndex: '1.67', price: 320000, stockPrice: 160000, stock: 15, status: 'active' },
-  { id: 6, code: 'PRD006', brand: '니콘', name: '씨맥스', optionType: '단초점', refractionIndex: '1.60', price: 72000, stockPrice: 35000, stock: 0, status: 'inactive' },
-]
+interface Brand {
+  id: number
+  name: string
+}
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [brands, setBrands] = useState<Brand[]>([])
+  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 })
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [brandFilter, setBrandFilter] = useState('')
+  const [optionFilter, setOptionFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  async function fetchProducts() {
+    try {
+      const res = await fetch('/api/products')
+      const data = await res.json()
+      setProducts(data.products || [])
+      setBrands(data.brands || [])
+      setStats(data.stats || { total: 0, active: 0, inactive: 0 })
+    } catch (error) {
+      console.error('Failed to fetch products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const columns: Column<Product>[] = [
     { key: 'code', label: '코드', render: (v) => (
@@ -46,25 +70,14 @@ export default function ProductsPage() {
     { key: 'name', label: '상품명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
-    { key: 'optionType', label: '옵션', render: (v) => (
+    { key: 'optionType', label: '옵션타입', render: (v) => (
       <span style={{ fontSize: '12px', color: '#666' }}>{v as string}</span>
     )},
-    { key: 'refractionIndex', label: '굴절률', align: 'center', render: (v) => (
-      <span style={{ background: '#f5f5f7', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>{v as string}</span>
+    { key: 'refractiveIndex', label: '굴절률', render: (v) => (
+      <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{v as string || '-'}</span>
     )},
-    { key: 'price', label: '판매가', align: 'right', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{(v as number).toLocaleString()}원</span>
-    )},
-    { key: 'stockPrice', label: '매입가', align: 'right', render: (v) => (
-      <span style={{ color: '#86868b' }}>{(v as number).toLocaleString()}원</span>
-    )},
-    { key: 'stock', label: '재고', align: 'center', render: (v) => (
-      <span style={{ 
-        fontWeight: 600, 
-        color: (v as number) === 0 ? '#ff3b30' : (v as number) < 20 ? '#ff9500' : '#34c759' 
-      }}>
-        {v as number}
-      </span>
+    { key: 'sellingPrice', label: '판매가', align: 'right', render: (v) => (
+      <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{(v as number).toLocaleString()}원</span>
     )},
     { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} /> },
     { key: 'id', label: '관리', align: 'center', render: (_, row) => (
@@ -85,9 +98,38 @@ export default function ProductsPage() {
     )},
   ]
 
-  const filteredData = filter === 'all' 
-    ? sampleData 
-    : sampleData.filter(p => p.status === filter)
+  // 필터링
+  let filteredProducts = products
+  if (filter !== 'all') {
+    filteredProducts = filteredProducts.filter(p => p.status === filter)
+  }
+  if (brandFilter) {
+    filteredProducts = filteredProducts.filter(p => p.brand === brandFilter)
+  }
+  if (optionFilter) {
+    filteredProducts = filteredProducts.filter(p => p.optionType === optionFilter)
+  }
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase()
+    filteredProducts = filteredProducts.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      p.brand.toLowerCase().includes(q) ||
+      p.code.toLowerCase().includes(q)
+    )
+  }
+
+  // 옵션타입 목록 추출
+  const optionTypes = [...new Set(products.map(p => p.optionType))]
+
+  if (loading) {
+    return (
+      <AdminLayout activeMenu="products">
+        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
+          로딩 중...
+        </div>
+      </AdminLayout>
+    )
+  }
 
   return (
     <AdminLayout activeMenu="products">
@@ -96,31 +138,28 @@ export default function ProductsPage() {
       </h2>
 
       <StatCardGrid>
-        <StatCard label="총 상품" value={sampleData.length} unit="개" icon="📦" />
-        <StatCard label="활성 상품" value={sampleData.filter(p => p.status === 'active').length} unit="개" />
-        <StatCard label="재고 부족" value={sampleData.filter(p => p.stock < 20 && p.stock > 0).length} unit="개" highlight />
-        <StatCard label="품절" value={sampleData.filter(p => p.stock === 0).length} unit="개" />
+        <StatCard label="총 상품" value={stats.total} unit="개" icon="📦" />
+        <StatCard label="활성 상품" value={stats.active} unit="개" />
+        <StatCard label="비활성 상품" value={stats.inactive} unit="개" />
+        <StatCard label="브랜드" value={brands.length} unit="개" />
       </StatCardGrid>
 
       <SearchFilter
         placeholder="상품코드, 상품명 검색"
+        onSearch={setSearchQuery}
         filters={[
-          { label: '브랜드', key: 'brand', options: [
-            { label: '에실로', value: 'essilor' },
-            { label: '호야', value: 'hoya' },
-            { label: '칼자이스', value: 'zeiss' },
-            { label: '니콘', value: 'nikon' },
-          ]},
-          { label: '옵션', key: 'option', options: [
-            { label: '단초점', value: 'single' },
-            { label: '누진다초점', value: 'progressive' },
-          ]},
-          { label: '굴절률', key: 'index', options: [
-            { label: '1.56', value: '1.56' },
-            { label: '1.60', value: '1.60' },
-            { label: '1.67', value: '1.67' },
-            { label: '1.74', value: '1.74' },
-          ]}
+          { 
+            label: '브랜드', 
+            key: 'brand', 
+            options: brands.map(b => ({ label: b.name, value: b.name })),
+            onChange: setBrandFilter
+          },
+          { 
+            label: '옵션타입', 
+            key: 'optionType', 
+            options: optionTypes.map(t => ({ label: t, value: t })),
+            onChange: setOptionFilter
+          }
         ]}
         actions={
           <>
@@ -158,12 +197,26 @@ export default function ProductsPage() {
 
       <DataTable
         columns={columns}
-        data={filteredData}
+        data={filteredProducts}
         selectable
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         emptyMessage="등록된 상품이 없습니다"
       />
+
+      <div style={{ 
+        marginTop: '16px', 
+        padding: '16px 20px', 
+        background: '#fff', 
+        borderRadius: '12px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <span style={{ fontSize: '13px', color: '#86868b' }}>
+          총 {filteredProducts.length}개 상품
+        </span>
+      </div>
 
       {/* 등록/수정 모달 */}
       {showModal && (
@@ -183,75 +236,100 @@ export default function ProductsPage() {
             background: '#fff',
             borderRadius: '16px',
             padding: '24px',
-            width: '520px',
+            width: '500px',
             maxHeight: '80vh',
-            overflow: 'auto'
+            overflowY: 'auto'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
               {editingProduct ? '상품 수정' : '상품 등록'}
             </h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>브랜드 *</label>
-                <select defaultValue={editingProduct?.brand} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
+                <select 
+                  defaultValue={editingProduct?.brandId || ''} 
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                >
                   <option value="">선택</option>
-                  <option value="에실로">에실로</option>
-                  <option value="호야">호야</option>
-                  <option value="칼자이스">칼자이스</option>
-                  <option value="니콘">니콘</option>
+                  {brands.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상품코드</label>
-                <input type="text" defaultValue={editingProduct?.code} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
-              </div>
-            </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상품명 *</label>
-              <input type="text" defaultValue={editingProduct?.name} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>옵션 타입</label>
-                <select defaultValue={editingProduct?.optionType} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
-                  <option value="단초점">단초점</option>
-                  <option value="누진다초점">누진다초점</option>
-                  <option value="이중초점">이중초점</option>
-                </select>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상품명 *</label>
+                <input 
+                  type="text" 
+                  defaultValue={editingProduct?.name} 
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>굴절률</label>
-                <select defaultValue={editingProduct?.refractionIndex} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
-                  <option value="1.56">1.56</option>
-                  <option value="1.60">1.60</option>
-                  <option value="1.67">1.67</option>
-                  <option value="1.74">1.74</option>
-                </select>
-              </div>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>판매가 *</label>
-                <input type="number" defaultValue={editingProduct?.price} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>매입가</label>
-                <input type="number" defaultValue={editingProduct?.stockPrice} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
-              </div>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>재고</label>
-                <input type="number" defaultValue={editingProduct?.stock} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>옵션타입</label>
+                  <select 
+                    defaultValue={editingProduct?.optionType || ''} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                  >
+                    <option value="">선택</option>
+                    <option value="안경렌즈 RX">안경렌즈 RX</option>
+                    <option value="안경렌즈 여벌">안경렌즈 여벌</option>
+                    <option value="콘택트렌즈">콘택트렌즈</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>굴절률</label>
+                  <select 
+                    defaultValue={editingProduct?.refractiveIndex || ''} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                  >
+                    <option value="">선택</option>
+                    <option value="1.50">1.50</option>
+                    <option value="1.56">1.56</option>
+                    <option value="1.60">1.60</option>
+                    <option value="1.67">1.67</option>
+                    <option value="1.74">1.74</option>
+                  </select>
+                </div>
               </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>묶음상품명</label>
+                <input 
+                  type="text" 
+                  defaultValue={editingProduct?.bundleName || ''} 
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>판매가</label>
+                  <input 
+                    type="number" 
+                    defaultValue={editingProduct?.sellingPrice || 0} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>매입가</label>
+                  <input 
+                    type="number" 
+                    defaultValue={editingProduct?.purchasePrice || 0} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                  />
+                </div>
+              </div>
+
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상태</label>
-                <select defaultValue={editingProduct?.status || 'active'} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
+                <select 
+                  defaultValue={editingProduct?.isActive ? 'active' : 'inactive'} 
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                >
                   <option value="active">활성</option>
                   <option value="inactive">비활성</option>
                 </select>
@@ -259,8 +337,18 @@ export default function ProductsPage() {
             </div>
             
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-              <button onClick={() => setShowModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
-              <button onClick={() => { alert('저장되었습니다.'); setShowModal(false); }} style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>저장</button>
+              <button 
+                onClick={() => setShowModal(false)} 
+                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}
+              >
+                취소
+              </button>
+              <button 
+                onClick={() => { alert('저장되었습니다.'); setShowModal(false); }} 
+                style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
+              >
+                저장
+              </button>
             </div>
           </div>
         </div>

@@ -9,7 +9,9 @@ interface FilterOption {
 
 interface SearchFilterProps {
   placeholder?: string
-  onSearch?: (value: string) => void
+  value?: string
+  onChange?: (value: string) => void
+  onSearch?: (value?: string) => void
   filters?: {
     label: string
     key: string
@@ -24,13 +26,17 @@ interface SearchFilterProps {
 
 export default function SearchFilter({
   placeholder = '검색어를 입력하세요',
+  value: controlledValue,
+  onChange: controlledOnChange,
   onSearch,
   filters = [],
   dateRange = false,
   onDateChange,
   actions
 }: SearchFilterProps) {
-  const [searchValue, setSearchValue] = useState('')
+  const [internalValue, setInternalValue] = useState('')
+  const searchValue = controlledValue ?? internalValue
+  const setSearchValue = controlledOnChange ?? setInternalValue
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 

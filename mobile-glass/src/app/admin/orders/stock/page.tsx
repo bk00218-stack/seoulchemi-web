@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
 import DataTable, { StatusBadge, Column } from '../../../components/DataTable'
 import SearchFilter, { FilterButtonGroup, OutlineButton } from '../../../components/SearchFilter'
 import StatCard, { StatCardGrid } from '../../../components/StatCard'
+import { downloadExcel, ExcelColumn } from '@/lib/excel'
 
 interface StockOrder {
   id: number
@@ -20,17 +21,105 @@ interface StockOrder {
   orderedAt: string
 }
 
-const sampleOrders: StockOrder[] = [
-  { id: 1, orderNo: 'STK-2024-0001', store: '강남안경', brand: '에실로', product: '크리잘 사파이어', sph: '-2.00', cyl: '-0.50', quantity: 10, amount: 500000, status: 'pending', orderedAt: '2024-01-15 14:30' },
-  { id: 2, orderNo: 'STK-2024-0002', store: '역삼안경원', brand: '호야', product: '블루컨트롤', sph: '-3.00', cyl: '-0.75', quantity: 20, amount: 850000, status: 'shipped', orderedAt: '2024-01-15 13:20' },
-  { id: 3, orderNo: 'STK-2024-0003', store: '신사안경', brand: '니콘', product: '라이트 4', sph: '-1.50', cyl: '0.00', quantity: 30, amount: 1200000, status: 'delivered', orderedAt: '2024-01-15 11:45' },
-  { id: 4, orderNo: 'STK-2024-0004', store: '압구정광학', brand: '에실로', product: '바리락스 X', sph: '-2.50', cyl: '-1.00', quantity: 15, amount: 900000, status: 'pending', orderedAt: '2024-01-15 10:15' },
-  { id: 5, orderNo: 'STK-2024-0005', store: '청담안경', brand: '칼자이스', product: '클리어뷰', sph: '-4.00', cyl: '-0.50', quantity: 8, amount: 640000, status: 'confirmed', orderedAt: '2024-01-15 09:30' },
-]
+interface Stats {
+  monthlyOrders: number
+  pending: number
+  totalAmount: number
+  avgQuantity: number
+}
 
 export default function StockOrdersPage() {
   const [filter, setFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
+  const [data, setData] = useState<StockOrder[]>([])
+  const [stats, setStats] = useState<Stats>({ monthlyOrders: 0, pending: 0, totalAmount: 0, avgQuantity: 0 })
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (filter !== 'all') params.set('status', filter)
+      if (search) params.set('search', search)
+      
+      const res = await fetch(`/api/orders/stock?${params}`)
+      const json = await res.json()
+      
+      if (json.error) {
+        console.error(json.error)
+        return
+      }
+      
+      setData(json.orders)
+      setStats(json.stats)
+    } catch (error) {
+      console.error('Failed to fetch stock orders:', error)
+    }
+    setLoading(false)
+  }, [filter, search])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const handleSearch = () => fetchData()
+
+  const handleExcelDownload = () => {
+    const excelColumns: ExcelColumn[] = [
+      { key: 'orderNo', label: '주문번호' },
+      { key: 'orderedAt', label: '주문일시' },
+      { key: 'store', label: '가맹점' },
+      { key: 'brand', label: '브랜드' },
+      { key: 'product', label: '상품명' },
+      { key: 'sph', label: 'SPH' },
+      { key: 'cyl', label: 'CYL' },
+      { key: 'quantity', label: '수량' },
+      { key: 'amount', label: '금액', format: (v) => v.toLocaleString() },
+      { key: 'status', label: '상태', format: (v) => ({ pending: '대기', confirmed: '확인', shipped: '출고', delivered: '완료' }[v] || v) },
+    ]
+    
+    const exportData = selectedIds.size > 0 
+      ? data.filter(d => selectedIds.has(d.id))
+      : data
+    
+    downloadExcel(exportData, excelColumns, `여벌주문_${new Date().toISOString().split('T')[0]}`)
+    alert(`${exportData.length}건이 다운로드되었습니다.`)
+  }
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (selectedIds.size === 0) {
+      alert('주문을 선택해주세요.')
+      return
+    }
+    
+    const labels: Record<string, string> = {
+      pending: '대기',
+      confirmed: '확인',
+      shipped: '출고',
+      delivered: '완료'
+    }
+    
+    if (!confirm(`${selectedIds.size}건을 '${labels[newStatus] || newStatus}'(으)로 변경하시겠습니까?`)) {
+      return
+    }
+
+    try {
+      const res = await fetch('/api/orders/stock', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds: Array.from(selectedIds), status: newStatus }),
+      })
+      
+      if (res.ok) {
+        alert(`${selectedIds.size}건의 상태가 변경되었습니다.`)
+        setSelectedIds(new Set())
+        fetchData()
+      }
+    } catch (error) {
+      alert('상태 변경에 실패했습니다.')
+    }
+  }
 
   const columns: Column<StockOrder>[] = [
     { key: 'orderNo', label: '주문번호', render: (v) => <span style={{ fontWeight: 500, color: '#007aff' }}>{v as string}</span> },
@@ -60,9 +149,7 @@ export default function StockOrdersPage() {
     )},
   ]
 
-  const filteredOrders = filter === 'all' 
-    ? sampleOrders 
-    : sampleOrders.filter(o => o.status === filter)
+  const filteredData = filter === 'all' ? data : data.filter(o => o.status === filter)
 
   return (
     <AdminLayout activeMenu="order">
@@ -71,27 +158,22 @@ export default function StockOrdersPage() {
       </h2>
 
       <StatCardGrid>
-        <StatCard label="이번 달 여벌 주문" value={83} unit="건" icon="📦" />
-        <StatCard label="대기중" value={12} unit="건" highlight />
-        <StatCard label="총 주문금액" value="4,090,000" unit="원" />
-        <StatCard label="평균 주문량" value={15} unit="개" />
+        <StatCard label="이번 달 여벌 주문" value={stats.monthlyOrders} unit="건" icon="📦" />
+        <StatCard label="대기중" value={stats.pending} unit="건" highlight />
+        <StatCard label="총 주문금액" value={stats.totalAmount.toLocaleString()} unit="원" />
+        <StatCard label="평균 주문량" value={stats.avgQuantity} unit="개" />
       </StatCardGrid>
 
       <SearchFilter
         placeholder="주문번호, 가맹점명 검색"
+        value={search}
+        onChange={setSearch}
+        onSearch={handleSearch}
         dateRange
-        filters={[
-          { label: '브랜드', key: 'brand', options: [
-            { label: '에실로', value: 'essilor' },
-            { label: '호야', value: 'hoya' },
-            { label: '니콘', value: 'nikon' },
-            { label: '칼자이스', value: 'zeiss' },
-          ]}
-        ]}
         actions={
           <>
             <OutlineButton onClick={() => window.print()}>🖨️ 출력</OutlineButton>
-            <OutlineButton onClick={() => alert('엑셀 다운로드')}>📥 엑셀</OutlineButton>
+            <OutlineButton onClick={handleExcelDownload}>📥 엑셀</OutlineButton>
           </>
         }
       />
@@ -110,14 +192,42 @@ export default function StockOrdersPage() {
         />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filteredOrders}
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        emptyMessage="여벌 주문 내역이 없습니다"
-      />
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>로딩 중...</div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          selectable
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          emptyMessage="여벌 주문 내역이 없습니다"
+        />
+      )}
+
+      {selectedIds.size > 0 && (
+        <div style={{ 
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          padding: '16px 24px', 
+          background: '#fff', 
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          zIndex: 100,
+        }}>
+          <span style={{ color: '#007aff', fontWeight: 500 }}>{selectedIds.size}건 선택됨</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => handleStatusChange('pending')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#ff9500', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>대기처리</button>
+            <button onClick={() => handleStatusChange('confirmed')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>발송준비</button>
+            <button onClick={() => handleStatusChange('shipped')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#34c759', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>발송완료</button>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }

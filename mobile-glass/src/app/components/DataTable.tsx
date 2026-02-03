@@ -7,11 +7,11 @@ export interface Column<T> {
   label: string
   width?: string
   align?: 'left' | 'center' | 'right'
-  render?: (value: unknown, row: T, index: number) => React.ReactNode
+  render?: (value: any, row: T, index: number) => React.ReactNode
 }
 
 interface DataTableProps<T> {
-  columns: Column<T>[]
+  columns: Column<T>[] | Column<any>[]
   data: T[]
   loading?: boolean
   emptyMessage?: string
@@ -22,7 +22,7 @@ interface DataTableProps<T> {
   onRowClick?: (row: T) => void
 }
 
-export default function DataTable<T extends Record<string, unknown>>({
+export default function DataTable<T extends Record<string, any>>({
   columns,
   data,
   loading = false,

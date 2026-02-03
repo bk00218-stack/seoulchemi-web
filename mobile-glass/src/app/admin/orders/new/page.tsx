@@ -1,267 +1,453 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AdminLayout } from '../../../components/Navigation'
-import FormInput, { FormSection, FormGrid, FormActions, CancelButton, SaveButton } from '../../../components/FormInput'
 
-interface OrderForm {
-  storeId: string
-  orderType: string
-  brand: string
-  product: string
-  sph: string
-  cyl: string
-  axis: string
+interface Store {
+  id: number
+  name: string
+  code: string
+}
+
+interface Brand {
+  id: number
+  name: string
+}
+
+interface Product {
+  id: number
+  name: string
+  brandId: number
+  brand: Brand
+  sellingPrice: number
+  optionType: string
+}
+
+interface OrderItem {
+  productId: number
+  productName: string
+  brandName: string
   quantity: number
-  price: number
-  memo: string
-  // RX 추가 필드
-  leftSph: string
-  leftCyl: string
-  leftAxis: string
-  pd: string
-  add: string
+  unitPrice: number
+  sph?: string
+  cyl?: string
+  axis?: string
 }
 
 export default function NewOrderPage() {
   const router = useRouter()
-  const [form, setForm] = useState<OrderForm>({
-    storeId: '',
-    orderType: 'stock',
-    brand: '',
-    product: '',
-    sph: '',
-    cyl: '',
-    axis: '',
-    quantity: 1,
-    price: 0,
-    memo: '',
-    leftSph: '',
-    leftCyl: '',
-    leftAxis: '',
-    pd: '',
-    add: ''
-  })
+  const [stores, setStores] = useState<Store[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [brands, setBrands] = useState<Brand[]>([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  
+  const [selectedStore, setSelectedStore] = useState('')
+  const [orderType, setOrderType] = useState('stock')
+  const [selectedBrand, setSelectedBrand] = useState('')
+  const [selectedProduct, setSelectedProduct] = useState('')
+  const [quantity, setQuantity] = useState(1)
+  const [memo, setMemo] = useState('')
+  const [items, setItems] = useState<OrderItem[]>([])
+  
+  // RX용 처방 정보
+  const [sph, setSph] = useState('')
+  const [cyl, setCyl] = useState('')
+  const [axis, setAxis] = useState('')
 
-  const handleChange = (name: string, value: string | number) => {
-    setForm(prev => ({ ...prev, [name]: value }))
+  useEffect(() => {
+    fetchFormData()
+  }, [])
+
+  const fetchFormData = async () => {
+    try {
+      const res = await fetch('/api/orders/create')
+      const json = await res.json()
+      setStores(json.stores || [])
+      setProducts(json.products || [])
+      setBrands(json.brands || [])
+    } catch (error) {
+      console.error('Failed to fetch form data:', error)
+    }
+    setLoading(false)
   }
 
-  const handleSubmit = () => {
-    if (!form.storeId || !form.brand || !form.product) {
-      alert('필수 항목을 입력해주세요.')
+  const filteredProducts = selectedBrand 
+    ? products.filter(p => p.brandId === parseInt(selectedBrand))
+    : products
+
+  const addItem = () => {
+    if (!selectedProduct) {
+      alert('상품을 선택해주세요')
       return
     }
-    // API 호출
-    alert('주문이 등록되었습니다.')
-    router.push('/admin/orders')
+    
+    const product = products.find(p => p.id === parseInt(selectedProduct))
+    if (!product) return
+
+    const newItem: OrderItem = {
+      productId: product.id,
+      productName: product.name,
+      brandName: product.brand.name,
+      quantity,
+      unitPrice: product.sellingPrice,
+      ...(orderType === 'rx' && { sph, cyl, axis })
+    }
+
+    setItems([...items, newItem])
+    setSelectedProduct('')
+    setQuantity(1)
+    setSph('')
+    setCyl('')
+    setAxis('')
   }
 
-  const stores = [
-    { label: '강남안경', value: '1' },
-    { label: '역삼안경원', value: '2' },
-    { label: '신사안경', value: '3' },
-    { label: '압구정광학', value: '4' },
-    { label: '청담안경', value: '5' },
-  ]
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index))
+  }
 
-  const brands = [
-    { label: '에실로', value: 'essilor' },
-    { label: '호야', value: 'hoya' },
-    { label: '니콘', value: 'nikon' },
-    { label: '칼자이스', value: 'zeiss' },
-  ]
+  const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 
-  const products = [
-    { label: '크리잘 블루컷', value: 'crizal-blue' },
-    { label: '크리잘 사파이어', value: 'crizal-sapphire' },
-    { label: '바리락스 X', value: 'varilux-x' },
-    { label: '블루컨트롤', value: 'blue-control' },
-  ]
+  const handleSubmit = async () => {
+    if (!selectedStore) {
+      alert('가맹점을 선택해주세요')
+      return
+    }
+    if (items.length === 0) {
+      alert('상품을 추가해주세요')
+      return
+    }
 
-  const sphOptions = Array.from({ length: 33 }, (_, i) => {
-    const val = (i * 0.25 - 4).toFixed(2)
-    return { label: val, value: val }
-  })
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: selectedStore,
+          orderType,
+          items: items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            sph: item.sph,
+            cyl: item.cyl,
+            axis: item.axis,
+          })),
+          memo,
+        }),
+      })
 
-  const cylOptions = Array.from({ length: 17 }, (_, i) => {
-    const val = (i * -0.25).toFixed(2)
-    return { label: val, value: val }
-  })
+      const json = await res.json()
+      if (json.success) {
+        alert(`주문이 등록되었습니다. (${json.order.orderNo})`)
+        router.push('/admin/orders')
+      } else {
+        alert(json.error || '주문 등록에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('주문 등록에 실패했습니다.')
+    }
+    setSubmitting(false)
+  }
+
+  const inputStyle = {
+    width: '100%',
+    padding: '10px 14px',
+    border: '1px solid #e1e1e1',
+    borderRadius: '8px',
+    fontSize: '14px',
+    outline: 'none',
+  }
+
+  const selectStyle = {
+    ...inputStyle,
+    background: '#fff',
+    cursor: 'pointer',
+  }
+
+  if (loading) {
+    return (
+      <AdminLayout activeMenu="order">
+        <div style={{ textAlign: 'center', padding: '100px', color: '#86868b' }}>
+          로딩 중...
+        </div>
+      </AdminLayout>
+    )
+  }
 
   return (
     <AdminLayout activeMenu="order">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        관리자 주문등록
-      </h2>
+      <div style={{ maxWidth: '900px' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
+          관리자 주문등록
+        </h2>
 
-      <FormSection title="주문 기본정보">
-        <FormGrid>
-          <FormInput
-            label="가맹점 선택"
-            name="storeId"
-            type="select"
-            value={form.storeId}
-            onChange={handleChange}
-            options={stores}
-            required
-            placeholder="가맹점을 선택하세요"
-          />
-          <FormInput
-            label="주문 유형"
-            name="orderType"
-            type="select"
-            value={form.orderType}
-            onChange={handleChange}
-            options={[
-              { label: '여벌 주문', value: 'stock' },
-              { label: 'RX 주문', value: 'rx' },
-            ]}
-            required
-          />
-        </FormGrid>
-      </FormSection>
+        {/* 기본 정보 */}
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>기본 정보</h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '8px' }}>
+                가맹점 <span style={{ color: '#ff3b30' }}>*</span>
+              </label>
+              <select 
+                value={selectedStore} 
+                onChange={(e) => setSelectedStore(e.target.value)}
+                style={selectStyle}
+              >
+                <option value="">선택하세요</option>
+                {stores.map(store => (
+                  <option key={store.id} value={store.id}>
+                    {store.name} ({store.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '8px' }}>
+                주문 유형
+              </label>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    value="stock" 
+                    checked={orderType === 'stock'}
+                    onChange={(e) => setOrderType(e.target.value)}
+                  />
+                  <span>여벌</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    value="rx" 
+                    checked={orderType === 'rx'}
+                    onChange={(e) => setOrderType(e.target.value)}
+                  />
+                  <span>RX (맞춤)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <FormSection title="상품 정보">
-        <FormGrid>
-          <FormInput
-            label="브랜드"
-            name="brand"
-            type="select"
-            value={form.brand}
-            onChange={handleChange}
-            options={brands}
-            required
-          />
-          <FormInput
-            label="상품"
-            name="product"
-            type="select"
-            value={form.product}
-            onChange={handleChange}
-            options={products}
-            required
-          />
-        </FormGrid>
-        <FormGrid>
-          <FormInput
-            label="수량"
-            name="quantity"
-            type="number"
-            value={form.quantity}
-            onChange={handleChange}
-            required
-          />
-          <FormInput
-            label="단가"
-            name="price"
-            type="number"
-            value={form.price}
-            onChange={handleChange}
-            suffix="원"
-          />
-        </FormGrid>
-      </FormSection>
-
-      <FormSection title={form.orderType === 'rx' ? '우안 (Right) 도수' : '도수 정보'}>
-        <FormGrid>
-          <FormInput
-            label="SPH (구면)"
-            name="sph"
-            type="select"
-            value={form.sph}
-            onChange={handleChange}
-            options={sphOptions}
-          />
-          <FormInput
-            label="CYL (난시)"
-            name="cyl"
-            type="select"
-            value={form.cyl}
-            onChange={handleChange}
-            options={cylOptions}
-          />
-        </FormGrid>
-        {form.orderType === 'rx' && (
-          <FormInput
-            label="AXIS (축)"
-            name="axis"
-            type="number"
-            value={form.axis}
-            onChange={handleChange}
-            hint="0~180 사이의 값"
-          />
-        )}
-      </FormSection>
-
-      {form.orderType === 'rx' && (
-        <>
-          <FormSection title="좌안 (Left) 도수">
-            <FormGrid>
-              <FormInput
-                label="SPH (구면)"
-                name="leftSph"
-                type="select"
-                value={form.leftSph}
-                onChange={handleChange}
-                options={sphOptions}
-              />
-              <FormInput
-                label="CYL (난시)"
-                name="leftCyl"
-                type="select"
-                value={form.leftCyl}
-                onChange={handleChange}
-                options={cylOptions}
-              />
-            </FormGrid>
-            <FormInput
-              label="AXIS (축)"
-              name="leftAxis"
-              type="number"
-              value={form.leftAxis}
-              onChange={handleChange}
-              hint="0~180 사이의 값"
+        {/* 상품 추가 */}
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>상품 추가</h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 100px', gap: '12px', marginBottom: '16px' }}>
+            <select 
+              value={selectedBrand} 
+              onChange={(e) => { setSelectedBrand(e.target.value); setSelectedProduct(''); }}
+              style={selectStyle}
+            >
+              <option value="">전체 브랜드</option>
+              {brands.map(brand => (
+                <option key={brand.id} value={brand.id}>{brand.name}</option>
+              ))}
+            </select>
+            
+            <select 
+              value={selectedProduct} 
+              onChange={(e) => setSelectedProduct(e.target.value)}
+              style={selectStyle}
+            >
+              <option value="">상품 선택</option>
+              {filteredProducts.map(product => (
+                <option key={product.id} value={product.id}>
+                  [{product.brand.name}] {product.name} - {product.sellingPrice.toLocaleString()}원
+                </option>
+              ))}
+            </select>
+            
+            <input 
+              type="number" 
+              min="1" 
+              value={quantity}
+              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+              style={inputStyle}
+              placeholder="수량"
             />
-          </FormSection>
+          </div>
 
-          <FormSection title="추가 정보">
-            <FormGrid>
-              <FormInput
-                label="PD (동공거리)"
-                name="pd"
-                type="text"
-                value={form.pd}
-                onChange={handleChange}
-                suffix="mm"
-              />
-              <FormInput
-                label="ADD (가입도)"
-                name="add"
-                type="text"
-                value={form.add}
-                onChange={handleChange}
-              />
-            </FormGrid>
-          </FormSection>
-        </>
-      )}
+          {/* RX 처방 정보 */}
+          {orderType === 'rx' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>SPH</label>
+                <input 
+                  type="text" 
+                  value={sph}
+                  onChange={(e) => setSph(e.target.value)}
+                  style={inputStyle}
+                  placeholder="-2.00"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>CYL</label>
+                <input 
+                  type="text" 
+                  value={cyl}
+                  onChange={(e) => setCyl(e.target.value)}
+                  style={inputStyle}
+                  placeholder="-0.50"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>AXIS</label>
+                <input 
+                  type="text" 
+                  value={axis}
+                  onChange={(e) => setAxis(e.target.value)}
+                  style={inputStyle}
+                  placeholder="180"
+                />
+              </div>
+            </div>
+          )}
 
-      <FormSection title="메모">
-        <FormInput
-          label="주문 메모"
-          name="memo"
-          type="textarea"
-          value={form.memo}
-          onChange={handleChange}
-          placeholder="특이사항이나 요청사항을 입력하세요"
-        />
-        <FormActions>
-          <CancelButton onClick={() => router.back()} />
-          <SaveButton onClick={handleSubmit} label="주문 등록" />
-        </FormActions>
-      </FormSection>
+          <button 
+            onClick={addItem}
+            style={{
+              padding: '10px 20px',
+              background: '#007aff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            + 상품 추가
+          </button>
+        </div>
+
+        {/* 주문 상품 목록 */}
+        {items.length > 0 && (
+          <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>
+              주문 상품 ({items.length}개)
+            </h3>
+            
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #e1e1e1' }}>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', color: '#666' }}>브랜드</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', color: '#666' }}>상품명</th>
+                  {orderType === 'rx' && (
+                    <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', color: '#666' }}>처방</th>
+                  )}
+                  <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', color: '#666' }}>수량</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '13px', color: '#666' }}>단가</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '13px', color: '#666' }}>소계</th>
+                  <th style={{ padding: '12px 8px', width: '60px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, index) => (
+                  <tr key={index} style={{ borderBottom: '1px solid #f5f5f7' }}>
+                    <td style={{ padding: '12px 8px' }}>
+                      <span style={{ background: '#e3f2fd', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#007aff' }}>
+                        {item.brandName}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 8px', fontWeight: 500 }}>{item.productName}</td>
+                    {orderType === 'rx' && (
+                      <td style={{ padding: '12px 8px', textAlign: 'center', fontFamily: 'monospace', fontSize: '12px' }}>
+                        {item.sph}/{item.cyl}/{item.axis}
+                      </td>
+                    )}
+                    <td style={{ padding: '12px 8px', textAlign: 'center' }}>{item.quantity}</td>
+                    <td style={{ padding: '12px 8px', textAlign: 'right' }}>{item.unitPrice.toLocaleString()}원</td>
+                    <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: 600 }}>
+                      {(item.quantity * item.unitPrice).toLocaleString()}원
+                    </td>
+                    <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                      <button 
+                        onClick={() => removeItem(index)}
+                        style={{ 
+                          background: 'none', 
+                          border: 'none', 
+                          color: '#ff3b30', 
+                          cursor: 'pointer',
+                          fontSize: '18px'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr style={{ background: '#f5f5f7' }}>
+                  <td colSpan={orderType === 'rx' ? 5 : 4} style={{ padding: '16px 8px', textAlign: 'right', fontWeight: 600 }}>
+                    총 합계
+                  </td>
+                  <td style={{ padding: '16px 8px', textAlign: 'right', fontWeight: 700, color: '#007aff', fontSize: '16px' }}>
+                    {totalAmount.toLocaleString()}원
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+
+        {/* 메모 */}
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>메모</h3>
+          <textarea
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+            placeholder="주문 관련 메모를 입력하세요"
+            style={{
+              ...inputStyle,
+              minHeight: '80px',
+              resize: 'vertical',
+            }}
+          />
+        </div>
+
+        {/* 버튼 */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+          <button
+            onClick={() => router.back()}
+            style={{
+              padding: '14px 28px',
+              borderRadius: '8px',
+              border: '1px solid #e1e1e1',
+              background: '#fff',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || items.length === 0}
+            style={{
+              padding: '14px 28px',
+              borderRadius: '8px',
+              border: 'none',
+              background: submitting || items.length === 0 ? '#ccc' : '#007aff',
+              color: '#fff',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: submitting || items.length === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {submitting ? '등록 중...' : '주문 등록'}
+          </button>
+        </div>
+      </div>
     </AdminLayout>
   )
 }

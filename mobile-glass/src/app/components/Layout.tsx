@@ -45,14 +45,22 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 48 }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 8,
-              background: 'linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontWeight: 700, fontSize: 14
-            }}>O</div>
-            <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--gray-900)' }}>OptiCore</span>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <svg width="140" height="28" viewBox="0 0 180 36">
+              <defs>
+                <linearGradient id="lensGradFront" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style={{stopColor:'#007AFF'}}/>
+                  <stop offset="100%" style={{stopColor:'#5856D6'}}/>
+                </linearGradient>
+              </defs>
+              <circle cx="16" cy="18" r="12" fill="none" stroke="url(#lensGradFront)" strokeWidth="2"/>
+              <circle cx="16" cy="18" r="7" fill="url(#lensGradFront)" opacity="0.15"/>
+              <circle cx="16" cy="18" r="3.5" fill="url(#lensGradFront)" opacity="0.3"/>
+              <circle cx="12" cy="14" r="1.5" fill="white" opacity="0.8"/>
+              <text x="36" y="23" fontFamily="-apple-system, BlinkMacSystemFont, sans-serif" fontSize="16" fontWeight="600" fill="#1d1d1f">
+                Lens<tspan fill="#007AFF">Choice</tspan>
+              </text>
+            </svg>
           </Link>
           <nav style={{ display: 'flex', gap: 4 }}>
             {NAV_ITEMS.map((item) => {
@@ -88,13 +96,17 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1 }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Sidebar */}
         <aside style={{
           width: 220,
           background: '#fff',
           borderRight: '1px solid var(--gray-200)',
-          padding: '16px 0'
+          padding: '16px 0',
+          position: 'sticky',
+          top: 56,
+          height: 'calc(100vh - 56px)',
+          overflowY: 'auto'
         }}>
           {sidebarMenus.map((menu, idx) => (
             <div key={idx} style={{ marginBottom: 8 }}>
@@ -130,7 +142,16 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         </aside>
 
         {/* Main */}
-        <main style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <main style={{ 
+          flex: 1, 
+          padding: 24, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 20,
+          overflowY: 'auto',
+          height: 'calc(100vh - 56px)',
+          background: 'var(--gray-50)'
+        }}>
           {children}
         </main>
       </div>

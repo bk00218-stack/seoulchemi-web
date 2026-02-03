@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
 import DataTable, { StatusBadge, Column } from '../../../components/DataTable'
 import SearchFilter, { FilterButtonGroup, OutlineButton } from '../../../components/SearchFilter'
 import StatCard, { StatCardGrid } from '../../../components/StatCard'
+import { downloadExcel, ExcelColumn } from '@/lib/excel'
 
 interface RxOrder {
   id: number
@@ -26,16 +27,110 @@ interface RxOrder {
   orderedAt: string
 }
 
-const sampleOrders: RxOrder[] = [
-  { id: 1, orderNo: 'RX-2024-0001', store: '강남안경', brand: '에실로', product: '바리락스 X', rightSph: '-2.00', rightCyl: '-0.50', rightAxis: '180', leftSph: '-2.25', leftCyl: '-0.75', leftAxis: '175', pd: '62', add: '+2.00', quantity: 1, amount: 350000, status: 'pending', orderedAt: '2024-01-15 14:30' },
-  { id: 2, orderNo: 'RX-2024-0002', store: '역삼안경원', brand: '호야', product: '루스나', rightSph: '-3.00', rightCyl: '-1.00', rightAxis: '90', leftSph: '-2.75', leftCyl: '-0.75', leftAxis: '85', pd: '64', add: '+1.50', quantity: 1, amount: 280000, status: 'shipped', orderedAt: '2024-01-15 13:20' },
-  { id: 3, orderNo: 'RX-2024-0003', store: '신사안경', brand: '칼자이스', product: '프로그레시브', rightSph: '-1.50', rightCyl: '-0.25', rightAxis: '170', leftSph: '-1.75', leftCyl: '-0.50', leftAxis: '165', pd: '60', add: '+2.50', quantity: 1, amount: 450000, status: 'delivered', orderedAt: '2024-01-15 11:45' },
-  { id: 4, orderNo: 'RX-2024-0004', store: '압구정광학', brand: '니콘', product: '프레지오', rightSph: '-4.00', rightCyl: '-1.25', rightAxis: '5', leftSph: '-3.75', leftCyl: '-1.00', leftAxis: '175', pd: '66', add: '+1.75', quantity: 1, amount: 320000, status: 'pending', orderedAt: '2024-01-15 10:15' },
-]
+interface Stats {
+  monthlyOrders: number
+  pending: number
+  totalAmount: number
+  avgAmount: number
+}
 
 export default function RxOrdersPage() {
   const [filter, setFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
+  const [data, setData] = useState<RxOrder[]>([])
+  const [stats, setStats] = useState<Stats>({ monthlyOrders: 0, pending: 0, totalAmount: 0, avgAmount: 0 })
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (filter !== 'all') params.set('status', filter)
+      if (search) params.set('search', search)
+      
+      const res = await fetch(`/api/orders/rx?${params}`)
+      const json = await res.json()
+      
+      if (json.error) {
+        console.error(json.error)
+        return
+      }
+      
+      setData(json.orders)
+      setStats(json.stats)
+    } catch (error) {
+      console.error('Failed to fetch RX orders:', error)
+    }
+    setLoading(false)
+  }, [filter, search])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const handleSearch = () => fetchData()
+
+  const handleExcelDownload = () => {
+    const excelColumns: ExcelColumn[] = [
+      { key: 'orderNo', label: '주문번호' },
+      { key: 'orderedAt', label: '주문일시' },
+      { key: 'store', label: '가맹점' },
+      { key: 'brand', label: '브랜드' },
+      { key: 'product', label: '상품명' },
+      { key: 'rightSph', label: 'R SPH' },
+      { key: 'rightCyl', label: 'R CYL' },
+      { key: 'rightAxis', label: 'R AXIS' },
+      { key: 'leftSph', label: 'L SPH' },
+      { key: 'leftCyl', label: 'L CYL' },
+      { key: 'leftAxis', label: 'L AXIS' },
+      { key: 'pd', label: 'PD' },
+      { key: 'add', label: 'ADD' },
+      { key: 'amount', label: '금액', format: (v) => v.toLocaleString() },
+      { key: 'status', label: '상태', format: (v) => ({ pending: '대기', confirmed: '제작중', shipped: '출고', delivered: '완료' }[v] || v) },
+    ]
+    
+    const exportData = selectedIds.size > 0 
+      ? data.filter(d => selectedIds.has(d.id))
+      : data
+    
+    downloadExcel(exportData, excelColumns, `RX주문_${new Date().toISOString().split('T')[0]}`)
+    alert(`${exportData.length}건이 다운로드되었습니다.`)
+  }
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (selectedIds.size === 0) {
+      alert('주문을 선택해주세요.')
+      return
+    }
+    
+    const labels: Record<string, string> = {
+      pending: '대기',
+      confirmed: '제작중',
+      shipped: '출고',
+      delivered: '완료'
+    }
+    
+    if (!confirm(`${selectedIds.size}건을 '${labels[newStatus] || newStatus}'(으)로 변경하시겠습니까?`)) {
+      return
+    }
+
+    try {
+      const res = await fetch('/api/orders/rx', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds: Array.from(selectedIds), status: newStatus }),
+      })
+      
+      if (res.ok) {
+        alert(`${selectedIds.size}건의 상태가 변경되었습니다.`)
+        setSelectedIds(new Set())
+        fetchData()
+      }
+    } catch (error) {
+      alert('상태 변경에 실패했습니다.')
+    }
+  }
 
   const columns: Column<RxOrder>[] = [
     { key: 'orderNo', label: '주문번호', render: (v) => <span style={{ fontWeight: 500, color: '#af52de' }}>{v as string}</span> },
@@ -66,9 +161,7 @@ export default function RxOrdersPage() {
     { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} /> },
   ]
 
-  const filteredOrders = filter === 'all' 
-    ? sampleOrders 
-    : sampleOrders.filter(o => o.status === filter)
+  const filteredData = filter === 'all' ? data : data.filter(o => o.status === filter)
 
   return (
     <AdminLayout activeMenu="order">
@@ -77,32 +170,22 @@ export default function RxOrdersPage() {
       </h2>
 
       <StatCardGrid>
-        <StatCard label="이번 달 RX 주문" value={47} unit="건" icon="👓" />
-        <StatCard label="제작 대기" value={8} unit="건" highlight />
-        <StatCard label="총 주문금액" value="14,100,000" unit="원" />
-        <StatCard label="평균 단가" value="300,000" unit="원" />
+        <StatCard label="이번 달 RX 주문" value={stats.monthlyOrders} unit="건" icon="👓" />
+        <StatCard label="제작 대기" value={stats.pending} unit="건" highlight />
+        <StatCard label="총 주문금액" value={stats.totalAmount.toLocaleString()} unit="원" />
+        <StatCard label="평균 단가" value={stats.avgAmount.toLocaleString()} unit="원" />
       </StatCardGrid>
 
       <SearchFilter
         placeholder="주문번호, 가맹점명 검색"
+        value={search}
+        onChange={setSearch}
+        onSearch={handleSearch}
         dateRange
-        filters={[
-          { label: '브랜드', key: 'brand', options: [
-            { label: '에실로', value: 'essilor' },
-            { label: '호야', value: 'hoya' },
-            { label: '칼자이스', value: 'zeiss' },
-            { label: '니콘', value: 'nikon' },
-          ]},
-          { label: '렌즈타입', key: 'type', options: [
-            { label: '누진다초점', value: 'progressive' },
-            { label: '단초점', value: 'single' },
-            { label: '이중초점', value: 'bifocal' },
-          ]}
-        ]}
         actions={
           <>
             <OutlineButton onClick={() => window.print()}>🖨️ 출력</OutlineButton>
-            <OutlineButton onClick={() => alert('엑셀 다운로드')}>📥 엑셀</OutlineButton>
+            <OutlineButton onClick={handleExcelDownload}>📥 엑셀</OutlineButton>
           </>
         }
       />
@@ -121,14 +204,18 @@ export default function RxOrdersPage() {
         />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filteredOrders}
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        emptyMessage="RX 주문 내역이 없습니다"
-      />
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>로딩 중...</div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          selectable
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          emptyMessage="RX 주문 내역이 없습니다"
+        />
+      )}
 
       {/* RX 상세 정보 안내 */}
       <div style={{ 
@@ -146,6 +233,30 @@ export default function RxOrdersPage() {
           제작 기간은 브랜드 및 렌즈 타입에 따라 3~7일 소요됩니다.
         </div>
       </div>
+
+      {selectedIds.size > 0 && (
+        <div style={{ 
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          padding: '16px 24px', 
+          background: '#fff', 
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          zIndex: 100,
+        }}>
+          <span style={{ color: '#af52de', fontWeight: 500 }}>{selectedIds.size}건 선택됨</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => handleStatusChange('pending')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#ff9500', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>대기처리</button>
+            <button onClick={() => handleStatusChange('confirmed')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#af52de', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>제작시작</button>
+            <button onClick={() => handleStatusChange('shipped')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#34c759', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>발송완료</button>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }

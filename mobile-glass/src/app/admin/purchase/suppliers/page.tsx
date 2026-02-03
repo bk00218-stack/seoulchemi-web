@@ -1,77 +1,209 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
-import DataTable, { StatusBadge, Column } from '../../../components/DataTable'
+import DataTable, { Column } from '../../../components/DataTable'
 import SearchFilter, { OutlineButton, PrimaryButton } from '../../../components/SearchFilter'
+import StatCard, { StatCardGrid } from '../../../components/StatCard'
 
 interface Supplier {
   id: number
-  code: string
   name: string
-  contact: string
-  phone: string
-  email: string
-  address: string
-  brands: string[]
-  status: string
+  code: string
+  contactName: string | null
+  phone: string | null
+  email: string | null
+  address: string | null
+  bankInfo: string | null
+  memo: string | null
+  isActive: boolean
+  purchaseCount: number
   createdAt: string
 }
 
-const sampleData: Supplier[] = [
-  { id: 1, code: 'SUP001', name: '에실로코리아', contact: '김에실', phone: '02-1234-5678', email: 'essilor@example.com', address: '서울시 강남구 테헤란로 123', brands: ['에실로', '바리락스', '크리잘'], status: 'active', createdAt: '2023-01-01' },
-  { id: 2, code: 'SUP002', name: '호야광학', contact: '이호야', phone: '02-2345-6789', email: 'hoya@example.com', address: '서울시 서초구 반포대로 456', brands: ['호야', '블루컨트롤'], status: 'active', createdAt: '2023-02-15' },
-  { id: 3, code: 'SUP003', name: '칼자이스코리아', contact: '박자이스', phone: '02-3456-7890', email: 'zeiss@example.com', address: '서울시 강남구 역삼동 789', brands: ['칼자이스'], status: 'active', createdAt: '2023-03-20' },
-  { id: 4, code: 'SUP004', name: '니콘광학', contact: '최니콘', phone: '02-4567-8901', email: 'nikon@example.com', address: '서울시 송파구 올림픽로 321', brands: ['니콘', '씨맥스'], status: 'inactive', createdAt: '2023-04-10' },
-  { id: 5, code: 'SUP005', name: '로덴스톡', contact: '정로덴', phone: '02-5678-9012', email: 'rodenstock@example.com', address: '서울시 마포구 상암동 654', brands: ['로덴스톡'], status: 'active', createdAt: '2023-05-05' },
-]
+interface Stats {
+  totalCount: number
+  activeCount: number
+  totalPurchaseAmount: number
+}
 
 export default function SuppliersPage() {
-  const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
+  const [data, setData] = useState<Supplier[]>([])
+  const [stats, setStats] = useState<Stats>({ totalCount: 0, activeCount: 0, totalPurchaseAmount: 0 })
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
+  const [formData, setFormData] = useState({
+    name: '',
+    code: '',
+    contactName: '',
+    phone: '',
+    email: '',
+    address: '',
+    bankInfo: '',
+    memo: '',
+  })
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (search) params.set('search', search)
+      params.set('includeInactive', 'true')
+      
+      const res = await fetch(`/api/suppliers?${params}`)
+      const json = await res.json()
+      
+      if (!json.error) {
+        setData(json.suppliers)
+        setStats(json.stats)
+      }
+    } catch (error) {
+      console.error('Failed to fetch suppliers:', error)
+    }
+    setLoading(false)
+  }, [search])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const handleSearch = () => fetchData()
+
+  const openNewModal = () => {
+    setEditingSupplier(null)
+    setFormData({ name: '', code: '', contactName: '', phone: '', email: '', address: '', bankInfo: '', memo: '' })
+    setShowModal(true)
+  }
+
+  const openEditModal = (supplier: Supplier) => {
+    setEditingSupplier(supplier)
+    setFormData({
+      name: supplier.name,
+      code: supplier.code,
+      contactName: supplier.contactName || '',
+      phone: supplier.phone || '',
+      email: supplier.email || '',
+      address: supplier.address || '',
+      bankInfo: supplier.bankInfo || '',
+      memo: supplier.memo || '',
+    })
+    setShowModal(true)
+  }
+
+  const handleSave = async () => {
+    if (!formData.name || !formData.code) {
+      alert('매입처명과 코드는 필수입니다')
+      return
+    }
+
+    try {
+      const url = editingSupplier ? `/api/suppliers/${editingSupplier.id}` : '/api/suppliers'
+      const method = editingSupplier ? 'PATCH' : 'POST'
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+
+      const json = await res.json()
+      if (json.success) {
+        alert(editingSupplier ? '매입처가 수정되었습니다.' : '매입처가 등록되었습니다.')
+        setShowModal(false)
+        fetchData()
+      } else {
+        alert(json.error || '저장에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('저장에 실패했습니다.')
+    }
+  }
+
+  const handleToggleActive = async (supplier: Supplier) => {
+    const action = supplier.isActive ? '비활성화' : '활성화'
+    if (!confirm(`${supplier.name}을(를) ${action}하시겠습니까?`)) return
+
+    try {
+      const res = await fetch(`/api/suppliers/${supplier.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !supplier.isActive }),
+      })
+
+      if (res.ok) {
+        fetchData()
+      }
+    } catch (error) {
+      alert('상태 변경에 실패했습니다.')
+    }
+  }
+
+  const handleDelete = async (supplier: Supplier) => {
+    if (!confirm(`${supplier.name}을(를) 삭제하시겠습니까?\n매입 내역이 있으면 삭제할 수 없습니다.`)) return
+
+    try {
+      const res = await fetch(`/api/suppliers/${supplier.id}`, { method: 'DELETE' })
+      const json = await res.json()
+
+      if (json.success) {
+        alert('매입처가 삭제되었습니다.')
+        fetchData()
+      } else {
+        alert(json.error || '삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('삭제에 실패했습니다.')
+    }
+  }
 
   const columns: Column<Supplier>[] = [
-    { key: 'code', label: '코드', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
+    { key: 'code', label: '코드', width: '100px', render: (v) => (
+      <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{v as string}</span>
     )},
     { key: 'name', label: '매입처명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
-    { key: 'contact', label: '담당자' },
-    { key: 'phone', label: '연락처', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{v as string}</span>
-    )},
+    { key: 'contactName', label: '담당자' },
+    { key: 'phone', label: '연락처' },
     { key: 'email', label: '이메일', render: (v) => (
-      <span style={{ fontSize: '12px', color: '#666' }}>{v as string}</span>
+      <span style={{ color: '#666', fontSize: '13px' }}>{v as string}</span>
     )},
-    { key: 'brands', label: '취급브랜드', render: (v) => (
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-        {(v as string[]).map((brand, idx) => (
-          <span key={idx} style={{ background: '#e3f2fd', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', color: '#007aff' }}>
-            {brand}
-          </span>
-        ))}
+    { key: 'purchaseCount', label: '매입건수', align: 'center', render: (v) => (
+      <span style={{ background: '#e3f2fd', padding: '2px 10px', borderRadius: '4px', color: '#007aff', fontWeight: 500 }}>
+        {v as number}
+      </span>
+    )},
+    { key: 'isActive', label: '상태', align: 'center', render: (v) => (
+      <span style={{ 
+        padding: '4px 10px', 
+        borderRadius: '4px', 
+        fontSize: '12px', 
+        fontWeight: 500,
+        background: v ? '#e8f5e9' : '#f5f5f7', 
+        color: v ? '#34c759' : '#86868b' 
+      }}>
+        {v ? '사용' : '미사용'}
+      </span>
+    )},
+    { key: 'id', label: '관리', width: '150px', render: (_, row) => (
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button onClick={() => openEditModal(row)} style={{ padding: '4px 10px', fontSize: '12px', border: '1px solid #007aff', borderRadius: '4px', background: '#fff', color: '#007aff', cursor: 'pointer' }}>수정</button>
+        <button onClick={() => handleToggleActive(row)} style={{ padding: '4px 10px', fontSize: '12px', border: '1px solid #ff9500', borderRadius: '4px', background: '#fff', color: '#ff9500', cursor: 'pointer' }}>{row.isActive ? '중지' : '활성'}</button>
+        <button onClick={() => handleDelete(row)} style={{ padding: '4px 10px', fontSize: '12px', border: '1px solid #ff3b30', borderRadius: '4px', background: '#fff', color: '#ff3b30', cursor: 'pointer' }}>삭제</button>
       </div>
     )},
-    { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} /> },
-    { key: 'id', label: '관리', align: 'center', render: (_, row) => (
-      <button
-        onClick={() => { setEditingSupplier(row); setShowModal(true); }}
-        style={{
-          padding: '4px 10px',
-          borderRadius: '4px',
-          background: '#f5f5f7',
-          color: '#007aff',
-          border: 'none',
-          fontSize: '12px',
-          cursor: 'pointer'
-        }}
-      >
-        수정
-      </button>
-    )},
   ]
+
+  const inputStyle = {
+    width: '100%',
+    padding: '10px 14px',
+    border: '1px solid #e1e1e1',
+    borderRadius: '8px',
+    fontSize: '14px',
+    outline: 'none',
+  }
 
   return (
     <AdminLayout activeMenu="purchase">
@@ -79,136 +211,148 @@ export default function SuppliersPage() {
         매입처 관리
       </h2>
 
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(3, 1fr)', 
-        gap: '16px', 
-        marginBottom: '24px' 
-      }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 매입처</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#1d1d1f' }}>
-            {sampleData.length}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>곳</span>
-          </div>
-        </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>활성</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>
-            {sampleData.filter(s => s.status === 'active').length}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>곳</span>
-          </div>
-        </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>비활성</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>
-            {sampleData.filter(s => s.status === 'inactive').length}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>곳</span>
-          </div>
-        </div>
-      </div>
+      <StatCardGrid>
+        <StatCard label="전체 매입처" value={stats.totalCount} unit="개" icon="🏭" />
+        <StatCard label="사용중" value={stats.activeCount} unit="개" highlight />
+        <StatCard label="총 매입금액" value={Math.round(stats.totalPurchaseAmount / 10000).toLocaleString()} unit="만원" />
+      </StatCardGrid>
 
       <SearchFilter
-        placeholder="매입처명, 담당자 검색"
+        placeholder="매입처명, 코드, 담당자 검색"
+        value={search}
+        onChange={setSearch}
+        onSearch={handleSearch}
         actions={
-          <button
-            onClick={() => { setEditingSupplier(null); setShowModal(true); }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '6px',
-              background: '#007aff',
-              color: '#fff',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 500,
-              cursor: 'pointer'
-            }}
-          >
-            + 매입처 등록
-          </button>
+          <PrimaryButton onClick={openNewModal}>+ 매입처 등록</PrimaryButton>
         }
       />
 
-      <DataTable
-        columns={columns}
-        data={sampleData}
-        emptyMessage="등록된 매입처가 없습니다"
-      />
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>로딩 중...</div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={data}
+          emptyMessage="등록된 매입처가 없습니다"
+        />
+      )}
 
       {/* 등록/수정 모달 */}
       {showModal && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', 
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: '16px',
-            padding: '24px',
-            width: '520px',
-            maxHeight: '80vh',
-            overflow: 'auto'
+          <div style={{ 
+            background: '#fff', borderRadius: '16px', padding: '24px', 
+            width: '90%', maxWidth: '500px', maxHeight: '90vh', overflow: 'auto' 
           }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '24px' }}>
               {editingSupplier ? '매입처 수정' : '매입처 등록'}
             </h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>매입처명 *</label>
-                <input type="text" defaultValue={editingSupplier?.name} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
+                    매입처명 <span style={{ color: '#ff3b30' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
+                    코드 <span style={{ color: '#ff3b30' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.code}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                    disabled={!!editingSupplier}
+                    style={{ ...inputStyle, background: editingSupplier ? '#f5f5f7' : '#fff' }}
+                  />
+                </div>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>코드</label>
-                <input type="text" defaultValue={editingSupplier?.code} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>담당자</label>
+                  <input
+                    type="text"
+                    value={formData.contactName}
+                    onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>연락처</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    style={inputStyle}
+                  />
+                </div>
               </div>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>담당자</label>
-                <input type="text" defaultValue={editingSupplier?.contact} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>이메일</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  style={inputStyle}
+                />
               </div>
+              
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>연락처</label>
-                <input type="text" defaultValue={editingSupplier?.phone} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>주소</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  style={inputStyle}
+                />
               </div>
-            </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>이메일</label>
-              <input type="email" defaultValue={editingSupplier?.email} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
-            </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>주소</label>
-              <input type="text" defaultValue={editingSupplier?.address} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
-            </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>취급 브랜드</label>
-              <input type="text" defaultValue={editingSupplier?.brands.join(', ')} placeholder="쉼표로 구분하여 입력" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+              
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>계좌정보</label>
+                <input
+                  type="text"
+                  value={formData.bankInfo}
+                  onChange={(e) => setFormData({ ...formData, bankInfo: e.target.value })}
+                  style={inputStyle}
+                  placeholder="은행명 계좌번호 예금주"
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>메모</label>
+                <textarea
+                  value={formData.memo}
+                  onChange={(e) => setFormData({ ...formData, memo: e.target.value })}
+                  style={{ ...inputStyle, minHeight: '60px', resize: 'vertical' }}
+                />
+              </div>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상태</label>
-              <select defaultValue={editingSupplier?.status || 'active'} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
-                <option value="active">활성</option>
-                <option value="inactive">비활성</option>
-              </select>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-              <button onClick={() => setShowModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
-              <button onClick={() => { alert('저장되었습니다.'); setShowModal(false); }} style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>저장</button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #e1e1e1', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSave}
+                style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#007aff', color: '#fff', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
+              >
+                저장
+              </button>
             </div>
           </div>
         </div>

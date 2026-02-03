@@ -112,6 +112,7 @@ model Order {
   storeId       Int
   store         Store     @relation(fields: [storeId], references: [id])
   
+  orderType     String    @default("stock") // stock(여벌), rx(맞춤제작)
   status        String    @default("pending") // pending, confirmed, shipped, delivered, cancelled
   totalAmount   Int       @default(0) // 총 금액
   memo          String?   // 메모
@@ -128,6 +129,7 @@ model Order {
 
   @@index([storeId])
   @@index([status])
+  @@index([orderType])
   @@index([orderedAt])
 }
 
@@ -157,4 +159,75 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+}
+
+// 매입처 (공급사) 테이블
+model Supplier {
+  id            Int       @id @default(autoincrement())
+  name          String    // 매입처명
+  code          String    @unique // 매입처 코드
+  contactName   String?   // 담당자명
+  phone         String?   // 연락처
+  email         String?   // 이메일
+  address       String?   // 주소
+  bankInfo      String?   // 계좌정보
+  memo          String?   // 메모
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  purchases     Purchase[]
+}
+
+// 매입 테이블
+model Purchase {
+  id            Int       @id @default(autoincrement())
+  purchaseNo    String    @unique // 매입번호
+  supplierId    Int
+  supplier      Supplier  @relation(fields: [supplierId], references: [id])
+  
+  status        String    @default("pending") // pending(입고대기), completed(입고완료), cancelled(취소)
+  totalAmount   Int       @default(0) // 총 매입금액
+  memo          String?   // 메모
+  
+  purchasedAt   DateTime  @default(now()) // 매입일
+  receivedAt    DateTime? // 입고일
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  items         PurchaseItem[]
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([purchasedAt])
+}
+
+// 매입 상세 테이블
+model PurchaseItem {
+  id            Int       @id @default(autoincrement())
+  purchaseId    Int
+  purchase      Purchase  @relation(fields: [purchaseId], references: [id])
+  productId     Int
+  
+  quantity      Int       @default(1) // 수량
+  unitPrice     Int       // 단가
+  totalPrice    Int       // 소계
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([purchaseId])
+}
+
+// 설정 테이블 (key-value 형태)
+model Setting {
+  id            Int       @id @default(autoincrement())
+  key           String    @unique // 설정키
+  value         String    // 설정값 (JSON string)
+  description   String?   // 설명
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

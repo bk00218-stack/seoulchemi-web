@@ -1,31 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AdminLayout } from '../../components/Navigation'
-import DataTable, { Column } from '../../components/DataTable'
-import SearchFilter, { FilterButtonGroup, OutlineButton } from '../../components/SearchFilter'
+import DataTable, { StatusBadge, Column } from '../../components/DataTable'
+import SearchFilter, { FilterButtonGroup, OutlineButton, PrimaryButton } from '../../components/SearchFilter'
 import StatCard, { StatCardGrid } from '../../components/StatCard'
+import { downloadExcel, ExcelColumn } from '@/lib/excel'
 
-interface PurchaseItem {
+interface Purchase {
   id: number
   purchaseNo: string
   date: string
   supplier: string
+  supplierId: number
   brand: string
   product: string
   quantity: number
   unitPrice: number
-  totalPrice: number
+  totalAmount: number
   status: string
 }
 
-const sampleData: PurchaseItem[] = [
-  { id: 1, purchaseNo: 'PUR-2024-0001', date: '2024-01-15', supplier: '에실로코리아', brand: '에실로', product: '크리잘 사파이어 1.60', quantity: 100, unitPrice: 45000, totalPrice: 4500000, status: 'completed' },
-  { id: 2, purchaseNo: 'PUR-2024-0002', date: '2024-01-14', supplier: '호야광학', brand: '호야', product: '블루컨트롤 1.60', quantity: 80, unitPrice: 38000, totalPrice: 3040000, status: 'completed' },
-  { id: 3, purchaseNo: 'PUR-2024-0003', date: '2024-01-13', supplier: '칼자이스코리아', brand: '칼자이스', product: '드라이브세이프 1.67', quantity: 30, unitPrice: 120000, totalPrice: 3600000, status: 'pending' },
-  { id: 4, purchaseNo: 'PUR-2024-0004', date: '2024-01-12', supplier: '니콘광학', brand: '니콘', product: '씨맥스 1.60', quantity: 50, unitPrice: 42000, totalPrice: 2100000, status: 'completed' },
-  { id: 5, purchaseNo: 'PUR-2024-0005', date: '2024-01-11', supplier: '에실로코리아', brand: '에실로', product: '바리락스 X 1.60', quantity: 40, unitPrice: 85000, totalPrice: 3400000, status: 'cancelled' },
-]
+interface Supplier {
+  id: number
+  name: string
+}
+
+interface Stats {
+  monthlyCount: number
+  pendingCount: number
+  totalAmount: number
+  supplierCount: number
+}
 
 const statusMap = {
   pending: { bg: '#fff3e0', color: '#ff9500', label: '입고대기' },
@@ -36,13 +42,97 @@ const statusMap = {
 export default function PurchasePage() {
   const [filter, setFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
+  const [data, setData] = useState<Purchase[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [stats, setStats] = useState<Stats>({ monthlyCount: 0, pendingCount: 0, totalAmount: 0, supplierCount: 0 })
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
 
-  const columns: Column<PurchaseItem>[] = [
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (filter !== 'all') params.set('status', filter)
+      if (search) params.set('search', search)
+      
+      const res = await fetch(`/api/purchases?${params}`)
+      const json = await res.json()
+      
+      if (json.error) {
+        console.error(json.error)
+        return
+      }
+      
+      setData(json.purchases)
+      setSuppliers(json.suppliers)
+      setStats(json.stats)
+    } catch (error) {
+      console.error('Failed to fetch purchases:', error)
+    }
+    setLoading(false)
+  }, [filter, search])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const handleSearch = () => fetchData()
+
+  const handleExcelDownload = () => {
+    const excelColumns: ExcelColumn[] = [
+      { key: 'purchaseNo', label: '매입번호' },
+      { key: 'date', label: '일자' },
+      { key: 'supplier', label: '매입처' },
+      { key: 'brand', label: '브랜드' },
+      { key: 'product', label: '상품명' },
+      { key: 'quantity', label: '수량' },
+      { key: 'unitPrice', label: '단가', format: (v) => v.toLocaleString() },
+      { key: 'totalAmount', label: '합계', format: (v) => v.toLocaleString() },
+      { key: 'status', label: '상태', format: (v) => statusMap[v as keyof typeof statusMap]?.label || v },
+    ]
+    
+    const exportData = selectedIds.size > 0 
+      ? data.filter(d => selectedIds.has(d.id))
+      : data
+    
+    downloadExcel(exportData, excelColumns, `매입내역_${new Date().toISOString().split('T')[0]}`)
+    alert(`${exportData.length}건이 다운로드되었습니다.`)
+  }
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (selectedIds.size === 0) {
+      alert('매입을 선택해주세요.')
+      return
+    }
+    
+    const label = statusMap[newStatus as keyof typeof statusMap]?.label || newStatus
+    if (!confirm(`${selectedIds.size}건을 '${label}'(으)로 변경하시겠습니까?`)) {
+      return
+    }
+
+    try {
+      const res = await fetch('/api/purchases', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ purchaseIds: Array.from(selectedIds), status: newStatus }),
+      })
+      
+      if (res.ok) {
+        alert(`${selectedIds.size}건의 상태가 변경되었습니다.`)
+        setSelectedIds(new Set())
+        fetchData()
+      }
+    } catch (error) {
+      alert('상태 변경에 실패했습니다.')
+    }
+  }
+
+  const columns: Column<Purchase>[] = [
     { key: 'purchaseNo', label: '매입번호', render: (v) => (
       <span style={{ fontWeight: 500, color: '#007aff' }}>{v as string}</span>
     )},
     { key: 'date', label: '일자', render: (v) => (
-      <span style={{ color: '#86868b', fontSize: '13px' }}>{v as string}</span>
+      <span style={{ color: '#666', fontSize: '13px' }}>{v as string}</span>
     )},
     { key: 'supplier', label: '매입처', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
@@ -54,29 +144,18 @@ export default function PurchasePage() {
     )},
     { key: 'product', label: '상품명' },
     { key: 'quantity', label: '수량', align: 'center', render: (v) => (
-      <span style={{ fontWeight: 600 }}>{(v as number).toLocaleString()}</span>
+      <span style={{ background: '#f5f5f7', padding: '2px 10px', borderRadius: '4px', fontWeight: 500 }}>
+        {(v as number).toLocaleString()}
+      </span>
     )},
     { key: 'unitPrice', label: '단가', align: 'right', render: (v) => (
       <span style={{ color: '#666' }}>{(v as number).toLocaleString()}원</span>
     )},
-    { key: 'totalPrice', label: '합계', align: 'right', render: (v) => (
+    { key: 'totalAmount', label: '합계', align: 'right', render: (v) => (
       <span style={{ fontWeight: 600 }}>{(v as number).toLocaleString()}원</span>
     )},
-    { key: 'status', label: '상태', render: (v) => {
-      const s = statusMap[v as keyof typeof statusMap] || statusMap.pending
-      return (
-        <span style={{ padding: '3px 8px', borderRadius: '4px', background: s.bg, color: s.color, fontSize: '11px', fontWeight: 500 }}>
-          {s.label}
-        </span>
-      )
-    }},
+    { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} statusMap={statusMap} /> },
   ]
-
-  const filteredData = filter === 'all' 
-    ? sampleData 
-    : sampleData.filter(item => item.status === filter)
-
-  const totalAmount = sampleData.filter(d => d.status === 'completed').reduce((sum, d) => sum + d.totalPrice, 0)
 
   return (
     <AdminLayout activeMenu="purchase">
@@ -85,47 +164,29 @@ export default function PurchasePage() {
       </h2>
 
       <StatCardGrid>
-        <StatCard label="이번 달 매입" value={16} unit="건" icon="📥" />
-        <StatCard label="입고 대기" value={3} unit="건" highlight />
-        <StatCard label="총 매입금액" value={(totalAmount / 10000).toLocaleString()} unit="만원" />
-        <StatCard label="매입처" value={8} unit="곳" />
+        <StatCard label="이번 달 매입" value={stats.monthlyCount} unit="건" icon="📦" />
+        <StatCard label="입고 대기" value={stats.pendingCount} unit="건" highlight />
+        <StatCard label="총 매입금액" value={stats.totalAmount} unit="만원" />
+        <StatCard label="매입처" value={stats.supplierCount} unit="곳" />
       </StatCardGrid>
 
       <SearchFilter
         placeholder="매입번호, 상품명 검색"
+        value={search}
+        onChange={setSearch}
+        onSearch={handleSearch}
         dateRange
         filters={[
-          { label: '매입처', key: 'supplier', options: [
-            { label: '에실로코리아', value: 'essilor' },
-            { label: '호야광학', value: 'hoya' },
-            { label: '칼자이스코리아', value: 'zeiss' },
-            { label: '니콘광학', value: 'nikon' },
-          ]},
-          { label: '브랜드', key: 'brand', options: [
-            { label: '에실로', value: 'essilor' },
-            { label: '호야', value: 'hoya' },
-            { label: '칼자이스', value: 'zeiss' },
-            { label: '니콘', value: 'nikon' },
-          ]}
+          { 
+            label: '매입처', 
+            key: 'supplier', 
+            options: suppliers.map(s => ({ label: s.name, value: String(s.id) }))
+          },
         ]}
         actions={
           <>
-            <OutlineButton onClick={() => alert('엑셀 다운로드')}>📥 엑셀</OutlineButton>
-            <button
-              onClick={() => window.location.href = '/admin/purchase/new'}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '6px',
-                background: '#007aff',
-                color: '#fff',
-                border: 'none',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: 'pointer'
-              }}
-            >
-              + 매입등록
-            </button>
+            <OutlineButton onClick={handleExcelDownload}>📥 엑셀</OutlineButton>
+            <PrimaryButton onClick={() => alert('매입 등록 - 준비 중')}>+ 매입등록</PrimaryButton>
           </>
         }
       />
@@ -143,14 +204,18 @@ export default function PurchasePage() {
         />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        emptyMessage="매입 내역이 없습니다"
-      />
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>로딩 중...</div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={data}
+          selectable
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          emptyMessage="매입 내역이 없습니다"
+        />
+      )}
 
       <div style={{ 
         marginTop: '16px', 
@@ -161,13 +226,34 @@ export default function PurchasePage() {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <span style={{ fontSize: '13px', color: '#86868b' }}>
-          총 {filteredData.length}건
-        </span>
-        <span style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>
-          합계: {filteredData.reduce((sum, d) => sum + d.totalPrice, 0).toLocaleString()}원
+        <span style={{ fontSize: '13px', color: '#86868b' }}>총 {data.length}건</span>
+        <span style={{ fontSize: '14px', fontWeight: 600, color: '#007aff' }}>
+          합계: {data.reduce((sum, p) => sum + p.totalAmount, 0).toLocaleString()}원
         </span>
       </div>
+
+      {selectedIds.size > 0 && (
+        <div style={{ 
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          padding: '16px 24px', 
+          background: '#fff', 
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          zIndex: 100,
+        }}>
+          <span style={{ color: '#007aff', fontWeight: 500 }}>{selectedIds.size}건 선택됨</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => handleStatusChange('completed')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#34c759', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>입고완료</button>
+            <button onClick={() => handleStatusChange('cancelled')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#ff3b30', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>취소처리</button>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }
