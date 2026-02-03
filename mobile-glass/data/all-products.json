@@ -1,36 +1,2144 @@
 {
-  "extractedAt": "2026-02-01T21:22:00+09:00",
+  "extractedAt": "2026-02-03T07:47:07.564Z",
   "brands": {
-    "케미": {"count": 42, "extracted": true},
-    "하이텍": {"count": 11, "extracted": true},
-    "진명": {"count": 21, "extracted": true}
+    "케미": {
+      "count": 63,
+      "extracted": true
+    },
+    "하이텍": {
+      "count": 11,
+      "extracted": true
+    },
+    "진명": {
+      "count": 25,
+      "extracted": true
+    },
+    "케미매직폼": {
+      "count": 113,
+      "extracted": true
+    }
   },
-  "totalProducts": 74,
+  "totalProducts": 212,
   "products": [
-    {"brand": "케미", "name": "1.56 착색", "optionType": "안경렌즈 RX", "bundleName": "착색", "refractiveIndex": "1.56", "sellingPrice": 6000},
-    {"brand": "케미", "name": "[케미 근적외선] 1.74", "optionType": "안경렌즈 여벌", "bundleName": "근적외선IR", "refractiveIndex": "1.74", "sellingPrice": 15000},
-    {"brand": "케미", "name": "[케미 근적외선] 고", "optionType": "안경렌즈 여벌", "bundleName": "근적외선IR", "refractiveIndex": "1.60", "sellingPrice": 4950},
-    {"brand": "케미", "name": "[케미 일반] 중", "optionType": "안경렌즈 여벌", "bundleName": "일반멀티", "refractiveIndex": "1.56", "sellingPrice": 1750},
-    {"brand": "케미", "name": "[케미 퍼펙트] 중", "optionType": "안경렌즈 여벌", "bundleName": "퍼펙트UV", "refractiveIndex": "1.56", "sellingPrice": 2250},
-    {"brand": "하이텍", "name": "[CR편광] 그레이", "optionType": "안경렌즈 여벌", "bundleName": "CR 편광", "refractiveIndex": "1.50", "sellingPrice": 10000},
-    {"brand": "하이텍", "name": "[CR편광] 그린", "optionType": "안경렌즈 여벌", "bundleName": "CR 편광", "refractiveIndex": "1.50", "sellingPrice": 10000},
-    {"brand": "하이텍", "name": "[CR편광] 브라운", "optionType": "안경렌즈 여벌", "bundleName": "CR 편광", "refractiveIndex": "1.50", "sellingPrice": 10000},
-    {"brand": "하이텍", "name": "[아이렌] 1.60", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 일반", "refractiveIndex": "1.60", "sellingPrice": 2900},
-    {"brand": "하이텍", "name": "[아이렌] 중", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 일반", "refractiveIndex": "1.56", "sellingPrice": 1450},
-    {"brand": "하이텍", "name": "[아이렌퍼펙트] 고", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 청광", "refractiveIndex": "1.60", "sellingPrice": 3250},
-    {"brand": "하이텍", "name": "[아이렌퍼펙트] 고비", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 청광", "refractiveIndex": "1.60", "sellingPrice": 3250},
-    {"brand": "하이텍", "name": "[아이렌퍼펙트] 중", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 청광", "refractiveIndex": "1.56", "sellingPrice": 2400},
-    {"brand": "하이텍", "name": "[아이렌퍼펙트] 초고비", "optionType": "안경렌즈 여벌", "bundleName": "아이렌 청광", "refractiveIndex": "1.67", "sellingPrice": 5500},
-    {"brand": "하이텍", "name": "하이텍 [근적외선] 1.56 SP", "optionType": "안경렌즈 여벌", "bundleName": "근적외선", "refractiveIndex": "1.56", "sellingPrice": 3000},
-    {"brand": "하이텍", "name": "하이텍 [근적외선] 1.60 APS", "optionType": "안경렌즈 여벌", "bundleName": "근적외선", "refractiveIndex": "1.60", "sellingPrice": 4400},
-    {"brand": "진명", "name": "[가르마 20% 청광] 1.56 SP (B)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 20% 청광+근적외선", "refractiveIndex": "1.56", "sellingPrice": 3500},
-    {"brand": "진명", "name": "[가르마 20% 청광] 1.56 SP (G)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 20% 청광+근적외선", "refractiveIndex": "1.56", "sellingPrice": 3500},
-    {"brand": "진명", "name": "[가르마 20% 청광] 1.60 SP (B)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 20% 청광+근적외선", "refractiveIndex": "1.60", "sellingPrice": 5750},
-    {"brand": "진명", "name": "[가르마 20% 청광] 1.60 SP (G)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 20% 청광+근적외선", "refractiveIndex": "1.60", "sellingPrice": 5750},
-    {"brand": "진명", "name": "[가르마 80%] 1.56 (BC)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 80% 일반커브", "refractiveIndex": "1.56", "sellingPrice": 4500},
-    {"brand": "진명", "name": "[가르마 80%] 1.56 (SC)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 80% 일반커브", "refractiveIndex": "1.56", "sellingPrice": 4500},
-    {"brand": "진명", "name": "[가르마 80%] 1.60 (BC)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 80% 일반커브", "refractiveIndex": "1.60", "sellingPrice": 6500},
-    {"brand": "진명", "name": "[가르마 80%] 1.60 (SC)", "optionType": "안경렌즈 여벌", "bundleName": "가르마 80% 일반커브", "refractiveIndex": "1.60", "sellingPrice": 6500},
-    {"brand": "진명", "name": "[가르마 반밀러] 1.56 (실버)", "optionType": "안경렌즈 여벌", "bundleName": "실버 반밀러", "refractiveIndex": "1.56", "sellingPrice": 5000}
+    {
+      "brand": "케미",
+      "name": "1.56 착색",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "착색",
+      "refractiveIndex": "1.56",
+      "options": "1.56 착색",
+      "sellingPrice": 6000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 근적외선] 1.74",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "근적외선IR",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 15000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 근적외선] 고",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "근적외선IR",
+      "refractiveIndex": "1.60",
+      "options": "고",
+      "sellingPrice": 4950,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 근적외선] 고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "근적외선IR",
+      "refractiveIndex": "1.60",
+      "options": "고비",
+      "sellingPrice": 6200,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 근적외선] 중",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "근적외선IR",
+      "refractiveIndex": "1.56",
+      "options": "중",
+      "sellingPrice": 3300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 근적외선] 중비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "근적외선IR",
+      "refractiveIndex": "1.56",
+      "options": "중비",
+      "sellingPrice": 4200,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 근적외선] 초고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "근적외선IR",
+      "refractiveIndex": "1.67",
+      "options": "초고비",
+      "sellingPrice": 8000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 누진] 스타일 1.56 L",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "스타일 누진",
+      "refractiveIndex": "1.56",
+      "options": "1.56 누진여벌 왼쪽",
+      "sellingPrice": 4750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 누진] 스타일 1.56 R",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "스타일 누진",
+      "refractiveIndex": "1.56",
+      "options": "1.56 누진여벌 오른쪽",
+      "sellingPrice": 4750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 누진] 스타일 1.60 L",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "스타일 누진",
+      "refractiveIndex": "1.60",
+      "options": "1.60 여벌누진 왼쪽",
+      "sellingPrice": 15000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 누진] 스타일 1.60 R",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "스타일 누진",
+      "refractiveIndex": "1.60",
+      "options": "1.60 여벌누진 오른쪽",
+      "sellingPrice": 15000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 드라이브] 1.60 ASP",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "X-드라이브",
+      "refractiveIndex": "1.60",
+      "options": "1.60 비구면",
+      "sellingPrice": 6500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 드라이브] 1.67 ASP",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "X-드라이브",
+      "refractiveIndex": "1.67",
+      "options": "1.67 비구면",
+      "sellingPrice": 9000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] GEN 8(B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.60",
+      "options": "GEN 8 (B) 고",
+      "sellingPrice": 42500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] GEN 8(G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.60",
+      "options": "GEN 8 (G) 고",
+      "sellingPrice": 42500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 고비 클래식(B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.60",
+      "options": "클래식(B) 고비",
+      "sellingPrice": 24500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 고비 클래식(G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.60",
+      "options": "클래식(G) 고비",
+      "sellingPrice": 24500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 엑스트라엑티브(B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.60",
+      "options": "엑스트라엑티브(B) 고",
+      "sellingPrice": 47500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 엑스트라엑티브(G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.60",
+      "options": "엑스트라엑티브(G) 고",
+      "sellingPrice": 47500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 원앤원 (B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.56",
+      "options": "원앤원 (B) 중비",
+      "sellingPrice": 7000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 원앤원 (G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.56",
+      "options": "원앤원 (G) 중비",
+      "sellingPrice": 7000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 중비트랜지션(B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.56",
+      "options": "클래식(B) 중비",
+      "sellingPrice": 15500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 중비트랜지션(G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.56",
+      "options": "클래식(G) 중비",
+      "sellingPrice": 15500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 포토에이드 1.60(B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.60",
+      "options": "포토에이드(B) 고비",
+      "sellingPrice": 18900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 포토에이드 1.60(G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.60",
+      "options": "포토에이드(G) 고비",
+      "sellingPrice": 18900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 포토에이드 1.67(B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.67",
+      "options": "포토에이드(B) 초고",
+      "sellingPrice": 27500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 포토에이드 1.67(G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.67",
+      "options": "포토에이드(G) 초고",
+      "sellingPrice": 27500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 변색] 포토에이드 1.74(G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "케미변색",
+      "refractiveIndex": "1.74",
+      "options": "174 포토에이드(G)",
+      "sellingPrice": 49000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 아토메가] 1.67 ASP",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "아토메가",
+      "refractiveIndex": "1.67",
+      "options": "1.67 비구면",
+      "sellingPrice": 15000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 아토메가] 1.74 ASP",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "아토메가",
+      "refractiveIndex": "1.74",
+      "options": "1.74 비구면",
+      "sellingPrice": 28500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 양면비구면] 1.61 ASP",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "양면비구면 D-FREE",
+      "refractiveIndex": "1.60",
+      "options": "1.60 양면비구면 PUV",
+      "sellingPrice": 6000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 양면비구면] 1.67 ASP",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "양면비구면 D-FREE",
+      "refractiveIndex": "1.67",
+      "options": "1.67 양면비구면 PUV",
+      "sellingPrice": 9500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 양면비구면] 1.74 ASP",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "양면비구면 D-FREE",
+      "refractiveIndex": "1.74",
+      "options": "1.74 양면비구면 PUV",
+      "sellingPrice": 22500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 양면비구면] 1.74 클리어",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "양면비구면 D-FREE",
+      "refractiveIndex": "1.74",
+      "options": "1.74 클리어 PUV",
+      "sellingPrice": 22500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 고트 (골드)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 골드",
+      "sellingPrice": 11000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 고트 (그린)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 그린",
+      "sellingPrice": 11000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 고트 (레드)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 레드",
+      "sellingPrice": 11000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 고트 (블루)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 블루",
+      "sellingPrice": 11000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 고트 (실버)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 실버",
+      "sellingPrice": 11000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 중트 (골드)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 골드",
+      "sellingPrice": 7250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 중트 (그린)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 그린",
+      "sellingPrice": 7250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 중트 (레드)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 레드",
+      "sellingPrice": 7250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 중트 (블루)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 블루",
+      "sellingPrice": 7250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 완전밀러] 중트 (실버)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "완전밀러",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 실버",
+      "sellingPrice": 7250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 일반] 고",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "일반멀티",
+      "refractiveIndex": "1.60",
+      "options": "고",
+      "sellingPrice": 3600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 일반] 고 70파이 (+)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "일반멀티",
+      "refractiveIndex": "1.60",
+      "options": "고 70파이 (+)",
+      "sellingPrice": 3600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 일반] 고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "일반멀티",
+      "refractiveIndex": "1.60",
+      "options": "고비",
+      "sellingPrice": 4250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 일반] 고비 60파이 (+)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "일반멀티",
+      "refractiveIndex": "1.60",
+      "options": "고비 60파이",
+      "sellingPrice": 7500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 일반] 중",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "일반멀티",
+      "refractiveIndex": "1.56",
+      "options": "중",
+      "sellingPrice": 1750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 일반] 중비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "일반멀티",
+      "refractiveIndex": "1.56",
+      "options": "중비",
+      "sellingPrice": 2900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 일반] 초고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "일반멀티",
+      "refractiveIndex": "1.67",
+      "options": "초고비",
+      "sellingPrice": 5750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 초발수] 1.74",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "초발수",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 14000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 초발수] 고",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "초발수",
+      "refractiveIndex": "1.60",
+      "options": "고",
+      "sellingPrice": 4100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 초발수] 고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "초발수",
+      "refractiveIndex": "1.60",
+      "options": "고비",
+      "sellingPrice": 4750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 초발수] 중",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "초발수",
+      "refractiveIndex": "1.56",
+      "options": "중",
+      "sellingPrice": 2750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 초발수] 중비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "초발수",
+      "refractiveIndex": "1.56",
+      "options": "중비",
+      "sellingPrice": 3465,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 초발수] 초고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "초발수",
+      "refractiveIndex": "1.67",
+      "options": "초고비",
+      "sellingPrice": 6000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 퍼펙트] 1.74",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "퍼펙트UV",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 12500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 퍼펙트] 고",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "퍼펙트UV",
+      "refractiveIndex": "1.60",
+      "options": "고",
+      "sellingPrice": 4450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 퍼펙트] 고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "퍼펙트UV",
+      "refractiveIndex": "1.60",
+      "options": "고비",
+      "sellingPrice": 5500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 퍼펙트] 중",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "퍼펙트UV",
+      "refractiveIndex": "1.56",
+      "options": "중",
+      "sellingPrice": 2250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 퍼펙트] 중비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "퍼펙트UV",
+      "refractiveIndex": "1.56",
+      "options": "중비",
+      "sellingPrice": 2750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미",
+      "name": "[케미 퍼펙트] 초고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "퍼펙트UV",
+      "refractiveIndex": "1.67",
+      "options": "초고비",
+      "sellingPrice": 6750,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[CR편광] 그레이",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "CR 편광",
+      "refractiveIndex": "1.50",
+      "options": "1.50 평면 그레이",
+      "sellingPrice": 10000,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[CR편광] 그린",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "CR 편광",
+      "refractiveIndex": "1.50",
+      "options": "1.50 평면 그린",
+      "sellingPrice": 10000,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[CR편광] 브라운",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "CR 편광",
+      "refractiveIndex": "1.50",
+      "options": "1.50 평면 브라운",
+      "sellingPrice": 10000,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[아이렌] 1.60",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "아이렌 일반",
+      "refractiveIndex": "1.60",
+      "options": "1.60 구면",
+      "sellingPrice": 2900,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[아이렌] 중",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "아이렌 일반",
+      "refractiveIndex": "1.56",
+      "options": "1.56 SP",
+      "sellingPrice": 1450,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[아이렌퍼펙트] 고",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "아이렌 청광",
+      "refractiveIndex": "1.60",
+      "options": "고",
+      "sellingPrice": 3250,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[아이렌퍼펙트] 고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "아이렌 청광",
+      "refractiveIndex": "1.60",
+      "options": "고비",
+      "sellingPrice": 3250,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[아이렌퍼펙트] 중",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "아이렌 청광",
+      "refractiveIndex": "1.56",
+      "options": "중",
+      "sellingPrice": 2400,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "[아이렌퍼펙트] 초고비",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "아이렌 청광",
+      "refractiveIndex": "1.67",
+      "options": "초고비",
+      "sellingPrice": 5500,
+      "status": "사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "하이텍 [근적외선] 1.56 SP",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "근적외선",
+      "refractiveIndex": "1.56",
+      "options": "1.56 구면",
+      "sellingPrice": 3000,
+      "status": "미사용"
+    },
+    {
+      "brand": "하이텍",
+      "name": "하이텍 [근적외선] 1.60 APS",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "근적외선",
+      "refractiveIndex": "1.60",
+      "options": "1.60 비구면",
+      "sellingPrice": 4400,
+      "status": "미사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 20% 청광] 1.56 SP (B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 20% 청광+근적외선",
+      "refractiveIndex": "1.56",
+      "options": "중 청광 브라운",
+      "sellingPrice": 3500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 20% 청광] 1.56 SP (G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 20% 청광+근적외선",
+      "refractiveIndex": "1.56",
+      "options": "중 청광 그레이",
+      "sellingPrice": 3500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 20% 청광] 1.60 SP (B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 20% 청광+근적외선",
+      "refractiveIndex": "1.60",
+      "options": "고 청광 브라운",
+      "sellingPrice": 5750,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 20% 청광] 1.60 SP (G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 20% 청광+근적외선",
+      "refractiveIndex": "1.60",
+      "options": "고 청광 그레이",
+      "sellingPrice": 5750,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 20% 청광] 1.67 ASP (B)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 20% 청광+근적외선",
+      "refractiveIndex": "1.67",
+      "options": "초고비 청광 브라운",
+      "sellingPrice": 9900,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 20% 청광] 1.67 ASP (G)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 20% 청광+근적외선",
+      "refractiveIndex": "1.67",
+      "options": "초고 청광 그레이",
+      "sellingPrice": 9900,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.56 (BC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 일반커브",
+      "refractiveIndex": "1.56",
+      "options": "1.56 구면 BC",
+      "sellingPrice": 4500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.56 (SC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 일반커브",
+      "refractiveIndex": "1.56",
+      "options": "1.56 구면 SC",
+      "sellingPrice": 4500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.56 트렌디 (BC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 하이커브",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 BC",
+      "sellingPrice": 6500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.56 트렌디 (GC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 하이커브",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 GC",
+      "sellingPrice": 6500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.56 트렌디 (SC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 하이커브",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 SC",
+      "sellingPrice": 6500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.60 (BC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 일반커브",
+      "refractiveIndex": "1.60",
+      "options": "1.60 구면 BC",
+      "sellingPrice": 6500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.60 (GC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 일반커브",
+      "refractiveIndex": "1.60",
+      "options": "1.60 구면 GC",
+      "sellingPrice": 6500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.60 (SC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 일반커브",
+      "refractiveIndex": "1.60",
+      "options": "1.60 구면 SC",
+      "sellingPrice": 6500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.60 트렌디 (BC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 하이커브",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 BC",
+      "sellingPrice": 8500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.60 트렌디 (GC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 하이커브",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 GC",
+      "sellingPrice": 8500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.60 트렌디 (SC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 하이커브",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 SC",
+      "sellingPrice": 8500,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.67 (SC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 일반커브",
+      "refractiveIndex": "1.67",
+      "options": "1.67 비구면 SC",
+      "sellingPrice": 10000,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 80%] 1.67 트렌디 (SC)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "가르마 80% 하이커브",
+      "refractiveIndex": "1.67",
+      "options": "1.67 하이커브 SC",
+      "sellingPrice": 11000,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 반밀러] 1.56 (실버)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "실버 반밀러",
+      "refractiveIndex": "1.56",
+      "options": "1.56 구면 실버 반밀러",
+      "sellingPrice": 5000,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 반밀러] 1.56 트렌디 (실버)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "실버 반밀러",
+      "refractiveIndex": "1.56",
+      "options": "1.56 하이커브 실버 반밀러",
+      "sellingPrice": 7000,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 반밀러] 1.60 SP(실버)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "실버 반밀러",
+      "refractiveIndex": "1.60",
+      "options": "1.60 구면 실버 반밀러",
+      "sellingPrice": 7000,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 반밀러] 1.60 트렌디 (실버)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "실버 반밀러",
+      "refractiveIndex": "1.60",
+      "options": "1.60 하이커브 실버 반밀러",
+      "sellingPrice": 9000,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 반밀러] 1.67 ASP(실버)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "실버 반밀러",
+      "refractiveIndex": "1.67",
+      "options": "1.67 비구면 실버 반밀러",
+      "sellingPrice": 11000,
+      "status": "사용"
+    },
+    {
+      "brand": "진명",
+      "name": "[가르마 반밀러] 1.67 트렌디 (실버)",
+      "optionType": "안경렌즈 여벌",
+      "bundleName": "실버 반밀러",
+      "refractiveIndex": "1.67",
+      "options": "1.67 하이커브 실버 반밀러",
+      "sellingPrice": 12000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-CD-SOFT",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 21900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-CD-SOFT  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 44450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-CD-SOFT 포토에이드 그레이",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.74",
+      "options": "1.74 변색 포토에이드 그레이",
+      "sellingPrice": 44450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-MOBILE  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 68400,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-MOBILE  포토에이드 그레이",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.74",
+      "options": "1.74 변색 포토에이드 그레이",
+      "sellingPrice": 68400,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-OUTDOOR  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 74600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-ST  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 92300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-ST  포토에이드 그레이",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.74",
+      "options": "1.74 변색 포토에이드 그레이",
+      "sellingPrice": 92300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-XT  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 75200,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-XT  포토에이드 그레이",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.74",
+      "options": "1.74 변색 포토에이드 그레이",
+      "sellingPrice": 75200,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-디지털  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 63450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-베이직  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 73450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-애니원  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 애니원 (CA)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 30800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-애니원  포토에이드 그레이",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 애니원 (CA)",
+      "refractiveIndex": "1.74",
+      "options": "1.74 변색 포토에이드 그레이",
+      "sellingPrice": 30800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-어댑터  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 어댑터 (AD)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 27500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.74 MF-프리미엄  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.74",
+      "options": "1.74",
+      "sellingPrice": 124300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "싱글 RX 1.74",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "싱글 RX",
+      "refractiveIndex": "1.74",
+      "options": "RX 1.74",
+      "sellingPrice": 53250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "싱글 RX 고굴절",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "싱글 RX",
+      "refractiveIndex": "1.60",
+      "options": "RX 고굴절",
+      "sellingPrice": 17000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "싱글 RX 고비",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "싱글 RX",
+      "refractiveIndex": "1.60",
+      "options": "RX 고비",
+      "sellingPrice": 18500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "싱글 RX 중",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "싱글 RX",
+      "refractiveIndex": "1.56",
+      "options": "RX 중굴절",
+      "sellingPrice": 9750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "싱글 RX 중비",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "싱글 RX",
+      "refractiveIndex": "1.56",
+      "options": "RX 중비",
+      "sellingPrice": 12000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "싱글 RX 초고비",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "싱글 RX",
+      "refractiveIndex": "1.67",
+      "options": "RX 초고비",
+      "sellingPrice": 27000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-MOBILE",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 29850,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-OUTDOOR",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.55",
+      "options": "1.50",
+      "sellingPrice": 26100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-ST",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 48895,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-XT",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 34200,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-디지털",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 21450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-베이직",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 21450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-애니원",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 애니원 (CA)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 19800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-어댑터",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 어댑터 (AD)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 17600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-와이드",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 와이드 (CW)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 21450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.50 MF-프리미엄",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.50",
+      "options": "1.50",
+      "sellingPrice": 33900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-CD-SOFT  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 16450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-MOBILE  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 23950,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-OUTDOOR  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 34800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-ST  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 44450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-XT  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 34200,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-디지털  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 22600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-디지털 원앤원",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.56",
+      "options": "1.56 변색",
+      "sellingPrice": 33150,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-베이직  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 22600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-베이직 원앤원",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.56",
+      "options": "1.56 변색",
+      "sellingPrice": 31100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-스타일 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스타일 (AS)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 24300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-스타일 원앤원",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스타일 (AS)",
+      "refractiveIndex": "1.56",
+      "options": "1.56 변색",
+      "sellingPrice": 33900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-애니원  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 애니원 (CA)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 12300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-어댑터  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 어댑터 (AD)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 17600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-와이드  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 와이드 (CW)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 22600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-프리미엄  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.56",
+      "options": "1.56",
+      "sellingPrice": 37300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.56 MF-프리미엄 원앤원",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.56",
+      "options": "1.56 변색",
+      "sellingPrice": 45200,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-CD-SOFT  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 21250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-CD-SOFT GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 74600,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-CD-SOFT 엑스트라엑티브",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 엑스트라 엑티브",
+      "sellingPrice": 83900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-CD-SOFT 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 21250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-MOBILE  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 28750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-MOBILE GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 79550,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-MOBILE 엑스트라엑티브",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 엑스트라 엑티브",
+      "sellingPrice": 92700,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-MOBILE 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 28750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-OUTDOOR  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 37300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-OUTDOOR GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 111850,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-OUTDOOR 엑스트라엑티브",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 엑스트라 엑티브",
+      "sellingPrice": 118100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-OUTDOOR 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 42300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-ST  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 51300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-ST GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 84100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-ST 엑스트라엑티브",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 엑스트라 엑티브",
+      "sellingPrice": 88900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-ST 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 51300,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-XT  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 47850,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-XT GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 67000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-XT 엑스트라엑티브",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 엑스트라 엑티브",
+      "sellingPrice": 71800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-XT 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 47850,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-디지털  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 32750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-디지털 GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 96050,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-디지털 엑스트라엑티브",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 엑스트라 엑티브",
+      "sellingPrice": 104550,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-디지털 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 60900,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-베이직  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 32750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-베이직 GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 92100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-베이직 엑스트라엑티브",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 엑스트라 엑티브",
+      "sellingPrice": 101700,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-베이직 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 57450,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-스타일  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스타일 (AS)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 38400,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-스타일 GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스타일 (AS)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 102250,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-스타일 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스타일 (AS)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 63800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-애니원  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 애니원 (CA)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 16500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-애니원 포토에이드",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 애니원 (CA)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드",
+      "sellingPrice": 23650,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-어댑터  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 어댑터 (AD)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 19800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-어댑터 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 어댑터 (AD)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 49500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-와이드  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 와이드 (CW)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 32750,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-와이드 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 와이드 (CW)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 56550,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-프리미엄  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.60",
+      "options": "1.60",
+      "sellingPrice": 50850,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-프리미엄 GEN8",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 GEN8",
+      "sellingPrice": 111850,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-프리미엄 엑스트라엑티브",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 엑스트라 엑티브",
+      "sellingPrice": 115850,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.60 MF-프리미엄 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.60",
+      "options": "1.60 변색 포토에이드 PUV",
+      "sellingPrice": 67000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-CD-SOFT  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 31500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-CD-SOFT 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 씨디소프트 (CD-SOFT)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 31500,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-MOBILE  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 41050,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-MOBILE 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 모바일 (MOBILE)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 41050,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-OUTDOOR  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 53150,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-OUTDOOR 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 아웃도어 (OUTDOOR)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 58150,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-ST  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 68350,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-ST 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스마트 (ST)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 68350,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-XT  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 58100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-XT 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 엑스티 (XT)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 58100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-디지털  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 42400,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-디지털 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 디지털 (CD)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 87000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-베이직  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 42400,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-베이직 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 베이직 (CB)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 82050,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-스타일  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스타일 (AS)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 52550,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-스타일 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 스타일 (AS)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 91100,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-애니원  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 애니원 (CA)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 21800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-애니원 포토에이드",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 애니원 (CA)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드",
+      "sellingPrice": 21800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-어댑터  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 어댑터 (AD)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 22000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-어댑터 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 어댑터 (AD)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 66000,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-와이드  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 와이드 (CW)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 42400,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-와이드 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 와이드 (CW)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 80800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-프리미엄  PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.67",
+      "options": "1.67",
+      "sellingPrice": 67800,
+      "status": "사용"
+    },
+    {
+      "brand": "케미매직폼",
+      "name": "1.67 MF-프리미엄 포토에이드 PUV",
+      "optionType": "안경렌즈 RX",
+      "bundleName": "매직폼 프리미엄 (CP)",
+      "refractiveIndex": "1.67",
+      "options": "1.67 변색 포토에이드 PUV",
+      "sellingPrice": 95700,
+      "status": "사용"
+    }
   ]
 }
