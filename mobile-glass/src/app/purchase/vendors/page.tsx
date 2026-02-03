@@ -4,13 +4,12 @@ import Layout, { cardStyle } from '../../components/Layout'
 
 const SIDEBAR = [
   { title: '매입관리', items: [
-    { label: '매입내역 조회', href: '/purchase' },
+    { label: '매입내역', href: '/purchase' },
     { label: '매입등록', href: '/purchase/new' },
-    { label: '매입처 관리', href: '/purchase/vendors' },
   ]},
-  { title: '정산관리', items: [
-    { label: '매입 정산', href: '/purchase/settlement' },
-    { label: '정산내역 조회', href: '/purchase/settlement/history' },
+  { title: '매입처 관리', items: [
+    { label: '매입처 관리', href: '/purchase/vendors' },
+    { label: '매입처 미납금 관리', href: '/purchase/vendors/unpaid' },
   ]}
 ]
 

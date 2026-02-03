@@ -68,22 +68,23 @@ model Product {
 
 // 상품 옵션 (재고 관리용)
 model ProductOption {
-  id            Int       @id @default(autoincrement())
-  productId     Int
-  product       Product   @relation(fields: [productId], references: [id])
+  id              Int       @id @default(autoincrement())
+  productId       Int
+  product         Product   @relation(fields: [productId], references: [id])
   
-  sph           String?   // SPH 값
-  cyl           String?   // CYL 값
-  axis          String?   // AXIS 값
-  optionName    String?   // 옵션이름
-  memo          String?   // 메모
-  barcode       String?   // 바코드
-  stock         Int       @default(0) // 재고
-  isActive      Boolean   @default(true) // 상태
-  location      String?   // 재고 위치
+  sph             String?   // SPH 값
+  cyl             String?   // CYL 값
+  axis            String?   // AXIS 값
+  optionName      String?   // 옵션이름
+  memo            String?   // 메모
+  barcode         String?   // 바코드
+  stock           Int       @default(0) // 재고
+  isActive        Boolean   @default(true) // 상태
+  location        String?   // 재고 위치
+  priceAdjustment Int       @default(0) // 가격 조정 (+ 또는 -)
   
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   
   @@index([productId])
   @@index([barcode])

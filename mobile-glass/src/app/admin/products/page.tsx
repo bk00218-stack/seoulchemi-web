@@ -27,6 +27,20 @@ interface Brand {
   name: string
 }
 
+interface ProductOption {
+  id: number
+  sph: string
+  cyl: string
+  axis: string | null
+  optionName: string | null
+  memo: string | null
+  barcode: string | null
+  stock: number
+  status: string
+  stockLocation: string | null
+  priceAdjustment: number
+}
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
@@ -36,6 +50,8 @@ export default function ProductsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [productOptions, setProductOptions] = useState<ProductOption[]>([])
+  const [optionsLoading, setOptionsLoading] = useState(false)
   const [brandFilter, setBrandFilter] = useState('')
   const [optionFilter, setOptionFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -43,6 +59,15 @@ export default function ProductsPage() {
   useEffect(() => {
     fetchProducts()
   }, [])
+
+  // 상품 수정시 옵션(도수표) 불러오기
+  useEffect(() => {
+    if (editingProduct) {
+      fetchProductOptions(editingProduct.id)
+    } else {
+      setProductOptions([])
+    }
+  }, [editingProduct])
 
   async function fetchProducts() {
     try {
@@ -55,6 +80,20 @@ export default function ProductsPage() {
       console.error('Failed to fetch products:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function fetchProductOptions(productId: number) {
+    setOptionsLoading(true)
+    try {
+      const res = await fetch(`/api/products/${productId}/options`)
+      const data = await res.json()
+      setProductOptions(data.options || [])
+    } catch (error) {
+      console.error('Failed to fetch product options:', error)
+      setProductOptions([])
+    } finally {
+      setOptionsLoading(false)
     }
   }
 
@@ -236,8 +275,8 @@ export default function ProductsPage() {
             background: '#fff',
             borderRadius: '16px',
             padding: '24px',
-            width: '500px',
-            maxHeight: '80vh',
+            width: editingProduct ? '600px' : '500px',
+            maxHeight: '85vh',
             overflowY: 'auto'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
@@ -334,6 +373,103 @@ export default function ProductsPage() {
                   <option value="inactive">비활성</option>
                 </select>
               </div>
+
+              {/* 도수표 섹션 */}
+              {editingProduct && (
+                <div style={{ marginTop: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#1d1d1f' }}>
+                      📋 도수표 ({productOptions.length}개)
+                    </label>
+                    <button
+                      onClick={() => alert('도수 추가 기능 준비중')}
+                      style={{
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        background: '#007aff',
+                        color: '#fff',
+                        border: 'none',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      + 도수 추가
+                    </button>
+                  </div>
+                  
+                  {optionsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#86868b', fontSize: '13px' }}>
+                      로딩 중...
+                    </div>
+                  ) : productOptions.length === 0 ? (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      padding: '24px', 
+                      background: '#f5f5f7', 
+                      borderRadius: '8px',
+                      color: '#86868b',
+                      fontSize: '13px'
+                    }}>
+                      등록된 도수가 없습니다
+                    </div>
+                  ) : (
+                    <div style={{ 
+                      maxHeight: '250px', 
+                      overflowY: 'auto', 
+                      border: '1px solid #e5e5e5', 
+                      borderRadius: '8px'
+                    }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                        <thead>
+                          <tr style={{ background: '#f5f5f7', position: 'sticky', top: 0 }}>
+                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>SPH</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>CYL</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>재고</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>상태</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>관리</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {productOptions.map((opt, idx) => (
+                            <tr key={opt.id} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                              <td style={{ padding: '8px 10px', fontFamily: 'monospace' }}>{opt.sph}</td>
+                              <td style={{ padding: '8px 10px', fontFamily: 'monospace' }}>{opt.cyl}</td>
+                              <td style={{ padding: '8px 10px', textAlign: 'center' }}>{opt.stock}</td>
+                              <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                                <span style={{
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '11px',
+                                  background: opt.status === '주문가능' ? '#e8f5e9' : '#ffebee',
+                                  color: opt.status === '주문가능' ? '#2e7d32' : '#c62828'
+                                }}>
+                                  {opt.status}
+                                </span>
+                              </td>
+                              <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                                <button
+                                  onClick={() => alert(`도수 수정: SPH ${opt.sph}, CYL ${opt.cyl}`)}
+                                  style={{
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    background: 'transparent',
+                                    color: '#007aff',
+                                    border: '1px solid #007aff',
+                                    fontSize: '11px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  수정
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>

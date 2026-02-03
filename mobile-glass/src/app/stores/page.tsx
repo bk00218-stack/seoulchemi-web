@@ -20,11 +20,11 @@ const SIDEBAR = [
     ]
   },
   {
-    title: '승인/통합',
+    title: '안경원 승인/통합',
     items: [
-      { label: '가입여부 확인', href: '/stores/verify' },
-      { label: '코드 승인', href: '/stores/approve' },
-      { label: '정산통합', href: '/stores/settle' },
+      { label: '레티나 가입여부 확인', href: '/stores/verify' },
+      { label: '유통사 코드 승인', href: '/stores/approve' },
+      { label: '레티나 가맹점 정산통합', href: '/stores/settle' },
     ]
   }
 ]

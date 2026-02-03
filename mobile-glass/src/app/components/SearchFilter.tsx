@@ -242,14 +242,14 @@ export function PrimaryButton({
   disabled = false,
   color = '#007aff'
 }: {
-  onClick: () => void
+  onClick?: () => void
   children: React.ReactNode
   disabled?: boolean
   color?: string
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={onClick ? onClick : undefined}
       disabled={disabled}
       style={{
         padding: '8px 16px',

@@ -13,7 +13,7 @@ const SIDEBAR = [
     ]
   },
   {
-    title: '화면설정',
+    title: '쇼핑몰 화면설정',
     items: [
       { label: '메인화면 설정', href: '/settings/main' },
       { label: '상품 상세화면 설정', href: '/settings/product-detail' },

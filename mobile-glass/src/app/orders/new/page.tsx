@@ -2,6 +2,27 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Layout from '../../components/Layout'
+
+const SIDEBAR = [
+  {
+    title: '후결제 주문',
+    items: [
+      { label: '여벌 주문내역', href: '/' },
+      { label: 'RX 주문내역', href: '/orders/rx' },
+      { label: '관리자 주문등록', href: '/orders/new' },
+      { label: '명세표 출력이력', href: '/orders/print-history' },
+    ]
+  },
+  {
+    title: '출고관리',
+    items: [
+      { label: '전체 주문내역', href: '/orders/all' },
+      { label: '출고 확인', href: '/orders/shipping' },
+      { label: '출고 배송지 정보', href: '/orders/delivery' },
+    ]
+  }
+]
 
 interface Product {
   id: number
@@ -42,9 +63,14 @@ export default function NewOrderPage() {
     fetch('/api/stores').then(r => r.json()).then(data => setStores(data.stores || []))
     fetch('/api/products').then(r => r.json()).then(data => {
       const grouped: Record<string, Product[]> = {}
-      data.forEach((p: Product) => {
-        if (!grouped[p.brandName]) grouped[p.brandName] = []
-        grouped[p.brandName].push(p)
+      const productList = data.products || []
+      productList.forEach((p: any) => {
+        const brandName = p.brand || '기타'
+        if (!grouped[brandName]) grouped[brandName] = []
+        grouped[brandName].push({
+          ...p,
+          brandName: brandName
+        })
       })
       setProducts(grouped)
     })
@@ -123,21 +149,11 @@ export default function NewOrderPage() {
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ 
-        borderBottom: '2px solid #333', 
-        paddingBottom: '20px', 
-        marginBottom: '30px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '28px' }}>🛒 새 주문</h1>
-          <p style={{ margin: '5px 0 0', color: '#666' }}>모바일글라스</p>
-        </div>
-        <a href="/orders" style={{ color: '#0066cc', textDecoration: 'none' }}>← 주문목록</a>
-      </header>
+    <Layout sidebarMenus={SIDEBAR} activeNav="주문">
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--gray-900)' }}>관리자 주문등록</h1>
+        <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>새로운 주문을 등록합니다</p>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '30px' }}>
         {/* 왼쪽: 상품 선택 */}
@@ -363,6 +379,6 @@ export default function NewOrderPage() {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   )
 }

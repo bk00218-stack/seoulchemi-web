@@ -47,6 +47,7 @@ export async function PUT(
         stock: body.stock || 0,
         isActive: body.isActive ?? true,
         location: body.location,
+        priceAdjustment: body.priceAdjustment || 0,
       }
     })
 

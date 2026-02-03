@@ -29,7 +29,7 @@ export async function POST(
 
     // 새로운 옵션만 필터링
     const newOptions = options.filter(
-      (o: { sph: string; cyl: string }) => !existingSet.has(`${o.sph}|${o.cyl}`)
+      (o: { sph: string; cyl: string; priceAdjustment?: number }) => !existingSet.has(`${o.sph}|${o.cyl}`)
     )
 
     if (newOptions.length === 0) {
@@ -38,12 +38,13 @@ export async function POST(
 
     // 일괄 생성
     const result = await prisma.productOption.createMany({
-      data: newOptions.map((o: { sph: string; cyl: string }) => ({
+      data: newOptions.map((o: { sph: string; cyl: string; priceAdjustment?: number }) => ({
         productId,
         sph: o.sph,
         cyl: o.cyl,
         stock: 0,
         isActive: true,
+        priceAdjustment: o.priceAdjustment || 0,
       }))
     })
 

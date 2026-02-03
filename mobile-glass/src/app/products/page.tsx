@@ -7,7 +7,8 @@ const SIDEBAR = [
   {
     title: '상품관리',
     items: [
-      { label: '상품 관리', href: '/products' },
+      { label: '브랜드 관리', href: '/products' },
+      { label: '판매상품 관리', href: '/products/items' },
       { label: '묶음상품 설정', href: '/products/bundles' },
       { label: 'RX상품 관리', href: '/products/rx' },
       { label: '상품 단축코드 설정', href: '/products/shortcuts' },
@@ -53,6 +54,7 @@ interface ProductOption {
   stock: number
   status: string
   stockLocation: string | null
+  priceAdjustment: number
 }
 
 // 모달 스타일
@@ -95,36 +97,58 @@ const labelStyle: React.CSSProperties = {
   color: '#1d1d1f',
 }
 
-// 매트릭스 도수생성 모달 컴포넌트
+// 매트릭스 도수 생성/수정 모달 컴포넌트
 function GenerateOptionsModal({
   productName,
   existingOptions,
   onClose,
   onGenerate,
+  onUpdate,
+  mode = 'create',
 }: {
   productName: string
   existingOptions: ProductOption[]
   onClose: () => void
-  onGenerate: (options: { sph: string; cyl: string }[]) => void
+  onGenerate: (options: { sph: string; cyl: string; priceAdjustment: number }[]) => void
+  onUpdate?: (updates: { id: number; priceAdjustment: number }[]) => void
+  mode?: 'create' | 'edit'
 }) {
   // 탭: 근난시(-/-), 원난시(+/-)
   const [activeTab, setActiveTab] = useState<'minus' | 'plus'>('minus')
   
-  // 선택된 셀들 (Set으로 관리, "sph,cyl" 형태)
-  const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set())
+  // 선택된 셀들과 가격 조정 (Map으로 관리, "sph,cyl" -> priceAdjustment)
+  // 수정 모드에서는 기존 옵션도 포함
+  const [selectedCells, setSelectedCells] = useState<Map<string, number>>(() => {
+    if (mode === 'edit') {
+      // 수정 모드: 기존 옵션들을 선택된 상태로 초기화
+      return new Map(existingOptions.map(o => [`${o.sph},${o.cyl}`, o.priceAdjustment || 0]))
+    }
+    return new Map()
+  })
   
   // 드래그 선택
   const [isDragging, setIsDragging] = useState(false)
   const [dragMode, setDragMode] = useState<'select' | 'deselect'>('select')
+  
+  // 가격 조정 규칙 (CYL 기준)
+  const [priceRules, setPriceRules] = useState([
+    { cylFrom: -2.00, cylTo: -4.00, adjustment: 5000 },
+  ])
+  const [showRulePanel, setShowRulePanel] = useState(false)
+  const [bulkPrice, setBulkPrice] = useState(0)
 
-  // 기존 옵션들을 Set으로
-  const existingSet = new Set(existingOptions.map(o => `${o.sph},${o.cyl}`))
+  // 기존 옵션들을 Map으로 (id와 가격조정 포함)
+  const existingMap = new Map(existingOptions.map(o => [`${o.sph},${o.cyl}`, { id: o.id, priceAdjustment: o.priceAdjustment || 0 }]))
 
   // SPH/CYL 값 생성
   const formatValue = (v: number) => {
     const rounded = Math.round(v * 100) / 100
     if (rounded === 0) return '0.00'
     return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2)
+  }
+  
+  const parseValue = (s: string): number => {
+    return parseFloat(s.replace('+', ''))
   }
 
   // CYL은 항상 마이너스 (0.00 ~ -4.00)
@@ -146,25 +170,43 @@ function GenerateOptionsModal({
       sphValues.push(s)
     }
   }
+  
+  // 가격 규칙에 따른 조정값 계산 (CYL 기준)
+  const getPriceByRules = (cyl: number): number => {
+    for (const rule of priceRules) {
+      if (cyl <= rule.cylFrom && cyl >= rule.cylTo) {
+        return rule.adjustment
+      }
+    }
+    return 0
+  }
 
   const toggleCell = (sph: number, cyl: number) => {
     const key = `${formatValue(sph)},${formatValue(cyl)}`
-    if (existingSet.has(key)) return // 기존 옵션은 선택 불가
+    const isExisting = existingMap.has(key)
+    
+    // 생성 모드에서는 기존 옵션 선택 불가
+    if (mode === 'create' && isExisting) return
     
     setSelectedCells(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(key)) {
-        newSet.delete(key)
+      const newMap = new Map(prev)
+      if (newMap.has(key)) {
+        // 수정 모드에서 기존 옵션은 선택 해제 불가 (삭제 방지)
+        if (mode === 'edit' && isExisting) return prev
+        newMap.delete(key)
       } else {
-        newSet.add(key)
+        newMap.set(key, getPriceByRules(cyl))
       }
-      return newSet
+      return newMap
     })
   }
 
   const handleMouseDown = (sph: number, cyl: number) => {
     const key = `${formatValue(sph)},${formatValue(cyl)}`
-    if (existingSet.has(key)) return
+    const isExisting = existingMap.has(key)
+    
+    // 생성 모드에서는 기존 옵션 드래그 불가
+    if (mode === 'create' && isExisting) return
     
     setIsDragging(true)
     setDragMode(selectedCells.has(key) ? 'deselect' : 'select')
@@ -174,16 +216,21 @@ function GenerateOptionsModal({
   const handleMouseEnter = (sph: number, cyl: number) => {
     if (!isDragging) return
     const key = `${formatValue(sph)},${formatValue(cyl)}`
-    if (existingSet.has(key)) return
+    const isExisting = existingMap.has(key)
+    
+    // 생성 모드에서는 기존 옵션 드래그 불가
+    if (mode === 'create' && isExisting) return
     
     setSelectedCells(prev => {
-      const newSet = new Set(prev)
+      const newMap = new Map(prev)
       if (dragMode === 'select') {
-        newSet.add(key)
+        newMap.set(key, getPriceByRules(cyl))
       } else {
-        newSet.delete(key)
+        // 수정 모드에서 기존 옵션은 드래그 해제 불가
+        if (mode === 'edit' && isExisting) return prev
+        newMap.delete(key)
       }
-      return newSet
+      return newMap
     })
   }
 
@@ -192,36 +239,87 @@ function GenerateOptionsModal({
   }
 
   const handleSelectAll = () => {
-    const newSet = new Set(selectedCells)
+    const newMap = new Map(selectedCells)
     sphValues.forEach(sph => {
       cylValues.forEach(cyl => {
         const key = `${formatValue(sph)},${formatValue(cyl)}`
-        if (!existingSet.has(key)) {
-          newSet.add(key)
+        if (!existingMap.has(key)) {
+          newMap.set(key, getPriceByRules(cyl))
         }
       })
     })
-    setSelectedCells(newSet)
+    setSelectedCells(newMap)
   }
 
   const handleClearAll = () => {
     // 현재 탭의 선택만 해제
-    const newSet = new Set(selectedCells)
+    const newMap = new Map(selectedCells)
     sphValues.forEach(sph => {
       cylValues.forEach(cyl => {
         const key = `${formatValue(sph)},${formatValue(cyl)}`
-        newSet.delete(key)
+        newMap.delete(key)
       })
     })
-    setSelectedCells(newSet)
+    setSelectedCells(newMap)
+  }
+  
+  // 선택된 셀들에 일괄 가격 적용
+  const handleApplyBulkPrice = () => {
+    const newMap = new Map(selectedCells)
+    for (const key of newMap.keys()) {
+      newMap.set(key, bulkPrice)
+    }
+    setSelectedCells(newMap)
+  }
+  
+  // 규칙 재적용 (선택된 셀에만 적용)
+  const handleApplyRules = () => {
+    const newMap = new Map(selectedCells)
+    for (const key of newMap.keys()) {
+      const [, cylStr] = key.split(',')
+      const cyl = parseValue(cylStr)
+      newMap.set(key, getPriceByRules(cyl))
+    }
+    setSelectedCells(newMap)
   }
 
   const handleGenerate = () => {
-    const options = Array.from(selectedCells).map(key => {
-      const [sph, cyl] = key.split(',')
-      return { sph, cyl }
-    })
-    onGenerate(options)
+    if (mode === 'edit' && onUpdate) {
+      // 수정 모드: 기존 옵션의 가격 변경 사항만 전송
+      const updates: { id: number; priceAdjustment: number }[] = []
+      selectedCells.forEach((newPrice, key) => {
+        const existing = existingMap.get(key)
+        if (existing && existing.priceAdjustment !== newPrice) {
+          updates.push({ id: existing.id, priceAdjustment: newPrice })
+        }
+      })
+      
+      // 새로 추가된 옵션들
+      const newOptions: { sph: string; cyl: string; priceAdjustment: number }[] = []
+      selectedCells.forEach((priceAdjustment, key) => {
+        if (!existingMap.has(key)) {
+          const [sph, cyl] = key.split(',')
+          newOptions.push({ sph, cyl, priceAdjustment })
+        }
+      })
+      
+      if (updates.length > 0) {
+        onUpdate(updates)
+      }
+      if (newOptions.length > 0) {
+        onGenerate(newOptions)
+      }
+      if (updates.length === 0 && newOptions.length === 0) {
+        alert('변경된 내용이 없습니다.')
+      }
+    } else {
+      // 생성 모드: 새로운 옵션만 생성
+      const options = Array.from(selectedCells.entries()).map(([key, priceAdjustment]) => {
+        const [sph, cyl] = key.split(',')
+        return { sph, cyl, priceAdjustment }
+      })
+      onGenerate(options)
+    }
   }
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -237,21 +335,56 @@ function GenerateOptionsModal({
 
   const cellStyle = (sph: number, cyl: number): React.CSSProperties => {
     const key = `${formatValue(sph)},${formatValue(cyl)}`
-    const isExisting = existingSet.has(key)
+    const isExisting = existingMap.has(key)
     const isSelected = selectedCells.has(key)
+    const priceAdj = selectedCells.get(key) || 0
+    const originalPrice = existingMap.get(key)?.priceAdjustment || 0
+    const isModified = isExisting && priceAdj !== originalPrice
+    
+    let background = '#fff'
+    let cursor = 'pointer'
+    
+    if (mode === 'create') {
+      // 생성 모드: 기존 옵션은 회색, 선택불가
+      if (isExisting) {
+        background = 'var(--gray-300)'
+        cursor = 'not-allowed'
+      } else if (isSelected) {
+        background = priceAdj > 0 ? '#ff6b6b' : 'var(--primary)'
+      }
+    } else {
+      // 수정 모드: 기존 옵션도 선택 가능
+      if (isSelected) {
+        if (isModified) {
+          background = '#ffeb3b'  // 수정됨: 노란색
+        } else if (priceAdj > 0) {
+          background = '#ff6b6b'  // 추가금 있음
+        } else if (isExisting) {
+          background = '#81c784'  // 기존 옵션 (기본가)
+        } else {
+          background = 'var(--primary)'  // 새로 추가
+        }
+      }
+    }
     
     return {
       width: 28,
       height: 24,
       border: '1px solid var(--gray-200)',
-      cursor: isExisting ? 'not-allowed' : 'pointer',
-      background: isExisting 
-        ? 'var(--gray-300)' 
-        : isSelected 
-          ? 'var(--primary)' 
-          : '#fff',
+      cursor,
+      background,
       transition: 'background 0.1s',
+      position: 'relative',
     }
+  }
+  
+  // 선택된 셀들의 가격 조정 요약
+  const priceSummary = () => {
+    const summary = new Map<number, number>()
+    for (const price of selectedCells.values()) {
+      summary.set(price, (summary.get(price) || 0) + 1)
+    }
+    return Array.from(summary.entries()).sort((a, b) => a[0] - b[0])
   }
 
   return (
@@ -276,7 +409,7 @@ function GenerateOptionsModal({
           background: '#fff',
           borderRadius: 16,
           width: 'auto',
-          maxWidth: '90vw',
+          maxWidth: '95vw',
           maxHeight: '90vh',
           overflow: 'hidden',
           display: 'flex',
@@ -287,7 +420,9 @@ function GenerateOptionsModal({
         {/* 헤더 */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--gray-200)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>도수생성</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
+              {mode === 'edit' ? '도수표 수정' : '도수 생성 및 가격 설정'}
+            </h3>
             <button 
               onClick={onClose}
               style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--gray-400)' }}
@@ -295,21 +430,201 @@ function GenerateOptionsModal({
               ×
             </button>
           </div>
-          <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>{productName}</div>
+          <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>
+            {productName} {mode === 'edit' && `(${existingOptions.length}개 도수)`}
+          </div>
         </div>
 
-        {/* 탭 */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)' }}>
-          <button style={tabStyle(activeTab === 'minus')} onClick={() => setActiveTab('minus')}>
-            근난시 (-/-)
-          </button>
-          <button style={tabStyle(activeTab === 'plus')} onClick={() => setActiveTab('plus')}>
-            원난시 (+/-)
-          </button>
+        {/* 탭 + 가격설정 */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex' }}>
+            <button style={tabStyle(activeTab === 'minus')} onClick={() => setActiveTab('minus')}>
+              근난시 (-/-)
+            </button>
+            <button style={tabStyle(activeTab === 'plus')} onClick={() => setActiveTab('plus')}>
+              원난시 (+/-)
+            </button>
+          </div>
+          <div style={{ padding: '8px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={() => setShowRulePanel(!showRulePanel)}
+              style={{
+                padding: '6px 12px',
+                fontSize: 12,
+                border: '1px solid var(--gray-300)',
+                borderRadius: 6,
+                background: showRulePanel ? 'var(--primary)' : '#fff',
+                color: showRulePanel ? '#fff' : 'var(--gray-700)',
+                cursor: 'pointer',
+              }}
+            >
+              ⚙️ 가격 규칙
+            </button>
+          </div>
         </div>
+        
+        {/* 가격 규칙 패널 */}
+        {showRulePanel && (
+          <div style={{ padding: 16, background: 'var(--gray-50)', borderBottom: '1px solid var(--gray-200)' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--gray-700)' }}>
+              📌 가격 조정 규칙 (CYL 난시 고도수 추가금)
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+              {priceRules.map((rule, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, color: 'var(--gray-600)', fontWeight: 600 }}>CYL</span>
+                  <input
+                    type="number"
+                    step="0.25"
+                    value={rule.cylFrom}
+                    onChange={(e) => {
+                      const newRules = [...priceRules]
+                      newRules[idx].cylFrom = parseFloat(e.target.value)
+                      setPriceRules(newRules)
+                    }}
+                    style={{ width: 70, padding: '4px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
+                  />
+                  <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>~</span>
+                  <input
+                    type="number"
+                    step="0.25"
+                    value={rule.cylTo}
+                    onChange={(e) => {
+                      const newRules = [...priceRules]
+                      newRules[idx].cylTo = parseFloat(e.target.value)
+                      setPriceRules(newRules)
+                    }}
+                    style={{ width: 70, padding: '4px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
+                  />
+                  <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>→ +</span>
+                  <input
+                    type="number"
+                    step="1000"
+                    value={rule.adjustment}
+                    onChange={(e) => {
+                      const newRules = [...priceRules]
+                      newRules[idx].adjustment = parseInt(e.target.value) || 0
+                      setPriceRules(newRules)
+                    }}
+                    style={{ width: 80, padding: '4px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
+                  />
+                  <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>원</span>
+                  <button
+                    onClick={() => setPriceRules(priceRules.filter((_, i) => i !== idx))}
+                    style={{ padding: '2px 6px', border: 'none', background: 'none', color: 'var(--error)', cursor: 'pointer' }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setPriceRules([...priceRules, { cylFrom: -2.00, cylTo: -3.00, adjustment: 3000 }])}
+                style={{ 
+                  padding: '4px 8px', 
+                  fontSize: 11, 
+                  border: '1px dashed var(--gray-300)', 
+                  borderRadius: 4, 
+                  background: '#fff',
+                  cursor: 'pointer',
+                  alignSelf: 'flex-start',
+                }}
+              >
+                + 규칙 추가
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                onClick={handleApplyRules}
+                disabled={selectedCells.size === 0}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: 12,
+                  border: 'none',
+                  borderRadius: 6,
+                  background: selectedCells.size > 0 ? 'var(--primary)' : 'var(--gray-300)',
+                  color: '#fff',
+                  cursor: selectedCells.size > 0 ? 'pointer' : 'not-allowed',
+                }}
+              >
+                선택된 {selectedCells.size}개에 규칙 적용
+              </button>
+              <span style={{ fontSize: 11, color: 'var(--gray-500)' }}>
+                (CYL 범위에 해당하는 셀만 추가금 적용)
+              </span>
+            </div>
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--gray-200)' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: 'var(--gray-700)' }}>
+                💰 일괄 가격 설정
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="number"
+                  step="1000"
+                  value={bulkPrice}
+                  onChange={(e) => setBulkPrice(parseInt(e.target.value) || 0)}
+                  placeholder="가격 조정액"
+                  style={{ width: 100, padding: '6px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
+                />
+                <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>원</span>
+                <button
+                  onClick={handleApplyBulkPrice}
+                  disabled={selectedCells.size === 0}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    border: 'none',
+                    borderRadius: 6,
+                    background: selectedCells.size > 0 ? 'var(--success)' : 'var(--gray-300)',
+                    color: '#fff',
+                    cursor: selectedCells.size > 0 ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  선택된 {selectedCells.size}개에 적용
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 매트릭스 */}
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+          <div style={{ marginBottom: 8, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            {mode === 'edit' ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 16, height: 16, background: '#81c784', borderRadius: 2 }} />
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>기존 (기본가)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 16, height: 16, background: '#ff6b6b', borderRadius: 2 }} />
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>기존 (추가금)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 16, height: 16, background: '#ffeb3b', borderRadius: 2 }} />
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>수정됨</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 16, height: 16, background: 'var(--primary)', borderRadius: 2 }} />
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>새로 추가</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 16, height: 16, background: 'var(--primary)', borderRadius: 2 }} />
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>기본가</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 16, height: 16, background: '#ff6b6b', borderRadius: 2 }} />
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>추가금 있음</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 16, height: 16, background: 'var(--gray-300)', borderRadius: 2 }} />
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>기존 옵션</span>
+                </div>
+              </>
+            )}
+          </div>
           <table style={{ borderCollapse: 'collapse', userSelect: 'none' }}>
             <thead>
               <tr>
@@ -363,6 +678,9 @@ function GenerateOptionsModal({
                       style={cellStyle(sph, cyl)}
                       onMouseDown={() => handleMouseDown(sph, cyl)}
                       onMouseEnter={() => handleMouseEnter(sph, cyl)}
+                      title={selectedCells.has(`${formatValue(sph)},${formatValue(cyl)}`) 
+                        ? `+${selectedCells.get(`${formatValue(sph)},${formatValue(cyl)}`)?.toLocaleString()}원` 
+                        : ''}
                     />
                   ))}
                 </tr>
@@ -409,24 +727,324 @@ function GenerateOptionsModal({
             </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ fontSize: 12, color: 'var(--gray-600)' }}>
+              {priceSummary().map(([price, count], idx) => (
+                <span key={price} style={{ marginRight: 8 }}>
+                  {price > 0 ? `+${price.toLocaleString()}원` : '기본가'}: {count}개
+                  {idx < priceSummary().length - 1 && ' | '}
+                </span>
+              ))}
+            </div>
             <span style={{ fontSize: 14, color: 'var(--gray-600)' }}>
-              총 <strong style={{ color: 'var(--primary)' }}>{selectedCells.size}</strong>개 선택
+              {mode === 'edit' ? (
+                <>기존 <strong style={{ color: '#81c784' }}>{existingOptions.length}</strong>개</>
+              ) : (
+                <>총 <strong style={{ color: 'var(--primary)' }}>{selectedCells.size}</strong>개 선택</>
+              )}
             </span>
             <button
               onClick={handleGenerate}
-              disabled={selectedCells.size === 0}
+              disabled={mode === 'create' && selectedCells.size === 0}
               style={{
                 padding: '8px 20px',
                 fontSize: 14,
                 fontWeight: 600,
                 border: 'none',
                 borderRadius: 8,
-                background: selectedCells.size > 0 ? 'var(--primary)' : 'var(--gray-300)',
+                background: (mode === 'edit' || selectedCells.size > 0) ? 'var(--primary)' : 'var(--gray-300)',
                 color: '#fff',
-                cursor: selectedCells.size > 0 ? 'pointer' : 'not-allowed',
+                cursor: (mode === 'edit' || selectedCells.size > 0) ? 'pointer' : 'not-allowed',
               }}
             >
-              생성하기
+              {mode === 'edit' ? '저장하기' : '생성하기'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 도수 가격 수정 모달 컴포넌트
+function EditPriceModal({
+  productName,
+  options,
+  onClose,
+  onSave,
+}: {
+  productName: string
+  options: ProductOption[]
+  onClose: () => void
+  onSave: (updates: { id: number; priceAdjustment: number }[]) => void
+}) {
+  // 옵션별 가격 조정 상태
+  const [priceMap, setPriceMap] = useState<Map<number, number>>(
+    new Map(options.map(o => [o.id, o.priceAdjustment || 0]))
+  )
+  const [bulkPrice, setBulkPrice] = useState(0)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+
+  // 도수표 데이터 구성 - 원본 문자열 기반
+  const sphSet = new Set<string>()
+  const cylSet = new Set<string>()
+  const optionMap = new Map<string, ProductOption>()
+  
+  options.forEach(o => {
+    const sph = o.sph || '0.00'
+    const cyl = o.cyl || '0.00'
+    sphSet.add(sph)
+    cylSet.add(cyl)
+    optionMap.set(`${sph},${cyl}`, o)
+  })
+  
+  // 숫자로 정렬
+  const parseNum = (s: string) => parseFloat(s.replace('+', ''))
+  const sphValues = Array.from(sphSet).sort((a, b) => parseNum(b) - parseNum(a))
+  const cylValues = Array.from(cylSet).sort((a, b) => parseNum(b) - parseNum(a))
+
+  // 이미 포맷된 문자열 사용
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
+  }
+
+  const selectAll = () => {
+    setSelectedIds(new Set(options.map(o => o.id)))
+  }
+
+  const clearSelection = () => {
+    setSelectedIds(new Set())
+  }
+
+  const applyBulkPrice = () => {
+    const newMap = new Map(priceMap)
+    selectedIds.forEach(id => {
+      newMap.set(id, bulkPrice)
+    })
+    setPriceMap(newMap)
+  }
+
+  const handleSave = () => {
+    const updates = Array.from(priceMap.entries())
+      .filter(([id, price]) => {
+        const original = options.find(o => o.id === id)
+        return original && (original.priceAdjustment || 0) !== price
+      })
+      .map(([id, priceAdjustment]) => ({ id, priceAdjustment }))
+    
+    if (updates.length === 0) {
+      alert('변경된 내용이 없습니다.')
+      return
+    }
+    onSave(updates)
+  }
+
+  const cellStyle = (sph: string, cyl: string): React.CSSProperties => {
+    const option = optionMap.get(`${sph},${cyl}`)
+    if (!option) return { width: 50, height: 36, background: 'var(--gray-100)', border: '1px solid var(--gray-200)' }
+    const isSelected = selectedIds.has(option.id)
+    const price = priceMap.get(option.id) || 0
+    return {
+      width: 50,
+      height: 36,
+      border: isSelected ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
+      cursor: 'pointer',
+      background: isSelected 
+        ? 'var(--primary-light)' 
+        : price > 0 
+          ? '#ffebee' 
+          : '#e3f2fd',  // 파란색 배경으로 도수 있음 표시
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 10,
+      color: price > 0 ? '#c62828' : '#1976d2',
+      fontWeight: price > 0 ? 600 : 500,
+    }
+  }
+
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+      }}
+      onClick={onClose}
+    >
+      <div 
+        style={{
+          background: '#fff',
+          borderRadius: 16,
+          width: 'auto',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
+        <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--gray-200)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>도수별 가격 수정</h3>
+            <button 
+              onClick={onClose}
+              style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--gray-400)' }}
+            >
+              ×
+            </button>
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>{productName} ({options.length}개 도수)</div>
+        </div>
+
+        {/* 가격 일괄 설정 */}
+        <div style={{ padding: 16, background: 'var(--gray-50)', borderBottom: '1px solid var(--gray-200)' }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={selectAll} style={{ padding: '6px 12px', fontSize: 12, border: '1px solid var(--gray-300)', borderRadius: 6, background: '#fff', cursor: 'pointer' }}>
+              전체선택
+            </button>
+            <button onClick={clearSelection} style={{ padding: '6px 12px', fontSize: 12, border: '1px solid var(--gray-300)', borderRadius: 6, background: '#fff', cursor: 'pointer' }}>
+              선택해제
+            </button>
+            <span style={{ color: 'var(--gray-400)' }}>|</span>
+            <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>선택된 {selectedIds.size}개에</span>
+            <input
+              type="number"
+              step="1000"
+              value={bulkPrice}
+              onChange={(e) => setBulkPrice(parseInt(e.target.value) || 0)}
+              style={{ width: 80, padding: '6px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
+            />
+            <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>원</span>
+            <button
+              onClick={applyBulkPrice}
+              disabled={selectedIds.size === 0}
+              style={{
+                padding: '6px 12px',
+                fontSize: 12,
+                border: 'none',
+                borderRadius: 6,
+                background: selectedIds.size > 0 ? 'var(--primary)' : 'var(--gray-300)',
+                color: '#fff',
+                cursor: selectedIds.size > 0 ? 'pointer' : 'not-allowed',
+              }}
+            >
+              적용
+            </button>
+          </div>
+        </div>
+
+        {/* 도수표 */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+          {/* 범례 */}
+          <div style={{ marginBottom: 12, display: 'flex', gap: 16, alignItems: 'center', fontSize: 11 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 20, height: 20, background: '#e3f2fd', border: '1px solid var(--gray-200)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#1976d2' }}>✓</div>
+              <span style={{ color: 'var(--gray-600)' }}>도수 있음 (기본가)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 20, height: 20, background: '#ffebee', border: '1px solid var(--gray-200)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#c62828', fontWeight: 600 }}>+5k</div>
+              <span style={{ color: 'var(--gray-600)' }}>추가금 있음</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 20, height: 20, background: 'var(--primary-light)', border: '2px solid var(--primary)', borderRadius: 2 }}></div>
+              <span style={{ color: 'var(--gray-600)' }}>선택됨</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 20, height: 20, background: 'var(--gray-100)', border: '1px solid var(--gray-200)', borderRadius: 2 }}></div>
+              <span style={{ color: 'var(--gray-600)' }}>도수 없음</span>
+            </div>
+          </div>
+          <table style={{ borderCollapse: 'collapse', userSelect: 'none' }}>
+            <thead>
+              <tr>
+                <th style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600, color: 'var(--gray-500)', position: 'sticky', top: 0, left: 0, background: '#fff', zIndex: 2 }}>
+                  SPH\CYL
+                </th>
+                {cylValues.map(cyl => (
+                  <th key={cyl} style={{ padding: '4px', fontSize: 10, fontWeight: 500, color: 'var(--gray-600)', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+                    {cyl}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sphValues.map(sph => (
+                <tr key={sph}>
+                  <td style={{ padding: '2px 8px', fontSize: 11, fontWeight: 500, color: 'var(--gray-600)', position: 'sticky', left: 0, background: '#fff', zIndex: 1 }}>
+                    {sph}
+                  </td>
+                  {cylValues.map(cyl => {
+                    const option = optionMap.get(`${sph},${cyl}`)
+                    return (
+                      <td 
+                        key={cyl}
+                        style={cellStyle(sph, cyl)}
+                        onClick={() => option && toggleSelect(option.id)}
+                        title={option ? `SPH: ${option.sph}, CYL: ${option.cyl}\n가격조정: ${priceMap.get(option.id)?.toLocaleString() || 0}원` : '옵션 없음'}
+                      >
+                        {option 
+                          ? (priceMap.get(option.id) || 0) > 0 
+                            ? `+${((priceMap.get(option.id) || 0) / 1000).toFixed(0)}k` 
+                            : '✓'  // 도수 있으면 체크마크
+                          : ''
+                        }
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 푸터 */}
+        <div style={{ 
+          padding: '12px 24px', 
+          borderTop: '1px solid var(--gray-200)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          background: 'var(--gray-50)',
+        }}>
+          <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>
+            셀 클릭으로 선택, 일괄 가격 적용 가능
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={onClose} style={{ padding: '8px 16px', fontSize: 14, border: '1px solid var(--gray-300)', borderRadius: 8, background: '#fff', cursor: 'pointer' }}>
+              취소
+            </button>
+            <button
+              onClick={handleSave}
+              style={{
+                padding: '8px 20px',
+                fontSize: 14,
+                fontWeight: 600,
+                border: 'none',
+                borderRadius: 8,
+                background: 'var(--primary)',
+                color: '#fff',
+                cursor: 'pointer',
+              }}
+            >
+              저장
             </button>
           </div>
         </div>
@@ -458,6 +1076,7 @@ export default function ProductsPage() {
   const [showOptionModal, setShowOptionModal] = useState(false)
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
   const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [showEditPriceModal, setShowEditPriceModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [editingOption, setEditingOption] = useState<ProductOption | null>(null)
 
@@ -489,14 +1108,18 @@ export default function ProductsPage() {
   }
 
   const handleSelectBrand = useCallback(async (brand: Brand) => {
+    console.log('Selecting brand:', brand.id, brand.name)
     setSelectedBrand(brand)
     setSelectedProduct(null)
     setOptions([])
     setProductLoading(true)
     setSelectedProductIds(new Set())
     try {
-      const res = await fetch(`/api/products?brandId=${brand.id}`)
+      const url = `/api/products?brandId=${brand.id}`
+      console.log('Fetching:', url)
+      const res = await fetch(url)
       const data = await res.json()
+      console.log('Products response:', data.products?.length, 'products')
       setProducts(data.products || [])
       const orders: {[key: number]: number} = {}
       data.products?.forEach((p: Product) => { orders[p.id] = p.displayOrder })
@@ -603,6 +1226,7 @@ export default function ProductsPage() {
       stock: parseInt(formData.get('stock') as string) || 0,
       isActive: formData.get('isActive') === 'true',
       location: formData.get('location') || null,
+      priceAdjustment: parseInt(formData.get('priceAdjustment') as string) || 0,
     }
 
     try {
@@ -1022,7 +1646,14 @@ export default function ProductsPage() {
                   disabled={!selectedProduct}
                   style={{ ...actionBtnStyle, opacity: selectedProduct ? 1 : 0.5 }}
                 >
-                  도수생성
+                  생성
+                </button>
+                <button 
+                  onClick={() => setShowEditPriceModal(true)}
+                  disabled={!selectedProduct || options.length === 0}
+                  style={{ ...actionBtnStyle, opacity: selectedProduct && options.length > 0 ? 1 : 0.5 }}
+                >
+                  수정
                 </button>
                 <button 
                   onClick={() => { setEditingOption(null); setShowOptionModal(true) }}
@@ -1063,6 +1694,7 @@ export default function ProductsPage() {
                   <tr>
                     <th style={gridHeaderStyle}>SPH</th>
                     <th style={gridHeaderStyle}>CYL</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>가격조정</th>
                     <th style={{ ...gridHeaderStyle, textAlign: 'center' }}>재고</th>
                     <th style={gridHeaderStyle}>상태</th>
                     <th style={gridHeaderStyle}>수정</th>
@@ -1073,6 +1705,14 @@ export default function ProductsPage() {
                     <tr key={option.id}>
                       <td style={{ ...gridCellStyle, fontFamily: 'monospace', fontWeight: 500 }}>{option.sph}</td>
                       <td style={{ ...gridCellStyle, fontFamily: 'monospace' }}>{option.cyl}</td>
+                      <td style={{ 
+                        ...gridCellStyle, 
+                        textAlign: 'right',
+                        fontWeight: option.priceAdjustment > 0 ? 600 : 400,
+                        color: option.priceAdjustment > 0 ? '#ff6b6b' : 'var(--gray-500)',
+                      }}>
+                        {option.priceAdjustment > 0 ? `+${option.priceAdjustment.toLocaleString()}` : '-'}
+                      </td>
                       <td style={{ 
                         ...gridCellStyle, 
                         textAlign: 'center',
@@ -1232,6 +1872,10 @@ export default function ProductsPage() {
                   </div>
                 </div>
                 <div>
+                  <label style={labelStyle}>가격 조정 (추가금)</label>
+                  <input name="priceAdjustment" type="number" defaultValue={editingOption?.priceAdjustment || 0} style={inputStyle} placeholder="예: 고도수 +5000" />
+                </div>
+                <div>
                   <label style={labelStyle}>메모</label>
                   <input name="memo" defaultValue={editingOption?.memo || ''} style={inputStyle} />
                 </div>
@@ -1310,6 +1954,55 @@ export default function ProductsPage() {
             } catch (e) {
               console.error(e)
               alert('도수 생성 실패')
+            }
+          }}
+        />
+      )}
+
+      {/* 도수 수정 모달 (매트릭스 스타일) */}
+      {showEditPriceModal && (
+        <GenerateOptionsModal
+          productName={selectedProduct?.name || ''}
+          existingOptions={options}
+          mode="edit"
+          onClose={() => setShowEditPriceModal(false)}
+          onGenerate={async (newOptions) => {
+            // 새로 추가된 옵션들 생성
+            if (newOptions.length > 0) {
+              try {
+                const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ options: newOptions }),
+                })
+                if (res.ok) {
+                  const data = await res.json()
+                  if (selectedProduct) handleSelectProduct(selectedProduct)
+                  alert(`${data.created}개의 옵션이 추가되었습니다.`)
+                }
+              } catch (e) {
+                console.error(e)
+                alert('옵션 추가 실패')
+              }
+            }
+            setShowEditPriceModal(false)
+          }}
+          onUpdate={async (updates) => {
+            // 기존 옵션 가격 수정
+            try {
+              const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk-update`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ updates }),
+              })
+              if (res.ok) {
+                const data = await res.json()
+                if (selectedProduct) handleSelectProduct(selectedProduct)
+                alert(`${data.updated}개의 옵션이 수정되었습니다.`)
+              }
+            } catch (e) {
+              console.error(e)
+              alert('가격 수정 실패')
             }
           }}
         />

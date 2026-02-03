@@ -31,6 +31,7 @@ export async function GET(
         stock: o.stock,
         status: o.isActive ? '주문가능' : '품절',
         stockLocation: o.location,
+        priceAdjustment: o.priceAdjustment || 0,
       }))
     })
   } catch (error) {
@@ -60,6 +61,7 @@ export async function POST(
         stock: body.stock || 0,
         isActive: body.isActive ?? true,
         location: body.location,
+        priceAdjustment: body.priceAdjustment || 0,
       }
     })
 

@@ -52,7 +52,7 @@ export default function ProductItemsPage() {
       fetch('/api/products').then(r => r.json())
     ]).then(([brandsData, productsData]) => {
       setBrands(brandsData.brands || [])
-      setProducts(productsData || [])
+      setProducts(productsData.products || [])
       setLoading(false)
     })
   }, [])
