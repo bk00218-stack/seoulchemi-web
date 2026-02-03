@@ -1,0 +1,255 @@
+// ============================================
+// OlwsPro 기능 추가를 위한 스키마 확장
+// 기존 schema.prisma에 추가할 내용
+// ============================================
+
+// ----- Store 테이블에 추가할 필드 -----
+// (기존 Store 모델에 병합)
+/*
+model Store {
+  // ... 기존 필드들 ...
+  
+  // 미수금 관리 (추가)
+  outstandingAmount Int       @default(0)  // 미수금 잔액
+  creditLimit       Int       @default(0)  // 신용한도
+  paymentTermDays   Int       @default(30) // 결제 기한 (일)
+  lastPaymentAt     DateTime?              // 최근 입금일
+  
+  // 담당자 정보 (추가)
+  salesRepId        Int?                   // 담당 영업사원
+  areaCode          String?                // 지역 코드 (강남, 동부, 서부 등)
+  storeType         String?                // 거래처 유형 (도매, 소매)
+  
+  // 관계
+  transactions      Transaction[]
+}
+*/
+
+// ----- 입출금 내역 테이블 (신규) -----
+model Transaction {
+  id            Int       @id @default(autoincrement())
+  storeId       Int
+  store         Store     @relation(fields: [storeId], references: [id])
+  
+  type          String    // deposit(입금), withdrawal(출금), sale(매출), return(반품)
+  amount        Int       // 금액
+  balanceAfter  Int       // 거래 후 잔액
+  
+  // 관련 주문 (매출/반품인 경우)
+  orderId       Int?
+  orderNo       String?
+  
+  // 입금 정보
+  paymentMethod String?   // cash(현금), card(카드), transfer(계좌이체), check(어음)
+  bankName      String?   // 은행명
+  accountNo     String?   // 계좌번호 (마스킹)
+  depositor     String?   // 입금자명
+  
+  memo          String?
+  processedBy   String?   // 처리자
+  processedAt   DateTime  @default(now())
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([storeId])
+  @@index([type])
+  @@index([processedAt])
+}
+
+// ----- 작업 로그 테이블 (신규) -----
+model WorkLog {
+  id            Int       @id @default(autoincrement())
+  
+  workType      String    // order_create, order_ship, stock_in, stock_out, print, etc.
+  targetType    String    // order, product, store, etc.
+  targetId      Int?      // 대상 ID
+  targetNo      String?   // 주문번호 등
+  
+  description   String    // 작업 설명
+  details       String?   // 상세 내용 (JSON)
+  
+  userId        String?   // 작업자 ID
+  userName      String?   // 작업자명
+  pcName        String?   // PC명 (CHEMI-00 등)
+  ipAddress     String?   // IP 주소
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([workType])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
+// ----- 출고 지시서 테이블 (신규) -----
+model ShippingSlip {
+  id            Int       @id @default(autoincrement())
+  slipNo        String    @unique  // 출고지시서 번호
+  orderId       Int
+  
+  status        String    @default("pending") // pending, picking, packed, shipped
+  
+  // 출고 정보
+  pickedBy      String?   // 피킹 담당자
+  pickedAt      DateTime?
+  packedBy      String?   // 포장 담당자
+  packedAt      DateTime?
+  shippedBy     String?   // 출고 담당자
+  shippedAt     DateTime?
+  
+  // 배송 정보
+  courier       String?   // 택배사
+  trackingNo    String?   // 운송장번호
+  
+  memo          String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  items         ShippingSlipItem[]
+  
+  @@index([orderId])
+  @@index([status])
+}
+
+// ----- 출고 지시서 상세 (신규) -----
+model ShippingSlipItem {
+  id            Int       @id @default(autoincrement())
+  slipId        Int
+  slip          ShippingSlip @relation(fields: [slipId], references: [id])
+  
+  orderItemId   Int       // 주문 상세 ID
+  productId     Int
+  productName   String    // 상품명 스냅샷
+  optionName    String?   // 옵션명
+  
+  // 도수 정보
+  sph           String?
+  cyl           String?
+  axis          String?
+  
+  quantity      Int       // 출고 수량
+  location      String?   // 재고 위치
+  barcode       String?   // 바코드
+  
+  isPicked      Boolean   @default(false)  // 피킹 완료
+  pickedAt      DateTime?
+  
+  @@index([slipId])
+}
+
+// ----- 도수 범위 설정 테이블 (신규) -----
+model DiopterRange {
+  id            Int       @id @default(autoincrement())
+  name          String    // S200, S400, S600, S800, ADD 등
+  description   String?   // 설명
+  
+  // SPH 범위
+  sphMin        Float     // 최소 SPH (예: 0.00)
+  sphMax        Float     // 최대 SPH (예: -2.00)
+  sphStep       Float     @default(0.25) // SPH 단계
+  
+  // CYL 범위
+  cylMin        Float     @default(0)
+  cylMax        Float     @default(0)
+  cylStep       Float     @default(0.25)
+  
+  // ADD 범위 (누진용)
+  addMin        Float?
+  addMax        Float?
+  addStep       Float?
+  
+  displayOrder  Int       @default(0)
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ----- 세금계산서 테이블 (신규) -----
+model TaxInvoice {
+  id            Int       @id @default(autoincrement())
+  invoiceNo     String    @unique  // 세금계산서 번호
+  storeId       Int
+  
+  // 공급자 정보
+  supplierBizNo     String   // 사업자등록번호
+  supplierName      String   // 상호
+  supplierCeoName   String   // 대표자명
+  supplierAddress   String   // 주소
+  supplierBizType   String?  // 업태
+  supplierBizItem   String?  // 종목
+  
+  // 공급받는자 정보
+  buyerBizNo        String   // 사업자등록번호
+  buyerName         String   // 상호
+  buyerCeoName      String?  // 대표자명
+  buyerAddress      String?  // 주소
+  
+  // 금액
+  supplyAmount      Int      // 공급가액
+  taxAmount         Int      // 세액
+  totalAmount       Int      // 합계
+  
+  // 날짜
+  issueDate         DateTime // 발행일
+  supplyDate        DateTime // 공급일
+  
+  // 상태
+  status            String   @default("issued") // issued, sent, cancelled
+  sentAt            DateTime?
+  cancelledAt       DateTime?
+  cancelReason      String?
+  
+  memo              String?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  items             TaxInvoiceItem[]
+  
+  @@index([storeId])
+  @@index([issueDate])
+  @@index([status])
+}
+
+// ----- 세금계산서 상세 (신규) -----
+model TaxInvoiceItem {
+  id            Int       @id @default(autoincrement())
+  invoiceId     Int
+  invoice       TaxInvoice @relation(fields: [invoiceId], references: [id])
+  
+  itemDate      DateTime  // 일자
+  itemName      String    // 품목
+  spec          String?   // 규격
+  quantity      Int       // 수량
+  unitPrice     Int       // 단가
+  supplyAmount  Int       // 공급가액
+  taxAmount     Int       // 세액
+  memo          String?   // 비고
+  
+  @@index([invoiceId])
+}
+
+// ----- 거래명세서 테이블 (신규) -----
+model DeliveryStatement {
+  id            Int       @id @default(autoincrement())
+  statementNo   String    @unique  // 명세서 번호
+  storeId       Int
+  orderId       Int?      // 관련 주문
+  
+  // 금액
+  totalAmount   Int       // 합계 금액
+  
+  issueDate     DateTime  // 발행일
+  printCount    Int       @default(0) // 출력 횟수
+  lastPrintedAt DateTime?
+  lastPrintedBy String?
+  
+  memo          String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([storeId])
+  @@index([orderId])
+  @@index([issueDate])
+}
