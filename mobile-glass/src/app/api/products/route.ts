@@ -56,3 +56,29 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    const product = await prisma.product.create({
+      data: {
+        brandId: body.brandId,
+        name: body.name,
+        optionType: body.optionType,
+        productType: body.productType || body.optionType,
+        bundleName: body.bundleName || null,
+        refractiveIndex: body.refractiveIndex || null,
+        sellingPrice: body.sellingPrice || 0,
+        purchasePrice: body.purchasePrice || 0,
+        isActive: body.isActive ?? true,
+        displayOrder: body.displayOrder || 0,
+      }
+    })
+    
+    return NextResponse.json({ product })
+  } catch (error) {
+    console.error('Error creating product:', error)
+    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+  }
+}
