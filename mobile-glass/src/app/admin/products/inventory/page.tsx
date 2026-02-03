@@ -1,95 +1,131 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
 import DataTable, { Column } from '../../../components/DataTable'
-import SearchFilter, { OutlineButton } from '../../../components/SearchFilter'
-import StatCard, { StatCardGrid } from '../../../components/StatCard'
+import SearchFilter from '../../../components/SearchFilter'
 
 interface InventoryItem {
   id: number
-  code: string
-  brand: string
-  product: string
-  sph: string
-  cyl: string
-  currentStock: number
-  newStock: number
-  difference: number
+  productId: number
+  productName: string
+  brandName: string
+  optionName: string
+  barcode: string | null
+  stock: number
+  location: string | null
+  isActive: boolean
 }
 
-const sampleData: InventoryItem[] = [
-  { id: 1, code: 'PRD001', brand: '에실로', product: '크리잘 사파이어 1.60', sph: '-2.00', cyl: '-0.50', currentStock: 15, newStock: 15, difference: 0 },
-  { id: 2, code: 'PRD001', brand: '에실로', product: '크리잘 사파이어 1.60', sph: '-2.50', cyl: '-0.75', currentStock: 8, newStock: 8, difference: 0 },
-  { id: 3, code: 'PRD002', brand: '호야', product: '블루컨트롤 1.60', sph: '-3.00', cyl: '-1.00', currentStock: 12, newStock: 12, difference: 0 },
-  { id: 4, code: 'PRD003', brand: '니콘', product: '씨맥스 1.60', sph: '-1.50', cyl: '0.00', currentStock: 5, newStock: 5, difference: 0 },
-  { id: 5, code: 'PRD004', brand: '칼자이스', product: '드라이브세이프 1.67', sph: '-2.25', cyl: '-0.50', currentStock: 3, newStock: 3, difference: 0 },
-]
-
 export default function InventoryPage() {
-  const [data, setData] = useState(sampleData)
-  const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
+  const [data, setData] = useState<InventoryItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editStock, setEditStock] = useState(0)
+  const [changes, setChanges] = useState<Map<number, number>>(new Map())
 
-  const updateStock = (id: number, newValue: number) => {
-    setData(prev => prev.map(item => {
-      if (item.id === id) {
-        return { ...item, newStock: newValue, difference: newValue - item.currentStock }
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (search) params.append('search', search)
+      const res = await fetch(`/api/inventory?${params}`)
+      setData(await res.json())
+    } catch (error) {
+      console.error('Failed to load inventory:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleStockChange = (id: number, newStock: number) => {
+    const newChanges = new Map(changes)
+    newChanges.set(id, newStock)
+    setChanges(newChanges)
+  }
+
+  const saveChanges = async () => {
+    if (changes.size === 0) return
+    
+    try {
+      const updates = Array.from(changes.entries()).map(([id, stock]) => ({ id, stock }))
+      const res = await fetch('/api/inventory', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates })
+      })
+      
+      if (res.ok) {
+        setChanges(new Map())
+        loadData()
+        alert(`${updates.length}개 항목이 저장되었습니다.`)
       }
-      return item
-    }))
+    } catch (error) {
+      alert('저장에 실패했습니다.')
+    }
   }
 
   const columns: Column<InventoryItem>[] = [
-    { key: 'code', label: '코드', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
-    )},
-    { key: 'brand', label: '브랜드', render: (v) => (
-      <span style={{ background: '#e3f2fd', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#007aff' }}>
+    { key: 'brandName', label: '브랜드', width: '100px', render: (v) => (
+      <span style={{ background: '#f0f7ff', color: '#007aff', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>
         {v as string}
       </span>
     )},
-    { key: 'product', label: '상품명', render: (v) => (
+    { key: 'productName', label: '상품명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
-    { key: 'sph', label: 'SPH', align: 'center', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{v as string}</span>
+    { key: 'optionName', label: '옵션', render: (v) => (
+      <span style={{ color: '#666', fontSize: '13px' }}>{v as string}</span>
     )},
-    { key: 'cyl', label: 'CYL', align: 'center', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{v as string}</span>
+    { key: 'barcode', label: '바코드', render: (v) => (
+      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{(v as string) || '-'}</span>
     )},
-    { key: 'currentStock', label: '현재재고', align: 'center', render: (v) => (
-      <span style={{ color: '#86868b' }}>{v as number}</span>
-    )},
-    { key: 'newStock', label: '수정재고', align: 'center', render: (_, row) => (
-      <input
-        type="number"
-        value={row.newStock}
-        onChange={(e) => updateStock(row.id, parseInt(e.target.value) || 0)}
-        style={{
-          width: '70px',
-          padding: '6px 10px',
-          borderRadius: '6px',
-          border: '1px solid #e5e5e5',
-          fontSize: '14px',
-          textAlign: 'center'
-        }}
-      />
-    )},
-    { key: 'difference', label: '증감', align: 'center', render: (v) => {
-      const diff = v as number
-      if (diff === 0) return <span style={{ color: '#86868b' }}>-</span>
+    { key: 'stock', label: '현재고', align: 'center', render: (v, row) => {
+      const changed = changes.get(row.id)
+      const currentStock = changed !== undefined ? changed : (v as number)
+      const isChanged = changed !== undefined
+      
       return (
-        <span style={{ 
-          color: diff > 0 ? '#34c759' : '#ff3b30',
-          fontWeight: 600
-        }}>
-          {diff > 0 ? '+' : ''}{diff}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <button
+            onClick={() => handleStockChange(row.id, Math.max(0, currentStock - 1))}
+            style={{ width: '24px', height: '24px', border: '1px solid #e5e5e5', borderRadius: '4px', background: '#fff', cursor: 'pointer' }}
+          >
+            -
+          </button>
+          <input
+            type="number"
+            value={currentStock}
+            onChange={(e) => handleStockChange(row.id, parseInt(e.target.value) || 0)}
+            style={{
+              width: '60px',
+              textAlign: 'center',
+              padding: '4px',
+              border: isChanged ? '2px solid #007aff' : '1px solid #e5e5e5',
+              borderRadius: '4px',
+              background: isChanged ? '#f0f7ff' : '#fff'
+            }}
+          />
+          <button
+            onClick={() => handleStockChange(row.id, currentStock + 1)}
+            style={{ width: '24px', height: '24px', border: '1px solid #e5e5e5', borderRadius: '4px', background: '#fff', cursor: 'pointer' }}
+          >
+            +
+          </button>
+        </div>
       )
     }},
+    { key: 'location', label: '위치', render: (v) => (
+      <span style={{ color: '#666', fontSize: '12px' }}>{(v as string) || '-'}</span>
+    )},
   ]
 
-  const changedItems = data.filter(d => d.difference !== 0)
+  const lowStock = data.filter(d => d.stock > 0 && d.stock <= 10).length
+  const outOfStock = data.filter(d => d.stock === 0).length
 
   return (
     <AdminLayout activeMenu="products">
@@ -97,83 +133,51 @@ export default function InventoryPage() {
         일괄재고수정
       </h2>
 
-      <StatCardGrid>
-        <StatCard label="총 상품 종류" value={data.length} unit="개" icon="📦" />
-        <StatCard label="총 재고" value={data.reduce((sum, d) => sum + d.currentStock, 0)} unit="개" />
-        <StatCard label="수정 예정" value={changedItems.length} unit="개" highlight />
-        <StatCard 
-          label="재고 증감" 
-          value={data.reduce((sum, d) => sum + d.difference, 0)} 
-          unit="개"
-        />
-      </StatCardGrid>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 옵션</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{data.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>재고부족</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>{lowStock}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>품절</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff3b30' }}>{outOfStock}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>변경됨</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{changes.size}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
+      </div>
 
       <SearchFilter
-        placeholder="상품코드, 상품명 검색"
-        filters={[
-          { label: '브랜드', key: 'brand', options: [
-            { label: '에실로', value: 'essilor' },
-            { label: '호야', value: 'hoya' },
-            { label: '칼자이스', value: 'zeiss' },
-            { label: '니콘', value: 'nikon' },
-          ]},
-          { label: 'SPH', key: 'sph', options: [
-            { label: '-1.00 ~ -2.00', value: '-1' },
-            { label: '-2.00 ~ -3.00', value: '-2' },
-            { label: '-3.00 ~ -4.00', value: '-3' },
-          ]}
-        ]}
+        placeholder="상품명, 바코드 검색"
+        value={search}
+        onChange={setSearch}
+        onSearch={() => { setLoading(true); loadData(); }}
         actions={
-          <>
-            <OutlineButton onClick={() => alert('엑셀 업로드')}>📤 엑셀 업로드</OutlineButton>
-            <OutlineButton onClick={() => alert('엑셀 다운로드')}>📥 엑셀 다운로드</OutlineButton>
-          </>
+          <button
+            onClick={saveChanges}
+            disabled={changes.size === 0}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              background: changes.size > 0 ? '#007aff' : '#e5e5e5',
+              color: changes.size > 0 ? '#fff' : '#86868b',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 500,
+              cursor: changes.size > 0 ? 'pointer' : 'not-allowed'
+            }}
+          >
+            💾 {changes.size}개 저장
+          </button>
         }
       />
 
-      <DataTable
-        columns={columns}
-        data={data}
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        emptyMessage="재고 데이터가 없습니다"
-      />
-
-      {changedItems.length > 0 && (
-        <div style={{ 
-          marginTop: '16px', 
-          padding: '16px 20px', 
-          background: '#fff', 
-          borderRadius: '12px',
-          border: '2px solid #007aff'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f' }}>
-                {changedItems.length}개 상품의 재고가 변경됩니다
-              </div>
-              <div style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>
-                총 {data.reduce((sum, d) => sum + Math.abs(d.difference), 0)}개 변동
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                onClick={() => setData(sampleData)}
-                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}
-              >
-                초기화
-              </button>
-              <button 
-                onClick={() => alert('재고가 수정되었습니다.')}
-                style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
-              >
-                재고 수정 적용
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DataTable columns={columns} data={data} loading={loading} emptyMessage="재고 데이터가 없습니다" />
     </AdminLayout>
   )
 }

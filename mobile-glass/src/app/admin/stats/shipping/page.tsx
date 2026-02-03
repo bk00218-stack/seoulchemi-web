@@ -1,146 +1,105 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
 import DataTable, { Column } from '../../../components/DataTable'
-import SearchFilter, { OutlineButton } from '../../../components/SearchFilter'
-import StatCard, { StatCardGrid } from '../../../components/StatCard'
+import SearchFilter from '../../../components/SearchFilter'
 
-interface ShippingStats {
-  id: number
+interface ShippingStat {
   date: string
   totalOrders: number
-  shippedOrders: number
-  pendingOrders: number
-  avgShippingTime: number
-  onTimeRate: number
+  shipped: number
+  delivered: number
+  pending: number
+  avgTime: number
 }
 
-const sampleData: ShippingStats[] = [
-  { id: 1, date: '2024-01-15', totalOrders: 45, shippedOrders: 42, pendingOrders: 3, avgShippingTime: 1.2, onTimeRate: 95.5 },
-  { id: 2, date: '2024-01-14', totalOrders: 38, shippedOrders: 38, pendingOrders: 0, avgShippingTime: 1.1, onTimeRate: 97.4 },
-  { id: 3, date: '2024-01-13', totalOrders: 52, shippedOrders: 50, pendingOrders: 2, avgShippingTime: 1.4, onTimeRate: 92.3 },
-  { id: 4, date: '2024-01-12', totalOrders: 41, shippedOrders: 41, pendingOrders: 0, avgShippingTime: 1.0, onTimeRate: 98.0 },
-  { id: 5, date: '2024-01-11', totalOrders: 36, shippedOrders: 35, pendingOrders: 1, avgShippingTime: 1.3, onTimeRate: 94.3 },
-  { id: 6, date: '2024-01-10', totalOrders: 48, shippedOrders: 48, pendingOrders: 0, avgShippingTime: 1.1, onTimeRate: 97.9 },
-]
-
 export default function ShippingStatsPage() {
-  const totalOrders = sampleData.reduce((sum, d) => sum + d.totalOrders, 0)
-  const totalShipped = sampleData.reduce((sum, d) => sum + d.shippedOrders, 0)
-  const avgOnTimeRate = (sampleData.reduce((sum, d) => sum + d.onTimeRate, 0) / sampleData.length).toFixed(1)
-  const avgShippingTime = (sampleData.reduce((sum, d) => sum + d.avgShippingTime, 0) / sampleData.length).toFixed(1)
+  const [data, setData] = useState<ShippingStat[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const columns: Column<ShippingStats>[] = [
-    { key: 'date', label: '날짜', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{v as string}</span>
-    )},
-    { key: 'totalOrders', label: '총 주문', align: 'center', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{v as number}건</span>
-    )},
-    { key: 'shippedOrders', label: '출고 완료', align: 'center', render: (v) => (
-      <span style={{ color: '#34c759', fontWeight: 500 }}>{v as number}건</span>
-    )},
-    { key: 'pendingOrders', label: '대기', align: 'center', render: (v) => (
-      <span style={{ 
-        color: v as number > 0 ? '#ff9500' : '#86868b',
-        fontWeight: v as number > 0 ? 500 : 400
-      }}>
-        {v as number}건
-      </span>
-    )},
-    { key: 'avgShippingTime', label: '평균 출고시간', align: 'center', render: (v) => (
-      <span style={{ color: '#666' }}>{v}일</span>
-    )},
-    { key: 'onTimeRate', label: '정시출고율', align: 'center', render: (v) => {
-      const rate = v as number
-      return (
-        <span style={{ 
-          color: rate >= 95 ? '#34c759' : rate >= 90 ? '#ff9500' : '#ff3b30',
-          fontWeight: 500
-        }}>
-          {rate}%
-        </span>
-      )
-    }},
+  useEffect(() => { loadData() }, [])
+
+  const loadData = async () => {
+    try {
+      // 주문 데이터에서 출고 통계 집계
+      const res = await fetch('/api/orders?limit=1000')
+      const result = await res.json()
+      const orders = result.orders || []
+      
+      // 날짜별 집계
+      const byDate = new Map<string, { total: number; shipped: number; delivered: number; pending: number }>()
+      
+      orders.forEach((order: { orderedAt: string; status: string }) => {
+        const date = new Date(order.orderedAt).toISOString().split('T')[0]
+        if (!byDate.has(date)) {
+          byDate.set(date, { total: 0, shipped: 0, delivered: 0, pending: 0 })
+        }
+        const stat = byDate.get(date)!
+        stat.total++
+        if (order.status === 'shipped') stat.shipped++
+        else if (order.status === 'delivered') stat.delivered++
+        else if (order.status === 'pending') stat.pending++
+      })
+      
+      const stats = Array.from(byDate.entries())
+        .map(([date, stat]) => ({
+          date,
+          totalOrders: stat.total,
+          shipped: stat.shipped,
+          delivered: stat.delivered,
+          pending: stat.pending,
+          avgTime: 1.5 // 임시 평균 배송시간
+        }))
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 14)
+      
+      setData(stats)
+    } catch (error) {
+      console.error('Failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const columns: Column<ShippingStat>[] = [
+    { key: 'date', label: '날짜', render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
+    { key: 'totalOrders', label: '총 주문', align: 'center', render: (v) => <span>{v as number}건</span> },
+    { key: 'shipped', label: '출고', align: 'center', render: (v) => <span style={{ color: '#007aff' }}>{v as number}건</span> },
+    { key: 'delivered', label: '배송완료', align: 'center', render: (v) => <span style={{ color: '#34c759' }}>{v as number}건</span> },
+    { key: 'pending', label: '대기', align: 'center', render: (v) => <span style={{ color: '#ff9500' }}>{v as number}건</span> },
+    { key: 'avgTime', label: '평균 배송시간', align: 'center', render: (v) => <span style={{ color: '#86868b' }}>{v as number}일</span> },
   ]
 
-  // 일별 출고 현황 바 차트
-  const maxOrders = Math.max(...sampleData.map(d => d.totalOrders))
+  const totalOrders = data.reduce((sum, d) => sum + d.totalOrders, 0)
+  const totalShipped = data.reduce((sum, d) => sum + d.shipped + d.delivered, 0)
 
   return (
     <AdminLayout activeMenu="stats">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        가맹점 출고 통계
-      </h2>
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>가맹점 출고 통계</h2>
 
-      <StatCardGrid>
-        <StatCard label="총 주문" value={totalOrders} unit="건" icon="📦" />
-        <StatCard label="출고 완료" value={totalShipped} unit="건" />
-        <StatCard label="평균 출고시간" value={avgShippingTime} unit="일" />
-        <StatCard label="정시출고율" value={avgOnTimeRate} unit="%" highlight />
-      </StatCardGrid>
-
-      {/* 일별 출고 현황 차트 */}
-      <div style={{ 
-        background: '#fff', 
-        borderRadius: '12px', 
-        padding: '24px', 
-        marginBottom: '24px' 
-      }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>일별 출고 현황</h3>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '180px' }}>
-          {sampleData.slice().reverse().map((data, idx) => (
-            <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <div 
-                  style={{ 
-                    width: '100%',
-                    background: '#ff950040',
-                    borderRadius: '4px 4px 0 0',
-                    height: `${(data.pendingOrders / maxOrders) * 140}px`,
-                  }}
-                />
-                <div 
-                  style={{ 
-                    width: '100%',
-                    background: '#34c759',
-                    borderRadius: data.pendingOrders > 0 ? '0' : '4px 4px 0 0',
-                    height: `${(data.shippedOrders / maxOrders) * 140}px`,
-                  }}
-                />
-              </div>
-              <div style={{ marginTop: '8px', fontSize: '11px', color: '#86868b' }}>
-                {data.date.split('-').slice(1).join('/')}
-              </div>
-            </div>
-          ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 주문</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{totalOrders}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
         </div>
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: '#34c759' }} />
-            <span style={{ fontSize: '12px', color: '#666' }}>출고완료</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: '#ff950040' }} />
-            <span style={{ fontSize: '12px', color: '#666' }}>대기중</span>
-          </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>출고완료</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{totalShipped}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>출고율</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{totalOrders ? Math.round(totalShipped / totalOrders * 100) : 0}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>%</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>평균 배송시간</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>1.5<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>일</span></div>
         </div>
       </div>
 
-      <SearchFilter
-        placeholder="날짜 검색"
-        dateRange
-        actions={
-          <OutlineButton onClick={() => alert('엑셀 다운로드')}>📥 엑셀</OutlineButton>
-        }
-      />
+      <SearchFilter placeholder="날짜 검색" />
 
-      <DataTable
-        columns={columns}
-        data={sampleData}
-        emptyMessage="출고 통계가 없습니다"
-      />
+      <DataTable columns={columns} data={data} loading={loading} emptyMessage="출고 데이터가 없습니다" />
     </AdminLayout>
   )
 }

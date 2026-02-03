@@ -1,198 +1,125 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
-import FormInput, { FormSection, FormGrid, FormActions, CancelButton, SaveButton } from '../../../components/FormInput'
-import DataTable, { Column } from '../../../components/DataTable'
+import DataTable, { StatusBadge, Column } from '../../../components/DataTable'
+import SearchFilter from '../../../components/SearchFilter'
 
-interface ShippingZone {
+interface ShippingMethod {
   id: number
-  region: string
-  basePrice: number
+  name: string
+  carrier: string
+  baseFee: number
   freeThreshold: number
-  extraDays: number
+  estimatedDays: string
   isActive: boolean
 }
 
-const sampleZones: ShippingZone[] = [
-  { id: 1, region: '서울/경기', basePrice: 3000, freeThreshold: 50000, extraDays: 0, isActive: true },
-  { id: 2, region: '충청권', basePrice: 3000, freeThreshold: 50000, extraDays: 0, isActive: true },
-  { id: 3, region: '영남권', basePrice: 3500, freeThreshold: 70000, extraDays: 1, isActive: true },
-  { id: 4, region: '호남권', basePrice: 3500, freeThreshold: 70000, extraDays: 1, isActive: true },
-  { id: 5, region: '강원/제주', basePrice: 5000, freeThreshold: 100000, extraDays: 2, isActive: true },
-]
-
 export default function ShippingSettingsPage() {
-  const [defaultFreeThreshold, setDefaultFreeThreshold] = useState(50000)
-  const [defaultShippingFee, setDefaultShippingFee] = useState(3000)
+  const [methods, setMethods] = useState<ShippingMethod[]>([])
+  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [editingZone, setEditingZone] = useState<ShippingZone | null>(null)
+  const [formData, setFormData] = useState({ name: '', carrier: '', baseFee: 0, freeThreshold: 0, estimatedDays: '1-2일' })
 
-  const columns: Column<ShippingZone>[] = [
-    { key: 'region', label: '지역', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{v as string}</span>
+  useEffect(() => { loadData() }, [])
+
+  const loadData = async () => {
+    try {
+      // 기본 배송 방법 (실제로는 DB에서 가져옴)
+      setMethods([
+        { id: 1, name: '택배', carrier: 'CJ대한통운', baseFee: 3000, freeThreshold: 50000, estimatedDays: '1-2일', isActive: true },
+        { id: 2, name: '퀵서비스', carrier: '직접배송', baseFee: 5000, freeThreshold: 0, estimatedDays: '당일', isActive: true },
+        { id: 3, name: '우편', carrier: '우체국', baseFee: 2000, freeThreshold: 30000, estimatedDays: '2-3일', isActive: false },
+      ])
+    } catch (error) {
+      console.error('Failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    setMethods([...methods, { ...formData, id: methods.length + 1, isActive: true }])
+    setShowModal(false)
+    setFormData({ name: '', carrier: '', baseFee: 0, freeThreshold: 0, estimatedDays: '1-2일' })
+  }
+
+  const columns: Column<ShippingMethod>[] = [
+    { key: 'name', label: '배송방법명', render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
+    { key: 'carrier', label: '운송사', render: (v) => (
+      <span style={{ background: '#f0f7ff', color: '#007aff', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>{v as string}</span>
     )},
-    { key: 'basePrice', label: '기본 배송비', align: 'right', render: (v) => (
+    { key: 'baseFee', label: '기본요금', align: 'right', render: (v) => (
       <span style={{ fontWeight: 500 }}>{(v as number).toLocaleString()}원</span>
     )},
     { key: 'freeThreshold', label: '무료배송 기준', align: 'right', render: (v) => (
-      <span style={{ color: '#007aff' }}>{(v as number).toLocaleString()}원 이상</span>
-    )},
-    { key: 'extraDays', label: '추가 소요일', align: 'center', render: (v) => (
-      v === 0 ? (
-        <span style={{ color: '#86868b' }}>-</span>
-      ) : (
-        <span style={{ color: '#ff9500' }}>+{v}일</span>
-      )
-    )},
-    { key: 'isActive', label: '상태', render: (v) => (
-      <span style={{ 
-        padding: '3px 8px', 
-        borderRadius: '4px', 
-        background: v ? '#e8f5e9' : '#f5f5f5',
-        color: v ? '#34c759' : '#86868b',
-        fontSize: '11px',
-        fontWeight: 500
-      }}>
-        {v ? '활성' : '비활성'}
+      <span style={{ color: (v as number) > 0 ? '#1d1d1f' : '#86868b' }}>
+        {(v as number) > 0 ? `${(v as number).toLocaleString()}원` : '없음'}
       </span>
     )},
-    { key: 'id', label: '관리', align: 'center', render: (_, row) => (
-      <button
-        onClick={() => { setEditingZone(row); setShowModal(true); }}
-        style={{
-          padding: '4px 10px',
-          borderRadius: '4px',
-          background: '#f5f5f7',
-          color: '#007aff',
-          border: 'none',
-          fontSize: '12px',
-          cursor: 'pointer'
-        }}
-      >
-        수정
-      </button>
-    )},
+    { key: 'estimatedDays', label: '예상소요', align: 'center', render: (v) => <span>{v as string}</span> },
+    { key: 'isActive', label: '상태', align: 'center', render: (v) => <StatusBadge status={v ? 'active' : 'inactive'} /> },
   ]
+
+  const activeCount = methods.filter(m => m.isActive).length
 
   return (
     <AdminLayout activeMenu="settings">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        배송비 설정
-      </h2>
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>배송비 설정</h2>
 
-      <FormSection title="기본 배송 설정">
-        <FormGrid>
-          <FormInput
-            label="기본 배송비"
-            name="defaultShippingFee"
-            type="number"
-            value={defaultShippingFee}
-            onChange={(_, v) => setDefaultShippingFee(v as number)}
-            suffix="원"
-          />
-          <FormInput
-            label="무료배송 기준금액"
-            name="defaultFreeThreshold"
-            type="number"
-            value={defaultFreeThreshold}
-            onChange={(_, v) => setDefaultFreeThreshold(v as number)}
-            suffix="원"
-            hint="이 금액 이상 주문 시 무료배송"
-          />
-        </FormGrid>
-        <FormActions>
-          <SaveButton onClick={() => alert('저장되었습니다.')} />
-        </FormActions>
-      </FormSection>
-
-      <div style={{ 
-        background: '#fff', 
-        borderRadius: '12px', 
-        padding: '24px',
-        marginTop: '24px'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600 }}>지역별 배송비</h3>
-          <button
-            onClick={() => { setEditingZone(null); setShowModal(true); }}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '6px',
-              background: '#007aff',
-              color: '#fff',
-              border: 'none',
-              fontSize: '12px',
-              fontWeight: 500,
-              cursor: 'pointer'
-            }}
-          >
-            + 지역 추가
-          </button>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 배송방법</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{methods.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
         </div>
-        <DataTable
-          columns={columns}
-          data={sampleZones}
-          emptyMessage="등록된 지역이 없습니다"
-        />
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>활성</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{activeCount}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>비활성</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>{methods.length - activeCount}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
       </div>
 
-      {/* 모달 */}
+      <SearchFilter
+        placeholder="배송방법명 검색"
+        actions={
+          <button onClick={() => setShowModal(true)} style={{ padding: '8px 16px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+            + 배송방법 등록
+          </button>
+        }
+      />
+
+      <DataTable columns={columns} data={methods} loading={loading} emptyMessage="등록된 배송방법이 없습니다" />
+
       {showModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: '16px',
-            padding: '24px',
-            width: '400px'
-          }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editingZone ? '지역 배송비 수정' : '지역 추가'}
-            </h3>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>지역명 *</label>
-              <input type="text" defaultValue={editingZone?.region} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
-            </div>
-
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '440px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>배송방법 등록</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>기본 배송비</label>
-                <input type="number" defaultValue={editingZone?.basePrice} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>배송방법명 *</label>
+                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>무료배송 기준</label>
-                <input type="number" defaultValue={editingZone?.freeThreshold} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>운송사</label>
+                <input type="text" value={formData.carrier} onChange={(e) => setFormData({ ...formData, carrier: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
               </div>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>추가 소요일</label>
-                <input type="number" defaultValue={editingZone?.extraDays} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>기본요금 (원)</label>
+                <input type="number" value={formData.baseFee} onChange={(e) => setFormData({ ...formData, baseFee: parseInt(e.target.value) || 0 })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'end', paddingBottom: '10px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input type="checkbox" defaultChecked={editingZone?.isActive !== false} style={{ width: '18px', height: '18px' }} />
-                  <span style={{ fontSize: '14px' }}>활성화</span>
-                </label>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>무료배송 기준 (원)</label>
+                <input type="number" value={formData.freeThreshold} onChange={(e) => setFormData({ ...formData, freeThreshold: parseInt(e.target.value) || 0 })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
               </div>
             </div>
-            
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button onClick={() => setShowModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
-              <button onClick={() => { alert('저장되었습니다.'); setShowModal(false); }} style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>저장</button>
+              <button onClick={handleSave} style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>저장</button>
             </div>
           </div>
         </div>

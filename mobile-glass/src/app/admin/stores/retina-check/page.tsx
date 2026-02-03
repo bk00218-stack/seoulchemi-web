@@ -1,144 +1,114 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminLayout } from '../../../components/Navigation'
 import DataTable, { Column } from '../../../components/DataTable'
-import SearchFilter, { FilterButtonGroup, OutlineButton } from '../../../components/SearchFilter'
-import StatCard, { StatCardGrid } from '../../../components/StatCard'
+import SearchFilter from '../../../components/SearchFilter'
 
-interface RetinaStore {
+interface Store {
   id: number
-  code: string
   name: string
-  phone: string
-  retinaStatus: 'registered' | 'not_registered' | 'pending'
-  retinaId: string | null
-  checkedAt: string | null
-  linkedAt: string | null
-}
-
-const sampleData: RetinaStore[] = [
-  { id: 1, code: 'ST001', name: '강남안경', phone: '02-1234-5678', retinaStatus: 'registered', retinaId: 'RET001', checkedAt: '2024-01-15', linkedAt: '2024-01-10' },
-  { id: 2, code: 'ST002', name: '역삼안경원', phone: '02-2345-6789', retinaStatus: 'registered', retinaId: 'RET002', checkedAt: '2024-01-15', linkedAt: '2024-01-12' },
-  { id: 3, code: 'ST003', name: '신사안경', phone: '02-3456-7890', retinaStatus: 'not_registered', retinaId: null, checkedAt: '2024-01-15', linkedAt: null },
-  { id: 4, code: 'ST004', name: '압구정광학', phone: '02-4567-8901', retinaStatus: 'pending', retinaId: null, checkedAt: '2024-01-14', linkedAt: null },
-  { id: 5, code: 'ST005', name: '청담안경', phone: '02-5678-9012', retinaStatus: 'registered', retinaId: 'RET005', checkedAt: '2024-01-13', linkedAt: '2024-01-05' },
-]
-
-const statusLabels = {
-  registered: { bg: '#e8f5e9', color: '#34c759', label: '가입완료' },
-  not_registered: { bg: '#ffebee', color: '#ff3b30', label: '미가입' },
-  pending: { bg: '#fff3e0', color: '#ff9500', label: '확인중' },
+  code: string
+  ownerName: string | null
+  phone: string | null
+  retinaCode: string | null
+  retinaJoined: boolean
+  retinaJoinedAt: string | null
 }
 
 export default function RetinaCheckPage() {
-  const [filter, setFilter] = useState('all')
+  const [stores, setStores] = useState<Store[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('')
 
-  const columns: Column<RetinaStore>[] = [
-    { key: 'code', label: '코드', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
+  useEffect(() => { loadData() }, [])
+
+  const loadData = async () => {
+    try {
+      const res = await fetch('/api/stores')
+      const data = await res.json()
+      setStores(data.stores || data || [])
+    } catch (error) {
+      console.error('Failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const columns: Column<Store>[] = [
+    { key: 'code', label: '코드', render: (v) => <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span> },
+    { key: 'name', label: '가맹점명', render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
+    { key: 'ownerName', label: '대표자', render: (v) => <span>{(v as string) || '-'}</span> },
+    { key: 'phone', label: '연락처', render: (v) => <span style={{ fontSize: '13px' }}>{(v as string) || '-'}</span> },
+    { key: 'retinaCode', label: '레티나 코드', render: (v) => (
+      <span style={{ fontFamily: 'monospace', color: v ? '#007aff' : '#86868b' }}>{(v as string) || '미등록'}</span>
     )},
-    { key: 'name', label: '안경원명', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{v as string}</span>
+    { key: 'retinaJoined', label: '가입여부', align: 'center', render: (v) => (
+      <span style={{ 
+        background: v ? '#e8f5e9' : '#ffebee',
+        color: v ? '#2e7d32' : '#c62828',
+        padding: '3px 10px',
+        borderRadius: '12px',
+        fontSize: '12px',
+        fontWeight: 500
+      }}>
+        {v ? '가입' : '미가입'}
+      </span>
     )},
-    { key: 'phone', label: '연락처', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{v as string}</span>
-    )},
-    { key: 'retinaStatus', label: '레티나 상태', render: (v) => {
-      const s = statusLabels[v as keyof typeof statusLabels]
-      return (
-        <span style={{ 
-          padding: '3px 8px', 
-          borderRadius: '4px', 
-          background: s.bg,
-          color: s.color,
-          fontSize: '11px',
-          fontWeight: 500
-        }}>
-          {s.label}
-        </span>
-      )
-    }},
-    { key: 'retinaId', label: '레티나 ID', render: (v) => (
-      v ? (
-        <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#007aff' }}>{v as string}</span>
-      ) : (
-        <span style={{ color: '#c5c5c7' }}>-</span>
-      )
-    )},
-    { key: 'checkedAt', label: '확인일', render: (v) => (
-      <span style={{ color: '#86868b', fontSize: '12px' }}>{v as string || '-'}</span>
-    )},
-    { key: 'linkedAt', label: '연동일', render: (v) => (
-      v ? (
-        <span style={{ color: '#34c759', fontSize: '12px' }}>{v as string}</span>
-      ) : (
-        <span style={{ color: '#c5c5c7' }}>-</span>
-      )
-    )},
-    { key: 'id', label: '확인', align: 'center', render: (_, row) => (
-      <button
-        onClick={() => alert(`${row.name} 레티나 가입 확인 중...`)}
-        style={{
-          padding: '4px 10px',
-          borderRadius: '4px',
-          background: row.retinaStatus === 'registered' ? '#e8f5e9' : '#f5f5f7',
-          color: row.retinaStatus === 'registered' ? '#34c759' : '#007aff',
-          border: 'none',
-          fontSize: '12px',
-          cursor: 'pointer'
-        }}
-      >
-        {row.retinaStatus === 'registered' ? '확인완료' : '확인하기'}
-      </button>
+    { key: 'retinaJoinedAt', label: '가입일', render: (v) => (
+      <span style={{ fontSize: '12px', color: '#86868b' }}>
+        {v ? new Date(v as string).toLocaleDateString('ko-KR') : '-'}
+      </span>
     )},
   ]
 
-  const filteredData = filter === 'all' 
-    ? sampleData 
-    : sampleData.filter(s => s.retinaStatus === filter)
+  const filtered = stores.filter(s => {
+    if (!filter) return true
+    if (filter === 'joined') return s.retinaJoined
+    if (filter === 'notJoined') return !s.retinaJoined
+    return true
+  })
+
+  const joinedCount = stores.filter(s => s.retinaJoined).length
+  const notJoinedCount = stores.filter(s => !s.retinaJoined).length
 
   return (
     <AdminLayout activeMenu="stores">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        레티나 가입여부 확인
-      </h2>
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>레티나 가입여부 확인</h2>
 
-      <StatCardGrid>
-        <StatCard label="전체 가맹점" value={sampleData.length} unit="개" icon="🏪" />
-        <StatCard label="레티나 가입" value={sampleData.filter(s => s.retinaStatus === 'registered').length} unit="개" />
-        <StatCard label="미가입" value={sampleData.filter(s => s.retinaStatus === 'not_registered').length} unit="개" highlight />
-        <StatCard label="확인중" value={sampleData.filter(s => s.retinaStatus === 'pending').length} unit="개" />
-      </StatCardGrid>
-
-      <SearchFilter
-        placeholder="안경원명, 코드 검색"
-        actions={
-          <>
-            <OutlineButton onClick={() => alert('전체 가맹점 레티나 가입여부 확인')}>🔄 일괄 확인</OutlineButton>
-            <OutlineButton onClick={() => alert('엑셀 다운로드')}>📥 엑셀</OutlineButton>
-          </>
-        }
-      />
-
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
-        <FilterButtonGroup
-          options={[
-            { label: '전체', value: 'all' },
-            { label: '가입완료', value: 'registered' },
-            { label: '미가입', value: 'not_registered' },
-            { label: '확인중', value: 'pending' },
-          ]}
-          value={filter}
-          onChange={setFilter}
-        />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>전체 가맹점</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{stores.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>레티나 가입</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{joinedCount}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>미가입</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff3b30' }}>{notJoinedCount}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>가입률</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{stores.length ? Math.round(joinedCount / stores.length * 100) : 0}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>%</span></div>
+        </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        emptyMessage="가맹점이 없습니다"
+      <SearchFilter
+        placeholder="가맹점명, 코드 검색"
+        filters={[{
+          key: 'status', label: '가입상태',
+          options: [
+            { label: '전체', value: '' },
+            { label: '가입', value: 'joined' },
+            { label: '미가입', value: 'notJoined' }
+          ],
+          value: filter, onChange: setFilter
+        }]}
       />
+
+      <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="가맹점이 없습니다" />
     </AdminLayout>
   )
 }
