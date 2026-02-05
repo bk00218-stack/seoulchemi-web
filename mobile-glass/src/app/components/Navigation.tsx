@@ -155,6 +155,7 @@ export const menuStructure = {
           { label: '사용자 관리', path: '/admin/settings/users' },
           { label: '그룹별 메뉴설정', path: '/admin/settings/menu-permissions' },
           { label: '계정관리', path: '/admin/settings/accounts' },
+          { label: '로그인 이력', path: '/admin/settings/login-history' },
         ]
       }
     ]
