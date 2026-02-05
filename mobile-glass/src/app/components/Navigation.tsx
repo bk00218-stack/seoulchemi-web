@@ -92,6 +92,14 @@ export const menuStructure = {
         ]
       },
       {
+        title: '미수금 관리',
+        items: [
+          { label: '미수금 현황', path: '/admin/stores/receivables' },
+          { label: '입금 처리', path: '/admin/stores/receivables/deposit' },
+          { label: '입출금 내역', path: '/admin/stores/receivables/transactions' },
+        ]
+      },
+      {
         title: '안경원 승인/통합',
         items: [
           { label: '레티나 가입여부 확인', path: '/admin/stores/retina-check' },

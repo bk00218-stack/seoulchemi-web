@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { storeId, orderType, items, memo } = body
+    const { storeId, orderType, items, memo, skipCreditCheck } = body
     
     if (!storeId) {
       return NextResponse.json({ error: '가맹점을 선택해주세요' }, { status: 400 })
@@ -13,6 +13,40 @@ export async function POST(request: Request) {
     
     if (!items || items.length === 0) {
       return NextResponse.json({ error: '상품을 추가해주세요' }, { status: 400 })
+    }
+
+    // 가맹점 정보 조회
+    const store = await prisma.store.findUnique({
+      where: { id: parseInt(storeId) }
+    })
+
+    if (!store) {
+      return NextResponse.json({ error: '가맹점을 찾을 수 없습니다.' }, { status: 404 })
+    }
+
+    if (!store.isActive) {
+      return NextResponse.json({ error: '비활성 가맹점입니다.' }, { status: 400 })
+    }
+
+    // 총액 계산
+    const totalAmount = items.reduce((sum: number, item: any) => 
+      sum + (item.quantity * item.unitPrice), 0
+    )
+
+    // 신용한도 체크 (옵션)
+    if (!skipCreditCheck && store.creditLimit > 0) {
+      const futureOutstanding = store.outstandingAmount + totalAmount
+      if (futureOutstanding > store.creditLimit) {
+        return NextResponse.json({ 
+          error: '신용한도를 초과합니다.',
+          details: {
+            currentOutstanding: store.outstandingAmount,
+            orderAmount: totalAmount,
+            creditLimit: store.creditLimit,
+            wouldExceedBy: futureOutstanding - store.creditLimit
+          }
+        }, { status: 400 })
+      }
     }
     
     // 주문번호 생성
@@ -30,40 +64,72 @@ export async function POST(request: Request) {
     }
     const orderNo = `${prefix}-${String(seq).padStart(4, '0')}`
     
-    // 총액 계산
-    const totalAmount = items.reduce((sum: number, item: any) => 
-      sum + (item.quantity * item.unitPrice), 0
-    )
-    
-    // 주문 생성
-    const order = await prisma.order.create({
-      data: {
-        orderNo,
-        storeId: parseInt(storeId),
-        orderType: orderType || 'stock',
-        status: 'pending',
-        totalAmount,
-        memo,
-        items: {
-          create: items.map((item: any) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.quantity * item.unitPrice,
-            sph: item.sph || null,
-            cyl: item.cyl || null,
-            axis: item.axis || null,
-            memo: item.memo || null,
-          }))
+    // 트랜잭션으로 주문 생성
+    const order = await prisma.$transaction(async (tx) => {
+      // 주문 생성
+      const newOrder = await tx.order.create({
+        data: {
+          orderNo,
+          storeId: parseInt(storeId),
+          orderType: orderType || 'stock',
+          status: 'pending',
+          totalAmount,
+          memo,
+          items: {
+            create: items.map((item: any) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.quantity * item.unitPrice,
+              sph: item.sph || null,
+              cyl: item.cyl || null,
+              axis: item.axis || null,
+              bc: item.bc || null,
+              dia: item.dia || null,
+              memo: item.memo || null,
+            }))
+          }
+        },
+        include: {
+          store: true,
+          items: { include: { product: { include: { brand: true } } } }
         }
-      },
-      include: {
-        store: true,
-        items: { include: { product: true } }
-      }
+      })
+
+      // 작업 로그 기록
+      await tx.workLog.create({
+        data: {
+          workType: 'order_create',
+          targetType: 'order',
+          targetId: newOrder.id,
+          targetNo: orderNo,
+          description: `주문 등록: ${store.name} - ${totalAmount.toLocaleString()}원`,
+          details: JSON.stringify({
+            storeId: store.id,
+            storeName: store.name,
+            orderType,
+            itemCount: items.length,
+            totalAmount
+          }),
+          userName: 'admin',
+          pcName: 'WEB',
+        }
+      })
+
+      return newOrder
     })
     
-    return NextResponse.json({ success: true, order })
+    return NextResponse.json({ 
+      success: true, 
+      order: {
+        id: order.id,
+        orderNo: order.orderNo,
+        storeName: order.store.name,
+        totalAmount: order.totalAmount,
+        status: order.status,
+        itemCount: order.items.length
+      }
+    })
   } catch (error) {
     console.error('Failed to create order:', error)
     return NextResponse.json({ error: '주문 등록에 실패했습니다.' }, { status: 500 })
