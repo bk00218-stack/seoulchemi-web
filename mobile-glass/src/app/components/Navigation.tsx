@@ -99,6 +99,7 @@ export const menuStructure = {
           { label: '미수금 현황', path: '/admin/stores/receivables' },
           { label: '입금 처리', path: '/admin/stores/receivables/deposit' },
           { label: '입출금 내역', path: '/admin/stores/receivables/transactions' },
+          { label: '세금계산서', path: '/admin/stores/tax-invoices' },
         ]
       },
       {
