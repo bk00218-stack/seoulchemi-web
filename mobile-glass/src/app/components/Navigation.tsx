@@ -26,6 +26,7 @@ export const menuStructure = {
           { label: '전체 주문내역', path: '/admin/orders' },
           { label: '출고 확인', path: '/admin/orders/shipping' },
           { label: '출고 배송지 정보', path: '/admin/orders/delivery' },
+          { label: '반품/교환 관리', path: '/admin/orders/returns' },
         ]
       }
     ]
