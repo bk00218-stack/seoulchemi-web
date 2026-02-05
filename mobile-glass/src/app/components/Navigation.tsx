@@ -140,6 +140,7 @@ export const menuStructure = {
           { label: '기본설정', path: '/admin/settings' },
           { label: '구분설정', path: '/admin/settings/categories' },
           { label: '배송비 설정', path: '/admin/settings/shipping' },
+          { label: '데이터 가져오기', path: '/admin/settings/import' },
           { label: '백업 관리', path: '/admin/settings/backup' },
         ]
       },
