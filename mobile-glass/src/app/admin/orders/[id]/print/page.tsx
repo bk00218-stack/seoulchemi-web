@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 interface OrderItem {
   id: number
@@ -29,13 +29,33 @@ interface OrderData {
 export default function PrintPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [order, setOrder] = useState<OrderData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [docType, setDocType] = useState<'statement' | 'shipping' | 'confirm'>('statement')
+  const [printed, setPrinted] = useState(false)
+  
+  // auto=true면 출고지시서로 시작, 아니면 거래명세서
+  const autoParam = searchParams.get('auto')
+  const typeParam = searchParams.get('type')
+  const [docType, setDocType] = useState<'statement' | 'shipping' | 'confirm'>(
+    autoParam === 'true' ? 'shipping' : (typeParam as 'statement' | 'shipping' | 'confirm') || 'statement'
+  )
 
   useEffect(() => {
     fetchOrder()
   }, [id])
+
+  // 자동 출력 (auto=true일 때)
+  useEffect(() => {
+    if (autoParam === 'true' && order && !loading && !printed) {
+      // 약간의 딜레이 후 출력 (렌더링 완료 대기)
+      const timer = setTimeout(() => {
+        window.print()
+        setPrinted(true)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [autoParam, order, loading, printed])
 
   const fetchOrder = async () => {
     try {
@@ -56,7 +76,11 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
   }
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center' }}>로딩 중...</div>
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        {autoParam === 'true' ? '출고지시서 출력 준비 중...' : '로딩 중...'}
+      </div>
+    )
   }
 
   if (!order) {

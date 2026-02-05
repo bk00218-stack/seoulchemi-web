@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getStoreDiscountSettings, calculatePriceFromCache } from '@/lib/priceCalculator'
 
 // POST /api/orders/create - 새 주문 등록
 export async function POST(request: Request) {
@@ -28,8 +29,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '비활성 가맹점입니다.' }, { status: 400 })
     }
 
-    // 총액 계산
-    const totalAmount = items.reduce((sum: number, item: any) => 
+    // 할인 설정 조회
+    const discountSettings = await getStoreDiscountSettings(parseInt(storeId))
+    
+    // 상품 정보 조회 (할인 계산용)
+    const productIds = items.map((item: any) => item.productId)
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true, brandId: true, sellingPrice: true }
+    })
+    const productMap = new Map(products.map(p => [p.id, p]))
+
+    // 할인 적용된 아이템 계산
+    const itemsWithDiscount = items.map((item: any) => {
+      const product = productMap.get(item.productId)
+      if (!product) return item
+      
+      // 할인가 계산
+      const priceResult = calculatePriceFromCache(product, discountSettings)
+      const unitPrice = item.unitPrice ?? priceResult.finalPrice // 직접 지정한 가격이 있으면 사용
+      
+      return {
+        ...item,
+        unitPrice,
+        originalPrice: product.sellingPrice,
+        discountType: priceResult.discountType,
+        discountRate: priceResult.discountRate
+      }
+    })
+
+    // 총액 계산 (할인 적용된 가격)
+    const totalAmount = itemsWithDiscount.reduce((sum: number, item: any) => 
       sum + (item.quantity * item.unitPrice), 0
     )
 
@@ -76,7 +106,7 @@ export async function POST(request: Request) {
           totalAmount,
           memo,
           items: {
-            create: items.map((item: any) => ({
+            create: itemsWithDiscount.map((item: any) => ({
               productId: item.productId,
               quantity: item.quantity,
               unitPrice: item.unitPrice,

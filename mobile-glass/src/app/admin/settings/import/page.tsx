@@ -3,381 +3,388 @@
 import { useState, useRef } from 'react'
 import { AdminLayout } from '@/app/components/Navigation'
 
-type ImportType = 'stores' | 'products' | 'inventory'
-
-interface ImportResult {
-  success: number
-  failed: number
-  errors: string[]
-}
+type ImportType = 'products' | 'inventory' | 'stores'
 
 export default function ImportPage() {
-  const [importType, setImportType] = useState<ImportType>('stores')
-  const [file, setFile] = useState<File | null>(null)
-  const [data, setData] = useState<any[]>([])
-  const [updateExisting, setUpdateExisting] = useState(false)
-  const [importing, setImporting] = useState(false)
-  const [result, setResult] = useState<ImportResult | null>(null)
+  const [activeTab, setActiveTab] = useState<ImportType>('products')
+  const [uploading, setUploading] = useState(false)
+  const [results, setResults] = useState<{
+    success: number
+    failed: number
+    skipped: number
+    errors: string[]
+  } | null>(null)
+  const [mode, setMode] = useState('create')
+  const [adjustMode, setAdjustMode] = useState('set')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const templates = {
-    stores: {
-      name: '가맹점',
-      columns: ['코드', '가맹점명', '전화번호', '주소', '대표자', '신용한도'],
-      sample: [
-        { '코드': 'BK-001', '가맹점명': '밝은안경', '전화번호': '02-1234-5678', '주소': '서울시 강남구', '대표자': '홍길동', '신용한도': '5000000' }
-      ]
-    },
-    products: {
-      name: '상품',
-      columns: ['브랜드', '상품명', '옵션타입', '상품구분', '매입가', '판매가', 'SPH', 'CYL'],
-      sample: [
-        { '브랜드': '케미', '상품명': '1.56 비구면', '옵션타입': '안경렌즈 여벌', '상품구분': '일반', '매입가': '10000', '판매가': '15000', 'SPH': 'Y', 'CYL': 'N' }
-      ]
-    },
-    inventory: {
-      name: '재고',
-      columns: ['바코드', '재고'],
-      sample: [
-        { '바코드': '8801234567890', '재고': '100' }
-      ]
-    }
+  const tabs: { key: ImportType; label: string; desc: string }[] = [
+    { key: 'products', label: '상품', desc: '상품 대량 등록/수정' },
+    { key: 'inventory', label: '재고', desc: '재고 일괄 수정' },
+    { key: 'stores', label: '가맹점', desc: '가맹점 대량 등록/수정' },
+  ]
+
+  const handleDownloadTemplate = () => {
+    window.location.href = `/api/import/${activeTab}`
   }
 
-  const currentTemplate = templates[importType]
-
-  // CSV 파싱
-  const parseCSV = (text: string) => {
-    const lines = text.trim().split('\n')
-    if (lines.length < 2) return []
-
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
-    const data = []
-
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''))
-      const row: any = {}
-      headers.forEach((header, idx) => {
-        row[header] = values[idx] || ''
-      })
-      data.push(row)
+  const handleDownloadData = () => {
+    let url = `/api/export/${activeTab}`
+    if (activeTab === 'products') {
+      url += '?includeOptions=true'
     }
-
-    return data
+    window.location.href = url
   }
 
-  // 파일 처리
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setFile(file)
-    setResult(null)
-
-    const text = await file.text()
-
-    if (file.name.endsWith('.csv')) {
-      setData(parseCSV(text))
-    } else if (file.name.endsWith('.json')) {
-      try {
-        const json = JSON.parse(text)
-        setData(Array.isArray(json) ? json : [json])
-      } catch {
-        alert('JSON 파일 형식이 올바르지 않습니다.')
-        setData([])
-      }
-    } else {
-      alert('CSV 또는 JSON 파일만 지원합니다.')
-      setData([])
-    }
-  }
-
-  // 샘플 다운로드
-  const downloadSample = () => {
-    const headers = currentTemplate.columns.join(',')
-    const rows = currentTemplate.sample.map(row =>
-      currentTemplate.columns.map(col => row[col] || '').join(',')
-    ).join('\n')
-    
-    const csv = '\uFEFF' + headers + '\n' + rows
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${importType}_sample.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  // 가져오기 실행
-  const handleImport = async () => {
-    if (data.length === 0) {
-      alert('가져올 데이터가 없습니다.')
-      return
-    }
-
-    setImporting(true)
-    setResult(null)
+    setUploading(true)
+    setResults(null)
 
     try {
-      const res = await fetch('/api/import', {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      if (activeTab === 'inventory') {
+        formData.append('adjustMode', adjustMode)
+      } else {
+        formData.append('mode', mode)
+      }
+
+      const res = await fetch(`/api/import/${activeTab}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: importType,
-          data,
-          options: { updateExisting }
-        })
+        body: formData
       })
 
-      const json = await res.json()
+      const data = await res.json()
 
       if (res.ok) {
-        setResult({
-          success: json.success,
-          failed: json.failed,
-          errors: json.errors || []
-        })
+        setResults(data.results)
       } else {
-        alert(json.error || '가져오기에 실패했습니다.')
+        alert(data.error || '업로드에 실패했습니다')
       }
     } catch (error) {
-      alert('서버 오류가 발생했습니다.')
+      console.error('Upload failed:', error)
+      alert('업로드에 실패했습니다')
     } finally {
-      setImporting(false)
-    }
-  }
-
-  // 초기화
-  const reset = () => {
-    setFile(null)
-    setData([])
-    setResult(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      setUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
   return (
     <AdminLayout activeMenu="settings">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px', color: 'var(--text-primary)' }}>
-          데이터 가져오기
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
-          CSV 또는 JSON 파일로 데이터를 일괄 등록합니다.
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>데이터 가져오기</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
+          CSV 파일로 데이터를 대량 등록하거나 내보냅니다
         </p>
       </div>
 
+      {/* 탭 */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+        {tabs.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => { setActiveTab(tab.key); setResults(null); }}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '8px',
+              border: activeTab === tab.key ? 'none' : '1px solid #e5e5e5',
+              background: activeTab === tab.key ? '#007aff' : '#fff',
+              color: activeTab === tab.key ? '#fff' : '#1d1d1f',
+              fontWeight: 500,
+              cursor: 'pointer'
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        {/* 왼쪽: 설정 */}
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          {/* 가져오기 유형 */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px', color: 'var(--text-primary)' }}>
-              가져오기 유형
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {Object.entries(templates).map(([key, template]) => (
-                <button
-                  key={key}
-                  onClick={() => {
-                    setImportType(key as ImportType)
-                    reset()
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: importType === key ? 'var(--primary)' : 'var(--bg-tertiary)',
-                    color: importType === key ? '#fff' : 'var(--text-primary)',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {template.name}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* 가져오기 */}
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
+            📥 가져오기 (업로드)
+          </h2>
 
-          {/* 필수 컬럼 안내 */}
-          <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg-tertiary)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 500, marginBottom: '8px', color: 'var(--text-primary)' }}>
-              필수 컬럼
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-              {currentTemplate.columns.join(', ')}
-            </div>
-            <button
-              onClick={downloadSample}
-              style={{
-                marginTop: '12px',
-                padding: '8px 16px',
-                borderRadius: '6px',
-                border: '1px solid var(--border-color)',
-                background: 'var(--bg-primary)',
-                fontSize: '13px',
-                cursor: 'pointer',
-                color: 'var(--primary)'
-              }}
-            >
-              📥 샘플 파일 다운로드
-            </button>
-          </div>
+          <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
+            {tabs.find(t => t.key === activeTab)?.desc}
+          </p>
 
-          {/* 파일 선택 */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px', color: 'var(--text-primary)' }}>
-              파일 선택
-            </label>
+          {/* 모드 선택 */}
+          {activeTab !== 'inventory' ? (
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '8px' }}>
+                가져오기 모드
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {[
+                  { value: 'create', label: '신규만', desc: '기존 데이터 건너뜀' },
+                  { value: 'update', label: '수정만', desc: '기존 데이터만 수정' },
+                  { value: 'upsert', label: '통합', desc: '신규 등록 + 기존 수정' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setMode(opt.value)}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: mode === opt.value ? '2px solid #007aff' : '1px solid #e5e5e5',
+                      background: mode === opt.value ? '#f0f7ff' : '#fff',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ fontWeight: 500, fontSize: '13px' }}>{opt.label}</div>
+                    <div style={{ fontSize: '11px', color: '#86868b' }}>{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '8px' }}>
+                재고 수정 방식
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {[
+                  { value: 'set', label: '덮어쓰기', desc: '입력값으로 변경' },
+                  { value: 'add', label: '추가', desc: '기존 재고에 더하기' },
+                  { value: 'subtract', label: '차감', desc: '기존 재고에서 빼기' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setAdjustMode(opt.value)}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: adjustMode === opt.value ? '2px solid #007aff' : '1px solid #e5e5e5',
+                      background: adjustMode === opt.value ? '#f0f7ff' : '#fff',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ fontWeight: 500, fontSize: '13px' }}>{opt.label}</div>
+                    <div style={{ fontSize: '11px', color: '#86868b' }}>{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 파일 업로드 */}
+          <div style={{ marginBottom: '16px' }}>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.json"
-              onChange={handleFileChange}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px dashed var(--border-color)',
-                background: 'var(--bg-tertiary)',
-                cursor: 'pointer'
-              }}
+              accept=".csv"
+              onChange={handleUpload}
+              disabled={uploading}
+              style={{ display: 'none' }}
+              id="file-upload"
             />
-            {file && (
-              <div style={{ marginTop: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                선택됨: {file.name} ({data.length}행)
-              </div>
-            )}
-          </div>
-
-          {/* 옵션 */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={updateExisting}
-                onChange={e => setUpdateExisting(e.target.checked)}
-                style={{ width: '18px', height: '18px' }}
-              />
-              <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>기존 데이터 업데이트 (코드/이름 중복 시)</span>
+            <label
+              htmlFor="file-upload"
+              style={{
+                display: 'block',
+                padding: '40px 20px',
+                borderRadius: '8px',
+                border: '2px dashed #e5e5e5',
+                textAlign: 'center',
+                cursor: uploading ? 'not-allowed' : 'pointer',
+                background: uploading ? '#f9fafb' : '#fff'
+              }}
+            >
+              {uploading ? (
+                <span style={{ color: '#86868b' }}>업로드 중...</span>
+              ) : (
+                <>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📄</div>
+                  <div style={{ fontWeight: 500 }}>CSV 파일을 선택하세요</div>
+                  <div style={{ fontSize: '13px', color: '#86868b', marginTop: '4px' }}>
+                    또는 여기에 파일을 드래그하세요
+                  </div>
+                </>
+              )}
             </label>
           </div>
 
-          {/* 버튼 */}
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={reset}
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                background: 'var(--bg-primary)',
-                fontSize: '14px',
-                cursor: 'pointer',
-                color: 'var(--text-primary)'
-              }}
-            >
-              초기화
-            </button>
-            <button
-              onClick={handleImport}
-              disabled={importing || data.length === 0}
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '8px',
-                border: 'none',
-                background: importing || data.length === 0 ? 'var(--text-tertiary)' : 'var(--primary)',
-                color: '#fff',
-                fontSize: '14px',
-                fontWeight: 500,
-                cursor: importing || data.length === 0 ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {importing ? '가져오는 중...' : `${data.length}개 가져오기`}
-            </button>
-          </div>
-        </div>
+          {/* 템플릿 다운로드 */}
+          <button
+            onClick={handleDownloadTemplate}
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '8px',
+              border: '1px solid #e5e5e5',
+              background: '#fff',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            📋 템플릿 다운로드
+          </button>
 
-        {/* 오른쪽: 미리보기 & 결과 */}
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          {result ? (
-            <>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--text-primary)' }}>
-                가져오기 결과
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ padding: '16px', borderRadius: '8px', background: 'var(--success-light)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--success)' }}>{result.success}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--success)' }}>성공</div>
-                </div>
-                <div style={{ padding: '16px', borderRadius: '8px', background: 'var(--danger-light)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--danger)' }}>{result.failed}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--danger)' }}>실패</div>
-                </div>
+          {/* 결과 표시 */}
+          {results && (
+            <div style={{ 
+              marginTop: '16px', 
+              padding: '16px', 
+              borderRadius: '8px', 
+              background: results.failed > 0 ? '#fef2f2' : '#d1fae5'
+            }}>
+              <div style={{ fontWeight: 600, marginBottom: '8px' }}>
+                {results.failed > 0 ? '⚠️ 가져오기 완료 (일부 오류)' : '✅ 가져오기 완료'}
               </div>
-              {result.errors.length > 0 && (
-                <div style={{ maxHeight: '300px', overflow: 'auto' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '8px', color: 'var(--text-primary)' }}>오류 목록</div>
-                  {result.errors.slice(0, 50).map((error, idx) => (
-                    <div key={idx} style={{ fontSize: '12px', color: 'var(--danger)', marginBottom: '4px' }}>
-                      {error}
-                    </div>
+              <div style={{ fontSize: '14px' }}>
+                <span style={{ color: '#10b981' }}>성공: {results.success}</span>
+                {' · '}
+                <span style={{ color: '#f59e0b' }}>건너뜀: {results.skipped}</span>
+                {' · '}
+                <span style={{ color: '#dc2626' }}>실패: {results.failed}</span>
+              </div>
+              {results.errors.length > 0 && (
+                <div style={{ 
+                  marginTop: '12px', 
+                  padding: '8px', 
+                  background: '#fff', 
+                  borderRadius: '4px',
+                  maxHeight: '100px',
+                  overflow: 'auto',
+                  fontSize: '12px',
+                  color: '#dc2626'
+                }}>
+                  {results.errors.slice(0, 10).map((err, i) => (
+                    <div key={i}>{err}</div>
                   ))}
-                  {result.errors.length > 50 && (
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      ... 외 {result.errors.length - 50}개
-                    </div>
+                  {results.errors.length > 10 && (
+                    <div>... 외 {results.errors.length - 10}개</div>
                   )}
                 </div>
               )}
-            </>
-          ) : data.length > 0 ? (
-            <>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--text-primary)' }}>
-                데이터 미리보기 ({data.length}행)
-              </h2>
-              <div style={{ overflow: 'auto', maxHeight: '400px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                  <thead>
-                    <tr style={{ background: 'var(--bg-tertiary)' }}>
-                      {Object.keys(data[0] || {}).map(key => (
-                        <th key={key} style={{ padding: '8px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
-                          {key}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.slice(0, 20).map((row, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                        {Object.values(row).map((value: any, i) => (
-                          <td key={i} style={{ padding: '8px', color: 'var(--text-secondary)' }}>
-                            {String(value || '')}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {data.length > 20 && (
-                  <div style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
-                    ... 외 {data.length - 20}행
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📁</div>
-              <div style={{ fontSize: '14px' }}>CSV 또는 JSON 파일을 선택하세요</div>
             </div>
           )}
+        </div>
+
+        {/* 내보내기 */}
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
+            📤 내보내기 (다운로드)
+          </h2>
+
+          <p style={{ fontSize: '14px', color: '#666', marginBottom: '24px' }}>
+            현재 데이터를 CSV 파일로 내보냅니다
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <button
+              onClick={handleDownloadData}
+              style={{
+                padding: '16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#007aff',
+                color: '#fff',
+                fontWeight: 500,
+                cursor: 'pointer',
+                fontSize: '15px'
+              }}
+            >
+              {activeTab === 'products' && '📦 상품 목록 다운로드'}
+              {activeTab === 'inventory' && '📊 재고 현황 다운로드'}
+              {activeTab === 'stores' && '🏪 가맹점 목록 다운로드'}
+            </button>
+
+            {/* 추가 다운로드 옵션 */}
+            {activeTab === 'stores' && (
+              <button
+                onClick={() => window.location.href = '/api/export/stores?type=receivables'}
+                style={{
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e5e5',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                💰 미수금 현황 다운로드
+              </button>
+            )}
+
+            {activeTab === 'inventory' && (
+              <button
+                onClick={() => window.location.href = '/api/export/inventory?lowStock=true'}
+                style={{
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e5e5',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                ⚠️ 재고 부족 상품만 다운로드
+              </button>
+            )}
+          </div>
+
+          {/* 바로가기 */}
+          <div style={{ marginTop: '24px', padding: '16px', background: '#f9fafb', borderRadius: '8px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 600, marginBottom: '12px', color: '#666' }}>
+              다른 내보내기
+            </h3>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <a 
+                href="/api/export/orders" 
+                style={{ 
+                  padding: '6px 12px', 
+                  borderRadius: '4px', 
+                  background: '#fff', 
+                  border: '1px solid #e5e5e5',
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                  color: '#1d1d1f'
+                }}
+              >
+                주문 내역
+              </a>
+              <a 
+                href="/api/export/products" 
+                style={{ 
+                  padding: '6px 12px', 
+                  borderRadius: '4px', 
+                  background: '#fff', 
+                  border: '1px solid #e5e5e5',
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                  color: '#1d1d1f'
+                }}
+              >
+                상품 기본
+              </a>
+              <a 
+                href="/api/export/products?includeOptions=true" 
+                style={{ 
+                  padding: '6px 12px', 
+                  borderRadius: '4px', 
+                  background: '#fff', 
+                  border: '1px solid #e5e5e5',
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                  color: '#1d1d1f'
+                }}
+              >
+                상품 + 옵션
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </AdminLayout>

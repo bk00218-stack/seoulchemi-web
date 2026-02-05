@@ -126,8 +126,8 @@ export async function POST(request: NextRequest) {
         supplierAddress: '서울시 강남구',
         supplierBizType: '도매업',
         supplierBizItem: '안경렌즈',
-        // 공급받는자 정보
-        buyerBizNo: store.bizNo || '',
+        // 공급받는자 정보 (Store에 bizNo 필드 없음, 필요시 추가)
+        buyerBizNo: '',
         buyerName: store.name,
         buyerCeoName: store.ownerName || '',
         buyerAddress: store.address || '',

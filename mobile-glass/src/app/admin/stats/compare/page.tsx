@@ -42,9 +42,9 @@ export default function StatsComparePage() {
   const currentData = data[view]
   const maxAmount = Math.max(...currentData.map(d => d.amount), 1)
 
-  const getGrowth = (current: number, previous: number) => {
+  const getGrowth = (current: number, previous: number): number => {
     if (previous === 0) return current > 0 ? 100 : 0
-    return ((current - previous) / previous * 100).toFixed(1)
+    return parseFloat(((current - previous) / previous * 100).toFixed(1))
   }
 
   return (
@@ -111,7 +111,7 @@ export default function StatsComparePage() {
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '200px' }}>
               {currentData.map((item, idx) => {
                 const prevItem = idx > 0 ? currentData[idx - 1] : null
-                const growth = prevItem ? parseFloat(getGrowth(item.amount, prevItem.amount)) : 0
+                const growth = prevItem ? getGrowth(item.amount, prevItem.amount) : 0
                 
                 return (
                   <div key={item.period} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
@@ -160,7 +160,7 @@ export default function StatsComparePage() {
               <tbody>
                 {currentData.map((item, idx) => {
                   const prevItem = idx > 0 ? currentData[idx - 1] : null
-                  const growth = prevItem ? parseFloat(getGrowth(item.amount, prevItem.amount)) : 0
+                  const growth = prevItem ? getGrowth(item.amount, prevItem.amount) : 0
                   
                   return (
                     <tr key={item.period} style={{ borderBottom: '1px solid var(--border-light)' }}>

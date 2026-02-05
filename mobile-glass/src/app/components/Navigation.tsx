@@ -42,6 +42,7 @@ export const menuStructure = {
         items: [
           { label: '매입내역', path: '/admin/purchase' },
           { label: '매입등록', path: '/admin/purchase/new' },
+          { label: '자동 발주 제안', path: '/admin/purchase/reorder' },
         ]
       },
       {
@@ -103,14 +104,6 @@ export const menuStructure = {
           { label: '입출금 내역', path: '/admin/stores/receivables/transactions' },
           { label: '세금계산서', path: '/admin/stores/tax-invoices' },
         ]
-      },
-      {
-        title: '안경원 승인/통합',
-        items: [
-          { label: '레티나 가입여부 확인', path: '/admin/stores/retina-check' },
-          { label: '유통사 코드 승인', path: '/admin/stores/distributor' },
-          { label: '레티나 가맹점 정산통합', path: '/admin/stores/integration' },
-        ]
       }
     ]
   },
@@ -123,9 +116,13 @@ export const menuStructure = {
         items: [
           { label: '통계 대시보드', path: '/admin/stats' },
           { label: '기간별 비교', path: '/admin/stats/compare' },
-          { label: '가맹점 상품 통계', path: '/admin/stats/products' },
-          { label: '가맹점 출고 통계', path: '/admin/stats/shipping' },
-          { label: '그룹별 상품 통계', path: '/admin/stats/groups' },
+          { label: '손익 분석', path: '/admin/stats/profit' },
+        ]
+      },
+      {
+        title: '마감/결산',
+        items: [
+          { label: '월마감/결산', path: '/admin/stats/closing' },
         ]
       }
     ]
@@ -139,6 +136,7 @@ export const menuStructure = {
         items: [
           { label: '기본설정', path: '/admin/settings' },
           { label: '구분설정', path: '/admin/settings/categories' },
+          { label: '프린터 설정', path: '/admin/settings/printers' },
           { label: '배송비 설정', path: '/admin/settings/shipping' },
           { label: '데이터 가져오기', path: '/admin/settings/import' },
           { label: '백업 관리', path: '/admin/settings/backup' },

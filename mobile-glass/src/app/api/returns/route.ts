@@ -94,7 +94,10 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        items: true
+        store: true,
+        items: {
+          include: { product: true }
+        }
       }
     })
 
@@ -121,7 +124,7 @@ export async function POST(request: NextRequest) {
       return {
         orderItemId: item.orderItemId,
         productId: orderItem?.productId || 0,
-        productName: orderItem?.productName || '',
+        productName: orderItem?.product?.name || '',
         optionName: item.optionName || `${orderItem?.sph || ''} ${orderItem?.cyl || ''}`.trim(),
         quantity: item.quantity,
         unitPrice: orderItem?.unitPrice || 0,
@@ -141,7 +144,7 @@ export async function POST(request: NextRequest) {
         orderId,
         orderNo: order.orderNo,
         storeId: order.storeId,
-        storeName: order.storeName,
+        storeName: order.store?.name || '',
         status: 'requested',
         type: type || 'return',
         totalQuantity,
@@ -164,7 +167,7 @@ export async function POST(request: NextRequest) {
         targetType: 'return',
         targetId: newReturn.id,
         targetNo: returnNo,
-        description: `${type === 'exchange' ? '교환' : '반품'} 요청: ${order.storeName} - ${totalQuantity}개`,
+        description: `${type === 'exchange' ? '교환' : '반품'} 요청: ${order.store?.name || ''} - ${totalQuantity}개`,
         userName: processedBy
       }
     })

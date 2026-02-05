@@ -1,90 +1,368 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AdminLayout } from '../../../components/Navigation'
-import DataTable, { Column } from '../../../components/DataTable'
-import SearchFilter from '../../../components/SearchFilter'
+import { AdminLayout } from '@/app/components/Navigation'
 
 interface Supplier {
   id: number
   name: string
   code: string
-  contactName: string | null
   phone: string | null
+  bankInfo: string | null
   outstandingAmount: number
   creditLimit: number
-  paymentTermDays: number
   lastPaymentAt: string | null
+  _count: { purchases: number }
 }
 
 export default function OutstandingPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [loading, setLoading] = useState(true)
+  const [totalOutstanding, setTotalOutstanding] = useState(0)
 
-  useEffect(() => { loadData() }, [])
+  // 결제 모달
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
+  const [paymentForm, setPaymentForm] = useState({
+    amount: 0,
+    paymentMethod: 'transfer',
+    bankName: '',
+    memo: ''
+  })
+  const [submitting, setSubmitting] = useState(false)
 
-  const loadData = async () => {
+  useEffect(() => {
+    fetchSuppliers()
+  }, [])
+
+  const fetchSuppliers = async () => {
     try {
-      const res = await fetch('/api/suppliers')
-      const data = await res.json()
-      setSuppliers(data.filter((s: Supplier) => s.outstandingAmount > 0 || true)) // 모든 매입처 표시
+      const res = await fetch('/api/purchase/suppliers')
+      if (res.ok) {
+        const data = await res.json()
+        // 미납금 있는 업체만 필터링
+        const withOutstanding = data.suppliers.filter((s: Supplier) => s.outstandingAmount > 0)
+        setSuppliers(withOutstanding)
+        setTotalOutstanding(data.stats.totalOutstanding)
+      }
     } catch (error) {
-      console.error('Failed:', error)
+      console.error('Failed to fetch suppliers:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const columns: Column<Supplier>[] = [
-    { key: 'name', label: '매입처명', render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
-    { key: 'code', label: '코드', render: (v) => <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span> },
-    { key: 'contactName', label: '담당자', render: (v) => <span>{(v as string) || '-'}</span> },
-    { key: 'phone', label: '연락처', render: (v) => <span style={{ fontSize: '13px' }}>{(v as string) || '-'}</span> },
-    { key: 'outstandingAmount', label: '미납금액', align: 'right', render: (v) => (
-      <span style={{ fontWeight: 600, color: (v as number) > 0 ? '#ff3b30' : '#1d1d1f' }}>
-        {(v as number).toLocaleString()}원
-      </span>
-    )},
-    { key: 'creditLimit', label: '신용한도', align: 'right', render: (v) => (
-      <span style={{ color: '#86868b' }}>{(v as number).toLocaleString()}원</span>
-    )},
-    { key: 'paymentTermDays', label: '결제기한', align: 'center', render: (v) => <span>{v as number}일</span> },
-    { key: 'lastPaymentAt', label: '최근결제', render: (v) => (
-      <span style={{ fontSize: '12px', color: '#86868b' }}>
-        {v ? new Date(v as string).toLocaleDateString('ko-KR') : '-'}
-      </span>
-    )},
-  ]
+  const openPaymentModal = (supplier: Supplier) => {
+    setSelectedSupplier(supplier)
+    setPaymentForm({
+      amount: supplier.outstandingAmount,
+      paymentMethod: 'transfer',
+      bankName: '',
+      memo: ''
+    })
+    setShowPaymentModal(true)
+  }
 
-  const totalOutstanding = suppliers.reduce((sum, s) => sum + s.outstandingAmount, 0)
-  const overdueCount = suppliers.filter(s => s.outstandingAmount > s.creditLimit).length
+  const handlePayment = async () => {
+    if (!selectedSupplier || paymentForm.amount <= 0) return
+
+    setSubmitting(true)
+
+    try {
+      const res = await fetch(`/api/purchase/suppliers/${selectedSupplier.id}/payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentForm)
+      })
+
+      if (res.ok) {
+        setShowPaymentModal(false)
+        fetchSuppliers()
+      } else {
+        const error = await res.json()
+        alert(error.error || '결제 처리에 실패했습니다')
+      }
+    } catch (error) {
+      console.error('Failed to process payment:', error)
+      alert('결제 처리에 실패했습니다')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <AdminLayout activeMenu="purchase">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>매입처 미납금 관리</h2>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 미납금</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff3b30' }}>{totalOutstanding.toLocaleString()}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>원</span></div>
-        </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>미납 매입처</div>
-          <div style={{ fontSize: '28px', fontWeight: 600 }}>{suppliers.filter(s => s.outstandingAmount > 0).length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>곳</span></div>
-        </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>한도초과</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>{overdueCount}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>곳</span></div>
-        </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>전체 매입처</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{suppliers.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>곳</span></div>
-        </div>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>매입처 미납금 관리</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
+          미납금이 있는 업체: {suppliers.length}개
+        </p>
       </div>
 
-      <SearchFilter placeholder="매입처명 검색" />
+      {/* 요약 카드 */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+        borderRadius: '16px',
+        padding: '24px',
+        color: '#fff',
+        marginBottom: '24px'
+      }}>
+        <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>총 미납금</div>
+        <div style={{ fontSize: '36px', fontWeight: 700 }}>{totalOutstanding.toLocaleString()}원</div>
+      </div>
 
-      <DataTable columns={columns} data={suppliers} loading={loading} emptyMessage="매입처가 없습니다" />
+      {/* 목록 */}
+      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e5e5' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>매입처</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>연락처</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>계좌정보</th>
+              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>미납금</th>
+              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>신용한도</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>최근결제</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>처리</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  로딩 중...
+                </td>
+              </tr>
+            ) : suppliers.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  미납금이 있는 매입처가 없습니다 👍
+                </td>
+              </tr>
+            ) : (
+              suppliers.map(supplier => {
+                const overLimit = supplier.creditLimit > 0 && supplier.outstandingAmount > supplier.creditLimit
+                return (
+                  <tr key={supplier.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{supplier.name}</div>
+                      <div style={{ fontSize: '12px', color: '#86868b' }}>{supplier.code}</div>
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', color: '#666' }}>
+                      {supplier.phone || '-'}
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#666' }}>
+                      {supplier.bankInfo || '-'}
+                    </td>
+                    <td style={{ 
+                      padding: '12px 16px', 
+                      textAlign: 'right',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      color: '#dc2626'
+                    }}>
+                      {supplier.outstandingAmount.toLocaleString()}원
+                      {overLimit && (
+                        <div style={{ fontSize: '11px', color: '#dc2626' }}>⚠️ 한도초과</div>
+                      )}
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '14px', color: '#666' }}>
+                      {supplier.creditLimit > 0 ? `${supplier.creditLimit.toLocaleString()}원` : '-'}
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', color: '#666' }}>
+                      {supplier.lastPaymentAt 
+                        ? new Date(supplier.lastPaymentAt).toLocaleDateString('ko-KR')
+                        : '-'
+                      }
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <button
+                        onClick={() => openPaymentModal(supplier)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: '#007aff',
+                          color: '#fff',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        결제
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 결제 모달 */}
+      {showPaymentModal && selectedSupplier && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '16px',
+            padding: '24px',
+            width: '400px'
+          }}>
+            <h2 style={{ margin: '0 0 20px', fontSize: '18px' }}>결제 처리</h2>
+
+            <div style={{ 
+              background: '#f9fafb', 
+              borderRadius: '8px', 
+              padding: '16px', 
+              marginBottom: '20px' 
+            }}>
+              <div style={{ fontWeight: 500, marginBottom: '4px' }}>{selectedSupplier.name}</div>
+              <div style={{ fontSize: '13px', color: '#666' }}>
+                미납금: <span style={{ color: '#dc2626', fontWeight: 600 }}>
+                  {selectedSupplier.outstandingAmount.toLocaleString()}원
+                </span>
+              </div>
+              {selectedSupplier.bankInfo && (
+                <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>
+                  계좌: {selectedSupplier.bankInfo}
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
+                  결제 금액 *
+                </label>
+                <input
+                  type="number"
+                  value={paymentForm.amount}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseInt(e.target.value) || 0 })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e5e5',
+                    fontSize: '14px'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentForm({ ...paymentForm, amount: selectedSupplier.outstandingAmount })}
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid #e5e5e5',
+                      background: '#fff',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    전액
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentForm({ ...paymentForm, amount: Math.floor(selectedSupplier.outstandingAmount / 2) })}
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid #e5e5e5',
+                      background: '#fff',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    50%
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
+                  결제 방법
+                </label>
+                <select
+                  value={paymentForm.paymentMethod}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e5e5',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="transfer">계좌이체</option>
+                  <option value="cash">현금</option>
+                  <option value="card">카드</option>
+                  <option value="check">어음</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
+                  메모
+                </label>
+                <input
+                  type="text"
+                  value={paymentForm.memo}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, memo: e.target.value })}
+                  placeholder="예: 2월 매입대금 결제"
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e5e5',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e5e5',
+                  background: '#fff',
+                  cursor: 'pointer'
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handlePayment}
+                disabled={submitting || paymentForm.amount <= 0}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: submitting || paymentForm.amount <= 0 ? '#e5e5e5' : '#007aff',
+                  color: '#fff',
+                  fontWeight: 500,
+                  cursor: submitting || paymentForm.amount <= 0 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {submitting ? '처리 중...' : '결제 완료'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }

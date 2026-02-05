@@ -1,259 +1,246 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { AdminLayout } from '../../components/Navigation'
-import DataTable, { StatusBadge, Column } from '../../components/DataTable'
-import SearchFilter, { FilterButtonGroup, OutlineButton, PrimaryButton } from '../../components/SearchFilter'
-import StatCard, { StatCardGrid } from '../../components/StatCard'
-import { downloadExcel, ExcelColumn } from '@/lib/excel'
+import { useState, useEffect } from 'react'
+import { AdminLayout } from '@/app/components/Navigation'
+import Link from 'next/link'
 
 interface Purchase {
   id: number
   purchaseNo: string
-  date: string
-  supplier: string
   supplierId: number
-  brand: string
-  product: string
-  quantity: number
-  unitPrice: number
-  totalAmount: number
+  supplier: { id: number; name: string; code: string }
   status: string
-}
-
-interface Supplier {
-  id: number
-  name: string
-}
-
-interface Stats {
-  monthlyCount: number
-  pendingCount: number
   totalAmount: number
-  supplierCount: number
+  memo: string | null
+  purchasedAt: string
+  receivedAt: string | null
+  _count: { items: number }
 }
 
-const statusMap = {
-  pending: { bg: '#fff3e0', color: '#ff9500', label: '입고대기' },
-  completed: { bg: '#e8f5e9', color: '#34c759', label: '입고완료' },
-  cancelled: { bg: '#ffebee', color: '#ff3b30', label: '취소' },
+const statusLabels: Record<string, { label: string; color: string; bg: string }> = {
+  pending: { label: '입고대기', color: '#f59e0b', bg: '#fef3c7' },
+  completed: { label: '입고완료', color: '#10b981', bg: '#d1fae5' },
+  cancelled: { label: '취소', color: '#6b7280', bg: '#f3f4f6' },
 }
 
 export default function PurchasePage() {
-  const [filter, setFilter] = useState('all')
-  const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
-  const [data, setData] = useState<Purchase[]>([])
-  const [suppliers, setSuppliers] = useState<Supplier[]>([])
-  const [stats, setStats] = useState<Stats>({ monthlyCount: 0, pendingCount: 0, totalAmount: 0, supplierCount: 0 })
+  const [purchases, setPurchases] = useState<Purchase[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (filter !== 'all') params.set('status', filter)
-      if (search) params.set('search', search)
-      
-      const res = await fetch(`/api/purchases?${params}`)
-      const json = await res.json()
-      
-      if (json.error) {
-        console.error(json.error)
-        return
-      }
-      
-      setData(json.purchases)
-      setSuppliers(json.suppliers)
-      setStats(json.stats)
-    } catch (error) {
-      console.error('Failed to fetch purchases:', error)
-    }
-    setLoading(false)
-  }, [filter, search])
+  const [status, setStatus] = useState('')
+  const [stats, setStats] = useState({ totalPurchases: 0, totalAmount: 0 })
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    fetchPurchases()
+  }, [search, status])
 
-  const handleSearch = () => fetchData()
-
-  const handleExcelDownload = () => {
-    const excelColumns: ExcelColumn[] = [
-      { key: 'purchaseNo', label: '매입번호' },
-      { key: 'date', label: '일자' },
-      { key: 'supplier', label: '매입처' },
-      { key: 'brand', label: '브랜드' },
-      { key: 'product', label: '상품명' },
-      { key: 'quantity', label: '수량' },
-      { key: 'unitPrice', label: '단가', format: (v) => v.toLocaleString() },
-      { key: 'totalAmount', label: '합계', format: (v) => v.toLocaleString() },
-      { key: 'status', label: '상태', format: (v) => statusMap[v as keyof typeof statusMap]?.label || v },
-    ]
-    
-    const exportData = selectedIds.size > 0 
-      ? data.filter(d => selectedIds.has(d.id))
-      : data
-    
-    downloadExcel(exportData, excelColumns, `매입내역_${new Date().toISOString().split('T')[0]}`)
-    alert(`${exportData.length}건이 다운로드되었습니다.`)
-  }
-
-  const handleStatusChange = async (newStatus: string) => {
-    if (selectedIds.size === 0) {
-      alert('매입을 선택해주세요.')
-      return
-    }
-    
-    const label = statusMap[newStatus as keyof typeof statusMap]?.label || newStatus
-    if (!confirm(`${selectedIds.size}건을 '${label}'(으)로 변경하시겠습니까?`)) {
-      return
-    }
-
+  const fetchPurchases = async () => {
     try {
-      const res = await fetch('/api/purchases', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ purchaseIds: Array.from(selectedIds), status: newStatus }),
-      })
+      const params = new URLSearchParams()
+      if (search) params.append('search', search)
+      if (status) params.append('status', status)
       
+      const res = await fetch(`/api/purchase?${params}`)
       if (res.ok) {
-        alert(`${selectedIds.size}건의 상태가 변경되었습니다.`)
-        setSelectedIds(new Set())
-        fetchData()
+        const data = await res.json()
+        setPurchases(data.purchases)
+        setStats(data.stats)
       }
     } catch (error) {
-      alert('상태 변경에 실패했습니다.')
+      console.error('Failed to fetch purchases:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const columns: Column<Purchase>[] = [
-    { key: 'purchaseNo', label: '매입번호', render: (v) => (
-      <span style={{ fontWeight: 500, color: '#007aff' }}>{v as string}</span>
-    )},
-    { key: 'date', label: '일자', render: (v) => (
-      <span style={{ color: '#666', fontSize: '13px' }}>{v as string}</span>
-    )},
-    { key: 'supplier', label: '매입처', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{v as string}</span>
-    )},
-    { key: 'brand', label: '브랜드', render: (v) => (
-      <span style={{ background: '#e3f2fd', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#007aff' }}>
-        {v as string}
-      </span>
-    )},
-    { key: 'product', label: '상품명' },
-    { key: 'quantity', label: '수량', align: 'center', render: (v) => (
-      <span style={{ background: '#f5f5f7', padding: '2px 10px', borderRadius: '4px', fontWeight: 500 }}>
-        {(v as number).toLocaleString()}
-      </span>
-    )},
-    { key: 'unitPrice', label: '단가', align: 'right', render: (v) => (
-      <span style={{ color: '#666' }}>{(v as number).toLocaleString()}원</span>
-    )},
-    { key: 'totalAmount', label: '합계', align: 'right', render: (v) => (
-      <span style={{ fontWeight: 600 }}>{(v as number).toLocaleString()}원</span>
-    )},
-    { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} statusMap={statusMap} /> },
-  ]
+  const handleStatusChange = async (purchase: Purchase, newStatus: string) => {
+    if (newStatus === 'completed' && !confirm('입고 완료 처리하시겠습니까?\n재고가 자동으로 증가됩니다.')) return
+    if (newStatus === 'cancelled' && !confirm('취소 처리하시겠습니까?')) return
+
+    try {
+      const res = await fetch(`/api/purchase/${purchase.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (res.ok) {
+        fetchPurchases()
+      }
+    } catch (error) {
+      console.error('Failed to update status:', error)
+    }
+  }
 
   return (
     <AdminLayout activeMenu="purchase">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        매입내역
-      </h2>
-
-      <StatCardGrid>
-        <StatCard label="이번 달 매입" value={stats.monthlyCount} unit="건" icon="📦" />
-        <StatCard label="입고 대기" value={stats.pendingCount} unit="건" highlight />
-        <StatCard label="총 매입금액" value={stats.totalAmount} unit="만원" />
-        <StatCard label="매입처" value={stats.supplierCount} unit="곳" />
-      </StatCardGrid>
-
-      <SearchFilter
-        placeholder="매입번호, 상품명 검색"
-        value={search}
-        onChange={setSearch}
-        onSearch={handleSearch}
-        dateRange
-        filters={[
-          { 
-            label: '매입처', 
-            key: 'supplier', 
-            options: suppliers.map(s => ({ label: s.name, value: String(s.id) }))
-          },
-        ]}
-        actions={
-          <>
-            <OutlineButton onClick={handleExcelDownload}>📥 엑셀</OutlineButton>
-            <PrimaryButton onClick={() => alert('매입 등록 - 준비 중')}>+ 매입등록</PrimaryButton>
-          </>
-        }
-      />
-
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
-        <FilterButtonGroup
-          options={[
-            { label: '전체', value: 'all' },
-            { label: '입고대기', value: 'pending' },
-            { label: '입고완료', value: 'completed' },
-            { label: '취소', value: 'cancelled' },
-          ]}
-          value={filter}
-          onChange={setFilter}
-        />
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>매입 내역</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
+          총 {stats.totalPurchases}건 · {stats.totalAmount.toLocaleString()}원
+        </p>
       </div>
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>로딩 중...</div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={data}
-          selectable
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          emptyMessage="매입 내역이 없습니다"
+      {/* 검색/필터 */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+        <input
+          type="text"
+          placeholder="매입번호, 매입처 검색..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            flex: 1,
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1px solid #e5e5e5',
+            fontSize: '14px'
+          }}
         />
-      )}
-
-      <div style={{ 
-        marginTop: '16px', 
-        padding: '16px 20px', 
-        background: '#fff', 
-        borderRadius: '12px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <span style={{ fontSize: '13px', color: '#86868b' }}>총 {data.length}건</span>
-        <span style={{ fontSize: '14px', fontWeight: 600, color: '#007aff' }}>
-          합계: {data.reduce((sum, p) => sum + p.totalAmount, 0).toLocaleString()}원
-        </span>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1px solid #e5e5e5',
+            fontSize: '14px',
+            minWidth: '120px'
+          }}
+        >
+          <option value="">전체 상태</option>
+          <option value="pending">입고대기</option>
+          <option value="completed">입고완료</option>
+          <option value="cancelled">취소</option>
+        </select>
+        <Link
+          href="/admin/purchase/new"
+          style={{
+            padding: '10px 20px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#007aff',
+            color: '#fff',
+            fontWeight: 500,
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          + 매입 등록
+        </Link>
       </div>
 
-      {selectedIds.size > 0 && (
-        <div style={{ 
-          position: 'fixed',
-          bottom: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          padding: '16px 24px', 
-          background: '#fff', 
-          borderRadius: '12px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-          zIndex: 100,
-        }}>
-          <span style={{ color: '#007aff', fontWeight: 500 }}>{selectedIds.size}건 선택됨</span>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => handleStatusChange('completed')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#34c759', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>입고완료</button>
-            <button onClick={() => handleStatusChange('cancelled')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#ff3b30', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>취소처리</button>
-          </div>
-        </div>
-      )}
+      {/* 목록 */}
+      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e5e5' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>매입번호</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>매입처</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>품목수</th>
+              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>금액</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>상태</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>매입일</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>입고일</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>처리</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  로딩 중...
+                </td>
+              </tr>
+            ) : purchases.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  매입 내역이 없습니다
+                </td>
+              </tr>
+            ) : (
+              purchases.map(purchase => {
+                const statusInfo = statusLabels[purchase.status] || statusLabels.pending
+                return (
+                  <tr key={purchase.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', fontFamily: 'monospace' }}>
+                      {purchase.purchaseNo}
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px' }}>
+                      <div style={{ fontWeight: 500 }}>{purchase.supplier.name}</div>
+                      <div style={{ fontSize: '12px', color: '#86868b' }}>{purchase.supplier.code}</div>
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', textAlign: 'center', color: '#666' }}>
+                      {purchase._count.items}개
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', textAlign: 'right', fontWeight: 600 }}>
+                      {purchase.totalAmount.toLocaleString()}원
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: statusInfo.bg,
+                        color: statusInfo.color
+                      }}>
+                        {statusInfo.label}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', textAlign: 'center', color: '#666' }}>
+                      {new Date(purchase.purchasedAt).toLocaleDateString('ko-KR')}
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', textAlign: 'center', color: '#666' }}>
+                      {purchase.receivedAt 
+                        ? new Date(purchase.receivedAt).toLocaleDateString('ko-KR')
+                        : '-'
+                      }
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      {purchase.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(purchase, 'completed')}
+                            style={{
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              background: '#10b981',
+                              color: '#fff',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              marginRight: '4px'
+                            }}
+                          >
+                            입고
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(purchase, 'cancelled')}
+                            style={{
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              border: '1px solid #e5e5e5',
+                              background: '#fff',
+                              fontSize: '12px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            취소
+                          </button>
+                        </>
+                      )}
+                      {purchase.status !== 'pending' && (
+                        <span style={{ color: '#86868b', fontSize: '12px' }}>-</span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </AdminLayout>
   )
 }

@@ -1,73 +1,92 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient()
-
+// 상품 옵션 목록 조회
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
-    const productId = parseInt(id)
+    const { id } = await params;
+    const productId = parseInt(id);
 
     const options = await prisma.productOption.findMany({
       where: { productId },
-      orderBy: [
-        { sph: 'asc' },
-        { cyl: 'asc' }
-      ]
-    })
+      orderBy: [{ sph: 'asc' }, { cyl: 'asc' }, { axis: 'asc' }],
+    });
 
-    return NextResponse.json({ 
-      options: options.map(o => ({
-        id: o.id,
-        sph: o.sph || '0.00',
-        cyl: o.cyl || '0.00',
-        axis: o.axis,
-        optionName: o.optionName,
-        memo: o.memo,
-        barcode: o.barcode,
-        stock: o.stock,
-        status: o.isActive ? '주문가능' : '품절',
-        stockLocation: o.location,
-        priceAdjustment: o.priceAdjustment || 0,
-      }))
-    })
-  } catch (error) {
-    console.error('Error fetching product options:', error)
-    return NextResponse.json({ error: 'Failed to fetch options' }, { status: 500 })
+    return NextResponse.json({ success: true, data: options });
+  } catch (error: any) {
+    console.error('상품 옵션 조회 오류:', error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }
 
+// 상품 옵션 단건 등록
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
-    const productId = parseInt(id)
-    const body = await request.json()
+    const { id } = await params;
+    const productId = parseInt(id);
+    const body = await request.json();
 
     const option = await prisma.productOption.create({
       data: {
         productId,
-        sph: body.sph,
-        cyl: body.cyl,
-        axis: body.axis,
+        sph: body.sph?.toString(),
+        cyl: body.cyl?.toString(),
+        axis: body.axis?.toString(),
         optionName: body.optionName,
-        memo: body.memo,
-        barcode: body.barcode,
         stock: body.stock || 0,
-        isActive: body.isActive ?? true,
-        location: body.location,
         priceAdjustment: body.priceAdjustment || 0,
-      }
-    })
+        barcode: body.barcode,
+        location: body.location,
+        memo: body.memo,
+        isActive: body.isActive !== false,
+      },
+    });
 
-    return NextResponse.json({ option })
-  } catch (error) {
-    console.error('Error creating product option:', error)
-    return NextResponse.json({ error: 'Failed to create option' }, { status: 500 })
+    return NextResponse.json({
+      success: true,
+      data: option,
+      message: '옵션이 등록되었습니다.',
+    });
+  } catch (error: any) {
+    console.error('상품 옵션 등록 오류:', error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// 상품 옵션 전체 삭제
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const productId = parseInt(id);
+
+    const result = await prisma.productOption.deleteMany({
+      where: { productId },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `${result.count}개 옵션이 삭제되었습니다.`,
+    });
+  } catch (error: any) {
+    console.error('상품 옵션 삭제 오류:', error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }

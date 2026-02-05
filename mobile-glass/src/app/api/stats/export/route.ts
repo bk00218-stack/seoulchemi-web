@@ -30,7 +30,14 @@ export async function GET(request: NextRequest) {
         status: { not: 'cancelled' }
       },
       include: {
-        items: true
+        store: true,
+        items: {
+          include: {
+            product: {
+              include: { brand: true }
+            }
+          }
+        }
       }
     })
 
@@ -41,7 +48,7 @@ export async function GET(request: NextRequest) {
       // 가맹점별 매출
       const storeMap = new Map<number, { name: string; code: string; orders: number; amount: number }>()
       for (const order of orders) {
-        const existing = storeMap.get(order.storeId) || { name: order.storeName, code: order.storeCode, orders: 0, amount: 0 }
+        const existing = storeMap.get(order.storeId) || { name: order.store?.name || '', code: order.store?.code || '', orders: 0, amount: 0 }
         existing.orders++
         existing.amount += order.totalAmount
         storeMap.set(order.storeId, existing)
@@ -63,7 +70,7 @@ export async function GET(request: NextRequest) {
       const productMap = new Map<number, { name: string; brandName: string; quantity: number; amount: number }>()
       for (const order of orders) {
         for (const item of order.items) {
-          const existing = productMap.get(item.productId) || { name: item.productName, brandName: item.brandName, quantity: 0, amount: 0 }
+          const existing = productMap.get(item.productId) || { name: item.product?.name || '', brandName: item.product?.brand?.name || '', quantity: 0, amount: 0 }
           existing.quantity += item.quantity
           existing.amount += item.totalPrice
           productMap.set(item.productId, existing)

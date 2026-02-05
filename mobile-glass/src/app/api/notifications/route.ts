@@ -131,12 +131,13 @@ export async function POST(request: NextRequest) {
 export async function sendOrderNotification(orderId: number) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { items: true }
+    include: { items: true, store: true }
   })
 
   if (!order) return
 
-  const message = `[새 주문] ${order.storeName}\n주문번호: ${order.orderNo}\n금액: ${order.totalAmount.toLocaleString()}원\n품목: ${order.items.length}개`
+  const storeName = order.store?.name || '알 수 없음'
+  const message = `[새 주문] ${storeName}\n주문번호: ${order.orderNo}\n금액: ${order.totalAmount.toLocaleString()}원\n품목: ${order.items.length}개`
 
   // 웹훅으로 알림
   if (NOTIFICATION_CONFIG.webhook.url) {
@@ -148,7 +149,7 @@ export async function sendOrderNotification(orderId: number) {
           type: 'order_new',
           title: '새 주문',
           message,
-          data: { orderId, orderNo: order.orderNo, storeName: order.storeName, totalAmount: order.totalAmount }
+          data: { orderId, orderNo: order.orderNo, storeName, totalAmount: order.totalAmount }
         })
       })
     } catch (error) {

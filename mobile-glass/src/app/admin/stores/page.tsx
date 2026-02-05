@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { AdminLayout } from '../../components/Navigation'
 import DataTable, { StatusBadge, Column } from '../../components/DataTable'
 import SearchFilter, { FilterButtonGroup, OutlineButton } from '../../components/SearchFilter'
@@ -45,6 +46,7 @@ const initialFormData: FormData = {
 }
 
 export default function StoresPage() {
+  const router = useRouter()
   const [filter, setFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
   const [showModal, setShowModal] = useState(false)
@@ -202,6 +204,20 @@ export default function StoresPage() {
     )},
     { key: 'id', label: '관리', align: 'center', render: (_, row) => (
       <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+        <button
+          onClick={() => router.push(`/admin/stores/${row.id}/discounts`)}
+          style={{
+            padding: '4px 10px',
+            borderRadius: '4px',
+            background: '#fff3e0',
+            color: '#e65100',
+            border: 'none',
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          할인
+        </button>
         <button
           onClick={() => openModal(row)}
           style={{

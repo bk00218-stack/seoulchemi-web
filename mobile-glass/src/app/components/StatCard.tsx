@@ -1,9 +1,10 @@
 'use client'
 
-interface StatCardProps {
+export interface StatCardProps {
   label: string
   value: number | string
   unit?: string
+  subValue?: string
   highlight?: boolean
   trend?: {
     value: number
@@ -17,6 +18,7 @@ export default function StatCard({
   label,
   value,
   unit = '',
+  subValue,
   highlight = false,
   trend,
   icon,
@@ -46,6 +48,11 @@ export default function StatCard({
           </span>
         )}
       </div>
+      {subValue && (
+        <div style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>
+          {subValue}
+        </div>
+      )}
       {trend && (
         <div
           style={{
