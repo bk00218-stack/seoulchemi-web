@@ -75,6 +75,14 @@ async function runTests() {
   await test('주문 상세 (ID: 22)', () => fetchJson('/api/orders/22'))
   await test('주문 출력 데이터', () => fetchJson('/api/orders/22/print?type=statement'))
 
+  // 11. 통계 API
+  console.log('\n📌 11. 통계 API')
+  await test('통계 조회', () => fetchJson('/api/stats'))
+  
+  // 12. 알림 API
+  console.log('\n📌 12. 알림 API')
+  await test('알림 조회', () => fetchJson('/api/notifications'))
+
   console.log('\n========== 테스트 완료 ==========\n')
 }
 

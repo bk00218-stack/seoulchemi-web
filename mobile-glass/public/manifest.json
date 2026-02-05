@@ -1,0 +1,38 @@
+{
+  "name": "렌즈초이스",
+  "short_name": "LensChoice",
+  "description": "안경렌즈 주문관리 시스템",
+  "start_url": "/mobile",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007aff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "새 주문",
+      "url": "/mobile/order",
+      "icons": [{ "src": "/icons/order.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "주문 현황",
+      "url": "/mobile/orders",
+      "icons": [{ "src": "/icons/list.png", "sizes": "96x96" }]
+    }
+  ]
+}

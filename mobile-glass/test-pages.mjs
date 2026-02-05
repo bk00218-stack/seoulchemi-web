@@ -3,9 +3,11 @@ const BASE = 'http://localhost:3000'
 
 const pages = [
   '/login',
+  '/admin',
   '/admin/orders',
   '/admin/orders/new',
   '/admin/orders/returns',
+  '/admin/orders/scan',
   '/admin/stores',
   '/admin/stores/receivables',
   '/admin/stores/receivables/deposit',
@@ -15,6 +17,11 @@ const pages = [
   '/admin/products/brands',
   '/admin/products/inventory',
   '/admin/settings/users',
+  '/admin/stats',
+  '/mobile',
+  '/mobile/orders',
+  '/mobile/scan',
+  '/mobile/more',
 ]
 
 async function testPage(path) {
