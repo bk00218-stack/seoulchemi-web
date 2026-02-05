@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 // 메뉴 구조 정의 (레티나 관리자 시스템 기반)
 export const menuStructure = {
@@ -120,11 +121,11 @@ export const menuStructure = {
       {
         title: '주제별 통계',
         items: [
-          { label: '가맹점 매출 통계', path: '/admin/stats' },
+          { label: '통계 대시보드', path: '/admin/stats' },
+          { label: '기간별 비교', path: '/admin/stats/compare' },
           { label: '가맹점 상품 통계', path: '/admin/stats/products' },
           { label: '가맹점 출고 통계', path: '/admin/stats/shipping' },
           { label: '그룹별 상품 통계', path: '/admin/stats/groups' },
-          { label: '기타 통계', path: '/admin/stats/other' },
         ]
       }
     ]
@@ -139,6 +140,7 @@ export const menuStructure = {
           { label: '기본설정', path: '/admin/settings' },
           { label: '구분설정', path: '/admin/settings/categories' },
           { label: '배송비 설정', path: '/admin/settings/shipping' },
+          { label: '백업 관리', path: '/admin/settings/backup' },
         ]
       },
       {
@@ -170,6 +172,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
+  const { resolvedTheme, toggleTheme } = useTheme()
   const [currentMenu, setCurrentMenu] = useState<MenuKey>(activeMenu)
 
   // URL에 따라 현재 메뉴 자동 감지
@@ -246,9 +249,25 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* 다크모드 토글 */}
+          <button
+            onClick={toggleTheme}
+            title={resolvedTheme === 'dark' ? '라이트 모드' : '다크 모드'}
+            style={{
+              padding: '8px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-primary)',
+              cursor: 'pointer',
+              fontSize: '18px',
+              lineHeight: 1
+            }}
+          >
+            {resolvedTheme === 'dark' ? '☀️' : '🌙'}
+          </button>
           {user && (
             <>
-              <span style={{ fontSize: '14px', color: '#1d1d1f' }}>
+              <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
                 <span style={{
                   display: 'inline-block',
                   padding: '2px 8px',

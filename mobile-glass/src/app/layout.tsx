@@ -1,5 +1,7 @@
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts'
 
 export const metadata = {
   title: '렌즈초이스 - 안경렌즈 주문관리',
@@ -32,9 +34,12 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <KeyboardShortcuts />
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

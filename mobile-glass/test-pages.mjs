@@ -18,6 +18,8 @@ const pages = [
   '/admin/products/inventory',
   '/admin/settings/users',
   '/admin/stats',
+  '/admin/stats/compare',
+  '/admin/settings/backup',
   '/mobile',
   '/mobile/orders',
   '/mobile/scan',

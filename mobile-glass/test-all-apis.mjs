@@ -83,6 +83,14 @@ async function runTests() {
   console.log('\n📌 12. 알림 API')
   await test('알림 조회', () => fetchJson('/api/notifications'))
 
+  // 13. 백업 API
+  console.log('\n📌 13. 백업 API')
+  await test('백업 목록', () => fetchJson('/api/backup'))
+
+  // 14. 기간별 비교 API
+  console.log('\n📌 14. 기간별 비교 API')
+  await test('기간별 비교', () => fetchJson('/api/stats/compare'))
+
   console.log('\n========== 테스트 완료 ==========\n')
 }
 
