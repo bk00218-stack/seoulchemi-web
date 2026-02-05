@@ -138,6 +138,22 @@ export async function GET() {
 
     const overLimitStores = overdueStores.filter(s => s.outstandingAmount > s.creditLimit)
 
+    // 재고 부족 상품 수 (적정재고 이하)
+    const lowStockCount = await prisma.productOption.count({
+      where: {
+        isActive: true,
+        stock: { lte: 5 } // 5개 이하면 부족으로 간주
+      }
+    })
+
+    // 입금 확인 대기 (미수금 있는 가맹점 수)
+    const pendingDeposits = await prisma.store.count({
+      where: {
+        isActive: true,
+        outstandingAmount: { gt: 0 }
+      }
+    })
+
     return NextResponse.json({
       summary: {
         today: {
@@ -192,7 +208,9 @@ export async function GET() {
           outstanding: s.outstandingAmount,
           limit: s.creditLimit,
           overBy: s.outstandingAmount - s.creditLimit
-        }))
+        })),
+        lowStockCount,
+        pendingDeposits
       }
     })
   } catch (error) {
