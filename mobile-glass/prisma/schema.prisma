@@ -647,3 +647,55 @@ model Category {
   @@unique([type, code])
   @@index([type])
 }
+
+// ===== 사용자 인증 테이블 =====
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  username      String    @unique
+  password      String    // bcrypt 해시
+  name          String    // 실명
+  role          String    @default("user") // admin, manager, user
+  
+  // 권한 설정
+  permissions   String?   // JSON array of permissions
+  
+  // 연결된 가맹점 (가맹점 계정인 경우)
+  storeId       Int?
+  
+  // 상태
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([role])
+  @@index([storeId])
+}
+
+// 세션 테이블 (NextAuth용)
+model Session {
+  id            Int       @id @default(autoincrement())
+  sessionToken  String    @unique
+  userId        Int
+  expires       DateTime
+  
+  createdAt     DateTime  @default(now())
+}
+
+// 로그인 이력 테이블
+model LoginHistory {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  username      String
+  ipAddress     String?
+  userAgent     String?
+  success       Boolean   @default(true)
+  failReason    String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+}

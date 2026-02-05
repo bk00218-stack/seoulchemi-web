@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 
 // 메뉴 구조 정의 (레티나 관리자 시스템 기반)
 export const menuStructure = {
@@ -147,6 +148,7 @@ export const menuStructure = {
       {
         title: '접속권한 설정',
         items: [
+          { label: '사용자 관리', path: '/admin/settings/users' },
           { label: '그룹별 메뉴설정', path: '/admin/settings/menu-permissions' },
           { label: '계정관리', path: '/admin/settings/accounts' },
         ]
@@ -164,6 +166,7 @@ interface NavigationProps {
 export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { user, logout } = useAuth()
   const [currentMenu, setCurrentMenu] = useState<MenuKey>(activeMenu)
 
   // URL에 따라 현재 메뉴 자동 감지
@@ -239,7 +242,41 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
             ))}
           </nav>
         </div>
-        <div style={{ color: '#86868b', fontSize: '14px' }}>BK COMPANY</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {user && (
+            <>
+              <span style={{ fontSize: '14px', color: '#1d1d1f' }}>
+                <span style={{
+                  display: 'inline-block',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 500,
+                  marginRight: '6px',
+                  background: user.role === 'admin' ? '#fee2e2' : user.role === 'manager' ? '#dbeafe' : '#f3f4f6',
+                  color: user.role === 'admin' ? '#dc2626' : user.role === 'manager' ? '#2563eb' : '#374151'
+                }}>
+                  {user.role === 'admin' ? '관리자' : user.role === 'manager' ? '매니저' : '사용자'}
+                </span>
+                {user.name}님
+              </span>
+              <button
+                onClick={logout}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #e5e5e5',
+                  background: '#fff',
+                  fontSize: '13px',
+                  color: '#86868b',
+                  cursor: 'pointer'
+                }}
+              >
+                로그아웃
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
       {/* 사이드바 */}

@@ -1,4 +1,5 @@
 import './globals.css'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata = {
   title: '렌즈초이스 - 안경렌즈 주문관리',
@@ -12,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   )
 }

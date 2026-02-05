@@ -1,0 +1,95 @@
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { jwtVerify } from 'jose'
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'lens-choice-secret-key-change-in-production'
+)
+
+// 인증이 필요하지 않은 경로
+const publicPaths = [
+  '/login',
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/_next',
+  '/favicon.ico',
+]
+
+// API 경로 중 인증이 필요한 경로
+const protectedApiPaths = [
+  '/api/orders',
+  '/api/stores',
+  '/api/products',
+  '/api/receivables',
+  '/api/users',
+]
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // 공개 경로는 통과
+  if (publicPaths.some(path => pathname.startsWith(path))) {
+    return NextResponse.next()
+  }
+
+  // 정적 파일은 통과
+  if (pathname.includes('.')) {
+    return NextResponse.next()
+  }
+
+  const token = request.cookies.get('auth-token')?.value
+
+  // 토큰이 없으면
+  if (!token) {
+    // API 요청이면 401 반환
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+    // 페이지 요청이면 로그인으로 리다이렉트
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  try {
+    // 토큰 검증
+    const { payload } = await jwtVerify(token, JWT_SECRET)
+    
+    // 요청에 사용자 정보 추가 (헤더로)
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-user-id', String(payload.id))
+    requestHeaders.set('x-user-role', String(payload.role))
+    requestHeaders.set('x-user-name', String(payload.name))
+    if (payload.storeId) {
+      requestHeaders.set('x-user-store-id', String(payload.storeId))
+    }
+
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+  } catch (error) {
+    // 토큰이 유효하지 않으면
+    const response = pathname.startsWith('/api/')
+      ? NextResponse.json({ error: '세션이 만료되었습니다.' }, { status: 401 })
+      : NextResponse.redirect(new URL('/login', request.url))
+    
+    // 쿠키 삭제
+    response.cookies.delete('auth-token')
+    return response
+  }
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
+}
