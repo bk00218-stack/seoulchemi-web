@@ -699,3 +699,93 @@ model LoginHistory {
   @@index([userId])
   @@index([createdAt])
 }
+
+// ===== 재고 이동 이력 테이블 =====
+model InventoryTransaction {
+  id              Int       @id @default(autoincrement())
+  productId       Int       // 상품 ID
+  productOptionId Int?      // 상품옵션 ID (도수별 재고)
+  
+  type            String    // in: 입고, out: 출고, adjust: 조정, return: 반품입고
+  reason          String    // purchase: 매입, sale: 판매, return: 반품, adjust: 재고조정, transfer: 이동
+  
+  quantity        Int       // 수량 (입고: +, 출고: -)
+  beforeStock     Int       // 이동 전 재고
+  afterStock      Int       // 이동 후 재고
+  
+  // 연관 정보
+  orderId         Int?      // 관련 주문 ID
+  orderNo         String?   // 관련 주문번호
+  purchaseId      Int?      // 관련 매입 ID
+  
+  unitPrice       Int?      // 단가
+  totalPrice      Int?      // 합계
+  
+  memo            String?
+  processedBy     String?   // 처리자
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([productId])
+  @@index([productOptionId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([orderId])
+}
+
+// ===== 반품 테이블 =====
+model Return {
+  id              Int       @id @default(autoincrement())
+  returnNo        String    @unique // 반품번호
+  orderId         Int       // 원주문 ID
+  orderNo         String    // 원주문번호
+  storeId         Int       // 가맹점 ID
+  storeName       String
+  
+  status          String    @default("requested") // requested: 요청, approved: 승인, received: 입고, rejected: 거부
+  type            String    @default("return") // return: 반품, exchange: 교환
+  
+  totalQuantity   Int       @default(0)
+  totalAmount     Int       @default(0)
+  
+  reason          String?   // 반품사유
+  memo            String?
+  
+  requestedAt     DateTime  @default(now())
+  approvedAt      DateTime?
+  receivedAt      DateTime?
+  processedBy     String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  items           ReturnItem[]
+  
+  @@index([orderId])
+  @@index([storeId])
+  @@index([status])
+}
+
+// 반품 상세
+model ReturnItem {
+  id              Int       @id @default(autoincrement())
+  returnId        Int
+  return          Return    @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  
+  orderItemId     Int       // 원주문 아이템 ID
+  productId       Int
+  productName     String
+  optionName      String?
+  
+  quantity        Int       // 반품 수량
+  unitPrice       Int
+  totalPrice      Int
+  
+  reason          String?   // 개별 사유
+  condition       String?   // 상품 상태 (good: 양호, damaged: 파손, defective: 불량)
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([returnId])
+  @@index([productId])
+}
