@@ -321,7 +321,7 @@ export default function NewOrderPage() {
               <div style={{ marginTop: 2, padding: 4, background: '#e3f2fd', borderRadius: 2, fontSize: 8, lineHeight: 1.4 }}>
                 <div style={{ fontWeight: 700, fontSize: 10, marginBottom: 2 }}>{selectedStore.name}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 8px' }}>
-                  <span>📲 {selectedStore.phone || '-'}</span>
+                  <span>☎️ {selectedStore.phone || '-'}</span>
                   <span>📱 {selectedStore.deliveryPhone || '-'}</span>
                   <span>👤 {selectedStore.salesRepName || '-'}</span>
                   <span>🏍️ {selectedStore.deliveryContact || '-'}</span>
