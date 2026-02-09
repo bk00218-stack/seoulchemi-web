@@ -18,14 +18,6 @@ const SIDEBAR = [
       { label: '그룹별 할인율 설정', href: '/stores/groups/discounts' },
       { label: '그룹별 타입 설정', href: '/stores/groups/types' },
     ]
-  },
-  {
-    title: '안경원 승인/통합',
-    items: [
-      { label: '레티나 가입여부 확인', href: '/stores/verify' },
-      { label: '유통사 코드 승인', href: '/stores/approve' },
-      { label: '레티나 가맹점 정산통합', href: '/stores/settle' },
-    ]
   }
 ]
 
