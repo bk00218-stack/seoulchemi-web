@@ -20,7 +20,18 @@ const SIDEBAR = [
 
 interface Brand { id: number; name: string }
 interface Product { id: number; name: string; brandName: string; brandId: number; optionType: string; refractiveIndex: string | null; sellingPrice: number; purchasePrice: number }
-interface Store { id: number; name: string; code: string; phone?: string | null; outstandingAmount?: number }
+interface Store { 
+  id: number
+  name: string
+  code: string
+  phone?: string | null
+  deliveryPhone?: string | null
+  salesRepName?: string | null
+  deliveryContact?: string | null
+  outstandingAmount?: number
+  address?: string | null
+  paymentTermDays?: number | null
+}
 interface OrderItem { id: string; product: Product; sph: string; cyl: string; axis: string; quantity: number }
 
 function formatLegacy(value: number): string {
@@ -306,7 +317,26 @@ export default function NewOrderPage() {
               onKeyDown={e => { const vs = filteredStores.slice(0, 10); if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1) }}
               style={{ width: '100%', padding: 3, border: '1px solid #ccc', borderRadius: 2, fontSize: 9, marginTop: 1 }} />
-            {selectedStore && <div style={{ marginTop: 2, padding: 2, background: '#e3f2fd', borderRadius: 2 }}><strong>{selectedStore.name}</strong></div>}
+            {selectedStore && (
+              <div style={{ marginTop: 2, padding: 4, background: '#e3f2fd', borderRadius: 2, fontSize: 8, lineHeight: 1.4 }}>
+                <div style={{ fontWeight: 700, fontSize: 10, marginBottom: 2 }}>{selectedStore.name}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 8px' }}>
+                  <span>📲 {selectedStore.phone || '-'}</span>
+                  <span>📱 {selectedStore.deliveryPhone || '-'}</span>
+                  <span>👤 {selectedStore.salesRepName || '-'}</span>
+                  <span>🏍️ {selectedStore.deliveryContact || '-'}</span>
+                </div>
+                {selectedStore.address && (
+                  <div style={{ marginTop: 2 }}>📍 {selectedStore.address}</div>
+                )}
+                <div style={{ marginTop: 2, display: 'flex', gap: 8 }}>
+                  <span style={{ color: (selectedStore.outstandingAmount || 0) > 0 ? '#c62828' : '#2e7d32', fontWeight: 600 }}>
+                    💰 {(selectedStore.outstandingAmount || 0).toLocaleString()}원
+                  </span>
+                  <span>🗓️ {selectedStore.paymentTermDays ? `${selectedStore.paymentTermDays}일` : '-'}</span>
+                </div>
+              </div>
+            )}
             {storeSearchText && !selectedStore && filteredStores.length > 0 && (
               <div style={{ maxHeight: 60, overflow: 'auto', marginTop: 1, border: '1px solid #ddd', borderRadius: 2, background: '#fff' }}>
                 {filteredStores.slice(0, 10).map((s, i) => (

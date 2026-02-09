@@ -49,7 +49,7 @@ export async function PATCH(
     const storeId = parseInt(id)
     const body = await request.json()
     
-    const { name, ownerName, phone, address, isActive } = body
+    const { name, ownerName, phone, mobile, address, paymentTermDays, salesRepName, deliveryContact, isActive } = body
     
     // 존재 여부 확인
     const existing = await prisma.store.findUnique({ where: { id: storeId } })
@@ -61,7 +61,11 @@ export async function PATCH(
     if (name !== undefined) updateData.name = name
     if (ownerName !== undefined) updateData.ownerName = ownerName
     if (phone !== undefined) updateData.phone = phone
+    if (mobile !== undefined) updateData.deliveryPhone = mobile
     if (address !== undefined) updateData.address = address
+    if (paymentTermDays !== undefined) updateData.paymentTermDays = paymentTermDays
+    if (salesRepName !== undefined) updateData.salesRepName = salesRepName
+    if (deliveryContact !== undefined) updateData.deliveryContact = deliveryContact
     if (isActive !== undefined) updateData.isActive = isActive
     
     const store = await prisma.store.update({

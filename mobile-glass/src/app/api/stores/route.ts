@@ -69,7 +69,13 @@ export async function GET(request: Request) {
         name: store.name,
         ownerName: store.ownerName || '-',
         phone: store.phone || '-',
-        address: store.address || '-',
+        mobile: store.deliveryPhone || null,
+        deliveryPhone: store.deliveryPhone || null,
+        deliveryContact: store.deliveryContact || null,
+        salesRepName: store.salesRepName || null,
+        outstandingAmount: store.outstandingAmount || 0,
+        address: store.address || null,
+        paymentTermDays: store.paymentTermDays || 30,
         isActive: store.isActive,
         orderCount: store._count.orders,
         lastOrderDate: store.orders[0]?.orderedAt?.toISOString().split('T')[0] || null,
@@ -98,7 +104,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { code, name, ownerName, phone, address, isActive = true } = body
+    const { code, name, ownerName, phone, mobile, address, paymentTermDays, salesRepName, deliveryContact, isActive = true } = body
     
     if (!name) {
       return NextResponse.json({ error: '안경원명은 필수입니다.' }, { status: 400 })
@@ -126,7 +132,11 @@ export async function POST(request: Request) {
         name,
         ownerName,
         phone,
+        deliveryPhone: mobile,
         address,
+        paymentTermDays: paymentTermDays || 30,
+        salesRepName,
+        deliveryContact,
         isActive,
       },
     })

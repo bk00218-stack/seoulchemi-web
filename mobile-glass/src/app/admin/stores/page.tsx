@@ -32,7 +32,11 @@ interface FormData {
   name: string
   ownerName: string
   phone: string
+  mobile: string
   address: string
+  paymentTermDays: number
+  salesRepName: string
+  deliveryContact: string
   isActive: boolean
 }
 
@@ -41,7 +45,11 @@ const initialFormData: FormData = {
   name: '',
   ownerName: '',
   phone: '',
+  mobile: '',
   address: '',
+  paymentTermDays: 30,
+  salesRepName: '',
+  deliveryContact: '',
   isActive: true,
 }
 
@@ -95,7 +103,7 @@ export default function StoresPage() {
     fetchData()
   }
 
-  const openModal = (store: Store | null = null) => {
+  const openModal = (store: any | null = null) => {
     if (store) {
       setEditingStore(store)
       setFormData({
@@ -103,7 +111,11 @@ export default function StoresPage() {
         name: store.name,
         ownerName: store.ownerName === '-' ? '' : store.ownerName,
         phone: store.phone === '-' ? '' : store.phone,
+        mobile: store.mobile || '',
         address: store.address === '-' ? '' : store.address,
+        paymentTermDays: store.paymentTermDays || 30,
+        salesRepName: store.salesRepName || '',
+        deliveryContact: store.deliveryContact || '',
         isActive: store.isActive,
       })
     } else {
@@ -449,11 +461,82 @@ export default function StoresPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>연락처</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>전화</label>
                 <input 
                   type="tel" 
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="02-000-0000"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px 12px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e5e5e5', 
+                    fontSize: '14px' 
+                  }} 
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>핸드폰</label>
+                <input 
+                  type="tel" 
+                  value={formData.mobile}
+                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                  placeholder="010-0000-0000"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px 12px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e5e5e5', 
+                    fontSize: '14px' 
+                  }} 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>결제일 (일)</label>
+                <input 
+                  type="number" 
+                  value={formData.paymentTermDays}
+                  onChange={(e) => setFormData({ ...formData, paymentTermDays: parseInt(e.target.value) || 30 })}
+                  placeholder="30"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px 12px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e5e5e5', 
+                    fontSize: '14px' 
+                  }} 
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>담당</label>
+                <input 
+                  type="text" 
+                  value={formData.salesRepName}
+                  onChange={(e) => setFormData({ ...formData, salesRepName: e.target.value })}
+                  placeholder="담당자명"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px 12px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e5e5e5', 
+                    fontSize: '14px' 
+                  }} 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>배송</label>
+                <input 
+                  type="text" 
+                  value={formData.deliveryContact}
+                  onChange={(e) => setFormData({ ...formData, deliveryContact: e.target.value })}
+                  placeholder="배송담당"
                   style={{ 
                     width: '100%', 
                     padding: '10px 12px', 
