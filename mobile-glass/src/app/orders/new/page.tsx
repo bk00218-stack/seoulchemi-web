@@ -261,8 +261,18 @@ export default function NewOrderPage() {
     if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
     setLoading(true)
     try {
-      const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
-      if (res.ok) { alert('주문이 등록되었습니다.'); router.push('/') } else alert('주문 생성 실패')
+      const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
+      if (res.ok) {
+        const data = await res.json()
+        // 자동 출력
+        if (data.order?.id) {
+          try {
+            await fetch('/api/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.order.id, type: 'shipping' }) })
+          } catch (e) { console.error('출력 실패:', e) }
+        }
+        alert('주문이 등록되었습니다.')
+        router.push('/')
+      } else alert('주문 생성 실패')
     } catch { alert('오류가 발생했습니다.') }
     setLoading(false)
   }
