@@ -659,7 +659,7 @@ export default function NewOrderPage() {
                       setProductFocusIndex(index)
                     }}
                     style={{
-                      padding: '8px 10px',
+                      padding: '4px 8px',
                       cursor: 'pointer',
                       borderBottom: '1px solid #eee',
                       background: selectedProductId === product.id 
@@ -667,8 +667,12 @@ export default function NewOrderPage() {
                         : productFocusIndex === index 
                           ? '#fff3e0' 
                           : '#fff',
-                      fontSize: 12,
-                      borderLeft: productFocusIndex === index ? '3px solid #ff9800' : '3px solid transparent'
+                      fontSize: 11,
+                      borderLeft: productFocusIndex === index ? '3px solid #ff9800' : '3px solid transparent',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 8
                     }}
                     onMouseEnter={e => {
                       if (selectedProductId !== product.id && productFocusIndex !== index) {
@@ -681,19 +685,12 @@ export default function NewOrderPage() {
                       }
                     }}
                   >
-                    <div style={{ fontWeight: 500 }}>{product.name}</div>
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between',
-                      color: '#666',
-                      fontSize: 11,
-                      marginTop: 2
-                    }}>
-                      <span>{product.optionType}</span>
-                      <span style={{ color: '#1976d2', fontWeight: 600 }}>
-                        {product.sellingPrice.toLocaleString()}원
-                      </span>
-                    </div>
+                    <span style={{ fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {product.name}
+                    </span>
+                    <span style={{ color: '#1976d2', fontWeight: 600, flexShrink: 0 }}>
+                      {product.sellingPrice.toLocaleString()}
+                    </span>
                   </div>
                 ))
               )}
