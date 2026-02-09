@@ -24,77 +24,42 @@ const SIDEBAR = [
   }
 ]
 
-interface Brand {
-  id: number
-  name: string
+interface Brand { id: number; name: string }
+interface Product { id: number; name: string; brandName: string; brandId: number; optionType: string; refractiveIndex: string | null; sellingPrice: number; purchasePrice: number }
+interface Store { id: number; name: string; code: string; phone?: string | null; outstandingAmount?: number }
+interface OrderItem { id: string; product: Product; sph: string; cyl: string; axis: string; quantity: number }
+
+// 숫자 포맷: -1.25 → "125", +0.50 → "050" (부호 없이, 3자리)
+function formatLegacy(value: number): string {
+  return String(Math.round(Math.abs(value) * 100)).padStart(3, '0')
 }
 
-interface Product {
-  id: number
-  name: string
-  brandName: string
-  brandId: number
-  optionType: string
-  refractiveIndex: string | null
-  sellingPrice: number
-  purchasePrice: number
+// OlwsPro 스타일:
+// 왼쪽 -Sph: -4.00 ~ 0.00 (17개 열)
+// 오른쪽 +Sph: 0.00 ~ +2.75 (12개 열)  
+// CYL 행: 0.00 ~ -7.75 (32개 행)
+
+function generateMinusSph(): number[] {
+  const values: number[] = []
+  for (let i = -4; i <= 0; i += 0.25) values.push(Math.round(i * 100) / 100)
+  return values // -4.00, -3.75, ..., -0.25, 0.00
 }
 
-interface Store {
-  id: number
-  name: string
-  code: string
-  phone?: string | null
-  outstandingAmount?: number
+function generatePlusSph(): number[] {
+  const values: number[] = []
+  for (let i = 0; i <= 2.75; i += 0.25) values.push(Math.round(i * 100) / 100)
+  return values // 0.00, 0.25, ..., 2.75
 }
 
-interface OrderItem {
-  id: string
-  product: Product
-  sph: string
-  cyl: string
-  axis: string
-  quantity: number
-}
-
-// SPH/CYL 그리드 생성 함수
-function generateSphValues(isPlus: boolean): string[] {
-  const values: string[] = []
-  if (isPlus) {
-    for (let i = 0; i <= 800; i += 25) {
-      values.push((i / 100).toFixed(2))
-    }
-  } else {
-    for (let i = 0; i >= -2000; i -= 25) {
-      values.push((i / 100).toFixed(2))
-    }
-  }
-  return values
-}
-
-function generateCylValues(): string[] {
-  const values: string[] = []
-  for (let i = 0; i >= -600; i -= 25) {
-    values.push((i / 100).toFixed(2))
-  }
-  return values
-}
-
-function formatSphDisplay(sph: string): string {
-  const num = Math.abs(parseFloat(sph))
-  return String(Math.round(num * 100)).padStart(3, '0')
-}
-
-function formatCylDisplay(cyl: string): string {
-  const num = parseFloat(cyl)
-  const abs = Math.abs(num)
-  return '-' + String(Math.round(abs * 100)).padStart(3, '0')
+function generateCylRows(): number[] {
+  const values: number[] = []
+  for (let i = 0; i >= -7.75; i -= 0.25) values.push(Math.round(i * 100) / 100)
+  return values // 0.00, -0.25, ..., -7.75
 }
 
 export default function NewOrderPage() {
   const router = useRouter()
   
-  // Refs for keyboard navigation
   const storeInputRef = useRef<HTMLInputElement>(null)
   const storeResultRefs = useRef<(HTMLDivElement | null)[]>([])
   const brandSelectRef = useRef<HTMLSelectElement>(null)
@@ -102,1073 +67,354 @@ export default function NewOrderPage() {
   const productItemRefs = useRef<(HTMLDivElement | null)[]>([])
   const gridRef = useRef<HTMLDivElement>(null)
   
-  // 기본 데이터
   const [brands, setBrands] = useState<Brand[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [stores, setStores] = useState<Store[]>([])
-  
-  // 선택 상태
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   const [orderType, setOrderType] = useState<'여벌' | '착색' | 'RX' | '기타'>('여벌')
-  
-  // 상품 목록 키보드 네비게이션
   const [productFocusIndex, setProductFocusIndex] = useState<number>(-1)
-  
-  // 가맹점 검색 결과 키보드 네비게이션
   const [storeFocusIndex, setStoreFocusIndex] = useState<number>(-1)
   
-  // 그리드 키보드 네비게이션
+  // 그리드 포커스: isPlus=false면 왼쪽(-Sph), true면 오른쪽(+Sph)
   const [gridFocus, setGridFocus] = useState<{sphIndex: number, cylIndex: number, isPlus: boolean} | null>(null)
   const [cellInputValue, setCellInputValue] = useState('')
-  
-  // 주문 아이템
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [memo, setMemo] = useState('')
-  
-  // 로딩
   const [loading, setLoading] = useState(false)
   const [storeSearchText, setStoreSearchText] = useState('')
 
   const selectedProduct = products.find(p => p.id === selectedProductId)
-  
-  const filteredProducts = selectedBrandId 
-    ? products.filter(p => p.brandId === selectedBrandId)
-    : []
-
-  // 가맹점 검색 필터 (이름, 코드, 전화번호)
+  const filteredProducts = selectedBrandId ? products.filter(p => p.brandId === selectedBrandId) : []
   const filteredStores = storeSearchText
-    ? stores.filter(s => 
-        s.name.toLowerCase().includes(storeSearchText.toLowerCase()) ||
-        s.code.toLowerCase().includes(storeSearchText.toLowerCase()) ||
-        (s.phone && s.phone.replace(/-/g, '').includes(storeSearchText.replace(/-/g, '')))
-      )
+    ? stores.filter(s => s.name.toLowerCase().includes(storeSearchText.toLowerCase()) || s.code.toLowerCase().includes(storeSearchText.toLowerCase()) || (s.phone && s.phone.replace(/-/g, '').includes(storeSearchText.replace(/-/g, ''))))
     : stores
 
-  // 데이터 로드
+  const minusSphCols = generateMinusSph()
+  const plusSphCols = generatePlusSph()
+  const cylRows = generateCylRows()
+
   useEffect(() => {
-    fetch('/api/products').then(r => r.json()).then(data => {
-      setProducts(data.products || [])
-      setBrands(data.brands || [])
-    })
+    fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
     fetch('/api/stores').then(r => r.json()).then(data => setStores(data.stores || []))
   }, [])
 
-  // 글로벌 단축키 핸들러
   useEffect(() => {
     const handleGlobalKeys = (e: globalThis.KeyboardEvent) => {
-      // F5: 품목(브랜드) 선택으로 이동
-      if (e.key === 'F5') {
-        e.preventDefault()
-        setGridFocus(null)
-        setCellInputValue('')
-        brandSelectRef.current?.focus()
-        return
-      }
-      
-      // F6: 상품 선택으로 이동
-      if (e.key === 'F6') {
-        e.preventDefault()
-        setGridFocus(null)
-        setCellInputValue('')
-        if (filteredProducts.length > 0) {
-          setProductFocusIndex(0)
-          productListRef.current?.focus()
-        }
-        return
-      }
-      
-      // F2: 주문 전송
-      if (e.key === 'F2') {
-        e.preventDefault()
-        if (selectedStore && orderItems.length > 0) {
-          handleSubmit()
-        }
-        return
-      }
-      
-      // Escape
-      if (e.key === 'Escape') {
-        // 그리드 포커스 중이면 그리드 포커스 해제
-        if (gridFocus) {
-          setGridFocus(null)
-          setCellInputValue('')
-        } else {
-          // 전체 초기화
-          setSelectedStore(null)
-          setStoreSearchText('')
-          setStoreFocusIndex(-1)
-          setSelectedBrandId(null)
-          setSelectedProductId(null)
-          setProductFocusIndex(-1)
-          storeInputRef.current?.focus()
-        }
+      if (e.key === 'F5') { e.preventDefault(); setGridFocus(null); setCellInputValue(''); brandSelectRef.current?.focus() }
+      else if (e.key === 'F6') { e.preventDefault(); setGridFocus(null); setCellInputValue(''); if (filteredProducts.length > 0) { setProductFocusIndex(0); productListRef.current?.focus() } }
+      else if (e.key === 'F2') { e.preventDefault(); if (selectedStore && orderItems.length > 0) handleSubmit() }
+      else if (e.key === 'Escape') {
+        if (gridFocus) { setGridFocus(null); setCellInputValue('') }
+        else { setSelectedStore(null); setStoreSearchText(''); setStoreFocusIndex(-1); setSelectedBrandId(null); setSelectedProductId(null); setProductFocusIndex(-1); storeInputRef.current?.focus() }
       }
     }
     window.addEventListener('keydown', handleGlobalKeys)
     return () => window.removeEventListener('keydown', handleGlobalKeys)
-  }, [gridFocus, filteredProducts.length])
+  }, [gridFocus, filteredProducts.length, selectedStore, orderItems.length])
 
-  // 가맹점 검색 결과 스크롤
-  useEffect(() => {
-    if (storeFocusIndex >= 0 && storeResultRefs.current[storeFocusIndex]) {
-      storeResultRefs.current[storeFocusIndex]?.scrollIntoView({ block: 'nearest' })
-    }
-  }, [storeFocusIndex])
-
-  // 상품 목록 스크롤
-  useEffect(() => {
-    if (productFocusIndex >= 0 && productItemRefs.current[productFocusIndex]) {
-      productItemRefs.current[productFocusIndex]?.scrollIntoView({ block: 'nearest' })
-    }
-  }, [productFocusIndex])
-
-  // 브랜드 선택 후 상품 목록으로 포커스 이동
-  const handleBrandKeyDown = (e: KeyboardEvent<HTMLSelectElement>) => {
-    if (e.key === 'Enter' && selectedBrandId && filteredProducts.length > 0) {
-      e.preventDefault()
-      setProductFocusIndex(0)
-      productListRef.current?.focus()
-    }
-  }
-
-  // 상품 목록 키보드 네비게이션
   const handleProductListKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (filteredProducts.length === 0) return
-    
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setProductFocusIndex(prev => Math.min(prev + 1, filteredProducts.length - 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setProductFocusIndex(prev => Math.max(prev - 1, 0))
-    } else if (e.key === 'Enter') {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setProductFocusIndex(prev => Math.min(prev + 1, filteredProducts.length - 1)) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setProductFocusIndex(prev => Math.max(prev - 1, 0)) }
+    else if (e.key === 'Enter') {
       e.preventDefault()
       if (productFocusIndex >= 0 && productFocusIndex < filteredProducts.length) {
         setSelectedProductId(filteredProducts[productFocusIndex].id)
-        // 상품 선택 후 그리드로 포커스 이동
-        setGridFocus({ sphIndex: 0, cylIndex: 0, isPlus: false })
+        setGridFocus({ sphIndex: minusSphCols.length - 1, cylIndex: 0, isPlus: false }) // 시작: SPH 0.00, CYL 0.00
         setCellInputValue('')
         gridRef.current?.focus()
       }
     }
   }
 
-  // SPH/CYL 값 배열 (상단에서 사용)
-  const minusSphValues = generateSphValues(false).slice(0, 40)
-  const plusSphValues = generateSphValues(true).slice(0, 40)
-  const displayCylValues = generateCylValues().slice(0, 17)
-
-  // 그리드 셀에 수량 입력
-  const handleGridCellInput = useCallback((sph: string, cyl: string, quantity: number) => {
+  const handleGridCellInput = useCallback((sph: number, cyl: number, quantity: number) => {
     if (!selectedProduct || !selectedStore || quantity < 1) return
-    
-    const exists = orderItems.find(item => 
-      item.product.id === selectedProduct.id && 
-      item.sph === sph && 
-      item.cyl === cyl
-    )
-    
+    const sphStr = sph >= 0 ? `+${sph.toFixed(2)}` : sph.toFixed(2)
+    const cylStr = cyl.toFixed(2)
+    const exists = orderItems.find(item => item.product.id === selectedProduct.id && item.sph === sphStr && item.cyl === cylStr)
     if (exists) {
-      setOrderItems(items => items.map(item => 
-        item.id === exists.id ? { ...item, quantity } : item
-      ))
+      setOrderItems(items => items.map(item => item.id === exists.id ? { ...item, quantity } : item))
     } else {
-      const newItem: OrderItem = {
-        id: `${Date.now()}-${Math.random()}`,
-        product: selectedProduct,
-        sph,
-        cyl,
-        axis: '0',
-        quantity
-      }
-      setOrderItems(items => [...items, newItem])
+      setOrderItems(items => [...items, { id: `${Date.now()}-${Math.random()}`, product: selectedProduct, sph: sphStr, cyl: cylStr, axis: '0', quantity }])
     }
   }, [selectedProduct, selectedStore, orderItems])
 
-  // 현재 그리드 포커스 위치의 SPH/CYL 값
   const getFocusedSphCyl = useCallback(() => {
     if (!gridFocus) return null
-    const sphArray = gridFocus.isPlus ? plusSphValues : minusSphValues
+    const sphArray = gridFocus.isPlus ? plusSphCols : minusSphCols
     const sph = sphArray[gridFocus.sphIndex]
-    const cyl = displayCylValues[gridFocus.cylIndex]
-    if (!sph || !cyl) return null
-    const actualSph = gridFocus.isPlus ? '+' + sph : sph
-    return { sph: actualSph, cyl }
-  }, [gridFocus, minusSphValues, plusSphValues, displayCylValues])
+    const cyl = cylRows[gridFocus.cylIndex]
+    if (sph === undefined || cyl === undefined) return null
+    return { sph, cyl }
+  }, [gridFocus, minusSphCols, plusSphCols, cylRows])
 
-  // 그리드 키보드 네비게이션
   const handleGridKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
     if (!selectedProduct || !selectedStore) return
-    
-    const maxSphIndex = 39
-    const maxCylIndex = displayCylValues.length - 1
+    const maxCylIndex = cylRows.length - 1
+    const maxMinusSphIndex = minusSphCols.length - 1
+    const maxPlusSphIndex = plusSphCols.length - 1
 
-    // 숫자 입력
     if (/^[0-9]$/.test(e.key)) {
       e.preventDefault()
       const newValue = cellInputValue + e.key
       setCellInputValue(newValue)
-      
-      // 현재 포커스 위치에 수량 입력
       const focused = getFocusedSphCyl()
       if (focused) {
         const qty = parseInt(newValue)
-        if (!isNaN(qty) && qty > 0) {
-          handleGridCellInput(focused.sph, focused.cyl, qty)
-        }
+        if (!isNaN(qty) && qty > 0) handleGridCellInput(focused.sph, focused.cyl, qty)
       }
       return
     }
 
-    // 방향키로 이동
     if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setCellInputValue('')
-      setGridFocus(prev => {
-        if (!prev) return { sphIndex: 0, cylIndex: 0, isPlus: false }
-        return { ...prev, sphIndex: Math.min(prev.sphIndex + 1, maxSphIndex) }
-      })
+      e.preventDefault(); setCellInputValue('')
+      setGridFocus(prev => prev ? { ...prev, cylIndex: Math.min(prev.cylIndex + 1, maxCylIndex) } : { sphIndex: 0, cylIndex: 0, isPlus: false })
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setCellInputValue('')
-      setGridFocus(prev => {
-        if (!prev) return { sphIndex: 0, cylIndex: 0, isPlus: false }
-        return { ...prev, sphIndex: Math.max(prev.sphIndex - 1, 0) }
-      })
+      e.preventDefault(); setCellInputValue('')
+      setGridFocus(prev => prev ? { ...prev, cylIndex: Math.max(prev.cylIndex - 1, 0) } : { sphIndex: 0, cylIndex: 0, isPlus: false })
     } else if (e.key === 'ArrowRight') {
-      e.preventDefault()
-      setCellInputValue('')
+      e.preventDefault(); setCellInputValue('')
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, cylIndex: 0, isPlus: false }
-        if (prev.cylIndex < maxCylIndex) {
-          return { ...prev, cylIndex: prev.cylIndex + 1 }
-        } else if (!prev.isPlus) {
-          // 마이너스 끝에서 플러스로 이동
-          return { sphIndex: prev.sphIndex, cylIndex: 0, isPlus: true }
+        if (!prev.isPlus) {
+          if (prev.sphIndex < maxMinusSphIndex) return { ...prev, sphIndex: prev.sphIndex + 1 }
+          else return { sphIndex: 0, cylIndex: prev.cylIndex, isPlus: true } // 0.00에서 오른쪽으로 → +Sph로 전환
+        } else {
+          return { ...prev, sphIndex: Math.min(prev.sphIndex + 1, maxPlusSphIndex) }
         }
-        return prev
       })
     } else if (e.key === 'ArrowLeft') {
-      e.preventDefault()
-      setCellInputValue('')
+      e.preventDefault(); setCellInputValue('')
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, cylIndex: 0, isPlus: false }
-        if (prev.cylIndex > 0) {
-          return { ...prev, cylIndex: prev.cylIndex - 1 }
-        } else if (prev.isPlus) {
-          // 플러스 시작에서 마이너스로 이동
-          return { sphIndex: prev.sphIndex, cylIndex: maxCylIndex, isPlus: false }
+        if (prev.isPlus) {
+          if (prev.sphIndex > 0) return { ...prev, sphIndex: prev.sphIndex - 1 }
+          else return { sphIndex: maxMinusSphIndex, cylIndex: prev.cylIndex, isPlus: false } // +Sph 0.00에서 왼쪽으로 → -Sph로 전환
+        } else {
+          return { ...prev, sphIndex: Math.max(prev.sphIndex - 1, 0) }
         }
-        return prev
       })
-    } else if (e.key === 'Tab') {
-      e.preventDefault()
-      setCellInputValue('')
-      // Tab으로 플러스/마이너스 전환
-      setGridFocus(prev => prev ? { ...prev, isPlus: !prev.isPlus } : null)
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
       e.preventDefault()
-      if (cellInputValue) {
-        setCellInputValue(cellInputValue.slice(0, -1))
-      } else {
-        // 현재 셀의 주문 삭제
+      if (cellInputValue) setCellInputValue(cellInputValue.slice(0, -1))
+      else {
         const focused = getFocusedSphCyl()
         if (focused && selectedProduct) {
-          setOrderItems(items => items.filter(item => 
-            !(item.product.id === selectedProduct.id && item.sph === focused.sph && item.cyl === focused.cyl)
-          ))
+          const sphStr = focused.sph >= 0 ? `+${focused.sph.toFixed(2)}` : focused.sph.toFixed(2)
+          const cylStr = focused.cyl.toFixed(2)
+          setOrderItems(items => items.filter(item => !(item.product.id === selectedProduct.id && item.sph === sphStr && item.cyl === cylStr)))
         }
       }
     }
-  }, [selectedProduct, selectedStore, displayCylValues, cellInputValue, getFocusedSphCyl, handleGridCellInput])
+  }, [selectedProduct, selectedStore, cylRows, minusSphCols, plusSphCols, cellInputValue, getFocusedSphCyl, handleGridCellInput])
 
-  // 그리드 셀 클릭 - 클릭한 위치로 포커스 이동
   const handleGridClick = useCallback((sphIndex: number, cylIndex: number, isPlus: boolean) => {
-    if (!selectedProduct || !selectedStore) {
-      alert('가맹점과 상품을 먼저 선택해주세요.')
-      return
-    }
-    
+    if (!selectedProduct || !selectedStore) { alert('가맹점과 상품을 먼저 선택해주세요.'); return }
     setGridFocus({ sphIndex, cylIndex, isPlus })
     setCellInputValue('')
     gridRef.current?.focus()
   }, [selectedProduct, selectedStore])
 
-  const removeItem = (id: string) => {
-    setOrderItems(items => items.filter(item => item.id !== id))
-  }
-
-  const totalAmount = orderItems.reduce((sum, item) => 
-    sum + item.product.sellingPrice * item.quantity, 0
-  )
+  const removeItem = (id: string) => setOrderItems(items => items.filter(item => item.id !== id))
+  const totalAmount = orderItems.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0)
   const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0)
 
   const handleSubmit = async () => {
-    if (!selectedStore || orderItems.length === 0) {
-      alert('가맹점과 상품을 선택해주세요.')
-      return
-    }
-    
+    if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storeId: selectedStore.id,
-          orderType,
-          memo,
-          items: orderItems.map(item => ({
-            productId: item.product.id,
-            quantity: item.quantity,
-            sph: item.sph,
-            cyl: item.cyl,
-            axis: item.axis
-          }))
-        })
+        body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) })
       })
-      
-      if (res.ok) {
-        alert('주문이 등록되었습니다.')
-        router.push('/')
-      } else {
-        alert('주문 생성 실패')
-      }
-    } catch (error) {
-      alert('오류가 발생했습니다.')
-    }
+      if (res.ok) { alert('주문이 등록되었습니다.'); router.push('/') }
+      else alert('주문 생성 실패')
+    } catch { alert('오류가 발생했습니다.') }
     setLoading(false)
   }
 
-  // 그리드 셀 렌더링 함수
-  const renderGridCell = (sphIndex: number, cylIndex: number, isPlus: boolean) => {
-    const sphArray = isPlus ? plusSphValues : minusSphValues
-    const sph = sphArray[sphIndex]
-    const cyl = displayCylValues[cylIndex]
-    const actualSph = isPlus ? '+' + sph : sph
+  const renderCell = (sph: number, sphIndex: number, cylIndex: number, isPlus: boolean) => {
+    const cyl = cylRows[cylIndex]
+    const sphStr = sph >= 0 ? `+${sph.toFixed(2)}` : sph.toFixed(2)
+    const cylStr = cyl.toFixed(2)
+    const item = orderItems.find(i => i.product.id === selectedProductId && i.sph === sphStr && i.cyl === cylStr)
+    const isFocused = gridFocus?.sphIndex === sphIndex && gridFocus?.cylIndex === cylIndex && gridFocus?.isPlus === isPlus
+    const isCurrentRow = gridFocus?.cylIndex === cylIndex
     
-    const item = orderItems.find(item => 
-      item.product.id === selectedProductId &&
-      item.sph === actualSph && 
-      item.cyl === cyl
-    )
-    const hasItem = !!item
-    const isFocused = gridFocus?.sphIndex === sphIndex && 
-                      gridFocus?.cylIndex === cylIndex && 
-                      gridFocus?.isPlus === isPlus
-    
-    // 같은 행 또는 같은 열에 있는지 체크 (연한 하이라이트용)
-    const isInFocusedRow = gridFocus?.sphIndex === sphIndex && gridFocus?.isPlus === isPlus
-    const isInFocusedCol = gridFocus?.cylIndex === cylIndex && gridFocus?.isPlus === isPlus
-    
-    // 배경색 결정
-    let bgColor = '#fff'
-    if (isFocused) {
-      bgColor = '#ffeb3b' // 현재 셀: 노란색
-    } else if (hasItem) {
-      bgColor = '#4caf50' // 수량 있음: 초록색
-    } else if (isInFocusedRow && isInFocusedCol) {
-      bgColor = '#e3f2fd' // 행+열 교차: 연한 파란색
-    } else if (isInFocusedRow) {
-      bgColor = '#fff8e1' // 같은 행: 연한 노란색
-    } else if (isInFocusedCol) {
-      bgColor = '#e8f5e9' // 같은 열: 연한 초록색
-    }
+    let bg = cylIndex % 2 === 0 ? '#fffde7' : '#fff'
+    if (isCurrentRow) bg = '#ffcdd2' // 핑크 행
+    if (isFocused) bg = '#42a5f5' // 파란색 셀
+    if (item) bg = '#4caf50' // 초록색 (수량 있음)
     
     return (
-      <div
-        key={cyl}
-        onClick={() => handleGridClick(sphIndex, cylIndex, isPlus)}
-        style={{
-          padding: 2,
-          textAlign: 'center',
-          borderBottom: '1px solid #eee',
-          borderLeft: '1px solid #eee',
-          background: bgColor,
-          color: isFocused ? '#000' : hasItem ? '#fff' : '#333',
-          cursor: selectedProduct ? 'pointer' : 'not-allowed',
-          transition: 'background 0.1s',
-          minHeight: 24,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: isFocused ? 700 : 400,
-          outline: isFocused ? '2px solid #f57c00' : 'none'
-        }}
-        onMouseEnter={e => {
-          if (selectedProduct && !hasItem && !isFocused && !isInFocusedRow && !isInFocusedCol) {
-            e.currentTarget.style.background = '#f5f5f5'
-          }
-        }}
-        onMouseLeave={e => {
-          if (!hasItem && !isFocused && !isInFocusedRow && !isInFocusedCol) {
-            e.currentTarget.style.background = '#fff'
-          }
-        }}
-      >
-        {hasItem ? (
-          <span style={{ fontSize: 11, fontWeight: 600 }}>{item.quantity}</span>
-        ) : isFocused && cellInputValue ? (
-          <span style={{ fontSize: 11, fontWeight: 600 }}>{cellInputValue}</span>
-        ) : null}
-      </div>
+      <td key={`${isPlus ? 'p' : 'm'}-${sphIndex}`} onClick={() => handleGridClick(sphIndex, cylIndex, isPlus)}
+        style={{ border: '1px solid #bbb', padding: 0, textAlign: 'center', background: bg, color: item || isFocused ? '#fff' : '#333', cursor: 'pointer', width: 28, height: 20, fontSize: 10, fontFamily: 'monospace', fontWeight: item ? 700 : 400 }}>
+        {item ? item.quantity : isFocused && cellInputValue ? cellInputValue : ''}
+      </td>
     )
   }
 
+  const focusedCell = getFocusedSphCyl()
+
   return (
     <Layout sidebarMenus={SIDEBAR} activeNav="주문">
-      {/* 헤더 */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: 15,
-        paddingBottom: 10,
-        borderBottom: '2px solid #333'
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-            판매전표 입력
-          </h1>
-          <p style={{ fontSize: 12, color: '#666', margin: '4px 0 0' }}>
-            OlwsPro 스타일 주문 등록
-          </p>
-        </div>
-        <div style={{ fontSize: 13, color: '#666' }}>
-          {new Date().toLocaleDateString('ko-KR', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            weekday: 'long'
-          })}
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, paddingBottom: 4, borderBottom: '2px solid #333' }}>
+        <h1 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>판매전표 입력</h1>
+        <span style={{ fontSize: 10, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 320px', gap: 15, height: 'calc(100vh - 180px)' }}>
-        
-        {/* 왼쪽: 가맹점 + 상품 선택 */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: 8,
-          background: '#f5f5f5',
-          padding: 12,
-          borderRadius: 8,
-          overflow: 'hidden',
-          minHeight: 0
-        }}>
-          {/* 가맹점 선택 */}
-          <section style={{ flexShrink: 0 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>상호 [Esc]</label>
-            <input
-              ref={storeInputRef}
-              type="text"
-              placeholder="이름, 코드, 전화번호로 검색..."
-              value={storeSearchText}
+      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 240px', gap: 6, height: 'calc(100vh - 120px)' }}>
+        {/* 왼쪽 패널 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, background: '#f5f5f5', padding: 6, borderRadius: 4, overflow: 'hidden', fontSize: 10 }}>
+          <section>
+            <label style={{ fontWeight: 600 }}>상호 [Esc]</label>
+            <input ref={storeInputRef} type="text" placeholder="검색..." value={storeSearchText}
               onKeyDown={e => {
-                const visibleStores = filteredStores.slice(0, 10)
-                if (e.key === 'ArrowDown') {
-                  e.preventDefault()
-                  if (storeSearchText && visibleStores.length > 0 && !selectedStore) {
-                    setStoreFocusIndex(prev => Math.min(prev + 1, visibleStores.length - 1))
-                  }
-                } else if (e.key === 'ArrowUp') {
-                  e.preventDefault()
-                  if (storeSearchText && visibleStores.length > 0 && !selectedStore) {
-                    setStoreFocusIndex(prev => Math.max(prev - 1, 0))
-                  }
-                } else if (e.key === 'Enter') {
-                  // 포커스된 항목이 있으면 선택
-                  if (storeSearchText && visibleStores.length > 0 && !selectedStore) {
-                    const selectIndex = storeFocusIndex >= 0 ? storeFocusIndex : 0
-                    setSelectedStore(visibleStores[selectIndex])
-                    setStoreSearchText('')
-                    setStoreFocusIndex(-1)
-                    brandSelectRef.current?.focus()
-                  } else if (selectedStore) {
-                    // 가맹점 선택 후 Enter → 품목으로 이동
-                    brandSelectRef.current?.focus()
-                  }
-                } else if (e.key === 'Escape') {
-                  // Esc → 상호 선택 초기화
-                  setSelectedStore(null)
-                  setStoreSearchText('')
-                  setStoreFocusIndex(-1)
-                }
+                const vs = filteredStores.slice(0, 10)
+                if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) }
+                else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) }
+                else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() }
               }}
-              onChange={e => {
-                setStoreSearchText(e.target.value)
-                setStoreFocusIndex(-1) // 검색어 변경시 포커스 리셋
-              }}
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                border: '1px solid #ccc',
-                borderRadius: 4,
-                fontSize: 13,
-                marginTop: 4
-              }}
+              onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1) }}
+              style={{ width: '100%', padding: 4, border: '1px solid #ccc', borderRadius: 2, fontSize: 10, marginTop: 2 }}
             />
-            {selectedStore && (
-              <div style={{
-                marginTop: 8,
-                padding: '8px 10px',
-                background: '#e3f2fd',
-                borderRadius: 4,
-                fontSize: 12
-              }}>
-                <div style={{ fontWeight: 600 }}>{selectedStore.name}</div>
-                <div style={{ color: '#666' }}>코드: {selectedStore.code}</div>
-                {selectedStore.phone && selectedStore.phone !== '-' && (
-                  <div style={{ color: '#666' }}>전화: {selectedStore.phone}</div>
-                )}
-                {selectedStore.outstandingAmount !== undefined && (
-                  <div style={{ color: selectedStore.outstandingAmount > 0 ? '#f44336' : '#4caf50' }}>
-                    미결제: {selectedStore.outstandingAmount.toLocaleString()}원
-                  </div>
-                )}
-                <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>
-                  Enter → 품목 선택
-                </div>
-              </div>
-            )}
+            {selectedStore && <div style={{ marginTop: 2, padding: 3, background: '#e3f2fd', borderRadius: 2 }}><strong>{selectedStore.name}</strong> ({selectedStore.code})</div>}
             {storeSearchText && !selectedStore && filteredStores.length > 0 && (
-              <div style={{ 
-                maxHeight: 150, 
-                overflow: 'auto', 
-                marginTop: 4,
-                border: '1px solid #ddd',
-                borderRadius: 4,
-                background: '#fff'
-              }}>
-                <div style={{ padding: '4px 10px', fontSize: 10, color: '#999', borderBottom: '1px solid #eee' }}>
-                  ↑↓ 이동, Enter 선택 ({filteredStores.slice(0, 10).length}건)
-                </div>
-                {filteredStores.slice(0, 10).map((store, index) => (
-                  <div
-                    key={store.id}
-                    ref={el => { storeResultRefs.current[index] = el }}
-                    onClick={() => {
-                      setSelectedStore(store)
-                      setStoreSearchText('')
-                      setStoreFocusIndex(-1)
-                      brandSelectRef.current?.focus()
-                    }}
-                    style={{
-                      padding: '8px 10px',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #eee',
-                      fontSize: 12,
-                      background: storeFocusIndex === index ? '#e3f2fd' : '#fff',
-                      borderLeft: storeFocusIndex === index ? '3px solid #1976d2' : '3px solid transparent'
-                    }}
-                    onMouseEnter={e => {
-                      if (storeFocusIndex !== index) e.currentTarget.style.background = '#f0f0f0'
-                    }}
-                    onMouseLeave={e => {
-                      if (storeFocusIndex !== index) e.currentTarget.style.background = '#fff'
-                    }}
-                  >
-                    <div style={{ fontWeight: 500 }}>{store.name}</div>
-                    <div style={{ color: '#999', fontSize: 11 }}>
-                      {store.code} {store.phone && store.phone !== '-' && `| ${store.phone}`}
-                    </div>
+              <div style={{ maxHeight: 80, overflow: 'auto', marginTop: 2, border: '1px solid #ddd', borderRadius: 2, background: '#fff' }}>
+                {filteredStores.slice(0, 10).map((s, i) => (
+                  <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
+                    style={{ padding: 3, cursor: 'pointer', borderBottom: '1px solid #eee', background: storeFocusIndex === i ? '#e3f2fd' : '#fff' }}>
+                    {s.name} <span style={{ color: '#999' }}>({s.code})</span>
                   </div>
                 ))}
               </div>
             )}
           </section>
-
-          {/* 주문 유형 */}
-          <section style={{ flexShrink: 0 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>주문 구분</label>
-            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-              {(['여벌', '착색', 'RX', '기타'] as const).map(type => (
-                <label 
-                  key={type}
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 4,
-                    fontSize: 12,
-                    cursor: 'pointer',
-                    padding: '4px 8px',
-                    background: orderType === type ? '#1976d2' : '#fff',
-                    color: orderType === type ? '#fff' : '#333',
-                    border: '1px solid #ccc',
-                    borderRadius: 4
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="orderType"
-                    checked={orderType === type}
-                    onChange={() => setOrderType(type)}
-                    style={{ display: 'none' }}
-                  />
-                  {type}
+          <section>
+            <label style={{ fontWeight: 600 }}>주문 구분</label>
+            <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
+              {(['여벌', '착색', 'RX', '기타'] as const).map(t => (
+                <label key={t} style={{ padding: '2px 5px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 2, cursor: 'pointer', fontSize: 9 }}>
+                  <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />{t}
                 </label>
               ))}
             </div>
           </section>
-
-          {/* 품목 (브랜드) 선택 */}
-          <section style={{ flexShrink: 0 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>품목 [F5]</label>
-            <select
-              ref={brandSelectRef}
-              value={selectedBrandId || ''}
-              onChange={e => {
-                const brandId = e.target.value ? parseInt(e.target.value) : null
-                setSelectedBrandId(brandId)
-                setSelectedProductId(null)
-                setProductFocusIndex(-1)
-                // 브랜드 선택 시 자동으로 상품 목록으로 포커스
-                if (brandId) {
-                  setTimeout(() => {
-                    setProductFocusIndex(0)
-                    productListRef.current?.focus()
-                  }, 50)
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                border: '1px solid #ccc',
-                borderRadius: 4,
-                fontSize: 13,
-                marginTop: 4,
-                background: '#fff'
-              }}
-            >
+          <section>
+            <label style={{ fontWeight: 600 }}>품목 [F5]</label>
+            <select ref={brandSelectRef} value={selectedBrandId || ''} onChange={e => { const bid = e.target.value ? parseInt(e.target.value) : null; setSelectedBrandId(bid); setSelectedProductId(null); if (bid) setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
+              style={{ width: '100%', padding: 4, border: '1px solid #ccc', borderRadius: 2, fontSize: 10, marginTop: 2 }}>
               <option value="">브랜드 선택...</option>
-              {brands.map(brand => (
-                <option key={brand.id} value={brand.id}>{brand.name}</option>
-              ))}
+              {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
-            <div style={{ fontSize: 10, color: '#999', marginTop: 2 }}>
-              브랜드 선택 → 자동으로 상품 목록 이동
-            </div>
           </section>
-
-          {/* 상품 선택 */}
-          <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#333', flexShrink: 0 }}>상품 [F6]</label>
-            <div 
-              ref={productListRef}
-              tabIndex={0}
-              onKeyDown={handleProductListKeyDown}
-              style={{ 
-                marginTop: 4,
-                border: '1px solid #ccc',
-                borderRadius: 4,
-                background: '#fff',
-                flex: 1,
-                overflow: 'auto',
-                outline: 'none',
-                minHeight: 0
-              }}
-            >
-              {filteredProducts.length === 0 ? (
-                <div style={{ padding: 15, textAlign: 'center', color: '#999', fontSize: 12 }}>
-                  {selectedBrandId ? '상품이 없습니다' : '브랜드를 선택하세요'}
-                </div>
-              ) : (
-                filteredProducts.map((product, index) => (
-                  <div
-                    key={product.id}
-                    ref={el => { productItemRefs.current[index] = el }}
-                    onClick={() => {
-                      setSelectedProductId(product.id)
-                      setProductFocusIndex(index)
-                    }}
-                    style={{
-                      padding: '4px 8px',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #eee',
-                      background: selectedProductId === product.id 
-                        ? '#e3f2fd' 
-                        : productFocusIndex === index 
-                          ? '#fff3e0' 
-                          : '#fff',
-                      fontSize: 11,
-                      borderLeft: productFocusIndex === index ? '3px solid #ff9800' : '3px solid transparent',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: 8
-                    }}
-                    onMouseEnter={e => {
-                      if (selectedProductId !== product.id && productFocusIndex !== index) {
-                        e.currentTarget.style.background = '#f5f5f5'
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      if (selectedProductId !== product.id && productFocusIndex !== index) {
-                        e.currentTarget.style.background = '#fff'
-                      }
-                    }}
-                  >
-                    <span style={{ fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {product.name}
-                    </span>
-                    <span style={{ color: '#1976d2', fontWeight: 600, flexShrink: 0 }}>
-                      {product.sellingPrice.toLocaleString()}
-                    </span>
+          <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <label style={{ fontWeight: 600 }}>상품 [F6]</label>
+            <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 2, border: '1px solid #ccc', borderRadius: 2, background: '#fff', flex: 1, overflow: 'auto', outline: 'none' }}>
+              {filteredProducts.length === 0 ? <div style={{ padding: 6, textAlign: 'center', color: '#999' }}>{selectedBrandId ? '상품 없음' : '브랜드 선택'}</div> : (
+                filteredProducts.map((p, i) => (
+                  <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
+                    style={{ padding: '2px 4px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#e3f2fd' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 9 }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                    <span style={{ color: '#1976d2', fontWeight: 600 }}>{p.sellingPrice.toLocaleString()}</span>
                   </div>
                 ))
               )}
             </div>
-            <div style={{ fontSize: 10, color: '#999', marginTop: 2 }}>
-              ↑↓ 이동, Enter 선택 → 도수표 입력
-            </div>
           </section>
         </div>
 
-        {/* 중앙: SPH/CYL 그리드 */}
-        <div 
-          ref={gridRef}
-          tabIndex={0}
-          onKeyDown={handleGridKeyDown}
-          style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            background: '#fff',
-            border: gridFocus ? '2px solid #f57c00' : '1px solid #ccc',
-            borderRadius: 8,
-            overflow: 'hidden',
-            outline: 'none'
-          }}
-        >
-          {/* 그리드 헤더 */}
-          <div style={{
-            padding: '8px 12px',
-            background: '#f0f0f0',
-            borderBottom: '1px solid #ccc',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>
-              {selectedProduct ? (
-                <>
-                  <span style={{ color: '#1976d2' }}>{selectedProduct.brandName}</span>
-                  {' - '}
-                  {selectedProduct.name}
-                  {' '}
-                  <span style={{ color: '#666', fontWeight: 400 }}>
-                    ({selectedProduct.sellingPrice.toLocaleString()}원)
-                  </span>
-                </>
-              ) : (
-                <span style={{ color: '#999' }}>상품을 선택하세요</span>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 10, fontSize: 11, alignItems: 'center' }}>
-              {gridFocus ? (
-                <>
-                  <span style={{ background: '#ffeb3b', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
-                    입력: {cellInputValue || '숫자키'}
-                  </span>
-                  <span style={{ color: '#666' }}>↑↓←→ 이동 | Tab 전환 | Del 삭제</span>
-                </>
-              ) : (
-                <span style={{ color: '#1976d2' }}>상품 선택 후 Enter → 도수표 이동</span>
-              )}
-            </div>
+        {/* 중앙: 도수표 */}
+        <div ref={gridRef} tabIndex={0} onKeyDown={handleGridKeyDown}
+          style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: gridFocus ? '2px solid #f57c00' : '1px solid #ccc', borderRadius: 4, overflow: 'hidden', outline: 'none' }}>
+          <div style={{ padding: '3px 6px', background: '#e0e0e0', borderBottom: '1px solid #ccc', fontSize: 10, display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontWeight: 600 }}>{selectedProduct ? `${selectedProduct.brandName} - ${selectedProduct.name}` : '상품 선택'}</span>
+            <span style={{ color: '#666' }}>방향키 이동 | 숫자 입력</span>
           </div>
-
-          {/* 그리드 본체 */}
-          <div style={{ flex: 1, overflow: 'auto', display: 'flex' }}>
-            {/* 마이너스 SPH 그리드 */}
-            <div style={{ flex: 1, borderRight: '2px solid #1976d2' }}>
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: `50px repeat(${displayCylValues.length}, 45px)`,
-                fontSize: 10,
-                position: 'sticky',
-                top: 0,
-                background: '#fff',
-                zIndex: 1
-              }}>
-                <div style={{ 
-                  padding: 4, 
-                  fontWeight: 600, 
-                  background: '#e3f2fd',
-                  textAlign: 'center',
-                  borderBottom: '1px solid #ccc'
-                }}>
-                  -Sph
-                </div>
-                {displayCylValues.map(cyl => (
-                  <div key={cyl} style={{ 
-                    padding: 4, 
-                    textAlign: 'center',
-                    background: '#e3f2fd',
-                    borderBottom: '1px solid #ccc',
-                    borderLeft: '1px solid #ddd'
-                  }}>
-                    {formatCylDisplay(cyl)}
-                  </div>
-                ))}
-              </div>
-              
-              {minusSphValues.map((sph, sphIndex) => (
-                <div 
-                  key={sph}
-                  style={{ 
-                    display: 'grid',
-                    gridTemplateColumns: `50px repeat(${displayCylValues.length}, 45px)`,
-                    fontSize: 10
-                  }}
-                >
-                  <div style={{ 
-                    padding: 4, 
-                    fontWeight: 600, 
-                    background: gridFocus?.sphIndex === sphIndex && !gridFocus?.isPlus ? '#fff9c4' : '#fafafa',
-                    textAlign: 'center',
-                    borderBottom: '1px solid #eee'
-                  }}>
-                    {formatSphDisplay(sph)}
-                  </div>
-                  {displayCylValues.map((cyl, cylIndex) => renderGridCell(sphIndex, cylIndex, false))}
-                </div>
-              ))}
-            </div>
-
-            {/* 플러스 SPH 그리드 */}
-            <div style={{ flex: 1 }}>
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: `50px repeat(${displayCylValues.length}, 45px)`,
-                fontSize: 10,
-                position: 'sticky',
-                top: 0,
-                background: '#fff',
-                zIndex: 1
-              }}>
-                <div style={{ 
-                  padding: 4, 
-                  fontWeight: 600, 
-                  background: '#fff3e0',
-                  textAlign: 'center',
-                  borderBottom: '1px solid #ccc'
-                }}>
-                  +Sph
-                </div>
-                {displayCylValues.map(cyl => (
-                  <div key={cyl} style={{ 
-                    padding: 4, 
-                    textAlign: 'center',
-                    background: '#fff3e0',
-                    borderBottom: '1px solid #ccc',
-                    borderLeft: '1px solid #ddd'
-                  }}>
-                    {formatCylDisplay(cyl)}
-                  </div>
-                ))}
-              </div>
-              
-              {plusSphValues.map((sph, sphIndex) => (
-                <div 
-                  key={sph}
-                  style={{ 
-                    display: 'grid',
-                    gridTemplateColumns: `50px repeat(${displayCylValues.length}, 45px)`,
-                    fontSize: 10
-                  }}
-                >
-                  <div style={{ 
-                    padding: 4, 
-                    fontWeight: 600, 
-                    background: gridFocus?.sphIndex === sphIndex && gridFocus?.isPlus ? '#fff9c4' : '#fafafa',
-                    textAlign: 'center',
-                    borderBottom: '1px solid #eee'
-                  }}>
-                    {formatSphDisplay(sph)}
-                  </div>
-                  {displayCylValues.map((cyl, cylIndex) => renderGridCell(sphIndex, cylIndex, true))}
-                </div>
-              ))}
-            </div>
+          
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: 10, fontFamily: 'monospace' }}>
+              <thead>
+                <tr style={{ background: '#d0d0c8' }}>
+                  <th style={{ border: '1px solid #999', padding: 2, fontWeight: 700, minWidth: 30, position: 'sticky', left: 0, background: '#d0d0c8', zIndex: 10 }}>-Sph</th>
+                  {minusSphCols.map((sph, i) => (
+                    <th key={`mh-${i}`} style={{ border: '1px solid #999', padding: '2px 1px', minWidth: 28, fontWeight: 400, background: sph === 0 ? '#4a90d9' : '#d0d0c8', color: sph === 0 ? '#fff' : '#000' }}>
+                      {formatLegacy(sph)}
+                    </th>
+                  ))}
+                  <th style={{ border: '1px solid #999', padding: 2, fontWeight: 700, background: '#4a90d9', color: '#fff', minWidth: 40 }}>-Sph+</th>
+                  {plusSphCols.slice(1).map((sph, i) => ( // 0.00 제외 (중앙에 있음)
+                    <th key={`ph-${i}`} style={{ border: '1px solid #999', padding: '2px 1px', minWidth: 28, fontWeight: 400, background: '#e0d8c8' }}>
+                      {formatLegacy(sph)}
+                    </th>
+                  ))}
+                  <th style={{ border: '1px solid #999', padding: 2, fontWeight: 700, minWidth: 30, position: 'sticky', right: 0, background: '#d0d0c8', zIndex: 10 }}>CYL</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cylRows.map((cyl, cylIndex) => {
+                  const isCurrentRow = gridFocus?.cylIndex === cylIndex
+                  return (
+                    <tr key={cylIndex}>
+                      <td style={{ border: '1px solid #999', padding: 2, fontWeight: 700, textAlign: 'center', position: 'sticky', left: 0, background: isCurrentRow ? '#ffcdd2' : '#d0d0c8', zIndex: 5 }}>
+                        {formatLegacy(cyl)}
+                      </td>
+                      {minusSphCols.map((sph, sphIndex) => renderCell(sph, sphIndex, cylIndex, false))}
+                      <td style={{ border: '1px solid #999', padding: 2, fontWeight: 700, textAlign: 'center', background: isCurrentRow ? '#bbdefb' : '#4a90d9', color: '#fff' }}>
+                        {formatLegacy(cyl)}
+                      </td>
+                      {plusSphCols.slice(1).map((sph, sphIndex) => renderCell(sph, sphIndex + 1, cylIndex, true))}
+                      <td style={{ border: '1px solid #999', padding: 2, fontWeight: 700, textAlign: 'center', position: 'sticky', right: 0, background: isCurrentRow ? '#ffcdd2' : '#d0d0c8', zIndex: 5 }}>
+                        {formatLegacy(cyl)}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          <div style={{ padding: '3px 6px', background: '#e0e0e0', borderTop: '1px solid #ccc', fontSize: 10, display: 'flex', justifyContent: 'space-between' }}>
+            <span>{focusedCell ? <>SPH: <strong>{focusedCell.sph >= 0 ? '+' : ''}{focusedCell.sph.toFixed(2)}</strong> | CYL: <strong>{focusedCell.cyl.toFixed(2)}</strong></> : '셀 선택'}</span>
+            <span>{cellInputValue && `입력: ${cellInputValue}`}</span>
           </div>
         </div>
 
         {/* 오른쪽: 주문 목록 */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          background: '#f5f5f5',
-          borderRadius: 8,
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            padding: '10px 12px',
-            background: '#333',
-            color: '#fff',
-            fontSize: 13,
-            fontWeight: 600,
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}>
-            <span>주문 목록</span>
-            <span>{orderItems.length}건</span>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#f5f5f5', borderRadius: 4, overflow: 'hidden', fontSize: 10 }}>
+          <div style={{ padding: '4px 6px', background: '#333', color: '#fff', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+            <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 50px 50px 40px 70px 30px',
-            padding: '6px 10px',
-            background: '#e0e0e0',
-            fontSize: 11,
-            fontWeight: 600,
-            borderBottom: '1px solid #ccc'
-          }}>
-            <span>상품명</span>
-            <span style={{ textAlign: 'center' }}>SPH</span>
-            <span style={{ textAlign: 'center' }}>CYL</span>
-            <span style={{ textAlign: 'center' }}>수량</span>
-            <span style={{ textAlign: 'right' }}>금액</span>
-            <span></span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 38px 38px 28px 50px 18px', padding: '2px 4px', background: '#e0e0e0', fontWeight: 600, fontSize: 9 }}>
+            <span>상품</span><span>SPH</span><span>CYL</span><span>수량</span><span>금액</span><span></span>
           </div>
-
           <div style={{ flex: 1, overflow: 'auto' }}>
-            {orderItems.length === 0 ? (
-              <div style={{ 
-                padding: 30, 
-                textAlign: 'center', 
-                color: '#999',
-                fontSize: 12
-              }}>
-                도수표에서 셀을 클릭하고<br />수량을 입력하세요
-              </div>
-            ) : (
-              orderItems.map((item, index) => (
-                <div 
-                  key={item.id}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 50px 50px 40px 70px 30px',
-                    padding: '8px 10px',
-                    fontSize: 11,
-                    borderBottom: '1px solid #ddd',
-                    background: index % 2 === 0 ? '#fff' : '#fafafa',
-                    alignItems: 'center'
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 500, fontSize: 11 }}>
-                      {item.product.name}
-                    </div>
-                    <div style={{ color: '#666', fontSize: 10 }}>
-                      {item.product.brandName}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 10 }}>
-                    {item.sph}
-                  </div>
-                  <div style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: 10 }}>
-                    {item.cyl}
-                  </div>
-                  <div style={{ textAlign: 'center', fontWeight: 600 }}>
-                    {item.quantity}
-                  </div>
-                  <div style={{ textAlign: 'right', fontWeight: 500 }}>
-                    {(item.product.sellingPrice * item.quantity).toLocaleString()}
-                  </div>
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    style={{
-                      background: '#f44336',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: 18,
-                      height: 18,
-                      cursor: 'pointer',
-                      fontSize: 10,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    ×
-                  </button>
+            {orderItems.length === 0 ? <div style={{ padding: 12, textAlign: 'center', color: '#999' }}>도수표에서 수량 입력</div> : (
+              orderItems.map((item, i) => (
+                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 38px 38px 28px 50px 18px', padding: '3px 4px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 9 }}>
+                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
+                  <div style={{ fontFamily: 'monospace' }}>{item.sph}</div>
+                  <div style={{ fontFamily: 'monospace' }}>{item.cyl}</div>
+                  <div style={{ fontWeight: 600, textAlign: 'center' }}>{item.quantity}</div>
+                  <div style={{ textAlign: 'right' }}>{(item.product.sellingPrice * item.quantity).toLocaleString()}</div>
+                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 14, height: 14, cursor: 'pointer', fontSize: 8 }}>×</button>
                 </div>
               ))
             )}
           </div>
-
-          <div style={{ padding: '8px 10px', borderTop: '1px solid #ddd' }}>
-            <input
-              type="text"
-              placeholder="메모..."
-              value={memo}
-              onChange={e => setMemo(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                border: '1px solid #ccc',
-                borderRadius: 4,
-                fontSize: 12
-              }}
-            />
+          <div style={{ padding: 4, borderTop: '1px solid #ddd' }}>
+            <input type="text" placeholder="메모..." value={memo} onChange={e => setMemo(e.target.value)} style={{ width: '100%', padding: 3, border: '1px solid #ccc', borderRadius: 2, fontSize: 9 }} />
           </div>
-
-          <div style={{
-            padding: '10px 12px',
-            background: '#333',
-            color: '#fff',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div style={{ fontSize: 12 }}>
-              총 <strong>{totalQuantity}</strong>개
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>
-              {totalAmount.toLocaleString()}원
-            </div>
+          <div style={{ padding: '4px 6px', background: '#333', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>총 <strong>{totalQuantity}</strong>개</span>
+            <span style={{ fontSize: 13, fontWeight: 700 }}>{totalAmount.toLocaleString()}원</span>
           </div>
-
-          <div style={{ 
-            padding: 10,
-            display: 'flex',
-            gap: 8
-          }}>
-            <button
-              onClick={() => setOrderItems([])}
-              style={{
-                flex: 1,
-                padding: '10px',
-                background: '#f5f5f5',
-                border: '1px solid #ccc',
-                borderRadius: 4,
-                cursor: 'pointer',
-                fontSize: 13
-              }}
-            >
-              초기화
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={loading || !selectedStore || orderItems.length === 0}
-              style={{
-                flex: 2,
-                padding: '10px',
-                background: loading ? '#ccc' : '#4caf50',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 4,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontSize: 13,
-                fontWeight: 600
-              }}
-            >
-              {loading ? '처리중...' : '전송 [F2]'}
-            </button>
+          <div style={{ padding: 4, display: 'flex', gap: 4 }}>
+            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 5, background: '#f5f5f5', border: '1px solid #ccc', borderRadius: 2, cursor: 'pointer', fontSize: 10 }}>초기화</button>
+            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 5, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 2, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 10, fontWeight: 600 }}>전송 [F2]</button>
           </div>
         </div>
       </div>
