@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// 수량 정규화: 0.5 단위로 올림 (0.1→0.5, 1.1→1.5, 1.6→2)
+function normalizeQuantity(qty: number): number {
+  return Math.ceil(qty * 2) / 2
+}
+
 // GET /api/inventory - 재고 현황 조회
 export async function GET(request: NextRequest) {
   try {
@@ -126,6 +131,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '필수 항목을 입력해주세요.' }, { status: 400 })
     }
 
+    // 수량 정규화 (1 미만은 0.5)
+    const normalizedQty = normalizeQuantity(quantity)
+
     // 현재 재고 확인
     const option = await prisma.productOption.findUnique({
       where: { id: productOptionId },
@@ -140,14 +148,14 @@ export async function POST(request: NextRequest) {
     let newStock = beforeStock
 
     if (type === 'in') {
-      newStock = beforeStock + quantity
+      newStock = beforeStock + normalizedQty
     } else if (type === 'out') {
-      newStock = beforeStock - quantity
+      newStock = beforeStock - normalizedQty
       if (newStock < 0) {
         return NextResponse.json({ error: '재고가 부족합니다.' }, { status: 400 })
       }
     } else if (type === 'adjust') {
-      newStock = quantity // 직접 설정
+      newStock = normalizedQty // 직접 설정
     }
 
     // 트랜잭션으로 처리
@@ -164,7 +172,7 @@ export async function POST(request: NextRequest) {
           productOptionId,
           type,
           reason: reason || type,
-          quantity: type === 'adjust' ? quantity - beforeStock : (type === 'out' ? -quantity : quantity),
+          quantity: type === 'adjust' ? normalizedQty - beforeStock : (type === 'out' ? -normalizedQty : normalizedQty),
           beforeStock,
           afterStock: newStock,
           memo,

@@ -248,7 +248,7 @@ export default function DiopterGridPage() {
         <table style={{ 
           borderCollapse: 'collapse', 
           width: '100%',
-          fontSize: '12px',
+          fontSize: '13px',
           fontFamily: 'monospace'
         }}>
           <thead>
@@ -258,12 +258,12 @@ export default function DiopterGridPage() {
                 left: 0,
                 top: 0,
                 background: '#e8e8e0',
-                padding: '4px 2px',
+                padding: '6px 4px',
                 border: '1px solid #999',
                 fontWeight: 'bold',
                 zIndex: 10,
-                minWidth: '36px',
-                fontSize: '11px'
+                minWidth: '44px',
+                fontSize: '12px'
               }}>
                 {side === 'minus' ? '-Sph' : 'Sph+'}
               </th>
@@ -274,12 +274,12 @@ export default function DiopterGridPage() {
                     position: 'sticky',
                     top: 0,
                     background: '#e8e8e0',
-                    padding: '4px 2px',
+                    padding: '6px 4px',
                     border: '1px solid #999',
                     fontWeight: 'normal',
-                    minWidth: '32px',
+                    minWidth: '38px',
                     zIndex: 5,
-                    fontSize: '11px'
+                    fontSize: '12px'
                   }}
                 >
                   {formatLegacy(sph).replace('-', '')}
@@ -290,12 +290,12 @@ export default function DiopterGridPage() {
                 right: 0,
                 top: 0,
                 background: '#e8e8e0',
-                padding: '4px 2px',
+                padding: '6px 4px',
                 border: '1px solid #999',
                 fontWeight: 'bold',
                 zIndex: 10,
-                minWidth: '36px',
-                fontSize: '11px'
+                minWidth: '44px',
+                fontSize: '12px'
               }}>
                 {side === 'minus' ? '-Sph' : 'Sph+'}
               </th>
@@ -314,11 +314,11 @@ export default function DiopterGridPage() {
                     position: 'sticky',
                     left: 0,
                     background: '#e8e8e0',
-                    padding: '2px 4px',
+                    padding: '5px 6px',
                     border: '1px solid #999',
                     fontWeight: 'bold',
                     textAlign: 'center',
-                    fontSize: '11px'
+                    fontSize: '12px'
                   }}>
                     {formatLegacy(cyl).replace('-', '')}
                   </td>
@@ -331,14 +331,15 @@ export default function DiopterGridPage() {
                         key={sph}
                         onClick={() => cell && handleCellClick(sph, cyl)}
                         style={{
-                          padding: '2px',
+                          padding: '5px 4px',
                           border: '1px solid #ccc',
                           background: isSelected ? '#4a90d9' : rowBg,
                           color: isSelected ? '#fff' : (cell ? (cell.stock === 0 ? '#c00' : '#000') : '#ccc'),
                           textAlign: 'center',
                           cursor: cell ? 'pointer' : 'default',
                           fontWeight: cell && cell.stock > 0 ? 'bold' : 'normal',
-                          fontSize: '11px'
+                          fontSize: '12px',
+                          minWidth: '38px'
                         }}
                       >
                         {cell ? (cell.stock > 0 ? cell.stock : '') : ''}
@@ -349,11 +350,11 @@ export default function DiopterGridPage() {
                     position: 'sticky',
                     right: 0,
                     background: '#e8e8e0',
-                    padding: '2px 4px',
+                    padding: '5px 6px',
                     border: '1px solid #999',
                     fontWeight: 'bold',
                     textAlign: 'center',
-                    fontSize: '11px'
+                    fontSize: '12px'
                   }}>
                     {formatLegacy(cyl).replace('-', '')}
                   </td>

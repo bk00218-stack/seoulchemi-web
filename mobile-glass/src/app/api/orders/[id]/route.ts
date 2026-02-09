@@ -188,8 +188,8 @@ export async function PATCH(
           }
         })
 
-        // 출고 완료 시 미수금 추가
-        if (status === 'shipped' && order.status !== 'shipped') {
+        // 확정 시 미수금 추가 + 재고 차감
+        if (status === 'confirmed' && order.status === 'pending') {
           await tx.store.update({
             where: { id: order.storeId },
             data: {
@@ -197,7 +197,80 @@ export async function PATCH(
             }
           })
 
-          // 거래 내역 기록
+          const store = await tx.store.findUnique({ where: { id: order.storeId } })
+          await tx.transaction.create({
+            data: {
+              storeId: order.storeId,
+              type: 'sale',
+              amount: order.totalAmount,
+              balanceAfter: (store?.outstandingAmount || 0) + order.totalAmount,
+              orderId: order.id,
+              orderNo: order.orderNo,
+              memo: `주문 확정 (${order.orderNo})`,
+              processedBy: 'admin',
+              processedAt: now,
+            }
+          })
+
+          // 재고 차감 (여벌 주문만)
+          if (order.orderType === 'stock') {
+            const orderWithItems = await tx.order.findUnique({
+              where: { id: order.id },
+              include: { items: true }
+            })
+            
+            if (orderWithItems) {
+              for (const item of orderWithItems.items) {
+                const option = await tx.productOption.findFirst({
+                  where: {
+                    productId: item.productId,
+                    sph: item.sph || undefined,
+                    cyl: item.cyl || undefined,
+                    isActive: true,
+                  }
+                })
+                
+                if (option) {
+                  const beforeStock = option.stock
+                  const afterStock = Math.max(0, beforeStock - item.quantity)
+                  
+                  await tx.productOption.update({
+                    where: { id: option.id },
+                    data: { stock: afterStock }
+                  })
+                  
+                  await tx.inventoryTransaction.create({
+                    data: {
+                      productId: item.productId,
+                      productOptionId: option.id,
+                      type: 'out',
+                      reason: 'sale',
+                      quantity: -item.quantity,
+                      beforeStock,
+                      afterStock,
+                      orderId: order.id,
+                      orderNo: order.orderNo,
+                      unitPrice: item.unitPrice,
+                      totalPrice: item.totalPrice,
+                      memo: `주문 확정 출고: ${order.orderNo}`,
+                      processedBy: 'admin',
+                    }
+                  })
+                }
+              }
+            }
+          }
+        }
+
+        // 출고 완료 시 미수금 추가 + 재고 차감 (pending에서 바로 shipped로)
+        if (status === 'shipped' && order.status === 'pending') {
+          await tx.store.update({
+            where: { id: order.storeId },
+            data: {
+              outstandingAmount: { increment: order.totalAmount }
+            }
+          })
+
           const store = await tx.store.findUnique({ where: { id: order.storeId } })
           await tx.transaction.create({
             data: {
@@ -212,10 +285,59 @@ export async function PATCH(
               processedAt: now,
             }
           })
+
+          // 재고 차감 (여벌 주문만)
+          if (order.orderType === 'stock') {
+            const orderWithItems = await tx.order.findUnique({
+              where: { id: order.id },
+              include: { items: true }
+            })
+            
+            if (orderWithItems) {
+              for (const item of orderWithItems.items) {
+                const option = await tx.productOption.findFirst({
+                  where: {
+                    productId: item.productId,
+                    sph: item.sph || undefined,
+                    cyl: item.cyl || undefined,
+                    isActive: true,
+                  }
+                })
+                
+                if (option) {
+                  const beforeStock = option.stock
+                  const afterStock = Math.max(0, beforeStock - item.quantity)
+                  
+                  await tx.productOption.update({
+                    where: { id: option.id },
+                    data: { stock: afterStock }
+                  })
+                  
+                  await tx.inventoryTransaction.create({
+                    data: {
+                      productId: item.productId,
+                      productOptionId: option.id,
+                      type: 'out',
+                      reason: 'sale',
+                      quantity: -item.quantity,
+                      beforeStock,
+                      afterStock,
+                      orderId: order.id,
+                      orderNo: order.orderNo,
+                      unitPrice: item.unitPrice,
+                      totalPrice: item.totalPrice,
+                      memo: `주문 출고: ${order.orderNo}`,
+                      processedBy: 'admin',
+                    }
+                  })
+                }
+              }
+            }
+          }
         }
 
-        // 취소 시 미수금 차감 (이미 출고된 경우)
-        if (status === 'cancelled' && order.status === 'shipped') {
+        // 취소 시 미수금 차감 + 재고 복원 (이미 확정/출고된 경우)
+        if (status === 'cancelled' && (order.status === 'confirmed' || order.status === 'shipped')) {
           await tx.store.update({
             where: { id: order.storeId },
             data: {
@@ -237,6 +359,55 @@ export async function PATCH(
               processedAt: now,
             }
           })
+
+          // 재고 복원 (여벌 주문만)
+          if (order.orderType === 'stock') {
+            const orderWithItems = await tx.order.findUnique({
+              where: { id: order.id },
+              include: { items: true }
+            })
+            
+            if (orderWithItems) {
+              for (const item of orderWithItems.items) {
+                const option = await tx.productOption.findFirst({
+                  where: {
+                    productId: item.productId,
+                    sph: item.sph || undefined,
+                    cyl: item.cyl || undefined,
+                    isActive: true,
+                  }
+                })
+                
+                if (option) {
+                  const beforeStock = option.stock
+                  const afterStock = beforeStock + item.quantity
+                  
+                  await tx.productOption.update({
+                    where: { id: option.id },
+                    data: { stock: afterStock }
+                  })
+                  
+                  await tx.inventoryTransaction.create({
+                    data: {
+                      productId: item.productId,
+                      productOptionId: option.id,
+                      type: 'in',
+                      reason: 'return',
+                      quantity: item.quantity,
+                      beforeStock,
+                      afterStock,
+                      orderId: order.id,
+                      orderNo: order.orderNo,
+                      unitPrice: item.unitPrice,
+                      totalPrice: item.totalPrice,
+                      memo: `주문 취소 재고 복원: ${order.orderNo}`,
+                      processedBy: 'admin',
+                    }
+                  })
+                }
+              }
+            }
+          }
         }
       }
 

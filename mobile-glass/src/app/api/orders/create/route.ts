@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getStoreDiscountSettings, calculatePriceFromCache } from '@/lib/priceCalculator'
 
+// 수량 정규화: 0.5 단위로 올림 (0.1→0.5, 1.1→1.5, 1.6→2)
+function normalizeQuantity(qty: number): number {
+  return Math.ceil(qty * 2) / 2
+}
+
 // POST /api/orders/create - 새 주문 등록
 export async function POST(request: Request) {
   try {
@@ -40,7 +45,7 @@ export async function POST(request: Request) {
     })
     const productMap = new Map(products.map(p => [p.id, p]))
 
-    // 할인 적용된 아이템 계산
+    // 할인 적용된 아이템 계산 + 수량 정규화
     const itemsWithDiscount = items.map((item: any) => {
       const product = productMap.get(item.productId)
       if (!product) return item
@@ -49,8 +54,12 @@ export async function POST(request: Request) {
       const priceResult = calculatePriceFromCache(product, discountSettings)
       const unitPrice = item.unitPrice ?? priceResult.finalPrice // 직접 지정한 가격이 있으면 사용
       
+      // 수량 정규화 (1 미만은 0.5)
+      const quantity = normalizeQuantity(item.quantity)
+      
       return {
         ...item,
+        quantity,
         unitPrice,
         originalPrice: product.sellingPrice,
         discountType: priceResult.discountType,
