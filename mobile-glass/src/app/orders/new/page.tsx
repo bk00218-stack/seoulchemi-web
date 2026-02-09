@@ -323,8 +323,8 @@ export default function NewOrderPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 8px' }}>
                   <span>☎️ {selectedStore.phone || '-'}</span>
                   <span>📱 {selectedStore.deliveryPhone || '-'}</span>
-                  <span>👤 {selectedStore.salesRepName || '-'}</span>
-                  <span>🏍️ {selectedStore.deliveryContact || '-'}</span>
+                  <span>🎯 {selectedStore.salesRepName || '-'}</span>
+                  <span>🚚 {selectedStore.deliveryContact || '-'}</span>
                 </div>
                 {selectedStore.address && (
                   <div style={{ marginTop: 2 }}>📍 {selectedStore.address}</div>
