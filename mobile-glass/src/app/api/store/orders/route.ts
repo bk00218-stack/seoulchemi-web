@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
         sph: item.sph || null,
         cyl: item.cyl || null,
         axis: item.axis || null,
-        add: item.add || null,
       })
 
       totalAmount += itemTotal
