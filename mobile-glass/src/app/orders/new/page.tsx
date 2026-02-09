@@ -96,8 +96,10 @@ export default function NewOrderPage() {
   
   // Refs for keyboard navigation
   const storeInputRef = useRef<HTMLInputElement>(null)
+  const storeResultRefs = useRef<(HTMLDivElement | null)[]>([])
   const brandSelectRef = useRef<HTMLSelectElement>(null)
   const productListRef = useRef<HTMLDivElement>(null)
+  const productItemRefs = useRef<(HTMLDivElement | null)[]>([])
   const gridRef = useRef<HTMLDivElement>(null)
   
   // 기본 데이터
@@ -113,6 +115,9 @@ export default function NewOrderPage() {
   
   // 상품 목록 키보드 네비게이션
   const [productFocusIndex, setProductFocusIndex] = useState<number>(-1)
+  
+  // 가맹점 검색 결과 키보드 네비게이션
+  const [storeFocusIndex, setStoreFocusIndex] = useState<number>(-1)
   
   // 그리드 키보드 입력 모드
   const [gridInputMode, setGridInputMode] = useState(false)
@@ -159,6 +164,7 @@ export default function NewOrderPage() {
         if (!focusedCell) {
           setSelectedStore(null)
           setStoreSearchText('')
+          setStoreFocusIndex(-1)
           storeInputRef.current?.focus()
         }
       }
@@ -166,6 +172,20 @@ export default function NewOrderPage() {
     window.addEventListener('keydown', handleGlobalEscape)
     return () => window.removeEventListener('keydown', handleGlobalEscape)
   }, [focusedCell])
+
+  // 가맹점 검색 결과 스크롤
+  useEffect(() => {
+    if (storeFocusIndex >= 0 && storeResultRefs.current[storeFocusIndex]) {
+      storeResultRefs.current[storeFocusIndex]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [storeFocusIndex])
+
+  // 상품 목록 스크롤
+  useEffect(() => {
+    if (productFocusIndex >= 0 && productItemRefs.current[productFocusIndex]) {
+      productItemRefs.current[productFocusIndex]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [productFocusIndex])
 
   // 브랜드 선택 후 상품 목록으로 포커스 이동
   const handleBrandKeyDown = (e: KeyboardEvent<HTMLSelectElement>) => {
@@ -427,23 +447,40 @@ export default function NewOrderPage() {
               type="text"
               placeholder="이름, 코드, 전화번호로 검색..."
               value={storeSearchText}
-              onChange={e => setStoreSearchText(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  // 검색 결과가 있으면 첫번째 선택
-                  if (storeSearchText && filteredStores.length > 0 && !selectedStore) {
-                    setSelectedStore(filteredStores[0])
-                    setStoreSearchText('')
+                const visibleStores = filteredStores.slice(0, 10)
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  if (storeSearchText && visibleStores.length > 0 && !selectedStore) {
+                    setStoreFocusIndex(prev => Math.min(prev + 1, visibleStores.length - 1))
                   }
-                  // 가맹점 선택 후 Enter → 품목으로 이동
-                  if (selectedStore) {
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  if (storeSearchText && visibleStores.length > 0 && !selectedStore) {
+                    setStoreFocusIndex(prev => Math.max(prev - 1, 0))
+                  }
+                } else if (e.key === 'Enter') {
+                  // 포커스된 항목이 있으면 선택
+                  if (storeSearchText && visibleStores.length > 0 && !selectedStore) {
+                    const selectIndex = storeFocusIndex >= 0 ? storeFocusIndex : 0
+                    setSelectedStore(visibleStores[selectIndex])
+                    setStoreSearchText('')
+                    setStoreFocusIndex(-1)
+                    brandSelectRef.current?.focus()
+                  } else if (selectedStore) {
+                    // 가맹점 선택 후 Enter → 품목으로 이동
                     brandSelectRef.current?.focus()
                   }
                 } else if (e.key === 'Escape') {
                   // Esc → 상호 선택 초기화
                   setSelectedStore(null)
                   setStoreSearchText('')
+                  setStoreFocusIndex(-1)
                 }
+              }}
+              onChange={e => {
+                setStoreSearchText(e.target.value)
+                setStoreFocusIndex(-1) // 검색어 변경시 포커스 리셋
               }}
               style={{
                 width: '100%',
@@ -477,7 +514,7 @@ export default function NewOrderPage() {
                 </div>
               </div>
             )}
-            {storeSearchText && !selectedStore && (
+            {storeSearchText && !selectedStore && filteredStores.length > 0 && (
               <div style={{ 
                 maxHeight: 150, 
                 overflow: 'auto', 
@@ -486,25 +523,37 @@ export default function NewOrderPage() {
                 borderRadius: 4,
                 background: '#fff'
               }}>
-                {filteredStores.slice(0, 10).map(store => (
+                <div style={{ padding: '4px 10px', fontSize: 10, color: '#999', borderBottom: '1px solid #eee' }}>
+                  ↑↓ 이동, Enter 선택 ({filteredStores.slice(0, 10).length}건)
+                </div>
+                {filteredStores.slice(0, 10).map((store, index) => (
                   <div
                     key={store.id}
+                    ref={el => { storeResultRefs.current[index] = el }}
                     onClick={() => {
                       setSelectedStore(store)
                       setStoreSearchText('')
+                      setStoreFocusIndex(-1)
+                      brandSelectRef.current?.focus()
                     }}
                     style={{
                       padding: '8px 10px',
                       cursor: 'pointer',
                       borderBottom: '1px solid #eee',
-                      fontSize: 12
+                      fontSize: 12,
+                      background: storeFocusIndex === index ? '#e3f2fd' : '#fff',
+                      borderLeft: storeFocusIndex === index ? '3px solid #1976d2' : '3px solid transparent'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#f0f0f0'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                    onMouseEnter={e => {
+                      if (storeFocusIndex !== index) e.currentTarget.style.background = '#f0f0f0'
+                    }}
+                    onMouseLeave={e => {
+                      if (storeFocusIndex !== index) e.currentTarget.style.background = '#fff'
+                    }}
                   >
                     <div style={{ fontWeight: 500 }}>{store.name}</div>
                     <div style={{ color: '#999', fontSize: 11 }}>
-                      {store.code} {store.phone && `| ${store.phone}`}
+                      {store.code} {store.phone && store.phone !== '-' && `| ${store.phone}`}
                     </div>
                   </div>
                 ))}
@@ -602,6 +651,7 @@ export default function NewOrderPage() {
                 filteredProducts.map((product, index) => (
                   <div
                     key={product.id}
+                    ref={el => { productItemRefs.current[index] = el }}
                     onClick={() => {
                       setSelectedProductId(product.id)
                       setProductFocusIndex(index)
