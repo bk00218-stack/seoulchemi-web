@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "import": "node scripts/import-data.js",
     "db:push": "npx prisma db push",
@@ -16,6 +17,8 @@
   "license": "ISC",
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
+    "@libsql/client": "^0.17.0",
+    "@prisma/adapter-libsql": "^7.3.0",
     "@prisma/client": "^5.22.0",
     "@types/node": "^25.1.0",
     "@types/react": "^19.2.10",
