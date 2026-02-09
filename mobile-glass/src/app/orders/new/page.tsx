@@ -95,6 +95,7 @@ export default function NewOrderPage() {
   const router = useRouter()
   
   // Refs for keyboard navigation
+  const storeInputRef = useRef<HTMLInputElement>(null)
   const brandSelectRef = useRef<HTMLSelectElement>(null)
   const productListRef = useRef<HTMLDivElement>(null)
   const gridRef = useRef<HTMLDivElement>(null)
@@ -149,6 +150,22 @@ export default function NewOrderPage() {
     })
     fetch('/api/stores').then(r => r.json()).then(data => setStores(data.stores || []))
   }, [])
+
+  // 글로벌 Escape 키 핸들러 - 상호 검색으로 돌아가기
+  useEffect(() => {
+    const handleGlobalEscape = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // 셀 입력 중이 아닐 때만
+        if (!focusedCell) {
+          setSelectedStore(null)
+          setStoreSearchText('')
+          storeInputRef.current?.focus()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleGlobalEscape)
+    return () => window.removeEventListener('keydown', handleGlobalEscape)
+  }, [focusedCell])
 
   // 브랜드 선택 후 상품 목록으로 포커스 이동
   const handleBrandKeyDown = (e: KeyboardEvent<HTMLSelectElement>) => {
@@ -406,6 +423,7 @@ export default function NewOrderPage() {
           <section>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>상호 [Esc]</label>
             <input
+              ref={storeInputRef}
               type="text"
               placeholder="이름, 코드, 전화번호로 검색..."
               value={storeSearchText}
@@ -421,6 +439,10 @@ export default function NewOrderPage() {
                   if (selectedStore) {
                     brandSelectRef.current?.focus()
                   }
+                } else if (e.key === 'Escape') {
+                  // Esc → 상호 선택 초기화
+                  setSelectedStore(null)
+                  setStoreSearchText('')
                 }
               }}
               style={{
