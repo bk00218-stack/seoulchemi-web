@@ -119,9 +119,8 @@ export default function NewOrderPage() {
   // 가맹점 검색 결과 키보드 네비게이션
   const [storeFocusIndex, setStoreFocusIndex] = useState<number>(-1)
   
-  // 그리드 키보드 입력 모드
-  const [gridInputMode, setGridInputMode] = useState(false)
-  const [focusedCell, setFocusedCell] = useState<{sph: string, cyl: string, isPlus: boolean} | null>(null)
+  // 그리드 키보드 네비게이션
+  const [gridFocus, setGridFocus] = useState<{sphIndex: number, cylIndex: number, isPlus: boolean} | null>(null)
   const [cellInputValue, setCellInputValue] = useState('')
   
   // 주문 아이템
@@ -160,8 +159,11 @@ export default function NewOrderPage() {
   useEffect(() => {
     const handleGlobalEscape = (e: globalThis.KeyboardEvent) => {
       if (e.key === 'Escape') {
-        // 셀 입력 중이 아닐 때만
-        if (!focusedCell) {
+        // 그리드 포커스 중이면 그리드 포커스 해제
+        if (gridFocus) {
+          setGridFocus(null)
+          setCellInputValue('')
+        } else {
           setSelectedStore(null)
           setStoreSearchText('')
           setStoreFocusIndex(-1)
@@ -171,7 +173,7 @@ export default function NewOrderPage() {
     }
     window.addEventListener('keydown', handleGlobalEscape)
     return () => window.removeEventListener('keydown', handleGlobalEscape)
-  }, [focusedCell])
+  }, [gridFocus])
 
   // 가맹점 검색 결과 스크롤
   useEffect(() => {
@@ -211,11 +213,17 @@ export default function NewOrderPage() {
       if (productFocusIndex >= 0 && productFocusIndex < filteredProducts.length) {
         setSelectedProductId(filteredProducts[productFocusIndex].id)
         // 상품 선택 후 그리드로 포커스 이동
-        setGridInputMode(true)
+        setGridFocus({ sphIndex: 0, cylIndex: 0, isPlus: false })
+        setCellInputValue('')
         gridRef.current?.focus()
       }
     }
   }
+
+  // SPH/CYL 값 배열 (상단에서 사용)
+  const minusSphValues = generateSphValues(false).slice(0, 40)
+  const plusSphValues = generateSphValues(true).slice(0, 40)
+  const displayCylValues = generateCylValues().slice(0, 17)
 
   // 그리드 셀에 수량 입력
   const handleGridCellInput = useCallback((sph: string, cyl: string, quantity: number) => {
@@ -244,41 +252,114 @@ export default function NewOrderPage() {
     }
   }, [selectedProduct, selectedStore, orderItems])
 
-  // 그리드 셀 클릭
-  const handleGridClick = useCallback((sph: string, cyl: string, isPlus: boolean = false) => {
+  // 현재 그리드 포커스 위치의 SPH/CYL 값
+  const getFocusedSphCyl = useCallback(() => {
+    if (!gridFocus) return null
+    const sphArray = gridFocus.isPlus ? plusSphValues : minusSphValues
+    const sph = sphArray[gridFocus.sphIndex]
+    const cyl = displayCylValues[gridFocus.cylIndex]
+    if (!sph || !cyl) return null
+    const actualSph = gridFocus.isPlus ? '+' + sph : sph
+    return { sph: actualSph, cyl }
+  }, [gridFocus, minusSphValues, plusSphValues, displayCylValues])
+
+  // 그리드 키보드 네비게이션
+  const handleGridKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    if (!selectedProduct || !selectedStore) return
+    
+    const maxSphIndex = 39
+    const maxCylIndex = displayCylValues.length - 1
+
+    // 숫자 입력
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault()
+      const newValue = cellInputValue + e.key
+      setCellInputValue(newValue)
+      
+      // 현재 포커스 위치에 수량 입력
+      const focused = getFocusedSphCyl()
+      if (focused) {
+        const qty = parseInt(newValue)
+        if (!isNaN(qty) && qty > 0) {
+          handleGridCellInput(focused.sph, focused.cyl, qty)
+        }
+      }
+      return
+    }
+
+    // 방향키로 이동
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setCellInputValue('')
+      setGridFocus(prev => {
+        if (!prev) return { sphIndex: 0, cylIndex: 0, isPlus: false }
+        return { ...prev, sphIndex: Math.min(prev.sphIndex + 1, maxSphIndex) }
+      })
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setCellInputValue('')
+      setGridFocus(prev => {
+        if (!prev) return { sphIndex: 0, cylIndex: 0, isPlus: false }
+        return { ...prev, sphIndex: Math.max(prev.sphIndex - 1, 0) }
+      })
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      setCellInputValue('')
+      setGridFocus(prev => {
+        if (!prev) return { sphIndex: 0, cylIndex: 0, isPlus: false }
+        if (prev.cylIndex < maxCylIndex) {
+          return { ...prev, cylIndex: prev.cylIndex + 1 }
+        } else if (!prev.isPlus) {
+          // 마이너스 끝에서 플러스로 이동
+          return { sphIndex: prev.sphIndex, cylIndex: 0, isPlus: true }
+        }
+        return prev
+      })
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      setCellInputValue('')
+      setGridFocus(prev => {
+        if (!prev) return { sphIndex: 0, cylIndex: 0, isPlus: false }
+        if (prev.cylIndex > 0) {
+          return { ...prev, cylIndex: prev.cylIndex - 1 }
+        } else if (prev.isPlus) {
+          // 플러스 시작에서 마이너스로 이동
+          return { sphIndex: prev.sphIndex, cylIndex: maxCylIndex, isPlus: false }
+        }
+        return prev
+      })
+    } else if (e.key === 'Tab') {
+      e.preventDefault()
+      setCellInputValue('')
+      // Tab으로 플러스/마이너스 전환
+      setGridFocus(prev => prev ? { ...prev, isPlus: !prev.isPlus } : null)
+    } else if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault()
+      if (cellInputValue) {
+        setCellInputValue(cellInputValue.slice(0, -1))
+      } else {
+        // 현재 셀의 주문 삭제
+        const focused = getFocusedSphCyl()
+        if (focused && selectedProduct) {
+          setOrderItems(items => items.filter(item => 
+            !(item.product.id === selectedProduct.id && item.sph === focused.sph && item.cyl === focused.cyl)
+          ))
+        }
+      }
+    }
+  }, [selectedProduct, selectedStore, displayCylValues, cellInputValue, getFocusedSphCyl, handleGridCellInput])
+
+  // 그리드 셀 클릭 - 클릭한 위치로 포커스 이동
+  const handleGridClick = useCallback((sphIndex: number, cylIndex: number, isPlus: boolean) => {
     if (!selectedProduct || !selectedStore) {
       alert('가맹점과 상품을 먼저 선택해주세요.')
       return
     }
     
-    // 입력 모드 활성화
-    setFocusedCell({ sph, cyl, isPlus })
+    setGridFocus({ sphIndex, cylIndex, isPlus })
     setCellInputValue('')
-    setGridInputMode(true)
+    gridRef.current?.focus()
   }, [selectedProduct, selectedStore])
-
-  // 셀 입력 완료
-  const commitCellInput = useCallback(() => {
-    if (focusedCell && cellInputValue) {
-      const qty = parseInt(cellInputValue)
-      if (!isNaN(qty) && qty > 0) {
-        handleGridCellInput(focusedCell.sph, focusedCell.cyl, qty)
-      }
-    }
-    setFocusedCell(null)
-    setCellInputValue('')
-  }, [focusedCell, cellInputValue, handleGridCellInput])
-
-  // 그리드 키보드 이벤트
-  const handleGridKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>, sph: string, cyl: string) => {
-    if (e.key === 'Enter' || e.key === 'Tab') {
-      e.preventDefault()
-      commitCellInput()
-    } else if (e.key === 'Escape') {
-      setFocusedCell(null)
-      setCellInputValue('')
-    }
-  }, [commitCellInput])
 
   const removeItem = (id: string) => {
     setOrderItems(items => items.filter(item => item.id !== id))
@@ -326,39 +407,42 @@ export default function NewOrderPage() {
     setLoading(false)
   }
 
-  const minusSphValues = generateSphValues(false)
-  const plusSphValues = generateSphValues(true)
-  const cylValues = generateCylValues()
-  const displayCylValues = cylValues.slice(0, 17)
-
   // 그리드 셀 렌더링 함수
-  const renderGridCell = (sph: string, cyl: string, isPlus: boolean = false) => {
+  const renderGridCell = (sphIndex: number, cylIndex: number, isPlus: boolean) => {
+    const sphArray = isPlus ? plusSphValues : minusSphValues
+    const sph = sphArray[sphIndex]
+    const cyl = displayCylValues[cylIndex]
     const actualSph = isPlus ? '+' + sph : sph
+    
     const item = orderItems.find(item => 
       item.product.id === selectedProductId &&
       item.sph === actualSph && 
       item.cyl === cyl
     )
     const hasItem = !!item
-    const isFocused = focusedCell?.sph === actualSph && focusedCell?.cyl === cyl
+    const isFocused = gridFocus?.sphIndex === sphIndex && 
+                      gridFocus?.cylIndex === cylIndex && 
+                      gridFocus?.isPlus === isPlus
     
     return (
       <div
         key={cyl}
-        onClick={() => handleGridClick(actualSph, cyl, isPlus)}
+        onClick={() => handleGridClick(sphIndex, cylIndex, isPlus)}
         style={{
           padding: 2,
           textAlign: 'center',
           borderBottom: '1px solid #eee',
           borderLeft: '1px solid #eee',
-          background: isFocused ? '#fff9c4' : hasItem ? '#4caf50' : '#fff',
-          color: hasItem ? '#fff' : '#333',
+          background: isFocused ? '#ffeb3b' : hasItem ? '#4caf50' : '#fff',
+          color: isFocused ? '#000' : hasItem ? '#fff' : '#333',
           cursor: selectedProduct ? 'pointer' : 'not-allowed',
           transition: 'background 0.1s',
           minHeight: 24,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          fontWeight: isFocused ? 700 : 400,
+          outline: isFocused ? '2px solid #f57c00' : 'none'
         }}
         onMouseEnter={e => {
           if (selectedProduct && !hasItem && !isFocused) {
@@ -371,28 +455,10 @@ export default function NewOrderPage() {
           }
         }}
       >
-        {isFocused ? (
-          <input
-            type="text"
-            autoFocus
-            value={cellInputValue}
-            onChange={e => setCellInputValue(e.target.value.replace(/\D/g, ''))}
-            onKeyDown={e => handleGridKeyDown(e, actualSph, cyl)}
-            onBlur={commitCellInput}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              background: 'transparent',
-              textAlign: 'center',
-              fontSize: 11,
-              fontWeight: 600,
-              outline: 'none'
-            }}
-            placeholder="수량"
-          />
-        ) : hasItem ? (
+        {hasItem ? (
           <span style={{ fontSize: 11, fontWeight: 600 }}>{item.quantity}</span>
+        ) : isFocused ? (
+          <span style={{ fontSize: 10 }}>{cellInputValue || '▶'}</span>
         ) : null}
       </div>
     )
@@ -705,11 +771,12 @@ export default function NewOrderPage() {
         <div 
           ref={gridRef}
           tabIndex={0}
+          onKeyDown={handleGridKeyDown}
           style={{ 
             display: 'flex', 
             flexDirection: 'column',
             background: '#fff',
-            border: '1px solid #ccc',
+            border: gridFocus ? '2px solid #f57c00' : '1px solid #ccc',
             borderRadius: 8,
             overflow: 'hidden',
             outline: 'none'
@@ -739,8 +806,17 @@ export default function NewOrderPage() {
                 <span style={{ color: '#999' }}>상품을 선택하세요</span>
               )}
             </div>
-            <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
-              <span style={{ color: '#1976d2' }}>셀 클릭 → 수량 입력</span>
+            <div style={{ display: 'flex', gap: 10, fontSize: 11, alignItems: 'center' }}>
+              {gridFocus ? (
+                <>
+                  <span style={{ background: '#ffeb3b', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>
+                    입력: {cellInputValue || '숫자키'}
+                  </span>
+                  <span style={{ color: '#666' }}>↑↓←→ 이동 | Tab 전환 | Del 삭제</span>
+                </>
+              ) : (
+                <span style={{ color: '#1976d2' }}>상품 선택 후 Enter → 도수표 이동</span>
+              )}
             </div>
           </div>
 
@@ -779,7 +855,7 @@ export default function NewOrderPage() {
                 ))}
               </div>
               
-              {minusSphValues.slice(0, 40).map(sph => (
+              {minusSphValues.map((sph, sphIndex) => (
                 <div 
                   key={sph}
                   style={{ 
@@ -791,13 +867,13 @@ export default function NewOrderPage() {
                   <div style={{ 
                     padding: 4, 
                     fontWeight: 600, 
-                    background: '#fafafa',
+                    background: gridFocus?.sphIndex === sphIndex && !gridFocus?.isPlus ? '#fff9c4' : '#fafafa',
                     textAlign: 'center',
                     borderBottom: '1px solid #eee'
                   }}>
                     {formatSphDisplay(sph)}
                   </div>
-                  {displayCylValues.map(cyl => renderGridCell(sph, cyl, false))}
+                  {displayCylValues.map((cyl, cylIndex) => renderGridCell(sphIndex, cylIndex, false))}
                 </div>
               ))}
             </div>
@@ -835,7 +911,7 @@ export default function NewOrderPage() {
                 ))}
               </div>
               
-              {plusSphValues.slice(0, 40).map(sph => (
+              {plusSphValues.map((sph, sphIndex) => (
                 <div 
                   key={sph}
                   style={{ 
@@ -847,13 +923,13 @@ export default function NewOrderPage() {
                   <div style={{ 
                     padding: 4, 
                     fontWeight: 600, 
-                    background: '#fafafa',
+                    background: gridFocus?.sphIndex === sphIndex && gridFocus?.isPlus ? '#fff9c4' : '#fafafa',
                     textAlign: 'center',
                     borderBottom: '1px solid #eee'
                   }}>
                     {formatSphDisplay(sph)}
                   </div>
-                  {displayCylValues.map(cyl => renderGridCell(sph, cyl, true))}
+                  {displayCylValues.map((cyl, cylIndex) => renderGridCell(sphIndex, cylIndex, true))}
                 </div>
               ))}
             </div>
