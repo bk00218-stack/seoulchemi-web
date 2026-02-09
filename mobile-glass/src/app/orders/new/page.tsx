@@ -333,7 +333,25 @@ export default function NewOrderPage() {
                   <span style={{ color: (selectedStore.outstandingAmount || 0) > 0 ? '#c62828' : '#2e7d32', fontWeight: 600 }}>
                     💰 {(selectedStore.outstandingAmount || 0).toLocaleString()}원
                   </span>
-                  <span>🗓️ {selectedStore.paymentTermDays ? `${selectedStore.paymentTermDays}일` : '-'}</span>
+                  {selectedStore.paymentTermDays ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                      <span style={{ 
+                        display: 'inline-flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center',
+                        width: 16, 
+                        height: 16, 
+                        background: '#fff',
+                        border: '1px solid #e53935',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        lineHeight: 1
+                      }}>
+                        <span style={{ fontSize: 4, fontWeight: 700, color: '#fff', background: '#e53935', width: '100%', textAlign: 'center' }}>FEB</span>
+                        <span style={{ fontSize: 8, fontWeight: 700, color: '#1d1d1f' }}>{selectedStore.paymentTermDays}</span>
+                      </span>
+                    </span>
+                  ) : '-'}
                 </div>
               </div>
             )}
