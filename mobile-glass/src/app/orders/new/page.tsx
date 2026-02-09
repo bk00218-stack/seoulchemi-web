@@ -90,10 +90,9 @@ export default function NewOrderPage() {
   const cylColsLeft = generateCylColsLeft()   // -4.00 → 0.00 (왼쪽, -Sph용)
   const cylColsRight = generateCylColsRight() // 0.00 → -4.00 (오른쪽, +Sph용)
   
-  // 전체 열: 왼쪽 CYL + 가운데 구분선 + 오른쪽 CYL
-  // 가운데 구분선 = 인덱스 cylColsLeft.length (= 17)
+  // 전체 열: 왼쪽 CYL + 가운데 구분 + 오른쪽 CYL
   const centerIndex = cylColsLeft.length // 가운데 열 인덱스
-  const totalCols = cylColsLeft.length + 1 + cylColsRight.length - 1 // 0.00이 중복되므로 -1
+  const totalCols = cylColsLeft.length + 1 + cylColsRight.length
 
   useEffect(() => {
     fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
@@ -132,7 +131,7 @@ export default function NewOrderPage() {
       e.preventDefault()
       if (productFocusIndex >= 0 && productFocusIndex < filteredProducts.length) {
         setSelectedProductId(filteredProducts[productFocusIndex].id)
-        setGridFocus({ sphIndex: 0, colIndex: centerIndex }) // 가운데(CYL 000)에서 시작
+        setGridFocus({ sphIndex: 0, colIndex: cylColsLeft.length - 1 }) // 왼쪽 끝(CYL 000)에서 시작
         setCellInputValue('')
         gridRef.current?.focus()
       }
@@ -145,12 +144,12 @@ export default function NewOrderPage() {
       // 왼쪽 영역 (-Sph)
       return { isPlus: false, cyl: cylColsLeft[colIndex] }
     } else if (colIndex === centerIndex) {
-      // 가운데 (경계) - CYL 0.00, 기본적으로 -Sph로 처리
-      return { isPlus: false, cyl: 0 }
+      // 가운데 (경계) - 입력 불가 영역
+      return null
     } else {
       // 오른쪽 영역 (+Sph)
-      const rightIndex = colIndex - centerIndex
-      if (rightIndex < cylColsRight.length) {
+      const rightIndex = colIndex - centerIndex - 1
+      if (rightIndex >= 0 && rightIndex < cylColsRight.length) {
         return { isPlus: true, cyl: cylColsRight[rightIndex] }
       }
     }
@@ -208,10 +207,20 @@ export default function NewOrderPage() {
       setGridFocus(prev => prev ? { ...prev, sphIndex: Math.max(prev.sphIndex - 1, 0) } : { sphIndex: 0, colIndex: centerIndex })
     } else if (e.key === 'ArrowRight') {
       e.preventDefault(); setCellInputValue('')
-      setGridFocus(prev => prev ? { ...prev, colIndex: Math.min(prev.colIndex + 1, maxColIndex) } : { sphIndex: 0, colIndex: centerIndex })
+      setGridFocus(prev => {
+        if (!prev) return { sphIndex: 0, colIndex: 0 }
+        let newCol = prev.colIndex + 1
+        if (newCol === centerIndex) newCol++ // 가운데 열 건너뛰기
+        return { ...prev, colIndex: Math.min(newCol, maxColIndex) }
+      })
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault(); setCellInputValue('')
-      setGridFocus(prev => prev ? { ...prev, colIndex: Math.max(prev.colIndex - 1, 0) } : { sphIndex: 0, colIndex: centerIndex })
+      setGridFocus(prev => {
+        if (!prev) return { sphIndex: 0, colIndex: 0 }
+        let newCol = prev.colIndex - 1
+        if (newCol === centerIndex) newCol-- // 가운데 열 건너뛰기
+        return { ...prev, colIndex: Math.max(newCol, 0) }
+      })
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
       e.preventDefault()
       if (cellInputValue) setCellInputValue(cellInputValue.slice(0, -1))
@@ -259,23 +268,19 @@ export default function NewOrderPage() {
     const item = orderItems.find(i => i.product.id === selectedProductId && i.sph === sphStr && i.cyl === cylStr)
     const isFocused = gridFocus?.sphIndex === sphIndex && gridFocus?.colIndex === colIndex
     const isCurrentRow = gridFocus?.sphIndex === sphIndex
-    const isCenter = colIndex === centerIndex
     
     let bg = sphIndex % 2 === 0 ? '#fffde7' : '#fff'
     if (isCurrentRow) bg = '#ffcdd2' // 핑크 행
-    if (isCenter) bg = isCurrentRow ? '#e1bee7' : '#f3e5f5' // 가운데 열 (보라색 계열)
     if (isFocused) bg = '#42a5f5'
     if (item) bg = '#4caf50'
     
     return (
       <td key={colIndex} onClick={() => handleGridClick(sphIndex, colIndex)}
         style={{ 
-          border: '1px solid #bbb', 
-          borderLeft: isCenter ? '2px solid #7b1fa2' : undefined,
-          borderRight: isCenter ? '2px solid #7b1fa2' : undefined,
+          border: '1px solid #ccc', 
           padding: 0, textAlign: 'center', background: bg, 
           color: item || isFocused ? '#fff' : '#333', 
-          cursor: 'pointer', width: 26, height: 18, fontSize: 9, 
+          cursor: 'pointer', width: 28, height: 20, fontSize: 10, 
           fontFamily: 'monospace', fontWeight: item ? 700 : 400 
         }}>
         {item ? item.quantity : isFocused && cellInputValue ? cellInputValue : ''}
@@ -354,48 +359,49 @@ export default function NewOrderPage() {
           </div>
           
           <div ref={gridContainerRef} style={{ flex: 1, overflow: 'auto' }}>
-            <table style={{ borderCollapse: 'collapse', fontSize: 9, fontFamily: 'monospace' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: 10, fontFamily: 'monospace' }}>
               <thead>
-                <tr style={{ background: '#e0e0e0' }}>
+                <tr style={{ background: '#d0d0c8' }}>
                   {/* 왼쪽 SPH 헤더 */}
-                  <th style={{ border: '1px solid #999', padding: 1, fontWeight: 700, minWidth: 28, position: 'sticky', left: 0, background: '#c8d4e0', zIndex: 10 }}>-Sph</th>
+                  <th style={{ border: '1px solid #888', padding: '2px 4px', fontWeight: 700, minWidth: 32, position: 'sticky', left: 0, background: '#d0d0c8', zIndex: 10 }}>-Sph</th>
                   
-                  {/* 왼쪽 CYL 열들 (400 → 025) */}
-                  {cylColsLeft.slice(0, -1).map((cyl, i) => (
-                    <th key={`L${i}`} style={{ border: '1px solid #999', padding: 1, minWidth: 26, fontWeight: 400, background: '#c8d4e0' }}>{formatLegacy(cyl)}</th>
+                  {/* 왼쪽 CYL 열들 (400 → 000) */}
+                  {cylColsLeft.map((cyl, i) => (
+                    <th key={`L${i}`} style={{ border: '1px solid #888', padding: '2px 1px', minWidth: 28, fontWeight: 400, background: '#d0d0c8' }}>{formatLegacy(cyl)}</th>
                   ))}
                   
-                  {/* 가운데 열 (000) - -Sph+ */}
-                  <th style={{ border: '2px solid #7b1fa2', padding: 1, minWidth: 32, fontWeight: 700, background: '#e1bee7', color: '#4a148c' }}>-Sph+</th>
+                  {/* 가운데 구분 열 -Sph+ */}
+                  <th style={{ border: '1px solid #888', borderLeft: '3px solid #333', borderRight: '3px solid #333', padding: '2px 4px', minWidth: 40, fontWeight: 700, background: '#a0a0a0', color: '#000' }}>-Sph+</th>
                   
-                  {/* 오른쪽 CYL 열들 (025 → 400) */}
-                  {cylColsRight.slice(1).map((cyl, i) => (
-                    <th key={`R${i}`} style={{ border: '1px solid #999', padding: 1, minWidth: 26, fontWeight: 400, background: '#e0d8c8' }}>{formatLegacy(cyl)}</th>
+                  {/* 오른쪽 CYL 열들 (000 → 400) */}
+                  {cylColsRight.map((cyl, i) => (
+                    <th key={`R${i}`} style={{ border: '1px solid #888', padding: '2px 1px', minWidth: 28, fontWeight: 400, background: '#d0d0c8' }}>{formatLegacy(cyl)}</th>
                   ))}
                   
                   {/* 오른쪽 SPH 헤더 */}
-                  <th style={{ border: '1px solid #999', padding: 1, fontWeight: 700, minWidth: 28, position: 'sticky', right: 0, background: '#e0d8c8', zIndex: 10 }}>+Sph</th>
+                  <th style={{ border: '1px solid #888', padding: '2px 4px', fontWeight: 700, minWidth: 32, position: 'sticky', right: 0, background: '#d0d0c8', zIndex: 10 }}>+Sph</th>
                 </tr>
               </thead>
               <tbody>
                 {sphRows.map((sph, sphIndex) => {
                   const isCurrentRow = gridFocus?.sphIndex === sphIndex
+                  const rowBg = isCurrentRow ? '#ffcdd2' : '#d0d0c8'
                   return (
                     <tr key={sphIndex}>
-                      {/* 왼쪽 SPH 값 */}
-                      <td style={{ border: '1px solid #999', padding: 1, fontWeight: 700, textAlign: 'center', position: 'sticky', left: 0, background: isCurrentRow ? '#ffcdd2' : '#c8d4e0', zIndex: 5 }}>{formatLegacy(sph)}</td>
+                      {/* 왼쪽 SPH 값 (회색) */}
+                      <td style={{ border: '1px solid #888', padding: '1px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', left: 0, background: rowBg, zIndex: 5 }}>{formatLegacy(sph)}</td>
                       
                       {/* 왼쪽 CYL 셀들 */}
-                      {cylColsLeft.slice(0, -1).map((_, i) => renderCell(sphIndex, i))}
+                      {cylColsLeft.map((_, i) => renderCell(sphIndex, i))}
                       
-                      {/* 가운데 셀 (CYL 000) */}
-                      {renderCell(sphIndex, centerIndex - 1)}
+                      {/* 가운데 구분 셀 */}
+                      <td style={{ border: '1px solid #888', borderLeft: '3px solid #333', borderRight: '3px solid #333', padding: '1px 4px', fontWeight: 600, textAlign: 'center', background: isCurrentRow ? '#e0b0b0' : '#a0a0a0' }}>{formatLegacy(sph)}</td>
                       
                       {/* 오른쪽 CYL 셀들 */}
-                      {cylColsRight.slice(1).map((_, i) => renderCell(sphIndex, centerIndex + i))}
+                      {cylColsRight.map((_, i) => renderCell(sphIndex, cylColsLeft.length + 1 + i))}
                       
-                      {/* 오른쪽 SPH 값 */}
-                      <td style={{ border: '1px solid #999', padding: 1, fontWeight: 700, textAlign: 'center', position: 'sticky', right: 0, background: isCurrentRow ? '#ffcdd2' : '#e0d8c8', zIndex: 5 }}>{formatLegacy(sph)}</td>
+                      {/* 오른쪽 SPH 값 (회색) */}
+                      <td style={{ border: '1px solid #888', padding: '1px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', right: 0, background: rowBg, zIndex: 5 }}>{formatLegacy(sph)}</td>
                     </tr>
                   )
                 })}
