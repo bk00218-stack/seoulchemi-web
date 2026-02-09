@@ -308,7 +308,7 @@ export default function NewOrderPage() {
         <span style={{ fontSize: 10, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 180px', gap: 4, height: 'calc(100vh - 110px)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
         {/* 왼쪽 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 4, borderRadius: 3, overflow: 'hidden', fontSize: 9 }}>
           <section>
@@ -468,19 +468,24 @@ export default function NewOrderPage() {
           <div style={{ padding: '3px 4px', background: '#333', color: '#fff', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px 40px 32px 48px 18px', padding: '2px 3px', background: '#e0e0e0', fontWeight: 600, fontSize: 8, gap: '2px' }}>
-            <span>상품</span><span style={{ textAlign: 'center' }}>SPH</span><span style={{ textAlign: 'center' }}>CYL</span><span style={{ textAlign: 'center' }}>수량</span><span style={{ textAlign: 'right' }}>금액</span><span></span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 36px 36px 28px 44px 16px', padding: '3px 4px', background: '#e0e0e0', fontWeight: 600, fontSize: 8, gap: '4px', alignItems: 'center' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>상품</span>
+            <span style={{ textAlign: 'center' }}>SPH</span>
+            <span style={{ textAlign: 'center' }}>CYL</span>
+            <span style={{ textAlign: 'center' }}>수량</span>
+            <span style={{ textAlign: 'right' }}>금액</span>
+            <span></span>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
             {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#999' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 40px 40px 32px 48px 18px', padding: '2px 3px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 8, gap: '2px' }}>
+                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 36px 36px 28px 44px 16px', padding: '3px 4px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 8, gap: '4px' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.sph}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.cyl}</div>
                   <div style={{ fontWeight: 600, textAlign: 'center' }}>{item.quantity}</div>
                   <div style={{ textAlign: 'right', fontFamily: 'monospace' }}>{(item.product.sellingPrice * item.quantity / 1000).toFixed(0)}k</div>
-                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 14, height: 14, cursor: 'pointer', fontSize: 8, lineHeight: 1 }}>×</button>
+                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 14, height: 14, cursor: 'pointer', fontSize: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                 </div>
               ))
             )}
