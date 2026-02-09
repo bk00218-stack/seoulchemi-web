@@ -199,12 +199,14 @@ export default function NewOrderPage() {
     const maxSphIndex = sphRows.length - 1
     const maxColIndex = totalCols - 1
 
-    if (/^[0-9]$/.test(e.key)) {
+    if (/^[0-9.]$/.test(e.key)) {
       e.preventDefault()
+      // 소수점 중복 방지
+      if (e.key === '.' && cellInputValue.includes('.')) return
       const newValue = cellInputValue + e.key
       setCellInputValue(newValue)
       if (gridFocus) {
-        const qty = parseInt(newValue)
+        const qty = parseFloat(newValue)
         if (!isNaN(qty) && qty > 0) handleGridCellInput(gridFocus.sphIndex, gridFocus.colIndex, qty)
       }
       return
