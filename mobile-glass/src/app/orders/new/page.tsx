@@ -361,47 +361,47 @@ export default function NewOrderPage() {
           <div ref={gridContainerRef} style={{ flex: 1, overflow: 'auto' }}>
             <table style={{ borderCollapse: 'collapse', fontSize: 10, fontFamily: 'monospace' }}>
               <thead>
-                <tr style={{ background: '#d0d0c8' }}>
+                <tr style={{ background: '#e8e8e0' }}>
                   {/* 왼쪽 SPH 헤더 */}
-                  <th style={{ border: '1px solid #888', padding: '2px 4px', fontWeight: 700, minWidth: 32, position: 'sticky', left: 0, background: '#d0d0c8', zIndex: 10 }}>-Sph</th>
+                  <th style={{ border: '1px solid #999', padding: '2px 4px', fontWeight: 700, minWidth: 32, position: 'sticky', left: 0, background: '#e8e8e0', zIndex: 10 }}>-Sph</th>
                   
                   {/* 왼쪽 CYL 열들 (400 → 000) */}
                   {cylColsLeft.map((cyl, i) => (
-                    <th key={`L${i}`} style={{ border: '1px solid #888', padding: '2px 1px', minWidth: 28, fontWeight: 400, background: '#d0d0c8' }}>{formatLegacy(cyl)}</th>
+                    <th key={`L${i}`} style={{ border: '1px solid #999', padding: '2px 1px', minWidth: 28, fontWeight: 400, background: '#e8e8e0' }}>{formatLegacy(cyl)}</th>
                   ))}
                   
                   {/* 가운데 구분 열 -Sph+ */}
-                  <th style={{ border: '1px solid #888', borderLeft: '3px solid #333', borderRight: '3px solid #333', padding: '2px 4px', minWidth: 40, fontWeight: 700, background: '#a0a0a0', color: '#000' }}>-Sph+</th>
+                  <th style={{ border: '1px solid #999', borderLeft: '2px solid #666', borderRight: '2px solid #666', padding: '2px 2px', minWidth: 44, fontWeight: 700, background: '#e8e8e0' }}>-Sph+</th>
                   
                   {/* 오른쪽 CYL 열들 (000 → 400) */}
                   {cylColsRight.map((cyl, i) => (
-                    <th key={`R${i}`} style={{ border: '1px solid #888', padding: '2px 1px', minWidth: 28, fontWeight: 400, background: '#d0d0c8' }}>{formatLegacy(cyl)}</th>
+                    <th key={`R${i}`} style={{ border: '1px solid #999', padding: '2px 1px', minWidth: 28, fontWeight: 400, background: '#e8e8e0' }}>{formatLegacy(cyl)}</th>
                   ))}
                   
                   {/* 오른쪽 SPH 헤더 */}
-                  <th style={{ border: '1px solid #888', padding: '2px 4px', fontWeight: 700, minWidth: 32, position: 'sticky', right: 0, background: '#d0d0c8', zIndex: 10 }}>+Sph</th>
+                  <th style={{ border: '1px solid #999', padding: '2px 4px', fontWeight: 700, minWidth: 32, position: 'sticky', right: 0, background: '#e8e8e0', zIndex: 10 }}>+Sph</th>
                 </tr>
               </thead>
               <tbody>
                 {sphRows.map((sph, sphIndex) => {
                   const isCurrentRow = gridFocus?.sphIndex === sphIndex
-                  const rowBg = isCurrentRow ? '#ffcdd2' : '#d0d0c8'
+                  const rowBg = isCurrentRow ? '#ffcdd2' : '#e8e8e0'
                   return (
                     <tr key={sphIndex}>
                       {/* 왼쪽 SPH 값 (회색) */}
-                      <td style={{ border: '1px solid #888', padding: '1px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', left: 0, background: rowBg, zIndex: 5 }}>{formatLegacy(sph)}</td>
+                      <td style={{ border: '1px solid #999', padding: '1px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', left: 0, background: rowBg, zIndex: 5 }}>{formatLegacy(sph)}</td>
                       
                       {/* 왼쪽 CYL 셀들 */}
                       {cylColsLeft.map((_, i) => renderCell(sphIndex, i))}
                       
-                      {/* 가운데 구분 셀 */}
-                      <td style={{ border: '1px solid #888', borderLeft: '3px solid #333', borderRight: '3px solid #333', padding: '1px 4px', fontWeight: 600, textAlign: 'center', background: isCurrentRow ? '#e0b0b0' : '#a0a0a0' }}>{formatLegacy(sph)}</td>
+                      {/* 가운데 구분 셀: -000+ 형식 */}
+                      <td style={{ border: '1px solid #999', borderLeft: '2px solid #666', borderRight: '2px solid #666', padding: '1px 2px', fontWeight: 600, textAlign: 'center', background: rowBg, fontSize: 9 }}>-{formatLegacy(sph)}+</td>
                       
                       {/* 오른쪽 CYL 셀들 */}
                       {cylColsRight.map((_, i) => renderCell(sphIndex, cylColsLeft.length + 1 + i))}
                       
                       {/* 오른쪽 SPH 값 (회색) */}
-                      <td style={{ border: '1px solid #888', padding: '1px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', right: 0, background: rowBg, zIndex: 5 }}>{formatLegacy(sph)}</td>
+                      <td style={{ border: '1px solid #999', padding: '1px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', right: 0, background: rowBg, zIndex: 5 }}>{formatLegacy(sph)}</td>
                     </tr>
                   )
                 })}
