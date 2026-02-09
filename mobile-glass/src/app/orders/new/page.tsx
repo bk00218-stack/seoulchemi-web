@@ -410,6 +410,19 @@ export default function NewOrderPage() {
               placeholder="이름, 코드, 전화번호로 검색..."
               value={storeSearchText}
               onChange={e => setStoreSearchText(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  // 검색 결과가 있으면 첫번째 선택
+                  if (storeSearchText && filteredStores.length > 0 && !selectedStore) {
+                    setSelectedStore(filteredStores[0])
+                    setStoreSearchText('')
+                  }
+                  // 가맹점 선택 후 Enter → 품목으로 이동
+                  if (selectedStore) {
+                    brandSelectRef.current?.focus()
+                  }
+                }
+              }}
               style={{
                 width: '100%',
                 padding: '8px 10px',
@@ -429,7 +442,7 @@ export default function NewOrderPage() {
               }}>
                 <div style={{ fontWeight: 600 }}>{selectedStore.name}</div>
                 <div style={{ color: '#666' }}>코드: {selectedStore.code}</div>
-                {selectedStore.phone && (
+                {selectedStore.phone && selectedStore.phone !== '-' && (
                   <div style={{ color: '#666' }}>전화: {selectedStore.phone}</div>
                 )}
                 {selectedStore.outstandingAmount !== undefined && (
@@ -437,6 +450,9 @@ export default function NewOrderPage() {
                     미결제: {selectedStore.outstandingAmount.toLocaleString()}원
                   </div>
                 )}
+                <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>
+                  Enter → 품목 선택
+                </div>
               </div>
             )}
             {storeSearchText && !selectedStore && (
