@@ -228,7 +228,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         {/* Sidebar */}
         <aside 
           style={{
-            width: 220,
+            width: 150,
             background: '#fff',
             borderRight: '1px solid var(--gray-200)',
             padding: '16px 0',
@@ -243,7 +243,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           {sidebarMenus.map((menu, menuIdx) => (
             <div key={menuIdx} style={{ marginBottom: 8 }}>
               <div style={{
-                padding: '10px 20px',
+                padding: '8px 12px',
                 fontSize: 11,
                 fontWeight: 700,
                 textTransform: 'uppercase',
@@ -263,7 +263,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     onFocus={() => setSidebarFocusIndex(currentIndex)}
                     style={{
                       display: 'block',
-                      padding: '12px 20px',
+                      padding: '10px 12px',
                       fontSize: 14,
                       color: isActive ? 'var(--primary)' : 'var(--gray-600)',
                       background: isActive ? 'var(--primary-light)' : 
