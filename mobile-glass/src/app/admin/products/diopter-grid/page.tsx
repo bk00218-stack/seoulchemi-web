@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AdminLayout } from '@/app/components/Navigation'
 
 interface Brand {
@@ -9,13 +9,35 @@ interface Brand {
   products: { id: number; name: string; refractiveIndex: string | null; optionName: string | null }[]
 }
 
+interface GridCell {
+  stock: number
+  optionId: number
+  barcode?: string
+  waiting?: number // 대기 수량
+}
+
 interface GridData {
   sphRange: string[]
   cylRange: string[]
-  grid: Record<string, Record<string, { stock: number; optionId: number; barcode?: string }>>
+  grid: Record<string, Record<string, GridCell>>
   stats: { totalOptions: number; totalStock: number; outOfStock: number; lowStock: number }
   productName?: string
   brandName?: string
+}
+
+// 숫자를 레거시 형식으로 변환 (0.25 → "025", -1.00 → "-100")
+const formatLegacy = (value: string): string => {
+  const num = parseFloat(value)
+  const abs = Math.abs(num)
+  const formatted = String(Math.round(abs * 100)).padStart(3, '0')
+  return num < 0 ? `-${formatted}` : formatted
+}
+
+// 레거시 형식을 숫자로 변환
+const parseLegacy = (value: string): number => {
+  const isNegative = value.startsWith('-')
+  const abs = parseInt(value.replace('-', ''), 10)
+  return (isNegative ? -abs : abs) / 100
 }
 
 export default function DiopterGridPage() {
@@ -26,11 +48,14 @@ export default function DiopterGridPage() {
   const [loading, setLoading] = useState(true)
   const [gridLoading, setGridLoading] = useState(false)
 
+  // 선택된 셀
+  const [selectedCell, setSelectedCell] = useState<{ sph: string; cyl: string } | null>(null)
+  
   // 옵션 생성 모달
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState({
-    sphMin: -6,
-    sphMax: 0,
+    sphMin: -8,
+    sphMax: 4,
     sphStep: 0.25,
     cylMin: -2,
     cylMax: 0,
@@ -99,7 +124,7 @@ export default function DiopterGridPage() {
     }
   }
 
-  const openEditModal = (sph: string, cyl: string, cell: { stock: number; optionId: number; barcode?: string }) => {
+  const openEditModal = (sph: string, cyl: string, cell: GridCell) => {
     setEditingCell({ sph, cyl, ...cell })
     setEditForm({
       stock: cell.stock,
@@ -108,6 +133,14 @@ export default function DiopterGridPage() {
       location: ''
     })
     setShowEditModal(true)
+  }
+
+  const handleCellClick = (sph: string, cyl: string) => {
+    setSelectedCell({ sph, cyl })
+    const cell = gridData?.grid[sph]?.[cyl]
+    if (cell) {
+      openEditModal(sph, cyl, cell)
+    }
   }
 
   const handleSaveCell = async () => {
@@ -175,80 +208,219 @@ export default function DiopterGridPage() {
     }
   }
 
-  const getStockColor = (stock: number) => {
-    if (stock === 0) return { bg: '#fef2f2', color: '#dc2626' }
-    if (stock <= 5) return { bg: '#fef3c7', color: '#d97706' }
-    if (stock <= 10) return { bg: '#d1fae5', color: '#059669' }
-    return { bg: '#dbeafe', color: '#2563eb' }
-  }
+  // SPH 범위를 마이너스/플러스로 분리
+  const splitSphRange = useCallback(() => {
+    if (!gridData) return { minus: [], plus: [] }
+    
+    const minus: string[] = []
+    const plus: string[] = []
+    
+    gridData.sphRange.forEach(sph => {
+      const num = parseFloat(sph)
+      if (num < 0) {
+        minus.push(sph)
+      } else {
+        plus.push(sph)
+      }
+    })
+    
+    // 마이너스는 절대값 큰 순서로 (왼쪽에서 오른쪽으로 0에 가까워짐)
+    minus.sort((a, b) => parseFloat(a) - parseFloat(b))
+    // 플러스는 작은 순서로
+    plus.sort((a, b) => parseFloat(a) - parseFloat(b))
+    
+    return { minus, plus }
+  }, [gridData])
+
+  const { minus: minusSph, plus: plusSph } = splitSphRange()
 
   const selectedBrandData = brands.find(b => b.id === selectedBrand)
+  
+  // 현재 선택된 셀 정보
+  const currentCell = selectedCell && gridData?.grid[selectedCell.sph]?.[selectedCell.cyl]
+
+  // 그리드 렌더링 함수
+  const renderGrid = (sphRange: string[], side: 'minus' | 'plus') => {
+    if (!gridData || sphRange.length === 0) return null
+    
+    return (
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        <table style={{ 
+          borderCollapse: 'collapse', 
+          width: '100%',
+          fontSize: '12px',
+          fontFamily: 'monospace'
+        }}>
+          <thead>
+            <tr>
+              <th style={{ 
+                position: 'sticky',
+                left: 0,
+                top: 0,
+                background: '#e8e8e0',
+                padding: '4px 2px',
+                border: '1px solid #999',
+                fontWeight: 'bold',
+                zIndex: 10,
+                minWidth: '36px',
+                fontSize: '11px'
+              }}>
+                {side === 'minus' ? '-Sph' : 'Sph+'}
+              </th>
+              {sphRange.map(sph => (
+                <th 
+                  key={sph}
+                  style={{
+                    position: 'sticky',
+                    top: 0,
+                    background: '#e8e8e0',
+                    padding: '4px 2px',
+                    border: '1px solid #999',
+                    fontWeight: 'normal',
+                    minWidth: '32px',
+                    zIndex: 5,
+                    fontSize: '11px'
+                  }}
+                >
+                  {formatLegacy(sph).replace('-', '')}
+                </th>
+              ))}
+              <th style={{
+                position: 'sticky',
+                right: 0,
+                top: 0,
+                background: '#e8e8e0',
+                padding: '4px 2px',
+                border: '1px solid #999',
+                fontWeight: 'bold',
+                zIndex: 10,
+                minWidth: '36px',
+                fontSize: '11px'
+              }}>
+                {side === 'minus' ? '-Sph' : 'Sph+'}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {gridData.cylRange.map((cyl, rowIdx) => {
+              const cylNum = parseFloat(cyl)
+              // 고도수 영역 표시 (CYL -1.00 이하)
+              const isHighPower = cylNum <= -1
+              const rowBg = isHighPower ? '#ffe4e4' : (rowIdx % 2 === 0 ? '#fffef0' : '#fff')
+              
+              return (
+                <tr key={cyl}>
+                  <td style={{
+                    position: 'sticky',
+                    left: 0,
+                    background: '#e8e8e0',
+                    padding: '2px 4px',
+                    border: '1px solid #999',
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    fontSize: '11px'
+                  }}>
+                    {formatLegacy(cyl).replace('-', '')}
+                  </td>
+                  {sphRange.map(sph => {
+                    const cell = gridData.grid[sph]?.[cyl]
+                    const isSelected = selectedCell?.sph === sph && selectedCell?.cyl === cyl
+                    
+                    return (
+                      <td
+                        key={sph}
+                        onClick={() => cell && handleCellClick(sph, cyl)}
+                        style={{
+                          padding: '2px',
+                          border: '1px solid #ccc',
+                          background: isSelected ? '#4a90d9' : rowBg,
+                          color: isSelected ? '#fff' : (cell ? (cell.stock === 0 ? '#c00' : '#000') : '#ccc'),
+                          textAlign: 'center',
+                          cursor: cell ? 'pointer' : 'default',
+                          fontWeight: cell && cell.stock > 0 ? 'bold' : 'normal',
+                          fontSize: '11px'
+                        }}
+                      >
+                        {cell ? (cell.stock > 0 ? cell.stock : '') : ''}
+                      </td>
+                    )
+                  })}
+                  <td style={{
+                    position: 'sticky',
+                    right: 0,
+                    background: '#e8e8e0',
+                    padding: '2px 4px',
+                    border: '1px solid #999',
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    fontSize: '11px'
+                  }}>
+                    {formatLegacy(cyl).replace('-', '')}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
 
   return (
     <AdminLayout activeMenu="products">
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>도수표 그리드</h1>
-        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
-          SPH/CYL 조합별 재고를 한눈에 확인합니다
-        </p>
-      </div>
-
-      {/* 선택 영역 */}
+      {/* 상단 툴바 - 레거시 스타일 */}
       <div style={{ 
-        background: '#fff', 
-        borderRadius: '12px', 
-        padding: '20px', 
-        marginBottom: '24px',
+        background: '#f0f0f0', 
+        border: '1px solid #999',
+        padding: '8px',
+        marginBottom: '8px',
         display: 'flex',
         gap: '16px',
-        alignItems: 'flex-end'
+        alignItems: 'center',
+        flexWrap: 'wrap'
       }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-            브랜드
-          </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 500 }}>품목[F5]</label>
           <select
             value={selectedBrand || ''}
             onChange={(e) => {
               setSelectedBrand(parseInt(e.target.value) || null)
               setSelectedProduct(null)
               setGridData(null)
+              setSelectedCell(null)
             }}
             style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid #e5e5e5',
-              fontSize: '14px'
+              padding: '4px 8px',
+              border: '1px solid #999',
+              fontSize: '13px',
+              minWidth: '120px'
             }}
           >
-            <option value="">브랜드 선택</option>
+            <option value="">선택</option>
             {brands.map(brand => (
-              <option key={brand.id} value={brand.id}>
-                {brand.name} ({brand.products.length}개 상품)
-              </option>
+              <option key={brand.id} value={brand.id}>{brand.name}</option>
             ))}
           </select>
         </div>
 
-        <div style={{ flex: 2 }}>
-          <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-            상품
-          </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 500 }}>품명[F6]</label>
           <select
             value={selectedProduct || ''}
-            onChange={(e) => setSelectedProduct(parseInt(e.target.value) || null)}
+            onChange={(e) => {
+              setSelectedProduct(parseInt(e.target.value) || null)
+              setSelectedCell(null)
+            }}
             disabled={!selectedBrand}
             style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid #e5e5e5',
-              fontSize: '14px',
-              background: !selectedBrand ? '#f9fafb' : '#fff'
+              padding: '4px 8px',
+              border: '1px solid #999',
+              fontSize: '13px',
+              minWidth: '150px',
+              background: !selectedBrand ? '#eee' : '#fff'
             }}
           >
-            <option value="">상품 선택</option>
+            <option value="">선택</option>
             {selectedBrandData?.products.map(product => (
               <option key={product.id} value={product.id}>
                 {product.name} {product.refractiveIndex && `(${product.refractiveIndex})`}
@@ -257,225 +429,137 @@ export default function DiopterGridPage() {
           </select>
         </div>
 
+        <div style={{ borderLeft: '1px solid #999', height: '24px' }} />
+
         {selectedProduct && (
           <button
             onClick={() => setShowCreateModal(true)}
             style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              background: '#007aff',
-              color: '#fff',
-              fontWeight: 500,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            + 옵션 일괄 생성
-          </button>
-        )}
-      </div>
-
-      {/* 그리드 */}
-      {gridLoading ? (
-        <div style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>
-          로딩 중...
-        </div>
-      ) : gridData && gridData.sphRange.length > 0 ? (
-        <>
-          {/* 통계 */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(4, 1fr)', 
-            gap: '16px', 
-            marginBottom: '24px' 
-          }}>
-            <div style={{ background: '#fff', borderRadius: '12px', padding: '16px' }}>
-              <div style={{ fontSize: '13px', color: '#86868b' }}>총 옵션</div>
-              <div style={{ fontSize: '24px', fontWeight: 600 }}>{gridData.stats.totalOptions}</div>
-            </div>
-            <div style={{ background: '#fff', borderRadius: '12px', padding: '16px' }}>
-              <div style={{ fontSize: '13px', color: '#86868b' }}>총 재고</div>
-              <div style={{ fontSize: '24px', fontWeight: 600 }}>{gridData.stats.totalStock.toLocaleString()}</div>
-            </div>
-            <div style={{ background: '#fff', borderRadius: '12px', padding: '16px' }}>
-              <div style={{ fontSize: '13px', color: '#dc2626' }}>품절</div>
-              <div style={{ fontSize: '24px', fontWeight: 600, color: '#dc2626' }}>{gridData.stats.outOfStock}</div>
-            </div>
-            <div style={{ background: '#fff', borderRadius: '12px', padding: '16px' }}>
-              <div style={{ fontSize: '13px', color: '#d97706' }}>재고 부족 (≤5)</div>
-              <div style={{ fontSize: '24px', fontWeight: 600, color: '#d97706' }}>{gridData.stats.lowStock}</div>
-            </div>
-          </div>
-
-          {/* 범례 */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '16px', 
-            marginBottom: '16px',
-            fontSize: '13px'
-          }}>
-            <span>재고 색상:</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '16px', height: '16px', background: '#fef2f2', borderRadius: '4px', border: '1px solid #fecaca' }} />
-              품절
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '16px', height: '16px', background: '#fef3c7', borderRadius: '4px', border: '1px solid #fde68a' }} />
-              1~5
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '16px', height: '16px', background: '#d1fae5', borderRadius: '4px', border: '1px solid #a7f3d0' }} />
-              6~10
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '16px', height: '16px', background: '#dbeafe', borderRadius: '4px', border: '1px solid #bfdbfe' }} />
-              11+
-            </span>
-          </div>
-
-          {/* 그리드 테이블 */}
-          <div style={{ 
-            background: '#fff', 
-            borderRadius: '12px', 
-            overflow: 'auto',
-            maxHeight: 'calc(100vh - 400px)'
-          }}>
-            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-              <thead>
-                <tr>
-                  <th style={{ 
-                    position: 'sticky', 
-                    left: 0, 
-                    top: 0,
-                    background: '#f9fafb', 
-                    padding: '12px', 
-                    borderBottom: '1px solid #e5e5e5',
-                    borderRight: '2px solid #e5e5e5',
-                    zIndex: 10,
-                    minWidth: '80px'
-                  }}>
-                    SPH \ CYL
-                  </th>
-                  {gridData.cylRange.map(cyl => (
-                    <th 
-                      key={cyl} 
-                      style={{ 
-                        position: 'sticky',
-                        top: 0,
-                        background: '#f9fafb', 
-                        padding: '12px 8px', 
-                        borderBottom: '1px solid #e5e5e5',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        minWidth: '50px',
-                        zIndex: 5
-                      }}
-                    >
-                      {cyl}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {gridData.sphRange.map(sph => (
-                  <tr key={sph}>
-                    <td style={{ 
-                      position: 'sticky',
-                      left: 0,
-                      background: '#f9fafb', 
-                      padding: '8px 12px', 
-                      borderRight: '2px solid #e5e5e5',
-                      fontSize: '13px',
-                      fontWeight: 500,
-                      zIndex: 5
-                    }}>
-                      {sph}
-                    </td>
-                    {gridData.cylRange.map(cyl => {
-                      const cell = gridData.grid[sph]?.[cyl]
-                      const colors = cell ? getStockColor(cell.stock) : { bg: '#f3f4f6', color: '#9ca3af' }
-                      
-                      return (
-                        <td 
-                          key={cyl}
-                          style={{ 
-                            padding: '4px',
-                            textAlign: 'center'
-                          }}
-                        >
-                          {cell ? (
-                            <div
-                              onClick={() => openEditModal(sph, cyl, cell)}
-                              style={{
-                                background: colors.bg,
-                                color: colors.color,
-                                padding: '8px 4px',
-                                borderRadius: '4px',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'transform 0.1s',
-                              }}
-                              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                              title={`클릭하여 수정${cell.barcode ? `\n바코드: ${cell.barcode}` : ''}`}
-                            >
-                              {cell.stock}
-                            </div>
-                          ) : (
-                            <div style={{ 
-                              padding: '8px 4px', 
-                              color: '#d1d5db',
-                              fontSize: '12px'
-                            }}>
-                              -
-                            </div>
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      ) : selectedProduct ? (
-        <div style={{ 
-          background: '#fff', 
-          borderRadius: '12px', 
-          padding: '60px', 
-          textAlign: 'center' 
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-          <div style={{ color: '#86868b', marginBottom: '16px' }}>등록된 도수 옵션이 없습니다</div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              background: '#007aff',
-              color: '#fff',
-              fontWeight: 500,
+              padding: '4px 12px',
+              border: '1px solid #999',
+              background: 'linear-gradient(to bottom, #fff, #ddd)',
+              fontSize: '13px',
               cursor: 'pointer'
             }}
           >
-            + 옵션 일괄 생성
+            옵션 일괄생성
+          </button>
+        )}
+
+        <button
+          onClick={() => gridData && fetchGrid()}
+          disabled={!selectedProduct}
+          style={{
+            padding: '4px 12px',
+            border: '1px solid #999',
+            background: 'linear-gradient(to bottom, #fff, #ddd)',
+            fontSize: '13px',
+            cursor: selectedProduct ? 'pointer' : 'not-allowed'
+          }}
+        >
+          새로고침
+        </button>
+      </div>
+
+      {/* 그리드 영역 */}
+      {gridLoading ? (
+        <div style={{ 
+          padding: '60px', 
+          textAlign: 'center', 
+          color: '#666',
+          background: '#fff',
+          border: '1px solid #999'
+        }}>
+          로딩 중...
+        </div>
+      ) : gridData && gridData.sphRange.length > 0 ? (
+        <div style={{ 
+          display: 'flex', 
+          gap: '4px',
+          background: '#fff',
+          border: '1px solid #999',
+          height: 'calc(100vh - 280px)',
+          overflow: 'hidden'
+        }}>
+          {/* 마이너스 SPH 그리드 */}
+          {minusSph.length > 0 && renderGrid(minusSph, 'minus')}
+          
+          {/* 구분선 */}
+          {minusSph.length > 0 && plusSph.length > 0 && (
+            <div style={{ 
+              width: '2px', 
+              background: '#666',
+              flexShrink: 0
+            }} />
+          )}
+          
+          {/* 플러스 SPH 그리드 */}
+          {plusSph.length > 0 && renderGrid(plusSph, 'plus')}
+        </div>
+      ) : selectedProduct ? (
+        <div style={{ 
+          background: '#fff', 
+          border: '1px solid #999',
+          padding: '60px', 
+          textAlign: 'center' 
+        }}>
+          <div style={{ marginBottom: '16px', color: '#666' }}>등록된 도수 옵션이 없습니다</div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              padding: '8px 20px',
+              border: '1px solid #999',
+              background: 'linear-gradient(to bottom, #fff, #ddd)',
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            옵션 일괄 생성
           </button>
         </div>
       ) : (
         <div style={{ 
           background: '#fff', 
-          borderRadius: '12px', 
+          border: '1px solid #999',
           padding: '60px', 
           textAlign: 'center',
-          color: '#86868b'
+          color: '#666'
         }}>
-          브랜드와 상품을 선택하세요
+          품목과 품명을 선택하세요
         </div>
       )}
+
+      {/* 상태바 - 레거시 스타일 */}
+      <div style={{
+        background: '#f0f0f0',
+        border: '1px solid #999',
+        borderTop: 'none',
+        padding: '6px 12px',
+        display: 'flex',
+        gap: '24px',
+        fontSize: '13px'
+      }}>
+        {selectedCell && currentCell ? (
+          <>
+            <span>SPH: {formatLegacy(selectedCell.sph)}</span>
+            <span>CYL: {formatLegacy(selectedCell.cyl)}</span>
+            <span>[현재고: {currentCell.stock}]</span>
+            {currentCell.waiting !== undefined && <span>[대기: {currentCell.waiting}]</span>}
+          </>
+        ) : (
+          <span>셀을 선택하세요</span>
+        )}
+        
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '16px' }}>
+          {gridData && (
+            <>
+              <span>총 옵션: {gridData.stats.totalOptions}</span>
+              <span>총 재고: {gridData.stats.totalStock.toLocaleString()}</span>
+              <span style={{ color: '#c00' }}>품절: {gridData.stats.outOfStock}</span>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* 옵션 생성 모달 */}
       {showCreateModal && (
@@ -492,128 +576,133 @@ export default function DiopterGridPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
-            borderRadius: '16px',
-            padding: '24px',
-            width: '500px'
+            background: '#f0f0f0',
+            border: '2px solid #999',
+            padding: '16px',
+            width: '450px'
           }}>
-            <h2 style={{ margin: '0 0 20px', fontSize: '18px' }}>도수 옵션 일괄 생성</h2>
+            <div style={{ 
+              background: '#000080', 
+              color: '#fff', 
+              padding: '4px 8px', 
+              marginBottom: '16px',
+              fontWeight: 'bold',
+              fontSize: '14px'
+            }}>
+              도수 옵션 일괄 생성
+            </div>
 
-            <div style={{ display: 'grid', gap: '16px' }}>
+            <div style={{ display: 'grid', gap: '12px' }}>
               {/* SPH 범위 */}
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '8px' }}>
-                  SPH 범위
-                </label>
+              <fieldset style={{ border: '1px solid #999', padding: '12px' }}>
+                <legend style={{ fontSize: '13px', fontWeight: 500 }}>SPH 범위</legend>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#86868b' }}>최소</label>
+                    <label style={{ fontSize: '12px', display: 'block' }}>최소</label>
                     <input
                       type="number"
                       step="0.25"
                       value={createForm.sphMin}
                       onChange={(e) => setCreateForm({ ...createForm, sphMin: parseFloat(e.target.value) })}
-                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                      style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#86868b' }}>최대</label>
+                    <label style={{ fontSize: '12px', display: 'block' }}>최대</label>
                     <input
                       type="number"
                       step="0.25"
                       value={createForm.sphMax}
                       onChange={(e) => setCreateForm({ ...createForm, sphMax: parseFloat(e.target.value) })}
-                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                      style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#86868b' }}>간격</label>
+                    <label style={{ fontSize: '12px', display: 'block' }}>간격</label>
                     <select
                       value={createForm.sphStep}
                       onChange={(e) => setCreateForm({ ...createForm, sphStep: parseFloat(e.target.value) })}
-                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                      style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                     >
                       <option value="0.25">0.25</option>
                       <option value="0.5">0.50</option>
                     </select>
                   </div>
                 </div>
-              </div>
+              </fieldset>
 
               {/* CYL 범위 */}
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '8px' }}>
-                  CYL 범위
-                </label>
+              <fieldset style={{ border: '1px solid #999', padding: '12px' }}>
+                <legend style={{ fontSize: '13px', fontWeight: 500 }}>CYL 범위</legend>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#86868b' }}>최소</label>
+                    <label style={{ fontSize: '12px', display: 'block' }}>최소</label>
                     <input
                       type="number"
                       step="0.25"
                       value={createForm.cylMin}
                       onChange={(e) => setCreateForm({ ...createForm, cylMin: parseFloat(e.target.value) })}
-                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                      style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#86868b' }}>최대</label>
+                    <label style={{ fontSize: '12px', display: 'block' }}>최대</label>
                     <input
                       type="number"
                       step="0.25"
                       value={createForm.cylMax}
                       onChange={(e) => setCreateForm({ ...createForm, cylMax: parseFloat(e.target.value) })}
-                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                      style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#86868b' }}>간격</label>
+                    <label style={{ fontSize: '12px', display: 'block' }}>간격</label>
                     <select
                       value={createForm.cylStep}
                       onChange={(e) => setCreateForm({ ...createForm, cylStep: parseFloat(e.target.value) })}
-                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                      style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                     >
                       <option value="0.25">0.25</option>
                       <option value="0.5">0.50</option>
                     </select>
                   </div>
                 </div>
-              </div>
+              </fieldset>
 
               {/* 기본 재고 */}
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, display: 'block', marginBottom: '8px' }}>
-                  기본 재고
-                </label>
+                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>기본 재고</label>
                 <input
                   type="number"
                   value={createForm.defaultStock}
                   onChange={(e) => setCreateForm({ ...createForm, defaultStock: parseInt(e.target.value) || 0 })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                  style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                 />
               </div>
 
-              {/* 생성될 옵션 수 미리보기 */}
-              <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '8px', fontSize: '14px' }}>
-                예상 생성 옵션: {' '}
+              {/* 미리보기 */}
+              <div style={{ 
+                padding: '8px', 
+                background: '#fff', 
+                border: '1px solid #999',
+                fontSize: '13px'
+              }}>
+                예상 생성: {' '}
                 <strong>
                   {Math.floor((createForm.sphMax - createForm.sphMin) / createForm.sphStep + 1) *
                    Math.floor((createForm.cylMax - createForm.cylMin) / createForm.cylStep + 1)}개
                 </strong>
-                <div style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>
-                  (기존 옵션이 있으면 건너뜀)
-                </div>
+                <span style={{ marginLeft: '8px', color: '#666' }}>(기존 옵션 건너뜀)</span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setShowCreateModal(false)}
                 style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
-                  background: '#fff',
+                  padding: '6px 16px',
+                  border: '1px solid #999',
+                  background: 'linear-gradient(to bottom, #fff, #ddd)',
                   cursor: 'pointer'
                 }}
               >
@@ -623,12 +712,9 @@ export default function DiopterGridPage() {
                 onClick={handleCreateOptions}
                 disabled={creating}
                 style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: creating ? '#e5e5e5' : '#007aff',
-                  color: '#fff',
-                  fontWeight: 500,
+                  padding: '6px 16px',
+                  border: '1px solid #999',
+                  background: creating ? '#ccc' : 'linear-gradient(to bottom, #fff, #ddd)',
                   cursor: creating ? 'not-allowed' : 'pointer'
                 }}
               >
@@ -654,31 +740,35 @@ export default function DiopterGridPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
-            borderRadius: '16px',
-            padding: '24px',
-            width: '400px'
+            background: '#f0f0f0',
+            border: '2px solid #999',
+            padding: '16px',
+            width: '380px'
           }}>
-            <h2 style={{ margin: '0 0 8px', fontSize: '18px' }}>도수 옵션 수정</h2>
-            <p style={{ margin: '0 0 20px', fontSize: '14px', color: '#86868b' }}>
-              SPH: {editingCell.sph} / CYL: {editingCell.cyl}
-            </p>
+            <div style={{ 
+              background: '#000080', 
+              color: '#fff', 
+              padding: '4px 8px', 
+              marginBottom: '16px',
+              fontWeight: 'bold',
+              fontSize: '14px'
+            }}>
+              재고 수정 - SPH: {formatLegacy(editingCell.sph)} / CYL: {formatLegacy(editingCell.cyl)}
+            </div>
 
-            <div style={{ display: 'grid', gap: '16px' }}>
+            <div style={{ display: 'grid', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  재고
-                </label>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>재고</label>
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                   <button
                     onClick={() => setEditForm({ ...editForm, stock: Math.max(0, editForm.stock - 10) })}
-                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', cursor: 'pointer' }}
+                    style={{ padding: '4px 8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}
                   >
                     -10
                   </button>
                   <button
                     onClick={() => setEditForm({ ...editForm, stock: Math.max(0, editForm.stock - 1) })}
-                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', cursor: 'pointer' }}
+                    style={{ padding: '4px 8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}
                   >
                     -1
                   </button>
@@ -688,32 +778,31 @@ export default function DiopterGridPage() {
                     onChange={(e) => setEditForm({ ...editForm, stock: parseInt(e.target.value) || 0 })}
                     style={{
                       flex: 1,
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      padding: '6px',
+                      border: '1px solid #999',
+                      textAlign: 'center',
                       fontSize: '16px',
-                      fontWeight: 600,
-                      textAlign: 'center'
+                      fontWeight: 'bold'
                     }}
                   />
                   <button
                     onClick={() => setEditForm({ ...editForm, stock: editForm.stock + 1 })}
-                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', cursor: 'pointer' }}
+                    style={{ padding: '4px 8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}
                   >
                     +1
                   </button>
                   <button
                     onClick={() => setEditForm({ ...editForm, stock: editForm.stock + 10 })}
-                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', cursor: 'pointer' }}
+                    style={{ padding: '4px 8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}
                   >
                     +10
                   </button>
                 </div>
                 {editForm.stock !== editingCell.stock && (
                   <div style={{ 
-                    marginTop: '8px', 
-                    fontSize: '13px', 
-                    color: editForm.stock > editingCell.stock ? '#10b981' : '#dc2626' 
+                    marginTop: '4px', 
+                    fontSize: '12px', 
+                    color: editForm.stock > editingCell.stock ? '#080' : '#c00' 
                   }}>
                     변경: {editingCell.stock} → {editForm.stock} 
                     ({editForm.stock > editingCell.stock ? '+' : ''}{editForm.stock - editingCell.stock})
@@ -721,77 +810,49 @@ export default function DiopterGridPage() {
                 )}
               </div>
 
-              <div>
-                <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  가격 조정 (기본가 대비)
-                </label>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <input
-                    type="number"
-                    value={editForm.priceAdjustment}
-                    onChange={(e) => setEditForm({ ...editForm, priceAdjustment: parseInt(e.target.value) || 0 })}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
-                      fontSize: '14px'
-                    }}
-                  />
-                  <span style={{ fontSize: '14px', color: '#666' }}>원</span>
-                </div>
-                <div style={{ marginTop: '4px', fontSize: '12px', color: '#86868b' }}>
-                  예: 고도수 추가금 +5000
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div>
-                  <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                    바코드
-                  </label>
+                  <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>바코드</label>
                   <input
                     type="text"
                     value={editForm.barcode}
                     onChange={(e) => setEditForm({ ...editForm, barcode: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
-                      fontSize: '14px'
-                    }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                    위치
-                  </label>
+                  <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>위치</label>
                   <input
                     type="text"
                     value={editForm.location}
                     onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                     placeholder="예: A-1-3"
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
-                      fontSize: '14px'
-                    }}
+                    style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                   />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>가격 조정</label>
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  <input
+                    type="number"
+                    value={editForm.priceAdjustment}
+                    onChange={(e) => setEditForm({ ...editForm, priceAdjustment: parseInt(e.target.value) || 0 })}
+                    style={{ flex: 1, padding: '4px', border: '1px solid #999' }}
+                  />
+                  <span style={{ fontSize: '13px' }}>원</span>
                 </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setShowEditModal(false)}
                 style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
-                  background: '#fff',
+                  padding: '6px 16px',
+                  border: '1px solid #999',
+                  background: 'linear-gradient(to bottom, #fff, #ddd)',
                   cursor: 'pointer'
                 }}
               >
@@ -801,12 +862,9 @@ export default function DiopterGridPage() {
                 onClick={handleSaveCell}
                 disabled={saving}
                 style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: saving ? '#e5e5e5' : '#007aff',
-                  color: '#fff',
-                  fontWeight: 500,
+                  padding: '6px 16px',
+                  border: '1px solid #999',
+                  background: saving ? '#ccc' : 'linear-gradient(to bottom, #fff, #ddd)',
                   cursor: saving ? 'not-allowed' : 'pointer'
                 }}
               >
