@@ -279,9 +279,11 @@ export default function NewOrderPage() {
     const item = orderItems.find(i => i.product.id === selectedProductId && i.sph === sphStr && i.cyl === cylStr)
     const isFocused = gridFocus?.sphIndex === sphIndex && gridFocus?.colIndex === colIndex
     const isCurrentRow = gridFocus?.sphIndex === sphIndex
+    const isCurrentCol = gridFocus?.colIndex === colIndex
     
     let bg = sphIndex % 2 === 0 ? '#fffde7' : '#fff'
-    if (isCurrentRow) bg = '#ffcdd2' // 핑크 행
+    if (isCurrentRow || isCurrentCol) bg = '#ffcdd2' // 핑크 행/열
+    if (isCurrentRow && isCurrentCol) bg = '#ef9a9a' // 교차점 더 진하게
     if (isFocused) bg = '#42a5f5'
     if (item) bg = '#4caf50'
     
@@ -415,15 +417,15 @@ export default function NewOrderPage() {
                   
                   {/* 왼쪽 CYL 열들 (400 → 000) */}
                   {cylColsLeft.map((cyl, i) => (
-                    <th key={`L${i}`} style={{ border: '1px solid #999', padding: '3px 2px', minWidth: 34, fontWeight: 400, background: '#e8e8e0', fontSize: 11 }}>{formatLegacy(cyl)}</th>
+                    <th key={`L${i}`} style={{ border: '1px solid #999', padding: '3px 2px', minWidth: 34, fontWeight: 400, background: gridFocus?.colIndex === i ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>{formatLegacy(cyl)}</th>
                   ))}
                   
                   {/* 가운데 구분 열 -Sph+ */}
-                  <th style={{ border: '1px solid #999', borderLeft: '2px solid #666', borderRight: '2px solid #666', padding: '3px 4px', minWidth: 50, fontWeight: 700, background: '#e8e8e0', fontSize: 11 }}>-Sph+</th>
+                  <th style={{ border: '1px solid #999', borderLeft: '2px solid #666', borderRight: '2px solid #666', padding: '3px 4px', minWidth: 50, fontWeight: 700, background: gridFocus?.colIndex === cylColsLeft.length ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>-Sph+</th>
                   
                   {/* 오른쪽 CYL 열들 (000 → 400) */}
                   {cylColsRight.map((cyl, i) => (
-                    <th key={`R${i}`} style={{ border: '1px solid #999', padding: '3px 2px', minWidth: 34, fontWeight: 400, background: '#e8e8e0', fontSize: 11 }}>{formatLegacy(cyl)}</th>
+                    <th key={`R${i}`} style={{ border: '1px solid #999', padding: '3px 2px', minWidth: 34, fontWeight: 400, background: gridFocus?.colIndex === cylColsLeft.length + 1 + i ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>{formatLegacy(cyl)}</th>
                   ))}
                   
                   {/* 오른쪽 SPH 헤더 */}
