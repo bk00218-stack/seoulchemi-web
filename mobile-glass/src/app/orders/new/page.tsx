@@ -195,9 +195,13 @@ export default function NewOrderPage() {
           setGridFocus(null)
           setCellInputValue('')
         } else {
+          // 전체 초기화
           setSelectedStore(null)
           setStoreSearchText('')
           setStoreFocusIndex(-1)
+          setSelectedBrandId(null)
+          setSelectedProductId(null)
+          setProductFocusIndex(-1)
           storeInputRef.current?.focus()
         }
       }
@@ -717,11 +721,18 @@ export default function NewOrderPage() {
               ref={brandSelectRef}
               value={selectedBrandId || ''}
               onChange={e => {
-                setSelectedBrandId(e.target.value ? parseInt(e.target.value) : null)
+                const brandId = e.target.value ? parseInt(e.target.value) : null
+                setSelectedBrandId(brandId)
                 setSelectedProductId(null)
                 setProductFocusIndex(-1)
+                // 브랜드 선택 시 자동으로 상품 목록으로 포커스
+                if (brandId) {
+                  setTimeout(() => {
+                    setProductFocusIndex(0)
+                    productListRef.current?.focus()
+                  }, 50)
+                }
               }}
-              onKeyDown={handleBrandKeyDown}
               style={{
                 width: '100%',
                 padding: '8px 10px',
@@ -738,7 +749,7 @@ export default function NewOrderPage() {
               ))}
             </select>
             <div style={{ fontSize: 10, color: '#999', marginTop: 2 }}>
-              브랜드 선택 후 Enter → 상품 선택
+              브랜드 선택 → 자동으로 상품 목록 이동
             </div>
           </section>
 
