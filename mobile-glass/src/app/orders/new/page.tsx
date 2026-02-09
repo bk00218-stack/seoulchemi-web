@@ -339,16 +339,16 @@ export default function NewOrderPage() {
                         display: 'inline-flex', 
                         flexDirection: 'column', 
                         alignItems: 'center',
+                        justifyContent: 'center',
                         width: 12, 
                         height: 12, 
                         background: '#fff',
                         border: '1px solid #e53935',
+                        borderTop: '3px solid #e53935',
                         borderRadius: 1,
-                        overflow: 'hidden',
                         lineHeight: 1
                       }}>
-                        <span style={{ fontSize: 3, fontWeight: 700, color: '#fff', background: '#e53935', width: '100%', textAlign: 'center' }}>FEB</span>
-                        <span style={{ fontSize: 6, fontWeight: 700, color: '#1d1d1f' }}>{selectedStore.paymentTermDays}</span>
+                        <span style={{ fontSize: 7, fontWeight: 700, color: '#1d1d1f' }}>{selectedStore.paymentTermDays}</span>
                       </span>
                     </span>
                   ) : '-'}
