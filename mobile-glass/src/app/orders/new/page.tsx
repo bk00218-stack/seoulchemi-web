@@ -433,14 +433,15 @@ export default function NewOrderPage() {
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          gap: 10,
+          gap: 8,
           background: '#f5f5f5',
           padding: 12,
           borderRadius: 8,
-          overflow: 'auto'
+          overflow: 'hidden',
+          minHeight: 0
         }}>
           {/* 가맹점 선택 */}
-          <section>
+          <section style={{ flexShrink: 0 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>상호 [Esc]</label>
             <input
               ref={storeInputRef}
@@ -562,7 +563,7 @@ export default function NewOrderPage() {
           </section>
 
           {/* 주문 유형 */}
-          <section>
+          <section style={{ flexShrink: 0 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>주문 구분</label>
             <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
               {(['여벌', '착색', 'RX', '기타'] as const).map(type => (
@@ -595,7 +596,7 @@ export default function NewOrderPage() {
           </section>
 
           {/* 품목 (브랜드) 선택 */}
-          <section>
+          <section style={{ flexShrink: 0 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>품목 [F5]</label>
             <select
               ref={brandSelectRef}
@@ -627,8 +628,8 @@ export default function NewOrderPage() {
           </section>
 
           {/* 상품 선택 */}
-          <section style={{ flex: 1, overflow: 'auto' }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>상품 [F6]</label>
+          <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#333', flexShrink: 0 }}>상품 [F6]</label>
             <div 
               ref={productListRef}
               tabIndex={0}
@@ -638,9 +639,10 @@ export default function NewOrderPage() {
                 border: '1px solid #ccc',
                 borderRadius: 4,
                 background: '#fff',
-                maxHeight: 300,
+                flex: 1,
                 overflow: 'auto',
-                outline: 'none'
+                outline: 'none',
+                minHeight: 0
               }}
             >
               {filteredProducts.length === 0 ? (
