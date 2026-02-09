@@ -155,9 +155,40 @@ export default function NewOrderPage() {
     fetch('/api/stores').then(r => r.json()).then(data => setStores(data.stores || []))
   }, [])
 
-  // 글로벌 Escape 키 핸들러 - 상호 검색으로 돌아가기
+  // 글로벌 단축키 핸들러
   useEffect(() => {
-    const handleGlobalEscape = (e: globalThis.KeyboardEvent) => {
+    const handleGlobalKeys = (e: globalThis.KeyboardEvent) => {
+      // F5: 품목(브랜드) 선택으로 이동
+      if (e.key === 'F5') {
+        e.preventDefault()
+        setGridFocus(null)
+        setCellInputValue('')
+        brandSelectRef.current?.focus()
+        return
+      }
+      
+      // F6: 상품 선택으로 이동
+      if (e.key === 'F6') {
+        e.preventDefault()
+        setGridFocus(null)
+        setCellInputValue('')
+        if (filteredProducts.length > 0) {
+          setProductFocusIndex(0)
+          productListRef.current?.focus()
+        }
+        return
+      }
+      
+      // F2: 주문 전송
+      if (e.key === 'F2') {
+        e.preventDefault()
+        if (selectedStore && orderItems.length > 0) {
+          handleSubmit()
+        }
+        return
+      }
+      
+      // Escape
       if (e.key === 'Escape') {
         // 그리드 포커스 중이면 그리드 포커스 해제
         if (gridFocus) {
@@ -171,9 +202,9 @@ export default function NewOrderPage() {
         }
       }
     }
-    window.addEventListener('keydown', handleGlobalEscape)
-    return () => window.removeEventListener('keydown', handleGlobalEscape)
-  }, [gridFocus])
+    window.addEventListener('keydown', handleGlobalKeys)
+    return () => window.removeEventListener('keydown', handleGlobalKeys)
+  }, [gridFocus, filteredProducts.length])
 
   // 가맹점 검색 결과 스크롤
   useEffect(() => {
@@ -424,6 +455,24 @@ export default function NewOrderPage() {
                       gridFocus?.cylIndex === cylIndex && 
                       gridFocus?.isPlus === isPlus
     
+    // 같은 행 또는 같은 열에 있는지 체크 (연한 하이라이트용)
+    const isInFocusedRow = gridFocus?.sphIndex === sphIndex && gridFocus?.isPlus === isPlus
+    const isInFocusedCol = gridFocus?.cylIndex === cylIndex && gridFocus?.isPlus === isPlus
+    
+    // 배경색 결정
+    let bgColor = '#fff'
+    if (isFocused) {
+      bgColor = '#ffeb3b' // 현재 셀: 노란색
+    } else if (hasItem) {
+      bgColor = '#4caf50' // 수량 있음: 초록색
+    } else if (isInFocusedRow && isInFocusedCol) {
+      bgColor = '#e3f2fd' // 행+열 교차: 연한 파란색
+    } else if (isInFocusedRow) {
+      bgColor = '#fff8e1' // 같은 행: 연한 노란색
+    } else if (isInFocusedCol) {
+      bgColor = '#e8f5e9' // 같은 열: 연한 초록색
+    }
+    
     return (
       <div
         key={cyl}
@@ -433,7 +482,7 @@ export default function NewOrderPage() {
           textAlign: 'center',
           borderBottom: '1px solid #eee',
           borderLeft: '1px solid #eee',
-          background: isFocused ? '#ffeb3b' : hasItem ? '#4caf50' : '#fff',
+          background: bgColor,
           color: isFocused ? '#000' : hasItem ? '#fff' : '#333',
           cursor: selectedProduct ? 'pointer' : 'not-allowed',
           transition: 'background 0.1s',
@@ -445,20 +494,20 @@ export default function NewOrderPage() {
           outline: isFocused ? '2px solid #f57c00' : 'none'
         }}
         onMouseEnter={e => {
-          if (selectedProduct && !hasItem && !isFocused) {
-            e.currentTarget.style.background = '#e8f5e9'
+          if (selectedProduct && !hasItem && !isFocused && !isInFocusedRow && !isInFocusedCol) {
+            e.currentTarget.style.background = '#f5f5f5'
           }
         }}
         onMouseLeave={e => {
-          if (!hasItem && !isFocused) {
+          if (!hasItem && !isFocused && !isInFocusedRow && !isInFocusedCol) {
             e.currentTarget.style.background = '#fff'
           }
         }}
       >
         {hasItem ? (
           <span style={{ fontSize: 11, fontWeight: 600 }}>{item.quantity}</span>
-        ) : isFocused ? (
-          <span style={{ fontSize: 10 }}>{cellInputValue || '▶'}</span>
+        ) : isFocused && cellInputValue ? (
+          <span style={{ fontSize: 11, fontWeight: 600 }}>{cellInputValue}</span>
         ) : null}
       </div>
     )
