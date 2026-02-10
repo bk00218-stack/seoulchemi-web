@@ -3,14 +3,15 @@ import { NextResponse } from 'next/server'
 
 const prisma = new PrismaClient()
 
-// RX 브랜드 키워드 (누진, 매직폼 등)
-const RX_BRAND_KEYWORDS = ['누진', '매직폼', 'K누진']
+// RX 상품 optionType 값들
+const RX_OPTION_TYPES = ['안경렌즈 RX', 'RX']
+// 여벌 상품 optionType 값들  
+const STOCK_OPTION_TYPES = ['안경렌즈 여벌', '여벌', 'stock']
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
-  const orderType = searchParams.get('orderType')
-  const includeRx = searchParams.get('includeRx') === 'true'
+  const productType = searchParams.get('productType') // 'rx', 'stock', 'contact', 'all'
   
   const where: any = {}
   if (status && status !== 'all') {
@@ -33,19 +34,28 @@ export async function GET(request: Request) {
     take: 100
   })
   
-  // RX 브랜드 포함 여부로 필터링
+  // 상품 타입으로 필터링
   const filteredOrders = orders.filter(order => {
-    const hasRxBrand = order.items.some(item => 
-      RX_BRAND_KEYWORDS.some(keyword => 
-        item.product?.brand?.name?.includes(keyword)
+    // 주문 내 상품들의 optionType 확인
+    const hasRxProduct = order.items.some(item => 
+      RX_OPTION_TYPES.some(type => 
+        item.product?.optionType?.includes(type)
       )
     )
     
-    // orderType이 'rx'이거나 RX 브랜드 포함이면 RX 주문
-    const isRxOrder = order.orderType === 'rx' || hasRxBrand
+    const hasStockProduct = order.items.some(item =>
+      STOCK_OPTION_TYPES.some(type =>
+        item.product?.optionType?.includes(type)
+      ) || !item.product?.optionType // optionType 없으면 여벌로 간주
+    )
     
-    if (orderType === 'rx' || includeRx) {
+    // orderType 필드도 체크 (주문 생성 시 설정된 값)
+    const isRxOrder = order.orderType === 'rx' || hasRxProduct
+    
+    if (productType === 'rx') {
       return isRxOrder
+    } else if (productType === 'all') {
+      return true
     } else {
       // 기본: 여벌 주문만 (RX 제외)
       return !isRxOrder
