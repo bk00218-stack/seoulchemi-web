@@ -5,16 +5,16 @@ import { useRouter } from 'next/navigation'
 import Layout from '../../components/Layout'
 
 const SIDEBAR = [
-  { title: '후결제 주문', items: [
-    { label: '여벌 주문내역', href: '/' },
-    { label: 'RX 주문내역', href: '/orders/rx' },
-    { label: '관리자 주문등록', href: '/orders/new' },
-    { label: '명세표 출력이력', href: '/orders/print-history' },
+  { title: '?�결??주문', items: [
+    { label: '?�벌 주문?�역', href: '/' },
+    { label: 'RX 주문?�역', href: '/orders/rx' },
+    { label: '관리자 주문?�록', href: '/orders/new' },
+    { label: '명세??출력?�력', href: '/orders/print-history' },
   ]},
-  { title: '출고관리', items: [
-    { label: '전체 주문내역', href: '/orders/all' },
-    { label: '출고 확인', href: '/orders/shipping' },
-    { label: '출고 배송지 정보', href: '/orders/delivery' },
+  { title: '출고관�?, items: [
+    { label: '?�체 주문?�역', href: '/orders/all' },
+    { label: '출고 ?�인', href: '/orders/shipping' },
+    { label: '출고 배송지 ?�보', href: '/orders/delivery' },
   ]}
 ]
 
@@ -38,10 +38,10 @@ function formatLegacy(value: number): string {
   return String(Math.round(Math.abs(value) * 100)).padStart(3, '0')
 }
 
-// OlwsPro 스타일 - 하나의 표, 가운데 기준
-// 세로(행) = SPH: 0.00 ~ 15.00
-// 가로(열) = CYL: 가운데 000에서 시작, 양쪽으로 400까지
-// 왼쪽 = -Sph (근시), 오른쪽 = +Sph (원시)
+// OlwsPro ?��???- ?�나???? 가?�데 기�?
+// ?�로(?? = SPH: 0.00 ~ 15.00
+// 가�??? = CYL: 가?�데 000?�서 ?�작, ?�쪽?�로 400까�?
+// ?�쪽 = -Sph (근시), ?�른�?= +Sph (?�시)
 
 function generateSphRows(): number[] {
   const values: number[] = []
@@ -49,7 +49,7 @@ function generateSphRows(): number[] {
   return values
 }
 
-// CYL 열: 왼쪽은 400→000, 오른쪽은 000→400
+// CYL ?? ?�쪽?� 400??00, ?�른쪽�? 000??00
 function generateCylColsLeft(): number[] {
   const values: number[] = []
   for (let i = -4; i <= 0; i += 0.25) values.push(Math.round(i * 100) / 100)
@@ -79,11 +79,11 @@ export default function NewOrderPage() {
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
-  const [orderType, setOrderType] = useState<'여벌' | '착색' | 'RX' | '기타'>('여벌')
+  const [orderType, setOrderType] = useState<'?�벌' | '착색' | 'RX' | '기�?'>('?�벌')
   const [productFocusIndex, setProductFocusIndex] = useState<number>(-1)
   const [storeFocusIndex, setStoreFocusIndex] = useState<number>(-1)
   
-  // 그리드: colIndex = 전체 열 인덱스 (0 = 맨 왼쪽 CYL 400, 중앙 = CYL 000, 맨 오른쪽 = CYL 400)
+  // 그리?? colIndex = ?�체 ???�덱??(0 = �??�쪽 CYL 400, 중앙 = CYL 000, �??�른�?= CYL 400)
   const [gridFocus, setGridFocus] = useState<{sphIndex: number, colIndex: number} | null>(null)
   const [cellInputValue, setCellInputValue] = useState('')
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
@@ -98,37 +98,32 @@ export default function NewOrderPage() {
     : stores
 
   const sphRows = generateSphRows()
-  const cylColsLeft = generateCylColsLeft()   // -4.00 → 0.00 (왼쪽, -Sph용)
-  const cylColsRight = generateCylColsRight() // 0.00 → -4.00 (오른쪽, +Sph용)
+  const cylColsLeft = generateCylColsLeft()   // -4.00 ??0.00 (?�쪽, -Sph??
+  const cylColsRight = generateCylColsRight() // 0.00 ??-4.00 (?�른�? +Sph??
   
-  // 전체 열: 왼쪽 CYL + 가운데 구분 + 오른쪽 CYL
-  const centerIndex = cylColsLeft.length // 가운데 열 인덱스
-  const totalCols = cylColsLeft.length + 1 + cylColsRight.length
+  // ?�체 ?? ?�쪽 CYL + 가?�데 구분 + ?�른�?CYL
+  const centerIndex = cylColsLeft.length // 가?�데 ???�덱??  const totalCols = cylColsLeft.length + 1 + cylColsRight.length
 
   useEffect(() => {
     fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
     fetch('/api/stores').then(r => r.json()).then(data => setStores(data.stores || []))
   }, [])
 
-  // 그리드 포커스 시 가운데로 스크롤
-  useEffect(() => {
+  // 그리???�커????가?�데�??�크�?  useEffect(() => {
     if (gridContainerRef.current && !gridFocus) {
-      // 초기에 가운데로 스크롤
-      const container = gridContainerRef.current
+      // 초기??가?�데�??�크�?      const container = gridContainerRef.current
       const scrollLeft = (centerIndex * 34) - (container.clientWidth / 2) + 50
       container.scrollLeft = Math.max(0, scrollLeft)
     }
   }, [selectedProductId])
 
-  // 상호 검색 결과 키보드 이동 시 스크롤
-  useEffect(() => {
+  // ?�호 검??결과 ?�보???�동 ???�크�?  useEffect(() => {
     if (storeFocusIndex >= 0 && storeResultRefs.current[storeFocusIndex]) {
       storeResultRefs.current[storeFocusIndex]?.scrollIntoView({ block: 'nearest' })
     }
   }, [storeFocusIndex])
 
-  // 상품 목록 키보드 이동 시 스크롤
-  useEffect(() => {
+  // ?�품 목록 ?�보???�동 ???�크�?  useEffect(() => {
     if (productFocusIndex >= 0 && productItemRefs.current[productFocusIndex]) {
       productItemRefs.current[productFocusIndex]?.scrollIntoView({ block: 'nearest' })
     }
@@ -157,23 +152,23 @@ export default function NewOrderPage() {
       e.preventDefault()
       if (productFocusIndex >= 0 && productFocusIndex < filteredProducts.length) {
         setSelectedProductId(filteredProducts[productFocusIndex].id)
-        setGridFocus({ sphIndex: 0, colIndex: cylColsLeft.length - 1 }) // 왼쪽 끝(CYL 000)에서 시작
+        setGridFocus({ sphIndex: 0, colIndex: cylColsLeft.length - 1 }) // ?�쪽 ??CYL 000)?�서 ?�작
         setCellInputValue('')
         gridRef.current?.focus()
       }
     }
   }
 
-  // 열 인덱스로 SPH 부호와 CYL 값 계산
+  // ???�덱?�로 SPH 부?��? CYL �?계산
   const getColInfo = (colIndex: number): { isPlus: boolean, cyl: number } | null => {
     if (colIndex < cylColsLeft.length) {
-      // 왼쪽 영역 (-Sph)
+      // ?�쪽 ?�역 (-Sph)
       return { isPlus: false, cyl: cylColsLeft[colIndex] }
     } else if (colIndex === centerIndex) {
-      // 가운데 (경계) - 입력 불가 영역
+      // 가?�데 (경계) - ?�력 불�? ?�역
       return null
     } else {
-      // 오른쪽 영역 (+Sph)
+      // ?�른�??�역 (+Sph)
       const rightIndex = colIndex - centerIndex - 1
       if (rightIndex >= 0 && rightIndex < cylColsRight.length) {
         return { isPlus: true, cyl: cylColsRight[rightIndex] }
@@ -216,7 +211,7 @@ export default function NewOrderPage() {
 
     if (/^[0-9.]$/.test(e.key)) {
       e.preventDefault()
-      // 소수점 중복 방지
+      // ?�수??중복 방�?
       if (e.key === '.' && cellInputValue.includes('.')) return
       const newValue = cellInputValue + e.key
       setCellInputValue(newValue)
@@ -238,7 +233,7 @@ export default function NewOrderPage() {
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex + 1
-        if (newCol === centerIndex) newCol++ // 가운데 열 건너뛰기
+        if (newCol === centerIndex) newCol++ // 가?�데 ??건너?�기
         return { ...prev, colIndex: Math.min(newCol, maxColIndex) }
       })
     } else if (e.key === 'ArrowLeft') {
@@ -246,7 +241,7 @@ export default function NewOrderPage() {
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex - 1
-        if (newCol === centerIndex) newCol-- // 가운데 열 건너뛰기
+        if (newCol === centerIndex) newCol-- // 가?�데 ??건너?�기
         return { ...prev, colIndex: Math.max(newCol, 0) }
       })
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -264,7 +259,7 @@ export default function NewOrderPage() {
   }, [selectedProduct, selectedStore, sphRows, totalCols, cellInputValue, gridFocus, getFocusedInfo, handleGridCellInput, centerIndex])
 
   const handleGridClick = useCallback((sphIndex: number, colIndex: number) => {
-    if (!selectedProduct || !selectedStore) { alert('가맹점과 상품을 먼저 선택해주세요.'); return }
+    if (!selectedProduct || !selectedStore) { alert('가맹점�??�품??먼�? ?�택?�주?�요.'); return }
     setGridFocus({ sphIndex, colIndex })
     setCellInputValue('')
     gridRef.current?.focus()
@@ -275,22 +270,22 @@ export default function NewOrderPage() {
   const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0)
 
   const handleSubmit = async () => {
-    if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
+    if (!selectedStore || orderItems.length === 0) { alert('가맹점�??�품???�택?�주?�요.'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
       if (res.ok) {
         const data = await res.json()
-        // 자동 출력
+        // ?�동 출력
         if (data.order?.id) {
           try {
             await fetch('/api/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.order.id, type: 'shipping' }) })
-          } catch (e) { console.error('출력 실패:', e) }
+          } catch (e) { console.error('출력 ?�패:', e) }
         }
-        alert('주문이 등록되었습니다.')
+        alert('주문???�록?�었?�니??')
         router.push('/')
-      } else alert('주문 생성 실패')
-    } catch { alert('오류가 발생했습니다.') }
+      } else alert('주문 ?�성 ?�패')
+    } catch { alert('?�류가 발생?�습?�다.') }
     setLoading(false)
   }
 
@@ -309,9 +304,7 @@ export default function NewOrderPage() {
     const isCurrentCol = gridFocus?.colIndex === colIndex
     
     let bg = sphIndex % 2 === 0 ? '#fffde7' : '#fff'
-    if (isCurrentRow || isCurrentCol) bg = '#ffcdd2' // 핑크 행/열
-    if (isCurrentRow && isCurrentCol) bg = '#ef9a9a' // 교차점 더 진하게
-    if (isFocused) bg = '#42a5f5'
+    if (isCurrentRow || isCurrentCol) bg = '#ffcdd2' // ?�크 ????    if (isCurrentRow && isCurrentCol) bg = '#ef9a9a' // 교차????진하�?    if (isFocused) bg = '#42a5f5'
     if (item) bg = '#4caf50'
     
     return (
@@ -320,7 +313,7 @@ export default function NewOrderPage() {
           border: '1px solid #ccc', 
           padding: 0, textAlign: 'center', background: bg, 
           color: item || isFocused ? '#fff' : '#333', 
-          cursor: 'pointer', width: 34, height: 24, fontSize: 11, 
+          cursor: 'pointer', width: 34, height: 24, fontSize: 13, 
           fontFamily: 'monospace', fontWeight: item ? 700 : 400 
         }}>
         {item ? item.quantity : isFocused && cellInputValue ? cellInputValue : ''}
@@ -333,35 +326,34 @@ export default function NewOrderPage() {
   return (
     <Layout sidebarMenus={SIDEBAR} activeNav="주문">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, paddingBottom: 4, borderBottom: '2px solid #333' }}>
-        <h1 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>판매전표 입력</h1>
-        <span style={{ fontSize: 10, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
+        <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>?�매?�표 ?�력</h1>
+        <span style={{ fontSize: 16, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
-        {/* 왼쪽 패널 */}
+        {/* ?�쪽 ?�널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 11 }}>
           <section>
-            <label style={{ fontWeight: 600 }}>상호 [Esc]</label>
-            <input ref={storeInputRef} type="text" placeholder="검색..." value={storeSearchText}
+            <label style={{ fontWeight: 600 }}>?�호 [Esc]</label>
+            <input ref={storeInputRef} type="text" placeholder="검??.." value={storeSearchText}
               onKeyDown={e => { const vs = filteredStores.slice(0, 10); if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1) }}
-              style={{ width: '100%', padding: 4, border: '1px solid #ccc', borderRadius: 2, fontSize: 11, marginTop: 2 }} />
+              style={{ width: '100%', padding: 4, border: '1px solid #ccc', borderRadius: 2, fontSize: 13, marginTop: 2 }} />
             {selectedStore && (
-              <div style={{ marginTop: 3, padding: 5, background: '#e3f2fd', borderRadius: 2, fontSize: 10, lineHeight: 1.5 }}>
-                <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 3 }}>{selectedStore.name}</div>
+              <div style={{ marginTop: 3, padding: 5, background: '#e3f2fd', borderRadius: 2, fontSize: 16, lineHeight: 1.5 }}>
+                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 3 }}>{selectedStore.name}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 8px' }}>
-                  <span>☎️ {selectedStore.phone || '-'}</span>
-                  <span>📱 {selectedStore.deliveryPhone || '-'}</span>
-                  <span>🎯 {selectedStore.salesRepName || '-'}</span>
-                  <span>🚚 {selectedStore.deliveryContact || '-'}</span>
+                  <span>?�️ {selectedStore.phone || '-'}</span>
+                  <span>?�� {selectedStore.deliveryPhone || '-'}</span>
+                  <span>?�� {selectedStore.salesRepName || '-'}</span>
+                  <span>?�� {selectedStore.deliveryContact || '-'}</span>
                 </div>
                 {selectedStore.address && (
-                  <div style={{ marginTop: 2 }}>📍 {selectedStore.address}</div>
+                  <div style={{ marginTop: 2 }}>?�� {selectedStore.address}</div>
                 )}
                 <div style={{ marginTop: 2, display: 'flex', gap: 8 }}>
                   <span style={{ color: (selectedStore.outstandingAmount || 0) > 0 ? '#c62828' : '#2e7d32', fontWeight: 600 }}>
-                    💰 {(selectedStore.outstandingAmount || 0).toLocaleString()}원
-                  </span>
+                    ?�� {(selectedStore.outstandingAmount || 0).toLocaleString()}??                  </span>
                   {selectedStore.paymentTermDays ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
                       <span style={{ 
@@ -377,7 +369,7 @@ export default function NewOrderPage() {
                         borderRadius: 1,
                         lineHeight: 1
                       }}>
-                        <span style={{ fontSize: 7, fontWeight: 700, color: '#1d1d1f' }}>{selectedStore.paymentTermDays}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#1d1d1f' }}>{selectedStore.paymentTermDays}</span>
                       </span>
                     </span>
                   ) : '-'}
@@ -396,28 +388,28 @@ export default function NewOrderPage() {
           <section>
             <label style={{ fontWeight: 600 }}>주문 구분</label>
             <div style={{ display: 'flex', gap: 2, marginTop: 1 }}>
-              {(['여벌', '착색', 'RX', '기타'] as const).map(t => (
-                <label key={t} style={{ padding: '1px 4px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 2, cursor: 'pointer', fontSize: 8 }}>
+              {(['?�벌', '착색', 'RX', '기�?'] as const).map(t => (
+                <label key={t} style={{ padding: '1px 4px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 2, cursor: 'pointer', fontSize: 10 }}>
                   <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />{t}
                 </label>
               ))}
             </div>
           </section>
           <section>
-            <label style={{ fontWeight: 600 }}>품목 [F5]</label>
+            <label style={{ fontWeight: 600 }}>?�목 [F5]</label>
             <select ref={brandSelectRef} value={selectedBrandId || ''} onChange={e => { const bid = e.target.value ? parseInt(e.target.value) : null; setSelectedBrandId(bid); setSelectedProductId(null); if (bid) setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
-              style={{ width: '100%', padding: 3, border: '1px solid #ccc', borderRadius: 2, fontSize: 9, marginTop: 1 }}>
-              <option value="">브랜드...</option>
+              style={{ width: '100%', padding: 3, border: '1px solid #ccc', borderRadius: 2, fontSize: 13, marginTop: 1 }}>
+              <option value="">브랜??..</option>
               {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </section>
           <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <label style={{ fontWeight: 600 }}>상품 [F6]</label>
+            <label style={{ fontWeight: 600 }}>?�품 [F6]</label>
             <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 1, border: '1px solid #ccc', borderRadius: 2, background: '#fff', flex: 1, overflow: 'auto', outline: 'none' }}>
-              {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#999' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
+              {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#999' }}>{selectedBrandId ? '?�음' : '?�택'}</div> : (
                 filteredProducts.map((p, i) => (
                   <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
-                    style={{ padding: '2px 3px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#e3f2fd' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 8 }}>
+                    style={{ padding: '2px 3px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#e3f2fd' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 10 }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                     <span style={{ color: '#1976d2', fontWeight: 600 }}>{(p.sellingPrice/1000).toFixed(0)}k</span>
                   </div>
@@ -427,35 +419,35 @@ export default function NewOrderPage() {
           </section>
         </div>
 
-        {/* 중앙: 하나의 도수표 (가운데 기준) */}
+        {/* 중앙: ?�나???�수??(가?�데 기�?) */}
         <div ref={gridRef} tabIndex={0} onKeyDown={handleGridKeyDown}
           style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: gridFocus ? '2px solid #f57c00' : '1px solid #ccc', borderRadius: 3, overflow: 'hidden', outline: 'none' }}>
-          <div style={{ padding: '2px 4px', background: '#e0e0e0', borderBottom: '1px solid #ccc', fontSize: 9, display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 600 }}>{selectedProduct ? `${selectedProduct.brandName} - ${selectedProduct.name}` : '상품 선택'}</span>
-            <span style={{ color: '#666' }}>←→ CYL | ↑↓ SPH | 가운데=000</span>
+          <div style={{ padding: '2px 4px', background: '#e0e0e0', borderBottom: '1px solid #ccc', fontSize: 13, display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontWeight: 600 }}>{selectedProduct ? `${selectedProduct.brandName} - ${selectedProduct.name}` : '?�품 ?�택'}</span>
+            <span style={{ color: '#666' }}>?�→ CYL | ?�↓ SPH | 가?�데=000</span>
           </div>
           
           <div ref={gridContainerRef} style={{ flex: 1, overflow: 'auto' }}>
-            <table style={{ borderCollapse: 'collapse', fontSize: 10, fontFamily: 'monospace' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: 16, fontFamily: 'monospace' }}>
               <thead>
                 <tr style={{ background: '#e8e8e0' }}>
-                  {/* 왼쪽 SPH 헤더 */}
+                  {/* ?�쪽 SPH ?�더 */}
                   <th style={{ border: '1px solid #999', padding: '3px 4px', fontWeight: 700, minWidth: 38, position: 'sticky', left: 0, background: '#e8e8e0', zIndex: 10, fontSize: 11 }}>-Sph</th>
                   
-                  {/* 왼쪽 CYL 열들 (400 → 000) */}
+                  {/* ?�쪽 CYL ?�들 (400 ??000) */}
                   {cylColsLeft.map((cyl, i) => (
                     <th key={`L${i}`} style={{ border: '1px solid #999', padding: '3px 2px', minWidth: 34, fontWeight: 400, background: gridFocus?.colIndex === i ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>{formatLegacy(cyl)}</th>
                   ))}
                   
-                  {/* 가운데 구분 열 -Sph+ */}
+                  {/* 가?�데 구분 ??-Sph+ */}
                   <th style={{ border: '1px solid #999', borderLeft: '2px solid #666', borderRight: '2px solid #666', padding: '3px 4px', minWidth: 50, fontWeight: 700, background: gridFocus?.colIndex === cylColsLeft.length ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>-Sph+</th>
                   
-                  {/* 오른쪽 CYL 열들 (000 → 400) */}
+                  {/* ?�른�?CYL ?�들 (000 ??400) */}
                   {cylColsRight.map((cyl, i) => (
                     <th key={`R${i}`} style={{ border: '1px solid #999', padding: '3px 2px', minWidth: 34, fontWeight: 400, background: gridFocus?.colIndex === cylColsLeft.length + 1 + i ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>{formatLegacy(cyl)}</th>
                   ))}
                   
-                  {/* 오른쪽 SPH 헤더 */}
+                  {/* ?�른�?SPH ?�더 */}
                   <th style={{ border: '1px solid #999', padding: '3px 4px', fontWeight: 700, minWidth: 38, position: 'sticky', right: 0, background: '#e8e8e0', zIndex: 10, fontSize: 11 }}>+Sph</th>
                 </tr>
               </thead>
@@ -465,19 +457,19 @@ export default function NewOrderPage() {
                   const rowBg = isCurrentRow ? '#ffcdd2' : '#e8e8e0'
                   return (
                     <tr key={sphIndex}>
-                      {/* 왼쪽 SPH 값 (회색) */}
+                      {/* ?�쪽 SPH �?(?�색) */}
                       <td style={{ border: '1px solid #999', padding: '2px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', left: 0, background: rowBg, zIndex: 5, fontSize: 11 }}>{formatLegacy(sph)}</td>
                       
-                      {/* 왼쪽 CYL 셀들 */}
+                      {/* ?�쪽 CYL ?�??*/}
                       {cylColsLeft.map((_, i) => renderCell(sphIndex, i))}
                       
-                      {/* 가운데 구분 셀: -000+ 형식 */}
+                      {/* 가?�데 구분 ?�: -000+ ?�식 */}
                       <td style={{ border: '1px solid #999', borderLeft: '2px solid #666', borderRight: '2px solid #666', padding: '2px 4px', fontWeight: 600, textAlign: 'center', background: rowBg, fontSize: 10 }}>-{formatLegacy(sph)}+</td>
                       
-                      {/* 오른쪽 CYL 셀들 */}
+                      {/* ?�른�?CYL ?�??*/}
                       {cylColsRight.map((_, i) => renderCell(sphIndex, cylColsLeft.length + 1 + i))}
                       
-                      {/* 오른쪽 SPH 값 (회색) */}
+                      {/* ?�른�?SPH �?(?�색) */}
                       <td style={{ border: '1px solid #999', padding: '2px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', right: 0, background: rowBg, zIndex: 5, fontSize: 11 }}>{formatLegacy(sph)}</td>
                     </tr>
                   )
@@ -486,49 +478,49 @@ export default function NewOrderPage() {
             </table>
           </div>
           
-          <div style={{ padding: '2px 4px', background: '#e0e0e0', borderTop: '1px solid #ccc', fontSize: 9, display: 'flex', justifyContent: 'space-between' }}>
-            <span>{focusedInfo ? <>SPH: <strong>{focusedInfo.sph >= 0 ? '+' : ''}{focusedInfo.sph.toFixed(2)}</strong> | CYL: <strong>{focusedInfo.cyl.toFixed(2)}</strong></> : '셀 선택'}</span>
-            <span style={{ color: focusedInfo?.isPlus ? '#e65100' : '#1565c0', fontWeight: 600 }}>{focusedInfo ? (focusedInfo.isPlus ? '원시(+)' : '근시(-)') : ''}</span>
+          <div style={{ padding: '2px 4px', background: '#e0e0e0', borderTop: '1px solid #ccc', fontSize: 13, display: 'flex', justifyContent: 'space-between' }}>
+            <span>{focusedInfo ? <>SPH: <strong>{focusedInfo.sph >= 0 ? '+' : ''}{focusedInfo.sph.toFixed(2)}</strong> | CYL: <strong>{focusedInfo.cyl.toFixed(2)}</strong></> : '?� ?�택'}</span>
+            <span style={{ color: focusedInfo?.isPlus ? '#e65100' : '#1565c0', fontWeight: 600 }}>{focusedInfo ? (focusedInfo.isPlus ? '?�시(+)' : '근시(-)') : ''}</span>
           </div>
         </div>
 
-        {/* 오른쪽: 주문 목록 */}
+        {/* ?�른�? 주문 목록 */}
         <div style={{ display: 'flex', flexDirection: 'column', background: '#f5f5f5', borderRadius: 3, overflow: 'hidden', fontSize: 9 }}>
           <div style={{ padding: '3px 4px', background: '#333', color: '#fff', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
-            <span>주문 목록</span><span>{orderItems.length}건</span>
+            <span>주문 목록</span><span>{orderItems.length}�?/span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 36px 36px 28px 44px 16px', padding: '3px 4px', background: '#e0e0e0', fontWeight: 600, fontSize: 8, gap: '4px', alignItems: 'center' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>상품</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 36px 36px 28px 44px 16px', padding: '3px 4px', background: '#e0e0e0', fontWeight: 600, fontSize: 16, gap: '4px', alignItems: 'center' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>?�품</span>
             <span style={{ textAlign: 'center' }}>SPH</span>
             <span style={{ textAlign: 'center' }}>CYL</span>
-            <span style={{ textAlign: 'center' }}>수량</span>
+            <span style={{ textAlign: 'center' }}>?�량</span>
             <span style={{ textAlign: 'right' }}>금액</span>
             <span></span>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
-            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#999' }}>도수표에서 수량 입력</div> : (
+            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#999' }}>?�수?�에???�량 ?�력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 36px 36px 28px 44px 16px', padding: '3px 4px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 8, gap: '4px' }}>
+                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 36px 36px 28px 44px 16px', padding: '3px 4px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 16, gap: '4px' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.sph}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.cyl}</div>
                   <div style={{ fontWeight: 600, textAlign: 'center' }}>{item.quantity}</div>
                   <div style={{ textAlign: 'right', fontFamily: 'monospace' }}>{(item.product.sellingPrice * item.quantity / 1000).toFixed(0)}k</div>
-                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 14, height: 14, cursor: 'pointer', fontSize: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 14, height: 14, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                 </div>
               ))
             )}
           </div>
           <div style={{ padding: 3, borderTop: '1px solid #ddd' }}>
-            <input type="text" placeholder="메모..." value={memo} onChange={e => setMemo(e.target.value)} style={{ width: '100%', padding: 2, border: '1px solid #ccc', borderRadius: 2, fontSize: 8 }} />
+            <input type="text" placeholder="메모..." value={memo} onChange={e => setMemo(e.target.value)} style={{ width: '100%', padding: 2, border: '1px solid #ccc', borderRadius: 2, fontSize: 10 }} />
           </div>
           <div style={{ padding: '3px 4px', background: '#333', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>총 <strong>{totalQuantity}</strong>개</span>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>{totalAmount.toLocaleString()}원</span>
+            <span>�?<strong>{totalQuantity}</strong>�?/span>
+            <span style={{ fontSize: 16, fontWeight: 700 }}>{totalAmount.toLocaleString()}??/span>
           </div>
           <div style={{ padding: 3, display: 'flex', gap: 3 }}>
-            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 4, background: '#f5f5f5', border: '1px solid #ccc', borderRadius: 2, cursor: 'pointer', fontSize: 9 }}>초기화</button>
-            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 4, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 2, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 9, fontWeight: 600 }}>전송 [F2]</button>
+            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 4, background: '#f5f5f5', border: '1px solid #ccc', borderRadius: 2, cursor: 'pointer', fontSize: 9 }}>초기??/button>
+            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 4, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 2, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>?�송 [F2]</button>
           </div>
         </div>
       </div>
