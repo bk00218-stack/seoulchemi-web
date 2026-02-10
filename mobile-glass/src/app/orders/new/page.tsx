@@ -359,7 +359,7 @@ export default function NewOrderPage() {
         <span style={{ fontSize: 12, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr 260px', gap: 4, height: 'calc(100vh - 110px)' }}>
         {/* 왼쪽 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <section>
@@ -526,7 +526,7 @@ export default function NewOrderPage() {
           <div style={{ padding: '6px 8px', background: '#333', color: '#fff', fontWeight: 600, fontSize: 14, display: 'flex', justifyContent: 'space-between' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 36px 54px 20px', padding: '6px 8px', background: '#e0e0e0', fontWeight: 600, fontSize: 12, gap: '4px', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 36px 60px 22px', padding: '6px 8px', background: '#e0e0e0', fontWeight: 600, fontSize: 12, gap: '4px', alignItems: 'center' }}>
             <span style={{ whiteSpace: 'nowrap' }}>상품</span>
             <span style={{ textAlign: 'center' }}>SPH</span>
             <span style={{ textAlign: 'center' }}>CYL</span>
@@ -537,7 +537,7 @@ export default function NewOrderPage() {
           <div style={{ flex: 1, overflow: 'auto' }}>
             {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#999' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 36px 54px 20px', padding: '6px 8px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 12, gap: '4px' }}>
+                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 36px 60px 22px', padding: '6px 8px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 12, gap: '4px' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.sph}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.cyl}</div>
