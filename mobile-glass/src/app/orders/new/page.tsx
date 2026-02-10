@@ -322,18 +322,18 @@ export default function NewOrderPage() {
         <span style={{ fontSize: 10, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
         {/* 왼쪽 패널 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 4, borderRadius: 3, overflow: 'hidden', fontSize: 9 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 11 }}>
           <section>
             <label style={{ fontWeight: 600 }}>상호 [Esc]</label>
             <input ref={storeInputRef} type="text" placeholder="검색..." value={storeSearchText}
               onKeyDown={e => { const vs = filteredStores.slice(0, 10); if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1) }}
-              style={{ width: '100%', padding: 3, border: '1px solid #ccc', borderRadius: 2, fontSize: 9, marginTop: 1 }} />
+              style={{ width: '100%', padding: 4, border: '1px solid #ccc', borderRadius: 2, fontSize: 11, marginTop: 2 }} />
             {selectedStore && (
-              <div style={{ marginTop: 2, padding: 4, background: '#e3f2fd', borderRadius: 2, fontSize: 8, lineHeight: 1.4 }}>
-                <div style={{ fontWeight: 700, fontSize: 10, marginBottom: 2 }}>{selectedStore.name}</div>
+              <div style={{ marginTop: 3, padding: 5, background: '#e3f2fd', borderRadius: 2, fontSize: 10, lineHeight: 1.5 }}>
+                <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 3 }}>{selectedStore.name}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 8px' }}>
                   <span>☎️ {selectedStore.phone || '-'}</span>
                   <span>📱 {selectedStore.deliveryPhone || '-'}</span>
