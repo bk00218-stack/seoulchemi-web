@@ -134,6 +134,24 @@ export default function NewOrderPage() {
     }
   }, [productFocusIndex])
 
+  // 도수표 포커스 이동 시 스크롤
+  useEffect(() => {
+    if (gridFocus && gridContainerRef.current) {
+      const container = gridContainerRef.current
+      const cellWidth = 34
+      const cellHeight = 24
+      const headerHeight = 28
+      
+      // 가로 스크롤 (colIndex 기준)
+      const targetScrollLeft = gridFocus.colIndex * cellWidth - container.clientWidth / 2 + cellWidth / 2 + 40
+      container.scrollLeft = Math.max(0, targetScrollLeft)
+      
+      // 세로 스크롤 (sphIndex 기준)
+      const targetScrollTop = gridFocus.sphIndex * cellHeight + headerHeight - container.clientHeight / 2 + cellHeight / 2
+      container.scrollTop = Math.max(0, targetScrollTop)
+    }
+  }, [gridFocus])
+
   useEffect(() => {
     const handleGlobalKeys = (e: globalThis.KeyboardEvent) => {
       if (e.key === 'F5') { e.preventDefault(); setGridFocus(null); setCellInputValue(''); brandSelectRef.current?.focus() }
