@@ -406,7 +406,7 @@ export default function NewOrderPage() {
                 { label: 'RX', key: 'F9' },
                 { label: '기타', key: 'F10' }
               ] as const).map(({ label: t, key }) => (
-                <label key={t} style={{ padding: '8px 16px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <label key={t} style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                   <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />
                   <span>{t}</span>
                   <span style={{ fontSize: 10, opacity: 0.7 }}>[{key}]</span>
