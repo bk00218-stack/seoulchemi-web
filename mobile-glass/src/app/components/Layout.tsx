@@ -195,9 +195,9 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                   onKeyDown={e => handleNavKeyDown(e, index)}
                   onFocus={() => setNavFocusIndex(index)}
                   style={{
-                    padding: '8px 16px',
+                    padding: '10px 18px',
                     borderRadius: 6,
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: isActive ? 600 : 400,
                     color: isActive ? 'var(--primary)' : 'var(--gray-600)',
                     background: isActive ? 'var(--primary-light)' : 'transparent',
@@ -263,8 +263,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     onFocus={() => setSidebarFocusIndex(currentIndex)}
                     style={{
                       display: 'block',
-                      padding: '10px 12px',
-                      fontSize: 14,
+                      padding: '12px 14px',
+                      fontSize: 15,
                       color: isActive ? 'var(--primary)' : 'var(--gray-600)',
                       background: isActive ? 'var(--primary-light)' : 
                                   sidebarFocusIndex === currentIndex ? 'var(--gray-100)' : 'transparent',
@@ -306,36 +306,36 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
 // Common Styles Export
 export const btnStyle: React.CSSProperties = {
-  padding: '8px 14px',
+  padding: '10px 18px',
   borderRadius: 6,
   border: '1px solid var(--gray-200)',
   background: '#fff',
-  fontSize: 13,
+  fontSize: 14,
   fontWeight: 500,
   cursor: 'pointer',
   transition: 'all 0.15s'
 }
 
 export const selectStyle: React.CSSProperties = {
-  padding: '8px 12px',
+  padding: '10px 14px',
   borderRadius: 6,
   border: '1px solid var(--gray-200)',
-  fontSize: 13,
+  fontSize: 14,
   background: '#fff',
-  minWidth: 120
+  minWidth: 130
 }
 
 export const inputStyle: React.CSSProperties = {
-  padding: '8px 12px',
+  padding: '10px 14px',
   borderRadius: 6,
   border: '1px solid var(--gray-200)',
-  fontSize: 13
+  fontSize: 14
 }
 
 export const thStyle: React.CSSProperties = {
-  padding: '12px 16px',
+  padding: '14px 16px',
   textAlign: 'left',
-  fontSize: 12,
+  fontSize: 13,
   fontWeight: 600,
   color: 'var(--gray-500)',
   textTransform: 'uppercase',
@@ -345,8 +345,8 @@ export const thStyle: React.CSSProperties = {
 }
 
 export const tdStyle: React.CSSProperties = {
-  padding: '12px 16px',
-  fontSize: 13,
+  padding: '14px 16px',
+  fontSize: 14,
   verticalAlign: 'middle',
   borderBottom: '1px solid var(--gray-100)'
 }
