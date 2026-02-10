@@ -385,7 +385,7 @@ export default function NewOrderPage() {
               </div>
             )}
             {storeSearchText && !selectedStore && filteredStores.length > 0 && (
-              <div style={{ maxHeight: 60, overflow: 'auto', marginTop: 1, border: '1px solid #ddd', borderRadius: 2, background: '#fff' }}>
+              <div style={{ maxHeight: 150, overflow: 'auto', marginTop: 1, border: '1px solid #ddd', borderRadius: 2, background: '#fff' }}>
                 {filteredStores.slice(0, 10).map((s, i) => (
                   <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
                     style={{ padding: 2, cursor: 'pointer', borderBottom: '1px solid #eee', background: storeFocusIndex === i ? '#e3f2fd' : '#fff' }}>{s.name}</div>
