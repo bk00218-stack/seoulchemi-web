@@ -522,11 +522,11 @@ export default function NewOrderPage() {
         </div>
 
         {/* 오른쪽: 주문 목록 */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#f5f5f5', borderRadius: 3, overflow: 'hidden', fontSize: 11 }}>
-          <div style={{ padding: '3px 4px', background: '#333', color: '#fff', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#f5f5f5', borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
+          <div style={{ padding: '6px 8px', background: '#333', color: '#fff', fontWeight: 600, fontSize: 14, display: 'flex', justifyContent: 'space-between' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px 40px 32px 50px 18px', padding: '4px 5px', background: '#e0e0e0', fontWeight: 600, fontSize: 10, gap: '4px', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 36px 54px 20px', padding: '6px 8px', background: '#e0e0e0', fontWeight: 600, fontSize: 12, gap: '4px', alignItems: 'center' }}>
             <span style={{ whiteSpace: 'nowrap' }}>상품</span>
             <span style={{ textAlign: 'center' }}>SPH</span>
             <span style={{ textAlign: 'center' }}>CYL</span>
@@ -537,27 +537,27 @@ export default function NewOrderPage() {
           <div style={{ flex: 1, overflow: 'auto' }}>
             {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#999' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 40px 40px 32px 50px 18px', padding: '4px 5px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 10, gap: '4px' }}>
+                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 36px 54px 20px', padding: '6px 8px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 12, gap: '4px' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.sph}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.cyl}</div>
                   <div style={{ fontWeight: 600, textAlign: 'center' }}>{item.quantity}</div>
                   <div style={{ textAlign: 'right', fontFamily: 'monospace' }}>{(item.product.sellingPrice * item.quantity / 1000).toFixed(0)}k</div>
-                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 14, height: 14, cursor: 'pointer', fontSize: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 18, height: 18, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                 </div>
               ))
             )}
           </div>
-          <div style={{ padding: 3, borderTop: '1px solid #ddd' }}>
-            <input type="text" placeholder="메모..." value={memo} onChange={e => setMemo(e.target.value)} style={{ width: '100%', padding: 2, border: '1px solid #ccc', borderRadius: 2, fontSize: 8 }} />
+          <div style={{ padding: 6, borderTop: '1px solid #ddd' }}>
+            <input type="text" placeholder="메모..." value={memo} onChange={e => setMemo(e.target.value)} style={{ width: '100%', padding: 6, border: '1px solid #ccc', borderRadius: 2, fontSize: 12 }} />
           </div>
-          <div style={{ padding: '3px 4px', background: '#333', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ padding: '8px 10px', background: '#333', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14 }}>
             <span>총 <strong>{totalQuantity}</strong>개</span>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>{totalAmount.toLocaleString()}원</span>
+            <span style={{ fontSize: 16, fontWeight: 700 }}>{totalAmount.toLocaleString()}원</span>
           </div>
-          <div style={{ padding: 3, display: 'flex', gap: 3 }}>
-            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 4, background: '#f5f5f5', border: '1px solid #ccc', borderRadius: 2, cursor: 'pointer', fontSize: 9 }}>초기화</button>
-            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 4, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 2, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 9, fontWeight: 600 }}>전송 [F2]</button>
+          <div style={{ padding: 6, display: 'flex', gap: 4 }}>
+            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 8, background: '#f5f5f5', border: '1px solid #ccc', borderRadius: 3, cursor: 'pointer', fontSize: 12 }}>초기화</button>
+            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 8, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>전송 [F2]</button>
           </div>
         </div>
       </div>
