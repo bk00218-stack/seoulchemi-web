@@ -138,6 +138,10 @@ export default function NewOrderPage() {
     const handleGlobalKeys = (e: globalThis.KeyboardEvent) => {
       if (e.key === 'F5') { e.preventDefault(); setGridFocus(null); setCellInputValue(''); brandSelectRef.current?.focus() }
       else if (e.key === 'F6') { e.preventDefault(); setGridFocus(null); setCellInputValue(''); if (filteredProducts.length > 0) { setProductFocusIndex(0); productListRef.current?.focus() } }
+      else if (e.key === 'F7') { e.preventDefault(); setOrderType('여벌') }
+      else if (e.key === 'F8') { e.preventDefault(); setOrderType('착색') }
+      else if (e.key === 'F9') { e.preventDefault(); setOrderType('RX') }
+      else if (e.key === 'F10') { e.preventDefault(); setOrderType('기타') }
       else if (e.key === 'F2') { e.preventDefault(); if (selectedStore && orderItems.length > 0) handleSubmit() }
       else if (e.key === 'Escape') {
         e.preventDefault()
@@ -395,10 +399,17 @@ export default function NewOrderPage() {
           </section>
           <section>
             <label style={{ fontWeight: 600 }}>주문 구분</label>
-            <div style={{ display: 'flex', gap: 2, marginTop: 1 }}>
-              {(['여벌', '착색', 'RX', '기타'] as const).map(t => (
-                <label key={t} style={{ padding: '6px 12px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
-                  <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />{t}
+            <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
+              {([
+                { label: '여벌', key: 'F7' },
+                { label: '착색', key: 'F8' },
+                { label: 'RX', key: 'F9' },
+                { label: '기타', key: 'F10' }
+              ] as const).map(({ label: t, key }) => (
+                <label key={t} style={{ padding: '8px 16px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />
+                  <span>{t}</span>
+                  <span style={{ fontSize: 10, opacity: 0.7 }}>[{key}]</span>
                 </label>
               ))}
             </div>
