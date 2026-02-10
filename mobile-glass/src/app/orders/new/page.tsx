@@ -397,7 +397,7 @@ export default function NewOrderPage() {
             <label style={{ fontWeight: 600 }}>주문 구분</label>
             <div style={{ display: 'flex', gap: 2, marginTop: 1 }}>
               {(['여벌', '착색', 'RX', '기타'] as const).map(t => (
-                <label key={t} style={{ padding: '2px 6px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 2, cursor: 'pointer', fontSize: 11 }}>
+                <label key={t} style={{ padding: '6px 12px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
                   <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />{t}
                 </label>
               ))}
