@@ -367,7 +367,7 @@ export default function NewOrderPage() {
             <input ref={storeInputRef} type="text" placeholder="검색..." value={storeSearchText}
               onKeyDown={e => { const vs = filteredStores.slice(0, 10); if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1) }}
-              style={{ width: '100%', padding: 6, border: '1px solid #ccc', borderRadius: 2, fontSize: 13, marginTop: 2 }} />
+              style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 3, fontSize: 14, marginTop: 4 }} />
             {selectedStore && (
               <div style={{ marginTop: 3, padding: 5, background: '#e3f2fd', borderRadius: 2, fontSize: 12, lineHeight: 1.5 }}>
                 <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 3 }}>{selectedStore.name}</div>
@@ -407,10 +407,10 @@ export default function NewOrderPage() {
               </div>
             )}
             {storeSearchText && !selectedStore && filteredStores.length > 0 && (
-              <div style={{ maxHeight: 150, overflow: 'auto', marginTop: 1, border: '1px solid #ddd', borderRadius: 2, background: '#fff' }}>
+              <div style={{ maxHeight: 180, overflow: 'auto', marginTop: 2, border: '1px solid #ddd', borderRadius: 3, background: '#fff' }}>
                 {filteredStores.slice(0, 10).map((s, i) => (
                   <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
-                    style={{ padding: 2, cursor: 'pointer', borderBottom: '1px solid #eee', background: storeFocusIndex === i ? '#e3f2fd' : '#fff' }}>{s.name}</div>
+                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: storeFocusIndex === i ? '#e3f2fd' : '#fff', fontSize: 13 }}>{s.name}</div>
                 ))}
               </div>
             )}
@@ -435,7 +435,7 @@ export default function NewOrderPage() {
           <section>
             <label style={{ fontWeight: 600 }}>품목 [F5]</label>
             <select ref={brandSelectRef} value={selectedBrandId || ''} onChange={e => { const bid = e.target.value ? parseInt(e.target.value) : null; setSelectedBrandId(bid); setSelectedProductId(null); if (bid) setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
-              style={{ width: '100%', padding: 4, border: '1px solid #ccc', borderRadius: 2, fontSize: 12, marginTop: 1 }}>
+              style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 3, fontSize: 14, marginTop: 4 }}>
               <option value="">브랜드...</option>
               {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
@@ -446,7 +446,7 @@ export default function NewOrderPage() {
               {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#999' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
                 filteredProducts.map((p, i) => (
                   <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
-                    style={{ padding: '3px 4px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#e3f2fd' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
+                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#e3f2fd' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                     <span style={{ color: '#1976d2', fontWeight: 600 }}>{(p.sellingPrice/1000).toFixed(0)}k</span>
                   </div>
