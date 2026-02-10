@@ -958,3 +958,276 @@ model StoreProductPrice {
   @@index([storeId])
   @@index([productId])
 }
+
+// =============================================================================
+// 안경원 고객관리 시스템 (CRM)
+// =============================================================================
+
+// ===== 안경원 고객 =====
+model Customer {
+  id              Int       @id @default(autoincrement())
+  storeId         Int       // 소속 안경원 (Store.id)
+  
+  // 기본 정보
+  name            String    // 고객명
+  phone           String    // 전화번호
+  phone2          String?   // 보조 연락처
+  email           String?   // 이메일
+  birthDate       DateTime? // 생년월일
+  gender          String?   // M: 남성, F: 여성
+  
+  // 주소
+  zipcode         String?   // 우편번호
+  address         String?   // 주소
+  addressDetail   String?   // 상세주소
+  
+  // 메모/태그
+  memo            String?   // 메모
+  tags            String?   // 태그 (JSON array)
+  
+  // 마케팅 동의
+  smsAgree        Boolean   @default(false)  // 문자 수신 동의
+  emailAgree      Boolean   @default(false)  // 이메일 수신 동의
+  
+  // 방문 정보
+  firstVisitAt    DateTime  @default(now())  // 첫 방문일
+  lastVisitAt     DateTime?                   // 최근 방문일
+  visitCount      Int       @default(1)       // 방문 횟수
+  
+  // 통계
+  totalPurchase   Int       @default(0)       // 총 구매금액
+  totalPoints     Int       @default(0)       // 적립 포인트
+  usedPoints      Int       @default(0)       // 사용 포인트
+  
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  prescriptions   CustomerPrescription[]
+  purchases       CustomerPurchase[]
+  reminders       CustomerReminder[]
+  
+  @@unique([storeId, phone])  // 같은 안경원 내 전화번호 중복 불가
+  @@index([storeId])
+  @@index([phone])
+  @@index([name])
+  @@index([lastVisitAt])
+}
+
+// ===== 고객 도수 기록 =====
+model CustomerPrescription {
+  id              Int       @id @default(autoincrement())
+  customerId      Int
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  // 측정일
+  measuredAt      DateTime  @default(now())
+  measuredBy      String?   // 검안사명
+  
+  // 우안 (OD - Right Eye)
+  odSph           String?   // SPH (구면도수)
+  odCyl           String?   // CYL (난시도수)
+  odAxis          String?   // AXIS (난시축)
+  odAdd           String?   // ADD (가입도수, 누진/이중초점용)
+  odPd            String?   // PD (동공간 거리)
+  odVa            String?   // VA (시력)
+  odBc            String?   // BC (콘택트렌즈 기본커브)
+  odDia           String?   // DIA (콘택트렌즈 직경)
+  
+  // 좌안 (OS - Left Eye)
+  osSph           String?
+  osCyl           String?
+  osAxis          String?
+  osAdd           String?
+  osPd            String?
+  osVa            String?
+  osBc            String?
+  osDia           String?
+  
+  // 양안 PD
+  pdFar           String?   // 원거리 PD
+  pdNear          String?   // 근거리 PD
+  
+  // 처방 유형
+  prescType       String    @default("glasses") // glasses: 안경, contact: 콘택트, both: 둘다
+  
+  // 추가 정보
+  dominantEye     String?   // 주시안 (OD/OS)
+  occupation      String?   // 직업 (작업환경 참고용)
+  hobbies         String?   // 취미 (렌즈 추천 참고용)
+  
+  // 기존 안경 정보
+  currentGlasses  String?   // 현재 안경 정보
+  wearingTime     String?   // 착용 시간 (종일, 근거리만, 운전시 등)
+  
+  // 특이사항
+  complaints      String?   // 주요 불편사항
+  eyeConditions   String?   // 눈 상태 (건조, 충혈 등)
+  medicalHistory  String?   // 눈 관련 병력
+  
+  memo            String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([customerId])
+  @@index([measuredAt])
+}
+
+// ===== 고객 구매 이력 =====
+model CustomerPurchase {
+  id              Int       @id @default(autoincrement())
+  customerId      Int
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  storeId         Int       // 안경원 ID
+  
+  // 판매 정보
+  saleNo          String    // 판매번호
+  saleDate        DateTime  @default(now()) // 판매일
+  
+  // 금액
+  totalAmount     Int       @default(0)     // 총 금액
+  discountAmount  Int       @default(0)     // 할인금액
+  finalAmount     Int       @default(0)     // 최종금액
+  
+  // 결제
+  paymentMethod   String?   // cash, card, transfer, mixed
+  cardAmount      Int       @default(0)     // 카드결제액
+  cashAmount      Int       @default(0)     // 현금결제액
+  pointsUsed      Int       @default(0)     // 사용 포인트
+  pointsEarned    Int       @default(0)     // 적립 포인트
+  
+  // 배송 (택배인 경우)
+  deliveryType    String    @default("pickup") // pickup: 매장수령, delivery: 배송
+  deliveryStatus  String?   // pending, shipped, delivered
+  trackingNo      String?   // 운송장번호
+  
+  // 연동 주문 (서울케미 주문 연결)
+  linkedOrderId   Int?      // 서울케미 주문 ID
+  linkedOrderNo   String?   // 서울케미 주문번호
+  
+  memo            String?
+  salesPerson     String?   // 판매 담당자
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  items           CustomerPurchaseItem[]
+  
+  @@index([customerId])
+  @@index([storeId])
+  @@index([saleDate])
+  @@index([saleNo])
+}
+
+// ===== 고객 구매 상세 =====
+model CustomerPurchaseItem {
+  id              Int       @id @default(autoincrement())
+  purchaseId      Int
+  purchase        CustomerPurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  
+  // 상품 유형
+  itemType        String    // frame: 안경테, lens: 렌즈, contact: 콘택트, accessory: 악세서리, service: 서비스
+  
+  // 상품 정보
+  productId       Int?      // 서울케미 상품 ID (렌즈인 경우)
+  productName     String    // 상품명
+  brandName       String?   // 브랜드명
+  modelName       String?   // 모델명
+  
+  // 도수 정보 (렌즈인 경우)
+  eye             String?   // OD: 우안, OS: 좌안, OU: 양안
+  sph             String?
+  cyl             String?
+  axis            String?
+  add             String?
+  
+  // 안경테 정보 (테인 경우)
+  frameColor      String?   // 색상
+  frameSize       String?   // 사이즈
+  
+  // 금액
+  quantity        Int       @default(1)
+  unitPrice       Int       @default(0)     // 단가
+  discountRate    Float     @default(0)     // 할인율
+  discountAmount  Int       @default(0)     // 할인금액
+  finalPrice      Int       @default(0)     // 최종가
+  
+  // 보증 정보
+  warrantyMonths  Int       @default(0)     // 보증기간 (개월)
+  warrantyExpiry  DateTime?                 // 보증만료일
+  
+  memo            String?
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([purchaseId])
+  @@index([itemType])
+}
+
+// ===== 고객 리마인더/알림 =====
+model CustomerReminder {
+  id              Int       @id @default(autoincrement())
+  customerId      Int
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  storeId         Int       // 안경원 ID
+  
+  // 리마인더 유형
+  type            String    // checkup: 정기검안, birthday: 생일, warranty: 보증만료, custom: 커스텀
+  
+  // 내용
+  title           String    // 제목
+  message         String?   // 메시지 내용
+  
+  // 알림 일정
+  scheduledAt     DateTime  // 알림 예정일
+  remindDays      Int       @default(0) // 며칠 전 알림 (0: 당일)
+  
+  // 발송 상태
+  status          String    @default("pending") // pending, sent, cancelled
+  sentAt          DateTime?
+  sentMethod      String?   // sms, email, kakao
+  
+  // 반복 설정
+  isRecurring     Boolean   @default(false)
+  recurringType   String?   // yearly: 매년 (생일), monthly: 매월
+  
+  memo            String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([customerId])
+  @@index([storeId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+// ===== 안경원 CRM 설정 =====
+model CrmSettings {
+  id              Int       @id @default(autoincrement())
+  storeId         Int       @unique // 안경원 ID
+  
+  // 포인트 설정
+  pointRate       Float     @default(1)     // 적립율 (%)
+  pointMinPurchase Int      @default(10000) // 최소 구매금액
+  pointExpireDays Int       @default(365)   // 포인트 유효기간 (일)
+  
+  // 리마인더 기본 설정
+  checkupMonths   Int       @default(12)    // 정기검안 주기 (개월)
+  checkupRemindDays Int     @default(7)     // 검안 리마인더 (며칠 전)
+  birthdayRemindDays Int    @default(7)     // 생일 리마인더 (며칠 전)
+  warrantyRemindDays Int    @default(30)    // 보증만료 리마인더 (며칠 전)
+  
+  // 문자 발송 설정
+  smsEnabled      Boolean   @default(false)
+  smsSignature    String?   // 문자 서명 (예: [행복안경원])
+  
+  // 영수증/인쇄 설정
+  receiptHeader   String?   // 영수증 상단 문구
+  receiptFooter   String?   // 영수증 하단 문구
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
