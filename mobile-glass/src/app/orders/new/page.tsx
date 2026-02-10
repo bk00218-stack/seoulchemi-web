@@ -120,6 +120,20 @@ export default function NewOrderPage() {
     }
   }, [selectedProductId])
 
+  // 상호 검색 결과 키보드 이동 시 스크롤
+  useEffect(() => {
+    if (storeFocusIndex >= 0 && storeResultRefs.current[storeFocusIndex]) {
+      storeResultRefs.current[storeFocusIndex]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [storeFocusIndex])
+
+  // 상품 목록 키보드 이동 시 스크롤
+  useEffect(() => {
+    if (productFocusIndex >= 0 && productItemRefs.current[productFocusIndex]) {
+      productItemRefs.current[productFocusIndex]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [productFocusIndex])
+
   useEffect(() => {
     const handleGlobalKeys = (e: globalThis.KeyboardEvent) => {
       if (e.key === 'F5') { e.preventDefault(); setGridFocus(null); setCellInputValue(''); brandSelectRef.current?.focus() }
