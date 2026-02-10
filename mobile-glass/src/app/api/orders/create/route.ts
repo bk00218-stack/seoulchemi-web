@@ -11,7 +11,18 @@ function normalizeQuantity(qty: number): number {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { storeId, orderType, items, memo, skipCreditCheck } = body
+    const { storeId, orderType: rawOrderType, items, memo, skipCreditCheck } = body
+    
+    // orderType 매핑: 여벌/착색/기타 -> stock, RX -> rx
+    const orderTypeMap: Record<string, string> = {
+      '여벌': 'stock',
+      '착색': 'stock', 
+      '기타': 'stock',
+      'RX': 'rx',
+      'stock': 'stock',
+      'rx': 'rx'
+    }
+    const orderType = orderTypeMap[rawOrderType] || 'stock'
     
     if (!storeId) {
       return NextResponse.json({ error: '가맹점을 선택해주세요' }, { status: 400 })
