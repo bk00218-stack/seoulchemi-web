@@ -322,7 +322,7 @@ export default function NewOrderPage() {
         <span style={{ fontSize: 10, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
         {/* 왼쪽 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 11 }}>
           <section>
