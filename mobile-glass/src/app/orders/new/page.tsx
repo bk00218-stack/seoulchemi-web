@@ -305,6 +305,9 @@ export default function NewOrderPage() {
   const totalAmount = orderItems.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0)
   const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0)
 
+  const [showCompleteModal, setShowCompleteModal] = useState(false)
+  const [completedOrder, setCompletedOrder] = useState<{ orderNumber: string; storeName: string; itemCount: number; totalAmount: number } | null>(null)
+
   const handleSubmit = async () => {
     if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
     setLoading(true)
@@ -318,11 +321,23 @@ export default function NewOrderPage() {
             await fetch('/api/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.order.id, type: 'shipping' }) })
           } catch (e) { console.error('출력 실패:', e) }
         }
-        alert('주문이 등록되었습니다.')
-        router.push('/')
+        // 접수 완료 팝업 표시
+        setCompletedOrder({
+          orderNumber: data.order?.orderNumber || '',
+          storeName: selectedStore.name,
+          itemCount: orderItems.length,
+          totalAmount: totalAmount
+        })
+        setShowCompleteModal(true)
       } else alert('주문 생성 실패')
     } catch { alert('오류가 발생했습니다.') }
     setLoading(false)
+  }
+
+  const handleCompleteClose = () => {
+    setShowCompleteModal(false)
+    setCompletedOrder(null)
+    router.push('/orders/all')
   }
 
   const renderCell = (sphIndex: number, colIndex: number) => {
@@ -339,20 +354,21 @@ export default function NewOrderPage() {
     const isCurrentRow = gridFocus?.sphIndex === sphIndex
     const isCurrentCol = gridFocus?.colIndex === colIndex
     
-    let bg = sphIndex % 2 === 0 ? '#fffde7' : '#fff'
-    if (isCurrentRow || isCurrentCol) bg = '#ffcdd2' // 핑크 행/열
-    if (isCurrentRow && isCurrentCol) bg = '#ef9a9a' // 교차점 더 진하게
-    if (isFocused) bg = '#42a5f5'
-    if (item) bg = '#4caf50'
+    let bg = sphIndex % 2 === 0 ? '#f0f9ff' : '#e0f2fe'
+    if (isCurrentRow || isCurrentCol) bg = '#bae6fd' // 하늘색 행/열
+    if (isCurrentRow && isCurrentCol) bg = '#7dd3fc' // 교차점 더 진하게
+    if (isFocused) bg = '#2563eb'
+    if (item) bg = '#22c55e'
     
     return (
       <td key={colIndex} onClick={() => handleGridClick(sphIndex, colIndex)}
         style={{ 
-          border: '1px solid #ccc', 
+          border: '1px solid #93c5fd', 
           padding: 0, textAlign: 'center', background: bg, 
-          color: item || isFocused ? '#fff' : '#333', 
-          cursor: 'pointer', width: 34, height: 24, fontSize: 11, 
-          fontFamily: 'monospace', fontWeight: item ? 700 : 400 
+          color: item || isFocused ? '#fff' : '#1e3a5f', 
+          cursor: 'pointer', width: 40, height: 30, fontSize: 13, 
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: item ? 700 : 500,
+          transition: 'background 0.15s'
         }}>
         {item ? item.quantity : isFocused && cellInputValue ? cellInputValue : ''}
       </td>
@@ -368,7 +384,7 @@ export default function NewOrderPage() {
         <span style={{ fontSize: 12, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr 260px', gap: 4, height: 'calc(100vh - 110px)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
         {/* 왼쪽 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <section>
@@ -467,56 +483,59 @@ export default function NewOrderPage() {
 
         {/* 중앙: 하나의 도수표 (가운데 기준) */}
         <div ref={gridRef} tabIndex={0} onKeyDown={handleGridKeyDown}
-          style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: gridFocus ? '2px solid #f57c00' : '1px solid #ccc', borderRadius: 3, overflow: 'hidden', outline: 'none' }}>
-          <div style={{ padding: '3px 6px', background: '#e0e0e0', borderBottom: '1px solid #ccc', fontSize: 12, display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 600 }}>{selectedProduct ? `${selectedProduct.brandName} - ${selectedProduct.name}` : '상품 선택'}</span>
-            <span style={{ color: '#666' }}>←→ CYL | ↑↓ SPH | 가운데=000</span>
+          style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: gridFocus ? '2px solid #2563eb' : '1px solid #e0e7ff', borderRadius: 8, overflow: 'hidden', outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <div style={{ padding: '8px 12px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}>{selectedProduct ? `${selectedProduct.brandName} - ${selectedProduct.name}` : '상품 선택'}</span>
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>←→ CYL | ↑↓ SPH | 가운데=000</span>
           </div>
           
           <div ref={gridContainerRef} style={{ flex: 1, overflow: 'auto' }}>
-            <table style={{ borderCollapse: 'collapse', fontSize: 10, fontFamily: 'monospace' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: 13, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
               <thead>
-                <tr style={{ background: '#e8e8e0' }}>
+                <tr style={{ background: '#dbeafe' }}>
                   {/* 왼쪽 SPH 헤더 */}
-                  <th style={{ border: '1px solid #999', padding: '3px 4px', fontWeight: 700, minWidth: 38, position: 'sticky', left: 0, background: '#e8e8e0', zIndex: 10, fontSize: 11 }}>-Sph</th>
+                  <th style={{ border: '1px solid #93c5fd', padding: '4px 10px', fontWeight: 700, minWidth: 46, position: 'sticky', left: 0, background: '#3b82f6', color: '#fff', zIndex: 10, fontSize: 13 }}>-Sph</th>
                   
                   {/* 왼쪽 CYL 열들 (400 → 000) */}
-                  {cylColsLeft.map((cyl, i) => (
-                    <th key={`L${i}`} style={{ border: '1px solid #999', padding: '3px 2px', minWidth: 34, fontWeight: 400, background: gridFocus?.colIndex === i ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>{formatLegacy(cyl)}</th>
-                  ))}
+                  {cylColsLeft.map((cyl, i) => {
+                    const isFirst = i === 0
+                    return <th key={`L${i}`} style={{ border: '1px solid #93c5fd', padding: '4px 4px', minWidth: 40, fontWeight: isFirst ? 700 : 600, background: gridFocus?.colIndex === i ? '#60a5fa' : isFirst ? '#4f46e5' : '#dbeafe', color: gridFocus?.colIndex === i ? '#fff' : isFirst ? '#fff' : '#1e40af', fontSize: 13 }}>-{formatLegacy(cyl)}</th>
+                  })}
                   
                   {/* 가운데 구분 열 -Sph+ */}
-                  <th style={{ border: '1px solid #999', borderLeft: '2px solid #666', borderRight: '2px solid #666', padding: '3px 4px', minWidth: 50, fontWeight: 700, background: gridFocus?.colIndex === cylColsLeft.length ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>-Sph+</th>
+                  <th style={{ border: '1px solid #6366f1', borderLeft: '2px solid #4f46e5', borderRight: '2px solid #4f46e5', padding: '4px 10px', minWidth: 60, fontWeight: 700, background: '#4f46e5', color: '#fff', fontSize: 14 }}>-Sph+</th>
                   
                   {/* 오른쪽 CYL 열들 (000 → 400) */}
-                  {cylColsRight.map((cyl, i) => (
-                    <th key={`R${i}`} style={{ border: '1px solid #999', padding: '3px 2px', minWidth: 34, fontWeight: 400, background: gridFocus?.colIndex === cylColsLeft.length + 1 + i ? '#ffcdd2' : '#e8e8e0', fontSize: 11 }}>{formatLegacy(cyl)}</th>
-                  ))}
+                  {cylColsRight.map((cyl, i) => {
+                    const isLast = i === cylColsRight.length - 1
+                    return <th key={`R${i}`} style={{ border: '1px solid #93c5fd', padding: '4px 4px', minWidth: 40, fontWeight: isLast ? 700 : 600, background: gridFocus?.colIndex === cylColsLeft.length + 1 + i ? '#60a5fa' : isLast ? '#4f46e5' : '#dbeafe', color: gridFocus?.colIndex === cylColsLeft.length + 1 + i ? '#fff' : isLast ? '#fff' : '#1e40af', fontSize: 13 }}>-{formatLegacy(cyl)}</th>
+                  })}
                   
                   {/* 오른쪽 SPH 헤더 */}
-                  <th style={{ border: '1px solid #999', padding: '3px 4px', fontWeight: 700, minWidth: 38, position: 'sticky', right: 0, background: '#e8e8e0', zIndex: 10, fontSize: 11 }}>+Sph</th>
+                  <th style={{ border: '1px solid #93c5fd', padding: '4px 10px', fontWeight: 700, minWidth: 46, position: 'sticky', right: 0, background: '#3b82f6', color: '#fff', zIndex: 10, fontSize: 13 }}>+Sph</th>
                 </tr>
               </thead>
               <tbody>
                 {sphRows.map((sph, sphIndex) => {
                   const isCurrentRow = gridFocus?.sphIndex === sphIndex
-                  const rowBg = isCurrentRow ? '#ffcdd2' : '#e8e8e0'
+                  const rowBg = isCurrentRow ? '#bfdbfe' : '#eff6ff'
+                  const rowColor = '#1e40af'
                   return (
                     <tr key={sphIndex}>
-                      {/* 왼쪽 SPH 값 (회색) */}
-                      <td style={{ border: '1px solid #999', padding: '2px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', left: 0, background: rowBg, zIndex: 5, fontSize: 11 }}>{formatLegacy(sph)}</td>
+                      {/* 왼쪽 SPH 값 */}
+                      <td style={{ border: '1px solid #93c5fd', padding: '5px 8px', fontWeight: 700, textAlign: 'center', position: 'sticky', left: 0, background: isCurrentRow ? '#60a5fa' : '#dbeafe', color: isCurrentRow ? '#fff' : '#1e40af', zIndex: 5, fontSize: 13 }}>{formatLegacy(sph)}</td>
                       
                       {/* 왼쪽 CYL 셀들 */}
                       {cylColsLeft.map((_, i) => renderCell(sphIndex, i))}
                       
                       {/* 가운데 구분 셀: -000+ 형식 */}
-                      <td style={{ border: '1px solid #999', borderLeft: '2px solid #666', borderRight: '2px solid #666', padding: '2px 4px', fontWeight: 600, textAlign: 'center', background: rowBg, fontSize: 10 }}>-{formatLegacy(sph)}+</td>
+                      <td style={{ border: '1px solid #6366f1', borderLeft: '2px solid #4f46e5', borderRight: '2px solid #4f46e5', padding: '5px 8px', fontWeight: 700, textAlign: 'center', background: isCurrentRow ? '#818cf8' : '#4f46e5', color: '#fff', fontSize: 13 }}>-{formatLegacy(sph)}+</td>
                       
                       {/* 오른쪽 CYL 셀들 */}
                       {cylColsRight.map((_, i) => renderCell(sphIndex, cylColsLeft.length + 1 + i))}
                       
-                      {/* 오른쪽 SPH 값 (회색) */}
-                      <td style={{ border: '1px solid #999', padding: '2px 4px', fontWeight: 600, textAlign: 'center', position: 'sticky', right: 0, background: rowBg, zIndex: 5, fontSize: 11 }}>{formatLegacy(sph)}</td>
+                      {/* 오른쪽 SPH 값 */}
+                      <td style={{ border: '1px solid #93c5fd', padding: '5px 8px', fontWeight: 700, textAlign: 'center', position: 'sticky', right: 0, background: isCurrentRow ? '#60a5fa' : '#dbeafe', color: isCurrentRow ? '#fff' : '#1e40af', zIndex: 5, fontSize: 13 }}>{formatLegacy(sph)}</td>
                     </tr>
                   )
                 })}
@@ -524,9 +543,28 @@ export default function NewOrderPage() {
             </table>
           </div>
           
-          <div style={{ padding: '3px 6px', background: '#e0e0e0', borderTop: '1px solid #ccc', fontSize: 12, display: 'flex', justifyContent: 'space-between' }}>
-            <span>{focusedInfo ? <>SPH: <strong>{focusedInfo.sph >= 0 ? '+' : ''}{focusedInfo.sph.toFixed(2)}</strong> | CYL: <strong>{focusedInfo.cyl.toFixed(2)}</strong></> : '셀 선택'}</span>
-            <span style={{ color: focusedInfo?.isPlus ? '#e65100' : '#1565c0', fontWeight: 600 }}>{focusedInfo ? (focusedInfo.isPlus ? '원시(+)' : '근시(-)') : ''}</span>
+          <div style={{ padding: '10px 14px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: 'rgba(255,255,255,0.9)' }}>{focusedInfo ? (() => {
+              // CYL 플러스 환산: newSPH = SPH + CYL, newCYL = -CYL
+              const convertedSph = focusedInfo.sph + focusedInfo.cyl
+              const convertedCyl = -focusedInfo.cyl
+              return <>
+                <strong style={{ color: '#fff', fontSize: 16 }}>
+                  {focusedInfo.sph >= 0 ? '+' : ''}{focusedInfo.sph.toFixed(2)}
+                </strong>
+                <span style={{ margin: '0 6px', color: 'rgba(255,255,255,0.6)' }}>/</span>
+                <strong style={{ color: '#fff', fontSize: 16 }}>
+                  {focusedInfo.cyl >= 0 ? '+' : ''}{focusedInfo.cyl.toFixed(2)}
+                </strong>
+                <span style={{ margin: '0 12px', color: 'rgba(255,255,255,0.5)' }}>→</span>
+                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 4, fontSize: 15 }}>
+                  <strong style={{ color: '#fef08a' }}>{convertedSph >= 0 ? '+' : '-'}{String(Math.round(Math.abs(convertedSph) * 100)).padStart(3, '0')}</strong>
+                  <span style={{ margin: '0 6px', color: 'rgba(255,255,255,0.6)' }}>/</span>
+                  <strong style={{ color: '#fef08a' }}>+{String(Math.round(Math.abs(convertedCyl) * 100)).padStart(3, '0')}</strong>
+                </span>
+              </>
+            })() : <span style={{ color: 'rgba(255,255,255,0.7)' }}>셀 선택</span>}</span>
+            <span style={{ color: focusedInfo?.isPlus ? '#fca5a5' : '#bfdbfe', fontWeight: 700, fontSize: 13 }}>{focusedInfo ? (focusedInfo.isPlus ? '원시(+)' : '근시(-)') : ''}</span>
           </div>
         </div>
 
@@ -570,6 +608,47 @@ export default function NewOrderPage() {
           </div>
         </div>
       </div>
+
+      {/* 접수 완료 팝업 */}
+      {showCompleteModal && completedOrder && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 32, width: 400, textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 40 }}>✓</div>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#1f2937', marginBottom: 8 }}>접수 완료</h2>
+            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>주문이 정상적으로 접수되었습니다.</p>
+            
+            <div style={{ background: '#f9fafb', borderRadius: 12, padding: 20, marginBottom: 24, textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
+                <span style={{ color: '#6b7280' }}>주문번호</span>
+                <span style={{ fontWeight: 600, color: '#1f2937' }}>{completedOrder.orderNumber}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
+                <span style={{ color: '#6b7280' }}>가맹점</span>
+                <span style={{ fontWeight: 600, color: '#1f2937' }}>{completedOrder.storeName}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
+                <span style={{ color: '#6b7280' }}>주문유형</span>
+                <span style={{ fontWeight: 600, color: '#3b82f6' }}>{orderType === 'spare' ? '여벌렌즈' : orderType === 'tint' ? '착색' : orderType === 'rx' ? 'RX' : '기타'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
+                <span style={{ color: '#6b7280' }}>상품수</span>
+                <span style={{ fontWeight: 600, color: '#1f2937' }}>{completedOrder.itemCount}건</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
+                <span style={{ color: '#6b7280' }}>총 금액</span>
+                <span style={{ fontWeight: 700, color: '#10b981', fontSize: 18 }}>{completedOrder.totalAmount.toLocaleString()}원</span>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleCompleteClose}
+              style={{ width: '100%', padding: '14px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 600, cursor: 'pointer' }}
+            >
+              전체 주문내역 보기
+            </button>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }
