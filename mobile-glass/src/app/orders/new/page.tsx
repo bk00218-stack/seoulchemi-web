@@ -205,8 +205,10 @@ export default function NewOrderPage() {
   }
 
   const handleGridCellInput = useCallback((sphIndex: number, colIndex: number, quantity: number) => {
-    // 0.5 단위 허용 (안경렌즈: 0.5 = 한쪽, 1 = 양쪽)
-    if (!selectedProduct || !selectedStore || quantity <= 0) return
+    // 0.5 단위로 반올림 (안경렌즈: 0.5 = 한쪽, 1 = 양쪽)
+    const roundedQty = Math.round(quantity * 2) / 2 // 0.5 단위로 반올림
+    if (!selectedProduct || !selectedStore || roundedQty <= 0) return
+    quantity = roundedQty
     const sph = sphRows[sphIndex]
     const colInfo = getColInfo(colIndex)
     if (!colInfo) return
