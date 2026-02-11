@@ -35,13 +35,15 @@ export default function KeyboardShortcuts() {
           e.target instanceof HTMLTextAreaElement || 
           e.target instanceof HTMLSelectElement) {
         if (e.key === 'Escape') {
-          (e.target as HTMLElement).blur()
+          e.preventDefault()
+          ;(e.target as HTMLElement).blur()
         }
         return
       }
 
       // Escape로 모달 닫기
       if (e.key === 'Escape') {
+        e.preventDefault()
         setShowHelp(false)
         return
       }
