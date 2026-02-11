@@ -222,7 +222,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
               <circle cx="18" cy="18" r="4" fill="url(#lensGrad)" opacity="0.3"/>
               <circle cx="14" cy="14" r="2" fill="white" opacity="0.8"/>
               <text x="42" y="24" fontFamily="Inter, -apple-system, sans-serif" fontSize="18" fontWeight="600" fill="#1d1d1f">
-                Lens<tspan fill="#5d7a5d">Choice</tspan>
+                AI<tspan fill="#5d7a5d">Optic</tspan>
               </text>
             </svg>
           </Link>

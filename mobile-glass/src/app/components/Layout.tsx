@@ -179,7 +179,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
               <circle cx="16" cy="18" r="3.5" fill="url(#lensGradFront)" opacity="0.3"/>
               <circle cx="12" cy="14" r="1.5" fill="white" opacity="0.8"/>
               <text x="36" y="23" fontFamily="-apple-system, BlinkMacSystemFont, sans-serif" fontSize="16" fontWeight="600" fill="#1d1d1f">
-                Lens<tspan fill="#5d7a5d">Choice</tspan>
+                AI<tspan fill="#5d7a5d">Optic</tspan>
               </text>
             </svg>
           </Link>
