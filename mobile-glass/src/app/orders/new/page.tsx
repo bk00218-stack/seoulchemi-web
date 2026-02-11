@@ -792,19 +792,19 @@ export default function NewOrderPage() {
                 handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'add')
                 setQuantityActionModal(null)
                 setCellInputValue('')
-              }} style={{ padding: '5px 10px', background: '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
-                +{quantityActionModal.existingQty + quantityActionModal.newQty}
+              }} style={{ padding: '5px 8px', background: '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                ➕{quantityActionModal.existingQty + quantityActionModal.newQty}
               </button>
               <button onClick={() => {
                 handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'replace')
                 setQuantityActionModal(null)
                 setCellInputValue('')
-              }} style={{ padding: '5px 10px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
-                ={quantityActionModal.newQty}
+              }} style={{ padding: '5px 8px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                ✏️{quantityActionModal.newQty}
               </button>
               <button onClick={() => { setQuantityActionModal(null); setCellInputValue('') }}
-                style={{ padding: '5px 10px', background: '#9e9e9e', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
-                ✕
+                style={{ padding: '5px 8px', background: '#9e9e9e', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                ❌
               </button>
             </div>
           </div>
