@@ -95,6 +95,16 @@ export default function NewOrderPage() {
   const [contextMenu, setContextMenu] = useState<{x: number, y: number, item: OrderItem} | null>(null)
   const [editModal, setEditModal] = useState<{type: 'quantity' | 'price', item: OrderItem} | null>(null)
   const [editValue, setEditValue] = useState('')
+  
+  // 수량 입력 액션 팝업 (추가/수정/취소)
+  const [quantityActionModal, setQuantityActionModal] = useState<{
+    existingQty: number
+    newQty: number
+    sphIndex: number
+    colIndex: number
+    sphStr: string
+    cylStr: string
+  } | null>(null)
 
   const selectedProduct = products.find(p => p.id === selectedProductId)
   const filteredProducts = selectedBrandId ? products.filter(p => p.brandId === selectedBrandId) : []
@@ -215,7 +225,7 @@ export default function NewOrderPage() {
     return null
   }
 
-  const handleGridCellInput = useCallback((sphIndex: number, colIndex: number, quantity: number) => {
+  const handleGridCellInput = useCallback((sphIndex: number, colIndex: number, quantity: number, forceMode?: 'add' | 'replace') => {
     // 0.5 단위로 올림 (안경렌즈: 0.5 = 한쪽, 1 = 양쪽)
     const roundedQty = Math.ceil(quantity * 2) / 2 // 0.5 단위로 올림
     if (!selectedProduct || !selectedStore || roundedQty <= 0) return
@@ -230,7 +240,17 @@ export default function NewOrderPage() {
     
     const exists = orderItems.find(item => item.product.id === selectedProduct.id && item.sph === sphStr && item.cyl === cylStr)
     if (exists) {
-      setOrderItems(items => items.map(item => item.id === exists.id ? { ...item, quantity } : item))
+      // 기존 수량이 있고 forceMode가 없으면 팝업 띄우기
+      if (!forceMode) {
+        setQuantityActionModal({ existingQty: exists.quantity, newQty: quantity, sphIndex, colIndex, sphStr, cylStr })
+        return
+      }
+      // forceMode에 따라 처리
+      if (forceMode === 'add') {
+        setOrderItems(items => items.map(item => item.id === exists.id ? { ...item, quantity: item.quantity + quantity } : item))
+      } else {
+        setOrderItems(items => items.map(item => item.id === exists.id ? { ...item, quantity } : item))
+      }
     } else {
       setOrderItems(items => [...items, { id: `${Date.now()}-${Math.random()}`, product: selectedProduct, sph: sphStr, cyl: cylStr, axis: '0', quantity }])
     }
@@ -752,6 +772,39 @@ export default function NewOrderPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => { setEditModal(null); setEditValue('') }} style={{ flex: 1, padding: '10px', background: '#f5f5f5', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>취소</button>
               <button onClick={handleEditConfirm} style={{ flex: 1, padding: '10px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 수량 입력 액션 팝업 */}
+      {quantityActionModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
+          onClick={() => { setQuantityActionModal(null); setCellInputValue('') }}>
+          <div style={{ background: '#fff', borderRadius: 8, padding: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
+            <div style={{ marginBottom: 12, fontSize: 13, textAlign: 'center', color: '#333' }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>{quantityActionModal.sphStr} / {quantityActionModal.cylStr}</div>
+              <div>기존: <strong>{quantityActionModal.existingQty}</strong>개 → 입력: <strong>{quantityActionModal.newQty}</strong>개</div>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => {
+                handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'add')
+                setQuantityActionModal(null)
+                setCellInputValue('')
+              }} style={{ flex: 1, padding: '8px 12px', background: '#4caf50', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                ➕ 추가 ({quantityActionModal.existingQty + quantityActionModal.newQty})
+              </button>
+              <button onClick={() => {
+                handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'replace')
+                setQuantityActionModal(null)
+                setCellInputValue('')
+              }} style={{ flex: 1, padding: '8px 12px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                ✏️ 수정 ({quantityActionModal.newQty})
+              </button>
+              <button onClick={() => { setQuantityActionModal(null); setCellInputValue('') }}
+                style={{ flex: 1, padding: '8px 12px', background: '#9e9e9e', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                ❌ 취소
+              </button>
             </div>
           </div>
         </div>
