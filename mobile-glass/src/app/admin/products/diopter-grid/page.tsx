@@ -265,7 +265,7 @@ export default function DiopterGridPage() {
                 minWidth: '44px',
                 fontSize: '12px'
               }}>
-                {side === 'minus' ? '-Sph' : 'Sph+'}
+                {side === 'minus' ? '-SPH' : 'SPH+'}
               </th>
               {sphRange.map(sph => (
                 <th 
@@ -297,7 +297,7 @@ export default function DiopterGridPage() {
                 minWidth: '44px',
                 fontSize: '12px'
               }}>
-                {side === 'minus' ? '-Sph' : 'Sph+'}
+                {side === 'minus' ? '-SPH' : 'SPH+'}
               </th>
             </tr>
           </thead>
