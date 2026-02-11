@@ -779,31 +779,32 @@ export default function NewOrderPage() {
 
       {/* 수량 입력 액션 팝업 */}
       {quantityActionModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
           onClick={() => { setQuantityActionModal(null); setCellInputValue('') }}>
-          <div style={{ background: '#fff', borderRadius: 8, padding: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
-            <div style={{ marginBottom: 12, fontSize: 13, textAlign: 'center', color: '#333' }}>
-              <div style={{ fontWeight: 600, marginBottom: 4 }}>{quantityActionModal.sphStr} / {quantityActionModal.cylStr}</div>
-              <div>기존: <strong>{quantityActionModal.existingQty}</strong>개 → 입력: <strong>{quantityActionModal.newQty}</strong>개</div>
+          <div style={{ background: '#fff', borderRadius: 6, padding: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.15)', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
+            <div style={{ marginBottom: 8, fontSize: 11, textAlign: 'center', color: '#333' }}>
+              <span style={{ fontWeight: 600 }}>{quantityActionModal.sphStr}/{quantityActionModal.cylStr}</span>
+              <span style={{ margin: '0 6px', color: '#999' }}>|</span>
+              <span>{quantityActionModal.existingQty} → {quantityActionModal.newQty}</span>
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 4 }}>
               <button onClick={() => {
                 handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'add')
                 setQuantityActionModal(null)
                 setCellInputValue('')
-              }} style={{ flex: 1, padding: '8px 12px', background: '#4caf50', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
-                ➕ 추가 ({quantityActionModal.existingQty + quantityActionModal.newQty})
+              }} style={{ padding: '5px 10px', background: '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                +{quantityActionModal.existingQty + quantityActionModal.newQty}
               </button>
               <button onClick={() => {
                 handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'replace')
                 setQuantityActionModal(null)
                 setCellInputValue('')
-              }} style={{ flex: 1, padding: '8px 12px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
-                ✏️ 수정 ({quantityActionModal.newQty})
+              }} style={{ padding: '5px 10px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                ={quantityActionModal.newQty}
               </button>
               <button onClick={() => { setQuantityActionModal(null); setCellInputValue('') }}
-                style={{ flex: 1, padding: '8px 12px', background: '#9e9e9e', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
-                ❌ 취소
+                style={{ padding: '5px 10px', background: '#9e9e9e', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                ✕
               </button>
             </div>
           </div>
