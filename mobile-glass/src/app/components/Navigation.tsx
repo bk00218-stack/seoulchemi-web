@@ -213,8 +213,8 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
             <svg width="160" height="32" viewBox="0 0 180 36">
               <defs>
                 <linearGradient id="lensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{stopColor:'#007AFF'}}/>
-                  <stop offset="100%" style={{stopColor:'#5856D6'}}/>
+                  <stop offset="0%" style={{stopColor:'#5d7a5d'}}/>
+                  <stop offset="100%" style={{stopColor:'#4a6b4a'}}/>
                 </linearGradient>
               </defs>
               <circle cx="18" cy="18" r="14" fill="none" stroke="url(#lensGrad)" strokeWidth="2.5"/>
@@ -222,7 +222,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
               <circle cx="18" cy="18" r="4" fill="url(#lensGrad)" opacity="0.3"/>
               <circle cx="14" cy="14" r="2" fill="white" opacity="0.8"/>
               <text x="42" y="24" fontFamily="Inter, -apple-system, sans-serif" fontSize="18" fontWeight="600" fill="#1d1d1f">
-                Lens<tspan fill="#007AFF">Choice</tspan>
+                Lens<tspan fill="#5d7a5d">Choice</tspan>
               </text>
             </svg>
           </Link>
@@ -240,7 +240,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
                   cursor: 'pointer',
                   fontSize: '14px',
                   padding: '4px 0',
-                  borderBottom: currentMenu === key ? '2px solid #007aff' : '2px solid transparent'
+                  borderBottom: currentMenu === key ? '2px solid #5d7a5d' : '2px solid transparent'
                 }}
               >
                 {value.label}
@@ -330,9 +330,9 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
                     display: 'block',
                     padding: '10px 16px',
                     textAlign: 'left',
-                    background: isActive ? '#f0f7ff' : 'transparent',
-                    borderLeft: isActive ? '3px solid #007aff' : '3px solid transparent',
-                    color: isActive ? '#007aff' : '#1d1d1f',
+                    background: isActive ? '#f0f7f0' : 'transparent',
+                    borderLeft: isActive ? '3px solid #5d7a5d' : '3px solid transparent',
+                    color: isActive ? '#5d7a5d' : '#1d1d1f',
                     fontSize: '14px',
                     textDecoration: 'none',
                     fontWeight: isActive ? 500 : 400

@@ -170,8 +170,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             <svg width="140" height="28" viewBox="0 0 180 36">
               <defs>
                 <linearGradient id="lensGradFront" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{stopColor:'#007AFF'}}/>
-                  <stop offset="100%" style={{stopColor:'#5856D6'}}/>
+                  <stop offset="0%" style={{stopColor:'#5d7a5d'}}/>
+                  <stop offset="100%" style={{stopColor:'#4a6b4a'}}/>
                 </linearGradient>
               </defs>
               <circle cx="16" cy="18" r="12" fill="none" stroke="url(#lensGradFront)" strokeWidth="2"/>
@@ -179,7 +179,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
               <circle cx="16" cy="18" r="3.5" fill="url(#lensGradFront)" opacity="0.3"/>
               <circle cx="12" cy="14" r="1.5" fill="white" opacity="0.8"/>
               <text x="36" y="23" fontFamily="-apple-system, BlinkMacSystemFont, sans-serif" fontSize="16" fontWeight="600" fill="#1d1d1f">
-                Lens<tspan fill="#007AFF">Choice</tspan>
+                Lens<tspan fill="#5d7a5d">Choice</tspan>
               </text>
             </svg>
           </Link>
