@@ -19,7 +19,7 @@ const SIDEBAR = [
 ]
 
 interface Brand { id: number; name: string }
-interface Product { id: number; name: string; brandName: string; brandId: number; optionType: string; refractiveIndex: string | null; sellingPrice: number; purchasePrice: number }
+interface Product { id: number; name: string; brand: string; brandId: number; optionType: string; refractiveIndex: string | null; sellingPrice: number; purchasePrice: number }
 interface Store { 
   id: number
   name: string
@@ -323,7 +323,7 @@ export default function NewOrderPage() {
         }
         // 접수 완료 팝업 표시
         setCompletedOrder({
-          orderNumber: data.order?.orderNumber || '',
+          orderNumber: data.order?.orderNo || '',
           storeName: selectedStore.name,
           itemCount: orderItems.length,
           totalAmount: totalAmount
@@ -337,6 +337,15 @@ export default function NewOrderPage() {
   const handleCompleteClose = () => {
     setShowCompleteModal(false)
     setCompletedOrder(null)
+    // 폼 초기화
+    setSelectedStore(null)
+    setStoreSearchText('')
+    setSelectedBrandId(null)
+    setSelectedProductId(null)
+    setOrderItems([])
+    setMemo('')
+    setGridFocus(null)
+    // 전체 주문내역 페이지로 이동
     router.push('/orders/all')
   }
 
@@ -485,7 +494,7 @@ export default function NewOrderPage() {
         <div ref={gridRef} tabIndex={0} onKeyDown={handleGridKeyDown}
           style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: gridFocus ? '2px solid #2563eb' : '1px solid #e0e7ff', borderRadius: 8, overflow: 'hidden', outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
           <div style={{ padding: '8px 12px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}>{selectedProduct ? `${selectedProduct.brandName} - ${selectedProduct.name}` : '상품 선택'}</span>
+            <span style={{ fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}>{selectedProduct ? `${selectedProduct.brand} - ${selectedProduct.name}` : '상품 선택'}</span>
             <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>←→ CYL | ↑↓ SPH | 가운데=000</span>
           </div>
           
@@ -628,7 +637,7 @@ export default function NewOrderPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#6b7280' }}>주문유형</span>
-                <span style={{ fontWeight: 600, color: '#3b82f6' }}>{orderType === 'spare' ? '여벌렌즈' : orderType === 'tint' ? '착색' : orderType === 'rx' ? 'RX' : '기타'}</span>
+                <span style={{ fontWeight: 600, color: '#3b82f6' }}>{orderType}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#6b7280' }}>상품수</span>

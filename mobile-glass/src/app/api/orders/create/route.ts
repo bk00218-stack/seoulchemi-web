@@ -99,9 +99,10 @@ export async function POST(request: Request) {
       }
     }
     
-    // 주문번호 생성
+    // 주문번호 생성 (ORD-YYYYMMDD-NNN 형식)
     const today = new Date()
-    const prefix = `ORD-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`
+    const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
+    const prefix = `ORD-${dateStr}`
     const lastOrder = await prisma.order.findFirst({
       where: { orderNo: { startsWith: prefix } },
       orderBy: { orderNo: 'desc' }
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
       const lastSeq = parseInt(lastOrder.orderNo.split('-').pop() || '0')
       seq = lastSeq + 1
     }
-    const orderNo = `${prefix}-${String(seq).padStart(4, '0')}`
+    const orderNo = `${prefix}-${String(seq).padStart(3, '0')}`
     
     // 트랜잭션으로 주문 생성
     const order = await prisma.$transaction(async (tx) => {
@@ -180,9 +181,12 @@ export async function POST(request: Request) {
         itemCount: order.items.length
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create order:', error)
-    return NextResponse.json({ error: '주문 등록에 실패했습니다.' }, { status: 500 })
+    return NextResponse.json({ 
+      error: '주문 등록에 실패했습니다.',
+      details: error?.message || String(error)
+    }, { status: 500 })
   }
 }
 

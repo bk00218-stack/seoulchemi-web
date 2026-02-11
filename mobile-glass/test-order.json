@@ -1,0 +1,14 @@
+{
+  "storeId": 6,
+  "orderType": "여벌",
+  "memo": "",
+  "items": [
+    {
+      "productId": 467,
+      "quantity": 1,
+      "sph": "+0.00",
+      "cyl": "0.00",
+      "axis": "0"
+    }
+  ]
+}
