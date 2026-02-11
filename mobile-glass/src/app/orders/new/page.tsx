@@ -164,7 +164,13 @@ export default function NewOrderPage() {
       else if (e.key === 'Escape') {
         e.preventDefault()
         if (gridFocus) { setGridFocus(null); setCellInputValue('') }
-        else { setSelectedStore(null); setStoreSearchText(''); setStoreFocusIndex(-1); setSelectedBrandId(null); setSelectedProductId(null); setProductFocusIndex(-1); storeInputRef.current?.focus() }
+        else { 
+          // 전체 초기화 (주문목록 포함)
+          setSelectedStore(null); setStoreSearchText(''); setStoreFocusIndex(-1); 
+          setSelectedBrandId(null); setSelectedProductId(null); setProductFocusIndex(-1); 
+          setOrderItems([]); setMemo(''); // 주문목록 & 메모 초기화
+          storeInputRef.current?.focus() 
+        }
       }
     }
     window.addEventListener('keydown', handleGlobalKeys)
