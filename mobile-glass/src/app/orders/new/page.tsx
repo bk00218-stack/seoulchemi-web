@@ -90,6 +90,11 @@ export default function NewOrderPage() {
   const [memo, setMemo] = useState('')
   const [loading, setLoading] = useState(false)
   const [storeSearchText, setStoreSearchText] = useState('')
+  
+  // 컨텍스트 메뉴 상태
+  const [contextMenu, setContextMenu] = useState<{x: number, y: number, item: OrderItem} | null>(null)
+  const [editModal, setEditModal] = useState<{type: 'quantity' | 'price', item: OrderItem} | null>(null)
+  const [editValue, setEditValue] = useState('')
 
   const selectedProduct = products.find(p => p.id === selectedProductId)
   const filteredProducts = selectedBrandId ? products.filter(p => p.brandId === selectedBrandId) : []
@@ -315,6 +320,43 @@ export default function NewOrderPage() {
   }, [selectedProduct, selectedStore])
 
   const removeItem = (id: string) => setOrderItems(items => items.filter(item => item.id !== id))
+  
+  // 컨텍스트 메뉴 핸들러
+  const handleContextMenu = (e: React.MouseEvent, item: OrderItem) => {
+    e.preventDefault()
+    setContextMenu({ x: e.clientX, y: e.clientY, item })
+  }
+  
+  const handleEditQuantity = (item: OrderItem) => {
+    setEditValue(String(item.quantity))
+    setEditModal({ type: 'quantity', item })
+    setContextMenu(null)
+  }
+  
+  const handleEditPrice = (item: OrderItem) => {
+    setEditValue(String(item.product.sellingPrice))
+    setEditModal({ type: 'price', item })
+    setContextMenu(null)
+  }
+  
+  const handleEditConfirm = () => {
+    if (!editModal) return
+    const value = parseFloat(editValue)
+    if (isNaN(value) || value < 0) return
+    
+    if (editModal.type === 'quantity') {
+      setOrderItems(items => items.map(item => 
+        item.id === editModal.item.id ? { ...item, quantity: value } : item
+      ))
+    } else {
+      setOrderItems(items => items.map(item => 
+        item.id === editModal.item.id ? { ...item, product: { ...item.product, sellingPrice: value } } : item
+      ))
+    }
+    setEditModal(null)
+    setEditValue('')
+  }
+  
   const totalAmount = orderItems.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0)
   const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0)
 
@@ -419,7 +461,7 @@ export default function NewOrderPage() {
         <span style={{ fontSize: 12, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 220px', gap: 4, height: 'calc(100vh - 110px)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 280px', gap: 4, height: 'calc(100vh - 110px)' }}>
         {/* 왼쪽 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <section>
@@ -608,8 +650,9 @@ export default function NewOrderPage() {
           <div style={{ padding: '6px 8px', background: '#333', color: '#fff', fontWeight: 600, fontSize: 14, display: 'flex', justifyContent: 'space-between' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 36px 60px 22px', padding: '6px 8px', background: '#e0e0e0', fontWeight: 600, fontSize: 12, gap: '4px', alignItems: 'center' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>상품</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '38px 1fr 38px 38px 26px 54px 18px', padding: '4px 6px', background: '#e0e0e0', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
+            <span>품목</span>
+            <span>상품</span>
             <span style={{ textAlign: 'center' }}>SPH</span>
             <span style={{ textAlign: 'center' }}>CYL</span>
             <span style={{ textAlign: 'center' }}>수량</span>
@@ -619,13 +662,14 @@ export default function NewOrderPage() {
           <div style={{ flex: 1, overflow: 'auto' }}>
             {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#999' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 36px 60px 22px', padding: '6px 8px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 12, gap: '4px' }}>
+                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '38px 1fr 38px 38px 26px 54px 18px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
+                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#666' }}>{item.product.brand}</div>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
-                  <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.sph}</div>
-                  <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{item.cyl}</div>
+                  <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{(() => { const v = parseFloat(item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()}</div>
+                  <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>-{String(Math.round(Math.abs(parseFloat(item.cyl)) * 100)).padStart(3, '0')}</div>
                   <div style={{ fontWeight: 600, textAlign: 'center' }}>{item.quantity}</div>
-                  <div style={{ textAlign: 'right', fontFamily: 'monospace' }}>{(item.product.sellingPrice * item.quantity / 1000).toFixed(0)}k</div>
-                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 18, height: 18, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  <div style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{(item.product.sellingPrice * item.quantity).toLocaleString()}</div>
+                  <button onClick={() => removeItem(item.id)} style={{ background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 16, height: 16, cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>×</button>
                 </div>
               ))
             )}
@@ -681,6 +725,36 @@ export default function NewOrderPage() {
             >
               전체 주문내역 보기
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 컨텍스트 메뉴 */}
+      {contextMenu && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setContextMenu(null)}>
+          <div style={{ position: 'absolute', top: contextMenu.y, left: contextMenu.x, background: '#fff', border: '1px solid #ccc', borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', minWidth: 140, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+            <div onClick={() => handleEditQuantity(contextMenu.item)} style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 13 }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>📝 수량 변경</div>
+            <div onClick={() => handleEditPrice(contextMenu.item)} style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 13 }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>💰 금액 변경</div>
+            <div onClick={() => { removeItem(contextMenu.item.id); setContextMenu(null) }} style={{ padding: '10px 16px', cursor: 'pointer', fontSize: 13, color: '#e53935' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#ffebee'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>🗑️ 삭제</div>
+          </div>
+        </div>
+      )}
+
+      {/* 수정 모달 */}
+      {editModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, width: 320, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 600 }}>{editModal.type === 'quantity' ? '수량 변경' : '금액 변경'}</h3>
+            <div style={{ marginBottom: 12, fontSize: 13, color: '#666' }}>
+              {editModal.item.product.name} ({(() => { const v = parseFloat(editModal.item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()})
+            </div>
+            <input type="number" value={editValue} onChange={e => setEditValue(e.target.value)} autoFocus
+              style={{ width: '100%', padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 16, marginBottom: 16, boxSizing: 'border-box' }}
+              onKeyDown={e => { if (e.key === 'Enter') handleEditConfirm(); if (e.key === 'Escape') { setEditModal(null); setEditValue('') } }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { setEditModal(null); setEditValue('') }} style={{ flex: 1, padding: '10px', background: '#f5f5f5', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>취소</button>
+              <button onClick={handleEditConfirm} style={{ flex: 1, padding: '10px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>확인</button>
+            </div>
           </div>
         </div>
       )}
