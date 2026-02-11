@@ -263,14 +263,26 @@ export default function NewOrderPage() {
       setGridFocus(prev => prev ? { ...prev, sphIndex: Math.min(prev.sphIndex + 1, maxSphIndex) } : { sphIndex: 0, colIndex: centerIndex })
     } else if (e.key === 'ArrowUp') {
       e.preventDefault(); setCellInputValue('')
-      setGridFocus(prev => prev ? { ...prev, sphIndex: Math.max(prev.sphIndex - 1, 0) } : { sphIndex: 0, colIndex: centerIndex })
+      setGridFocus(prev => {
+        if (!prev) return { sphIndex: 0, colIndex: centerIndex }
+        const newSphIndex = Math.max(prev.sphIndex - 1, 0)
+        // 오른쪽 원시 영역에서 SPH 000으로 올라가려 하면 막기
+        const colInfo = getColInfo(prev.colIndex)
+        if (newSphIndex === 0 && colInfo && colInfo.isPlus) {
+          return prev // 이동하지 않음
+        }
+        return { ...prev, sphIndex: newSphIndex }
+      })
     } else if (e.key === 'ArrowRight') {
       e.preventDefault(); setCellInputValue('')
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex + 1
         if (newCol === centerIndex) newCol++ // 가운데 열 건너뛰기
-        if (newCol === centerIndex + 1) newCol++ // 오른쪽 원시 000열 건너뛰기
+        // SPH 000 행에서는 오른쪽 원시 영역 진입 불가
+        if (prev.sphIndex === 0 && newCol > centerIndex) {
+          return prev // 이동하지 않음
+        }
         return { ...prev, colIndex: Math.min(newCol, maxColIndex) }
       })
     } else if (e.key === 'ArrowLeft') {
@@ -278,7 +290,6 @@ export default function NewOrderPage() {
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex - 1
-        if (newCol === centerIndex + 1) newCol-- // 오른쪽 원시 000열 건너뛰기
         if (newCol === centerIndex) newCol-- // 가운데 열 건너뛰기
         return { ...prev, colIndex: Math.max(newCol, 0) }
       })
@@ -351,11 +362,11 @@ export default function NewOrderPage() {
     router.push('/orders/all')
   }
 
-  // 오른쪽 원시 000열 비활성화 여부 체크
-  const isDisabledCell = (colIndex: number): boolean => {
+  // 오른쪽 원시 SPH 000 행 비활성화 여부 체크
+  const isDisabledCell = (sphIndex: number, colIndex: number): boolean => {
     const colInfo = getColInfo(colIndex)
-    // 오른쪽(+Sph) 영역의 CYL 0.00 열은 비활성화
-    return colInfo !== null && colInfo.isPlus && colInfo.cyl === 0
+    // 오른쪽(+Sph) 영역의 SPH 0.00 행은 비활성화
+    return colInfo !== null && colInfo.isPlus && sphIndex === 0
   }
 
   const renderCell = (sphIndex: number, colIndex: number) => {
@@ -363,8 +374,8 @@ export default function NewOrderPage() {
     const colInfo = getColInfo(colIndex)
     if (!colInfo) return null
     
-    // 오른쪽 원시 000열 비활성화 처리
-    const isDisabled = isDisabledCell(colIndex)
+    // 오른쪽 원시 SPH 000 행 비활성화 처리
+    const isDisabled = isDisabledCell(sphIndex, colIndex)
     
     const actualSph = colInfo.isPlus ? sph : -sph
     const sphStr = actualSph >= 0 ? `+${actualSph.toFixed(2)}` : actualSph.toFixed(2)
