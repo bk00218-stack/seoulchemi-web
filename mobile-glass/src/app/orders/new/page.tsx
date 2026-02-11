@@ -105,6 +105,9 @@ export default function NewOrderPage() {
     sphStr: string
     cylStr: string
   } | null>(null)
+  
+  // 재고 그리드 데이터 (SPH/CYL 조합별 재고)
+  const [stockGrid, setStockGrid] = useState<Record<string, Record<string, number>>>({})
 
   const selectedProduct = products.find(p => p.id === selectedProductId)
   const filteredProducts = selectedBrandId ? products.filter(p => p.brandId === selectedBrandId) : []
@@ -132,6 +135,32 @@ export default function NewOrderPage() {
       const container = gridContainerRef.current
       const scrollLeft = (centerIndex * 34) - (container.clientWidth / 2) + 50
       container.scrollLeft = Math.max(0, scrollLeft)
+    }
+  }, [selectedProductId])
+
+  // 상품 선택 시 재고 정보 로드
+  useEffect(() => {
+    if (selectedProductId) {
+      fetch(`/api/products/diopter-grid?productId=${selectedProductId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.grid) {
+            // grid 데이터를 stock 수량만 추출하여 저장
+            const stockData: Record<string, Record<string, number>> = {}
+            Object.entries(data.grid).forEach(([sph, cylData]) => {
+              stockData[sph] = {}
+              Object.entries(cylData as Record<string, { stock: number }>).forEach(([cyl, cell]) => {
+                stockData[sph][cyl] = cell.stock
+              })
+            })
+            setStockGrid(stockData)
+          } else {
+            setStockGrid({})
+          }
+        })
+        .catch(() => setStockGrid({}))
+    } else {
+      setStockGrid({})
     }
   }, [selectedProductId])
 
@@ -583,7 +612,7 @@ export default function NewOrderPage() {
           style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: gridFocus ? '2px solid #5d7a5d' : '1px solid #c5dbc5', borderRadius: 8, overflow: 'hidden', outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
           <div style={{ padding: '8px 12px', background: 'linear-gradient(135deg, #6b8e6b 0%, #4a6b4a 100%)', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}>{selectedProduct ? `${selectedProduct.brand} - ${selectedProduct.name}` : '상품 선택'}</span>
-            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>←→ CYL | ↑↓ SPH | 가운데=000</span>
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>←→ CYL | ↑↓ SPH{focusedInfo ? <> | <strong style={{ color: '#fffacd' }}>재고: {stockGrid[focusedInfo.sph.toFixed(2)]?.[focusedInfo.cyl.toFixed(2)] ?? '-'}</strong></> : ''}</span>
           </div>
           
           <div ref={gridContainerRef} style={{ flex: 1, overflow: 'auto' }}>
