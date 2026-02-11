@@ -228,7 +228,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         {/* Sidebar */}
         <aside 
           style={{
-            width: 150,
+            width: 'fit-content',
+            minWidth: 100,
             background: '#fff',
             borderRight: '1px solid var(--gray-200)',
             padding: '16px 0',
@@ -243,12 +244,13 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           {sidebarMenus.map((menu, menuIdx) => (
             <div key={menuIdx} style={{ marginBottom: 8 }}>
               <div style={{
-                padding: '8px 12px',
-                fontSize: 11,
+                padding: '6px 10px',
+                fontSize: 10,
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
-                color: 'var(--gray-400)'
+                color: 'var(--gray-400)',
+                whiteSpace: 'nowrap'
               }}>{menu.title}</div>
               {menu.items.map(item => {
                 const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
@@ -263,8 +265,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     onFocus={() => setSidebarFocusIndex(currentIndex)}
                     style={{
                       display: 'block',
-                      padding: '12px 14px',
-                      fontSize: 15,
+                      padding: '8px 10px',
+                      fontSize: 14,
                       color: isActive ? 'var(--primary)' : 'var(--gray-600)',
                       background: isActive ? 'var(--primary-light)' : 
                                   sidebarFocusIndex === currentIndex ? 'var(--gray-100)' : 'transparent',
@@ -272,7 +274,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                       fontWeight: isActive ? 600 : 400,
                       transition: 'all 0.15s',
                       outline: sidebarFocusIndex === currentIndex ? '2px solid var(--primary)' : 'none',
-                      outlineOffset: -2
+                      outlineOffset: -2,
+                      whiteSpace: 'nowrap'
                     }}
                   >{item.label}</Link>
                 )

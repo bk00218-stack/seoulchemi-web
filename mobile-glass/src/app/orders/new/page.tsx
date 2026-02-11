@@ -650,7 +650,7 @@ export default function NewOrderPage() {
           <div style={{ padding: '6px 8px', background: '#333', color: '#fff', fontWeight: 600, fontSize: 14, display: 'flex', justifyContent: 'space-between' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '38px 1fr 38px 38px 26px 60px', padding: '4px 6px', background: '#e0e0e0', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '4px 6px', background: '#e0e0e0', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
             <span>품목</span>
             <span>상품</span>
             <span style={{ textAlign: 'center' }}>SPH</span>
@@ -661,7 +661,7 @@ export default function NewOrderPage() {
           <div style={{ flex: 1, overflow: 'auto' }}>
             {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#999' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '38px 1fr 38px 38px 26px 60px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
+                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#666' }}>{item.product.brand}</div>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{(() => { const v = parseFloat(item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()}</div>
@@ -730,10 +730,10 @@ export default function NewOrderPage() {
       {/* 컨텍스트 메뉴 */}
       {contextMenu && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setContextMenu(null)}>
-          <div style={{ position: 'absolute', top: contextMenu.y, left: contextMenu.x, background: '#fff', border: '1px solid #ccc', borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', minWidth: 140, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-            <div onClick={() => handleEditQuantity(contextMenu.item)} style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 13 }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>📝 수량 변경</div>
-            <div onClick={() => handleEditPrice(contextMenu.item)} style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 13 }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>💰 금액 변경</div>
-            <div onClick={() => { removeItem(contextMenu.item.id); setContextMenu(null) }} style={{ padding: '10px 16px', cursor: 'pointer', fontSize: 13, color: '#e53935' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#ffebee'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>🗑️ 삭제</div>
+          <div style={{ position: 'absolute', top: contextMenu.y, left: contextMenu.x, background: '#fff', border: '1px solid #ccc', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.12)', overflow: 'hidden', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
+            <div onClick={() => handleEditQuantity(contextMenu.item)} style={{ padding: '4px 8px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 11, whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>📝 수량</div>
+            <div onClick={() => handleEditPrice(contextMenu.item)} style={{ padding: '4px 8px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 11, whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>💰 금액</div>
+            <div onClick={() => { removeItem(contextMenu.item.id); setContextMenu(null) }} style={{ padding: '4px 8px', cursor: 'pointer', fontSize: 11, color: '#e53935', whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#ffebee'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>🗑️ 삭제</div>
           </div>
         </div>
       )}
