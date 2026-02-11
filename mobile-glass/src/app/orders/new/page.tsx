@@ -575,7 +575,7 @@ export default function NewOrderPage() {
                 { label: 'RX', key: 'F9' },
                 { label: '기타', key: 'F10' }
               ] as const).map(({ label: t, key }) => (
-                <label key={t} style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#1976d2' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <label key={t} style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                   <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />
                   <span>{t}</span>
                   <span style={{ fontSize: 10, opacity: 0.7 }}>[{key}]</span>
@@ -599,7 +599,7 @@ export default function NewOrderPage() {
                   <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
                     style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#e3f2fd' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                    <span style={{ color: '#1976d2', fontWeight: 600 }}>{(p.sellingPrice/1000).toFixed(0)}k</span>
+                    <span style={{ color: '#5d7a5d', fontWeight: 600 }}>{(p.sellingPrice/1000).toFixed(0)}k</span>
                   </div>
                 ))
               )}
@@ -798,7 +798,7 @@ export default function NewOrderPage() {
               onKeyDown={e => { if (e.key === 'Enter') handleEditConfirm(); if (e.key === 'Escape') { setEditModal(null); setEditValue('') } }} />
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => { setEditModal(null); setEditValue('') }} style={{ flex: 1, padding: '10px', background: '#f5f5f5', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>취소</button>
-              <button onClick={handleEditConfirm} style={{ flex: 1, padding: '10px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>확인</button>
+              <button onClick={handleEditConfirm} style={{ flex: 1, padding: '10px', background: '#5d7a5d', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>확인</button>
             </div>
           </div>
         </div>
