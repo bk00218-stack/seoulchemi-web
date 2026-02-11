@@ -270,6 +270,7 @@ export default function NewOrderPage() {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex + 1
         if (newCol === centerIndex) newCol++ // 가운데 열 건너뛰기
+        if (newCol === centerIndex + 1) newCol++ // 오른쪽 원시 000열 건너뛰기
         return { ...prev, colIndex: Math.min(newCol, maxColIndex) }
       })
     } else if (e.key === 'ArrowLeft') {
@@ -277,6 +278,7 @@ export default function NewOrderPage() {
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex - 1
+        if (newCol === centerIndex + 1) newCol-- // 오른쪽 원시 000열 건너뛰기
         if (newCol === centerIndex) newCol-- // 가운데 열 건너뛰기
         return { ...prev, colIndex: Math.max(newCol, 0) }
       })
@@ -349,10 +351,20 @@ export default function NewOrderPage() {
     router.push('/orders/all')
   }
 
+  // 오른쪽 원시 000열 비활성화 여부 체크
+  const isDisabledCell = (colIndex: number): boolean => {
+    const colInfo = getColInfo(colIndex)
+    // 오른쪽(+Sph) 영역의 CYL 0.00 열은 비활성화
+    return colInfo !== null && colInfo.isPlus && colInfo.cyl === 0
+  }
+
   const renderCell = (sphIndex: number, colIndex: number) => {
     const sph = sphRows[sphIndex]
     const colInfo = getColInfo(colIndex)
     if (!colInfo) return null
+    
+    // 오른쪽 원시 000열 비활성화 처리
+    const isDisabled = isDisabledCell(colIndex)
     
     const actualSph = colInfo.isPlus ? sph : -sph
     const sphStr = actualSph >= 0 ? `+${actualSph.toFixed(2)}` : actualSph.toFixed(2)
@@ -364,22 +376,25 @@ export default function NewOrderPage() {
     const isCurrentCol = gridFocus?.colIndex === colIndex
     
     let bg = sphIndex % 2 === 0 ? '#f0f9ff' : '#e0f2fe'
-    if (isCurrentRow || isCurrentCol) bg = '#bae6fd' // 하늘색 행/열
-    if (isCurrentRow && isCurrentCol) bg = '#7dd3fc' // 교차점 더 진하게
-    if (isFocused) bg = '#2563eb'
-    if (item) bg = '#22c55e'
+    if (isDisabled) bg = '#d1d5db' // 비활성화: 회색
+    else if (isCurrentRow || isCurrentCol) bg = '#bae6fd' // 하늘색 행/열
+    if (!isDisabled && isCurrentRow && isCurrentCol) bg = '#7dd3fc' // 교차점 더 진하게
+    if (!isDisabled && isFocused) bg = '#2563eb'
+    if (!isDisabled && item) bg = '#22c55e'
     
     return (
-      <td key={colIndex} onClick={() => handleGridClick(sphIndex, colIndex)}
+      <td key={colIndex} onClick={() => !isDisabled && handleGridClick(sphIndex, colIndex)}
         style={{ 
           border: '1px solid #93c5fd', 
           padding: 0, textAlign: 'center', background: bg, 
-          color: item || isFocused ? '#fff' : '#1e3a5f', 
-          cursor: 'pointer', width: 40, height: 30, fontSize: 13, 
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: item ? 700 : 500,
+          color: isDisabled ? '#9ca3af' : (item || isFocused ? '#fff' : '#1e3a5f'), 
+          cursor: isDisabled ? 'not-allowed' : 'pointer', 
+          width: 40, height: 30, fontSize: 13, 
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 
+          fontWeight: item ? 700 : 500,
           transition: 'background 0.15s'
         }}>
-        {item ? item.quantity : isFocused && cellInputValue ? cellInputValue : ''}
+        {item && !isDisabled ? item.quantity : isFocused && !isDisabled && cellInputValue ? cellInputValue : ''}
       </td>
     )
   }
