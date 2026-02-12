@@ -2,26 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Layout, { btnStyle, selectStyle, inputStyle, cardStyle, thStyle, tdStyle } from '../../components/Layout'
-
-const SIDEBAR = [
-  {
-    title: '후결제 주문',
-    items: [
-      { label: '여벌 주문내역', href: '/' },
-      { label: 'RX 주문내역', href: '/orders/rx' },
-      { label: '관리자 주문등록', href: '/orders/new' },
-      { label: '명세표 출력이력', href: '/orders/print-history' },
-    ]
-  },
-  {
-    title: '출고관리',
-    items: [
-      { label: '전체 주문내역', href: '/orders/all' },
-      { label: '출고 확인', href: '/orders/shipping' },
-      { label: '출고 배송지 정보', href: '/orders/delivery' },
-    ]
-  }
-]
+import { ORDER_SIDEBAR } from '../../constants/sidebar'
 
 interface RxOrder {
   id: number
@@ -211,7 +192,7 @@ export default function RxOrdersPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="주문">
+    <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       {/* 페이지 타이틀 */}
       <div style={{ 
         background: '#5d4e37', 

@@ -3,20 +3,7 @@
 import { useState, useEffect, useCallback, useRef, KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Layout from '../../components/Layout'
-
-const SIDEBAR = [
-  { title: '후결제 주문', items: [
-    { label: '여벌 주문내역', href: '/' },
-    { label: 'RX 주문내역', href: '/orders/rx' },
-    { label: '관리자 주문등록', href: '/orders/new' },
-    { label: '명세표 출력이력', href: '/orders/print-history' },
-  ]},
-  { title: '출고관리', items: [
-    { label: '전체 주문내역', href: '/orders/all' },
-    { label: '출고 확인', href: '/orders/shipping' },
-    { label: '출고 배송지 정보', href: '/orders/delivery' },
-  ]}
-]
+import { ORDER_SIDEBAR } from '../../constants/sidebar'
 
 interface Brand { id: number; name: string }
 interface Product { id: number; name: string; brand: string; brandId: number; optionType: string; refractiveIndex: string | null; sellingPrice: number; purchasePrice: number }
@@ -560,7 +547,7 @@ export default function NewOrderPage() {
   const focusedInfo = getFocusedInfo()
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="주문">
+    <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, paddingBottom: 4, borderBottom: '2px solid #333' }}>
         <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>판매전표 입력</h1>
         <span style={{ fontSize: 12, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>

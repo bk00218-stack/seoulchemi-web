@@ -2,26 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from './components/Layout'
-
-const SIDEBAR = [
-  {
-    title: '주문',
-    items: [
-      { label: '온라인 여벌 주문', href: '/' },
-      { label: '온라인 RX 주문', href: '/orders/rx' },
-      { label: '주문 등록', href: '/orders/new' },
-      { label: '명세표 출력이력', href: '/orders/print-history' },
-    ]
-  },
-  {
-    title: '출고',
-    items: [
-      { label: '전체 주문', href: '/orders/all' },
-      { label: '여벌 출고', href: '/orders/shipping' },
-      { label: 'RX 출고', href: '/orders/delivery' },
-    ]
-  }
-]
+import { ORDER_SIDEBAR } from './constants/sidebar'
 
 interface Order {
   id: number
@@ -109,7 +90,7 @@ export default function Home() {
   })
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="주문">
+    <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
         {[
