@@ -199,8 +199,36 @@ export default function NewOrderPage() {
 
   useEffect(() => {
     const handleGlobalKeys = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'F5') { e.preventDefault(); setGridFocus(null); setCellInputValue(''); brandSelectRef.current?.focus() }
-      else if (e.key === 'F6') { e.preventDefault(); setGridFocus(null); setCellInputValue(''); if (filteredProducts.length > 0) { setProductFocusIndex(0); productListRef.current?.focus() } }
+      if (e.key === 'F5') { 
+        e.preventDefault()
+        setGridFocus(null)
+        setCellInputValue('')
+        setSelectedBrandId(null)  // 품목 초기화
+        setSelectedProductId(null)  // 상품 초기화
+        setProductFocusIndex(-1)
+        setTimeout(() => {
+          brandSelectRef.current?.focus()
+          // 드롭다운 열기
+          try {
+            (brandSelectRef.current as any)?.showPicker?.()
+          } catch {
+            // showPicker 미지원 브라우저
+          }
+        }, 0)
+      }
+      else if (e.key === 'F6') { 
+        e.preventDefault()
+        setGridFocus(null)
+        setCellInputValue('')
+        setSelectedProductId(null)  // 상품 초기화
+        if (filteredProducts.length > 0) { 
+          setProductFocusIndex(0)
+          setTimeout(() => productListRef.current?.focus(), 0)
+        } else {
+          // 품목이 선택 안 됐으면 품목 선택으로
+          setTimeout(() => brandSelectRef.current?.focus(), 0)
+        }
+      }
       else if (e.key === 'F7') { e.preventDefault(); setOrderType('여벌') }
       else if (e.key === 'F8') { e.preventDefault(); setOrderType('착색') }
       else if (e.key === 'F9') { e.preventDefault(); setOrderType('RX') }

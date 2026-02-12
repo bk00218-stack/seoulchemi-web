@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma'
 // GET /api/crm/customers/[id]/prescriptions - 도수 기록 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const customerId = parseInt(params.id)
+    const { id } = await params
+    const customerId = parseInt(id)
     
     const prescriptions = await prisma.customerPrescription.findMany({
       where: { customerId },
@@ -27,10 +28,11 @@ export async function GET(
 // POST /api/crm/customers/[id]/prescriptions - 도수 기록 추가
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const customerId = parseInt(params.id)
+    const { id } = await params
+    const customerId = parseInt(id)
     const body = await request.json()
 
     // 고객 존재 확인

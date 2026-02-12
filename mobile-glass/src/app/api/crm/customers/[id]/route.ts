@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma'
 // GET /api/crm/customers/[id] - 고객 상세 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id)
+    const { id: idParam } = await params
+    const id = parseInt(idParam)
     
     const customer = await prisma.customer.findUnique({
       where: { id },
@@ -51,10 +52,11 @@ export async function GET(
 // PUT /api/crm/customers/[id] - 고객 정보 수정
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id)
+    const { id: idParam } = await params
+    const id = parseInt(idParam)
     const body = await request.json()
 
     // 고객 존재 확인
@@ -118,10 +120,11 @@ export async function PUT(
 // DELETE /api/crm/customers/[id] - 고객 삭제 (비활성화)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id)
+    const { id: idParam } = await params
+    const id = parseInt(idParam)
 
     const customer = await prisma.customer.update({
       where: { id },
