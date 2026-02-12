@@ -105,6 +105,7 @@ export default function NewOrderPage() {
     sphStr: string
     cylStr: string
   } | null>(null)
+  const [quantityActionSelection, setQuantityActionSelection] = useState<0 | 1 | 2>(0) // 0=추가, 1=수정, 2=취소
   
   // 재고 그리드 데이터 (SPH/CYL 조합별 재고)
   const [stockGrid, setStockGrid] = useState<Record<string, Record<string, number>>>({})
@@ -271,6 +272,7 @@ export default function NewOrderPage() {
     if (exists) {
       // 기존 수량이 있고 forceMode가 없으면 팝업 띄우기
       if (!forceMode) {
+        setQuantityActionSelection(0) // 기본값: 추가 버튼 선택
         setQuantityActionModal({ existingQty: exists.quantity, newQty: quantity, sphIndex, colIndex, sphStr, cylStr })
         return
       }
@@ -294,6 +296,16 @@ export default function NewOrderPage() {
     return { sph: actualSph, cyl: colInfo.cyl, isPlus: colInfo.isPlus }
   }, [gridFocus, sphRows])
 
+  // 입력값 확정 처리 (이동 전 또는 Enter)
+  const commitCellInput = useCallback(() => {
+    if (gridFocus && cellInputValue) {
+      const qty = parseFloat(cellInputValue)
+      if (!isNaN(qty) && qty > 0) {
+        handleGridCellInput(gridFocus.sphIndex, gridFocus.colIndex, qty)
+      }
+    }
+  }, [gridFocus, cellInputValue, handleGridCellInput])
+
   const handleGridKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
     if (!selectedProduct || !selectedStore) return
     const maxSphIndex = sphRows.length - 1
@@ -305,18 +317,30 @@ export default function NewOrderPage() {
       if (e.key === '.' && cellInputValue.includes('.')) return
       const newValue = cellInputValue + e.key
       setCellInputValue(newValue)
-      if (gridFocus) {
-        const qty = parseFloat(newValue)
-        if (!isNaN(qty) && qty > 0) handleGridCellInput(gridFocus.sphIndex, gridFocus.colIndex, qty)
+      return
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (gridFocus && cellInputValue) {
+        const qty = parseFloat(cellInputValue)
+        if (!isNaN(qty) && qty > 0) {
+          handleGridCellInput(gridFocus.sphIndex, gridFocus.colIndex, qty)
+          setCellInputValue('')
+        }
       }
       return
     }
 
     if (e.key === 'ArrowDown') {
-      e.preventDefault(); setCellInputValue('')
+      e.preventDefault()
+      commitCellInput()
+      setCellInputValue('')
       setGridFocus(prev => prev ? { ...prev, sphIndex: Math.min(prev.sphIndex + 1, maxSphIndex) } : { sphIndex: 0, colIndex: centerIndex })
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault(); setCellInputValue('')
+      e.preventDefault()
+      commitCellInput()
+      setCellInputValue('')
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: centerIndex }
         const newSphIndex = Math.max(prev.sphIndex - 1, 0)
@@ -328,7 +352,9 @@ export default function NewOrderPage() {
         return { ...prev, sphIndex: newSphIndex }
       })
     } else if (e.key === 'ArrowRight') {
-      e.preventDefault(); setCellInputValue('')
+      e.preventDefault()
+      commitCellInput()
+      setCellInputValue('')
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex + 1
@@ -340,7 +366,9 @@ export default function NewOrderPage() {
         return { ...prev, colIndex: Math.min(newCol, maxColIndex) }
       })
     } else if (e.key === 'ArrowLeft') {
-      e.preventDefault(); setCellInputValue('')
+      e.preventDefault()
+      commitCellInput()
+      setCellInputValue('')
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex - 1
@@ -359,7 +387,7 @@ export default function NewOrderPage() {
         }
       }
     }
-  }, [selectedProduct, selectedStore, sphRows, totalCols, cellInputValue, gridFocus, getFocusedInfo, handleGridCellInput, centerIndex])
+  }, [selectedProduct, selectedStore, sphRows, totalCols, cellInputValue, gridFocus, getFocusedInfo, handleGridCellInput, centerIndex, commitCellInput])
 
   const handleGridClick = useCallback((sphIndex: number, colIndex: number) => {
     if (!selectedProduct || !selectedStore) { alert('가맹점과 상품을 먼저 선택해주세요.'); return }
@@ -807,7 +835,30 @@ export default function NewOrderPage() {
       {/* 수량 입력 액션 팝업 */}
       {quantityActionModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
-          onClick={() => { setQuantityActionModal(null); setCellInputValue('') }}>
+          tabIndex={0}
+          autoFocus
+          ref={el => el?.focus()}
+          onKeyDown={e => {
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault()
+              setQuantityActionSelection(prev => (prev === 0 ? 2 : prev - 1) as 0 | 1 | 2)
+            } else if (e.key === 'ArrowRight') {
+              e.preventDefault()
+              setQuantityActionSelection(prev => (prev === 2 ? 0 : prev + 1) as 0 | 1 | 2)
+            } else if (e.key === 'Enter') {
+              e.preventDefault()
+              if (quantityActionSelection === 0) {
+                handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'add')
+              } else if (quantityActionSelection === 1) {
+                handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'replace')
+              }
+              setQuantityActionModal(null)
+              setCellInputValue('')
+              setQuantityActionSelection(0)
+              setTimeout(() => gridRef.current?.focus(), 0)
+            }
+          }}
+          onClick={() => { setQuantityActionModal(null); setCellInputValue(''); setQuantityActionSelection(0); setTimeout(() => gridRef.current?.focus(), 0) }}>
           <div style={{ background: '#fff', borderRadius: 6, padding: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.15)', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
             <div style={{ marginBottom: 8, fontSize: 11, textAlign: 'center', color: '#333' }}>
               <span style={{ fontWeight: 600 }}>{quantityActionModal.sphStr}/{quantityActionModal.cylStr}</span>
@@ -819,18 +870,22 @@ export default function NewOrderPage() {
                 handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'add')
                 setQuantityActionModal(null)
                 setCellInputValue('')
-              }} style={{ padding: '5px 8px', background: '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                setQuantityActionSelection(0)
+                setTimeout(() => gridRef.current?.focus(), 0)
+              }} style={{ padding: '5px 8px', background: quantityActionSelection === 0 ? '#2e7d32' : '#4caf50', color: '#fff', border: quantityActionSelection === 0 ? '2px solid #fff' : 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600, outline: quantityActionSelection === 0 ? '2px solid #2e7d32' : 'none' }}>
                 ➕{quantityActionModal.existingQty + quantityActionModal.newQty}
               </button>
               <button onClick={() => {
                 handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'replace')
                 setQuantityActionModal(null)
                 setCellInputValue('')
-              }} style={{ padding: '5px 8px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+                setQuantityActionSelection(0)
+                setTimeout(() => gridRef.current?.focus(), 0)
+              }} style={{ padding: '5px 8px', background: quantityActionSelection === 1 ? '#1565c0' : '#2196f3', color: '#fff', border: quantityActionSelection === 1 ? '2px solid #fff' : 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600, outline: quantityActionSelection === 1 ? '2px solid #1565c0' : 'none' }}>
                 ✏️{quantityActionModal.newQty}
               </button>
-              <button onClick={() => { setQuantityActionModal(null); setCellInputValue('') }}
-                style={{ padding: '5px 8px', background: '#9e9e9e', color: '#fff', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+              <button onClick={() => { setQuantityActionModal(null); setCellInputValue(''); setQuantityActionSelection(0); setTimeout(() => gridRef.current?.focus(), 0) }}
+                style={{ padding: '5px 8px', background: quantityActionSelection === 2 ? '#616161' : '#9e9e9e', color: '#fff', border: quantityActionSelection === 2 ? '2px solid #fff' : 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600, outline: quantityActionSelection === 2 ? '2px solid #616161' : 'none' }}>
                 ❌
               </button>
             </div>
