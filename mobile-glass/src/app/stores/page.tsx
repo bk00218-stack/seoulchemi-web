@@ -96,6 +96,7 @@ export default function StoresPage() {
     address: '',
     salesRepName: '',
     paymentTermDays: 30,
+    billingDay: '' as string | number,
     discountRate: 0,
     storeType: '',
     // 신규 필드
@@ -183,6 +184,7 @@ export default function StoresPage() {
       address: '',
       salesRepName: '',
       paymentTermDays: 30,
+      billingDay: '',
       discountRate: 0,
       storeType: '',
       // 신규 필드
@@ -238,7 +240,8 @@ export default function StoresPage() {
       setSaving(true)
       const submitData = {
         ...form,
-        groupId: form.groupId ? parseInt(form.groupId) : null,
+        groupId: form.groupId ? parseInt(form.groupId as string) : null,
+        billingDay: form.billingDay ? parseInt(form.billingDay as string) : null,
         deliveryStaffId: form.deliveryStaffId ? parseInt(form.deliveryStaffId) : null,
       }
       const res = await fetch('/api/stores', {
@@ -914,7 +917,7 @@ export default function StoresPage() {
                       </select>
                     </div>
                     <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>영업담당</label>
+                      <label style={labelStyle}>그룹</label>
                       <select 
                         style={{ ...selectStyle, width: '100%' }}
                         value={form.groupId}
@@ -1013,7 +1016,7 @@ export default function StoresPage() {
                     <span style={{ fontSize: 18 }}>💰</span> 결제 정보
                   </h3>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                     <div style={fieldGroupStyle}>
                       <label style={labelStyle}>결제 기한 (일)</label>
                       <input 
@@ -1024,6 +1027,19 @@ export default function StoresPage() {
                         min={0}
                       />
                       {errors.paymentTermDays && <div style={errorStyle}>{errors.paymentTermDays}</div>}
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>청구일 (매월)</label>
+                      <input 
+                        type="number"
+                        style={{ ...inputStyle, width: '100%' }}
+                        value={form.billingDay}
+                        onChange={e => setForm({ ...form, billingDay: e.target.value })}
+                        min={1}
+                        max={31}
+                        placeholder="예: 15"
+                      />
+                      <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>매월 청구일</p>
                     </div>
                     <div style={fieldGroupStyle}>
                       <label style={labelStyle}>기본 할인율 (%)</label>
