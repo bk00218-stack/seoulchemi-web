@@ -340,18 +340,19 @@ export const thStyle: React.CSSProperties = {
   textAlign: 'left',
   fontSize: 13,
   fontWeight: 600,
-  color: 'var(--gray-500)',
+  color: '#6b7280',
   textTransform: 'uppercase',
   letterSpacing: '0.3px',
   whiteSpace: 'nowrap',
-  background: 'var(--gray-50)'
+  background: '#f9fafb'
 }
 
 export const tdStyle: React.CSSProperties = {
   padding: '14px 16px',
   fontSize: 14,
   verticalAlign: 'middle',
-  borderBottom: '1px solid var(--gray-100)'
+  borderBottom: '1px solid #f3f4f6',
+  color: '#374151'
 }
 
 export const cardStyle: React.CSSProperties = {
