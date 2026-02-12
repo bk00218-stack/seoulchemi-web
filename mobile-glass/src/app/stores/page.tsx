@@ -87,10 +87,21 @@ export default function StoresPage() {
   const [search, setSearch] = useState('')
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   
+  // 페이지네이션
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(50)
+  
+  // 필터
+  const [filterGroup, setFilterGroup] = useState('')
+  const [filterArea, setFilterArea] = useState('')
+  
   // 그룹 및 담당자 목록
   const [groups, setGroups] = useState<StoreGroup[]>([])
   const [deliveryStaffList, setDeliveryStaffList] = useState<DeliveryStaff[]>([])
   const [salesStaffList, setSalesStaffList] = useState<SalesStaff[]>([])
+  
+  // 지역 목록 (areaCode에서 추출)
+  const areaList = [...new Set(stores.map(s => s.areaCode).filter(Boolean))] as string[]
   
   // 통계
   const [stats, setStats] = useState({
@@ -306,9 +317,34 @@ export default function StoresPage() {
     router.push(`/stores/${store.id}`)
   }
 
-  const filtered = stores.filter(s => 
-    s.name.includes(search) || s.code.includes(search) || (s.ownerName && s.ownerName.includes(search))
+  // 필터링 로직 (검색 + 그룹 + 지역)
+  const filtered = stores.filter(s => {
+    // 검색어 필터
+    const matchSearch = !search || 
+      s.name.toLowerCase().includes(search.toLowerCase()) || 
+      s.code.includes(search) || 
+      (s.ownerName && s.ownerName.toLowerCase().includes(search.toLowerCase()))
+    
+    // 그룹 필터
+    const matchGroup = !filterGroup || s.groupName === filterGroup
+    
+    // 지역 필터
+    const matchArea = !filterArea || s.areaCode === filterArea
+    
+    return matchSearch && matchGroup && matchArea
+  })
+
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(filtered.length / itemsPerPage)
+  const paginatedStores = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   )
+
+  // 페이지 변경 시 1페이지로 리셋
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, filterGroup, filterArea])
 
   // 미결제 가맹점만 필터
   const outstandingStores = stores.filter(s => (s.outstandingAmount || 0) > 0)
@@ -474,9 +510,27 @@ export default function StoresPage() {
         {activeTab === '가맹점목록' && (
           <>
             {/* 검색 필터 */}
-            <div style={{ padding: 12, borderBottom: '1px solid #eee', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <select style={selectStyle}><option>그룹 전체</option></select>
-              <select style={selectStyle}><option>지역 전체</option></select>
+            <div style={{ padding: 12, borderBottom: '1px solid #eee', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              <select 
+                style={selectStyle}
+                value={filterGroup}
+                onChange={e => setFilterGroup(e.target.value)}
+              >
+                <option value="">그룹 전체</option>
+                {groups.map(g => (
+                  <option key={g.id} value={g.name}>{g.name}</option>
+                ))}
+              </select>
+              <select 
+                style={selectStyle}
+                value={filterArea}
+                onChange={e => setFilterArea(e.target.value)}
+              >
+                <option value="">지역 전체</option>
+                {areaList.sort().map(area => (
+                  <option key={area} value={area}>{area}</option>
+                ))}
+              </select>
               <input 
                 type="text" 
                 placeholder="가맹점명, 코드, 대표자 검색..." 
@@ -484,7 +538,9 @@ export default function StoresPage() {
                 onChange={e => setSearch(e.target.value)}
                 style={{ ...inputStyle, minWidth: 250 }} 
               />
-              <button style={{ ...btnStyle, background: '#1976d2', color: '#fff', border: 'none' }}>검색</button>
+              <div style={{ marginLeft: 'auto', fontSize: 12, color: '#666' }}>
+                검색결과: <strong>{filtered.length.toLocaleString()}</strong>개
+              </div>
             </div>
             
             {/* 테이블 */}
@@ -507,12 +563,12 @@ export default function StoresPage() {
                     <tr>
                       <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#999' }}>로딩 중...</td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : paginatedStores.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#999' }}>등록된 가맹점이 없습니다</td>
+                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#999' }}>검색 결과가 없습니다</td>
                     </tr>
                   ) : (
-                    filtered.slice(0, 50).map((store, index) => (
+                    paginatedStores.map((store, index) => (
                       <tr 
                         key={store.id}
                         style={{ 
@@ -555,6 +611,139 @@ export default function StoresPage() {
                 </tbody>
               </table>
             </div>
+            
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <div style={{ 
+                padding: '12px 16px', 
+                borderTop: '1px solid #eee', 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                gap: 4,
+                background: '#fafafa'
+              }}>
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: '6px 10px',
+                    border: '1px solid #ddd',
+                    background: '#fff',
+                    borderRadius: 4,
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    opacity: currentPage === 1 ? 0.5 : 1,
+                    fontSize: 12
+                  }}
+                >
+                  ≪
+                </button>
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: '6px 10px',
+                    border: '1px solid #ddd',
+                    background: '#fff',
+                    borderRadius: 4,
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    opacity: currentPage === 1 ? 0.5 : 1,
+                    fontSize: 12
+                  }}
+                >
+                  ＜
+                </button>
+                
+                {/* 페이지 번호들 */}
+                {(() => {
+                  const pages = []
+                  const maxVisible = 5
+                  let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
+                  let end = Math.min(totalPages, start + maxVisible - 1)
+                  if (end - start + 1 < maxVisible) {
+                    start = Math.max(1, end - maxVisible + 1)
+                  }
+                  
+                  if (start > 1) {
+                    pages.push(
+                      <button key={1} onClick={() => setCurrentPage(1)} style={{
+                        padding: '6px 12px', border: '1px solid #ddd', background: '#fff',
+                        borderRadius: 4, cursor: 'pointer', fontSize: 12
+                      }}>1</button>
+                    )
+                    if (start > 2) pages.push(<span key="dots1" style={{ padding: '0 4px' }}>...</span>)
+                  }
+                  
+                  for (let i = start; i <= end; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        style={{
+                          padding: '6px 12px',
+                          border: '1px solid #ddd',
+                          background: currentPage === i ? '#1976d2' : '#fff',
+                          color: currentPage === i ? '#fff' : '#333',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          fontWeight: currentPage === i ? 600 : 400,
+                          fontSize: 12
+                        }}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                  
+                  if (end < totalPages) {
+                    if (end < totalPages - 1) pages.push(<span key="dots2" style={{ padding: '0 4px' }}>...</span>)
+                    pages.push(
+                      <button key={totalPages} onClick={() => setCurrentPage(totalPages)} style={{
+                        padding: '6px 12px', border: '1px solid #ddd', background: '#fff',
+                        borderRadius: 4, cursor: 'pointer', fontSize: 12
+                      }}>{totalPages}</button>
+                    )
+                  }
+                  
+                  return pages
+                })()}
+                
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    padding: '6px 10px',
+                    border: '1px solid #ddd',
+                    background: '#fff',
+                    borderRadius: 4,
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    opacity: currentPage === totalPages ? 0.5 : 1,
+                    fontSize: 12
+                  }}
+                >
+                  ＞
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    padding: '6px 10px',
+                    border: '1px solid #ddd',
+                    background: '#fff',
+                    borderRadius: 4,
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    opacity: currentPage === totalPages ? 0.5 : 1,
+                    fontSize: 12
+                  }}
+                >
+                  ≫
+                </button>
+                
+                <span style={{ marginLeft: 12, fontSize: 12, color: '#666' }}>
+                  {currentPage} / {totalPages} 페이지
+                </span>
+              </div>
+            )}
           </>
         )}
 
