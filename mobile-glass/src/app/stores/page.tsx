@@ -120,6 +120,12 @@ export default function StoresPage() {
   // 신규등록 모달
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
+  
+  // 일괄등록 모달
+  const [showBulkModal, setShowBulkModal] = useState(false)
+  const [bulkFile, setBulkFile] = useState<File | null>(null)
+  const [bulkUploading, setBulkUploading] = useState(false)
+  const [bulkResult, setBulkResult] = useState<any>(null)
   const [form, setForm] = useState({
     name: '',
     code: '',
@@ -409,6 +415,12 @@ export default function StoresPage() {
             onClick={() => { resetForm(); setShowModal(true); }}
           >
             + 신규등록
+          </button>
+          <button 
+            style={{ ...btnStyle, background: '#1976d2', color: '#fff', border: 'none' }}
+            onClick={() => { setBulkResult(null); setShowBulkModal(true); }}
+          >
+            📤 일괄등록
           </button>
           <button style={{ ...btnStyle, background: '#4caf50', color: '#fff', border: 'none' }}>
             📥 엑셀다운
@@ -1461,6 +1473,242 @@ export default function StoresPage() {
               >
                 {saving ? '등록 중...' : '✓ 등록하기'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 일괄등록 모달 */}
+      {showBulkModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(4px)'
+        }} onClick={() => setShowBulkModal(false)}>
+          <div 
+            style={{
+              background: '#fff',
+              borderRadius: 16,
+              width: '90%',
+              maxWidth: 600,
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 25px 80px rgba(0,0,0,0.35)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 모달 헤더 */}
+            <div style={{
+              padding: '24px 28px',
+              background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#fff' }}>
+                  📤 거래처 일괄 등록
+                </h2>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: '6px 0 0' }}>
+                  엑셀 파일로 여러 거래처를 한번에 등록
+                </p>
+              </div>
+              <button 
+                style={{ 
+                  border: 'none', 
+                  background: 'rgba(255,255,255,0.2)', 
+                  fontSize: 20, 
+                  cursor: 'pointer', 
+                  color: '#fff',
+                  padding: '8px 12px',
+                  borderRadius: 8
+                }}
+                onClick={() => setShowBulkModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* 모달 바디 */}
+            <div style={{ padding: 28 }}>
+              {/* 양식 다운로드 */}
+              <div style={{ 
+                background: '#e3f2fd', 
+                padding: 20, 
+                borderRadius: 12,
+                marginBottom: 24
+              }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: '#1976d2' }}>
+                  1️⃣ 엑셀 양식 다운로드
+                </h3>
+                <p style={{ fontSize: 13, color: '#666', margin: '0 0 12px' }}>
+                  아래 양식을 다운로드하여 거래처 정보를 입력하세요.
+                </p>
+                <button 
+                  style={{ 
+                    ...btnStyle, 
+                    background: '#1976d2', 
+                    color: '#fff', 
+                    border: 'none',
+                    padding: '10px 20px'
+                  }}
+                  onClick={() => {
+                    // CSV 양식 다운로드
+                    const headers = ['코드', '거래처명', '대표자', '연락처', '주소', '사업자등록번호', '업태', '업종', '이메일', '청구일', '지역코드', '거래처유형']
+                    const sample = ['1001', '샘플안경원', '홍길동', '02-1234-5678', '서울시 강남구', '123-45-67890', '소매업', '안경', 'sample@email.com', '25', '강남', '소매']
+                    const csvContent = '\uFEFF' + headers.join(',') + '\n' + sample.join(',')
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = '거래처_등록_양식.csv'
+                    a.click()
+                    URL.revokeObjectURL(url)
+                  }}
+                >
+                  📥 양식 다운로드 (CSV)
+                </button>
+              </div>
+              
+              {/* 파일 업로드 */}
+              <div style={{ 
+                background: '#fff3e0', 
+                padding: 20, 
+                borderRadius: 12,
+                marginBottom: 24
+              }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: '#ff9800' }}>
+                  2️⃣ 파일 업로드
+                </h3>
+                <p style={{ fontSize: 13, color: '#666', margin: '0 0 12px' }}>
+                  작성한 CSV 파일을 선택하세요. (첫 행은 헤더)
+                </p>
+                <input 
+                  type="file" 
+                  accept=".csv,.xlsx,.xls"
+                  onChange={e => setBulkFile(e.target.files?.[0] || null)}
+                  style={{ marginBottom: 12 }}
+                />
+                {bulkFile && (
+                  <div style={{ fontSize: 13, color: '#4caf50' }}>
+                    ✓ 선택된 파일: {bulkFile.name}
+                  </div>
+                )}
+              </div>
+              
+              {/* 업로드 결과 */}
+              {bulkResult && (
+                <div style={{ 
+                  background: bulkResult.success ? '#e8f5e9' : '#ffebee', 
+                  padding: 20, 
+                  borderRadius: 12,
+                  marginBottom: 24
+                }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: bulkResult.success ? '#4caf50' : '#f44336' }}>
+                    {bulkResult.success ? '✅ 등록 완료!' : '❌ 등록 실패'}
+                  </h3>
+                  {bulkResult.success ? (
+                    <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13 }}>
+                      <li>입력 데이터: {bulkResult.totalInput}건</li>
+                      <li>등록 성공: {bulkResult.insertedCount}건</li>
+                      <li>스킵: {bulkResult.skippedCount}건</li>
+                      {bulkResult.errors?.length > 0 && (
+                        <li style={{ color: '#f44336' }}>오류: {bulkResult.errors.join(', ')}</li>
+                      )}
+                    </ul>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: 13, color: '#f44336' }}>{bulkResult.error}</p>
+                  )}
+                </div>
+              )}
+              
+              {/* 업로드 버튼 */}
+              <button 
+                style={{ 
+                  ...btnStyle, 
+                  width: '100%',
+                  background: bulkUploading ? '#ccc' : 'linear-gradient(135deg, #4caf50 0%, #43a047 100%)', 
+                  color: '#fff', 
+                  border: 'none',
+                  padding: '14px 24px',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  borderRadius: 8,
+                  cursor: bulkUploading || !bulkFile ? 'not-allowed' : 'pointer',
+                  opacity: !bulkFile ? 0.5 : 1
+                }}
+                disabled={bulkUploading || !bulkFile}
+                onClick={async () => {
+                  if (!bulkFile) return
+                  
+                  setBulkUploading(true)
+                  setBulkResult(null)
+                  
+                  try {
+                    const text = await bulkFile.text()
+                    const lines = text.split('\n').filter(l => l.trim())
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+                    
+                    // 헤더 매핑
+                    const headerMap: Record<string, string> = {
+                      '코드': 'code',
+                      '거래처명': 'name',
+                      '대표자': 'ownerName',
+                      '연락처': 'phone',
+                      '주소': 'address',
+                      '사업자등록번호': 'businessRegNo',
+                      '업태': 'businessType',
+                      '업종': 'businessCategory',
+                      '이메일': 'email',
+                      '청구일': 'billingDay',
+                      '지역코드': 'areaCode',
+                      '거래처유형': 'storeType'
+                    }
+                    
+                    const stores = []
+                    for (let i = 1; i < lines.length; i++) {
+                      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+                      const store: Record<string, any> = {}
+                      headers.forEach((h, idx) => {
+                        const key = headerMap[h] || h
+                        if (values[idx]) store[key] = values[idx]
+                      })
+                      if (store.name) stores.push(store)
+                    }
+                    
+                    const res = await fetch('/api/stores/import', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ stores, deleteExisting: false })
+                    })
+                    
+                    const result = await res.json()
+                    setBulkResult(result)
+                    
+                    if (result.success) {
+                      fetchStores() // 목록 새로고침
+                    }
+                  } catch (e: any) {
+                    setBulkResult({ success: false, error: e.message })
+                  } finally {
+                    setBulkUploading(false)
+                  }
+                }}
+              >
+                {bulkUploading ? '업로드 중...' : '🚀 일괄 등록하기'}
+              </button>
+              
+              <p style={{ fontSize: 11, color: '#999', marginTop: 12, textAlign: 'center' }}>
+                ※ 기존 거래처는 유지되며, 새 거래처만 추가됩니다.
+              </p>
             </div>
           </div>
         </div>
