@@ -570,55 +570,94 @@ export default function NewOrderPage() {
         {/* 왼쪽 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <section>
-            <label style={{ fontWeight: 600 }}>상호 [Esc]</label>
-            <input ref={storeInputRef} type="text" placeholder="검색..." value={storeSearchText}
+            <label style={{ fontWeight: 700, color: '#1976d2', display: 'flex', alignItems: 'center', gap: 4 }}>
+              🏪 상호 <span style={{ fontSize: 10, color: '#999', fontWeight: 400 }}>[Esc]</span>
+            </label>
+            <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
               onKeyDown={e => { const vs = filteredStores.slice(0, 10); if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1) }}
-              style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 3, fontSize: 14, marginTop: 4 }} />
+              style={{ 
+                width: '100%', 
+                padding: '12px 14px', 
+                border: '2px solid #1976d2', 
+                borderRadius: 8, 
+                fontSize: 15, 
+                marginTop: 6,
+                background: '#fff',
+                boxShadow: '0 2px 8px rgba(25, 118, 210, 0.15)',
+                outline: 'none',
+                transition: 'all 0.2s'
+              }} />
             {selectedStore && (
-              <div style={{ marginTop: 3, padding: 5, background: '#e3f2fd', borderRadius: 2, fontSize: 12, lineHeight: 1.5 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 3 }}>{selectedStore.name}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 8px' }}>
-                  <span>☎️ {selectedStore.phone || '-'}</span>
-                  <span>📱 {selectedStore.deliveryPhone || '-'}</span>
-                  <span>🎯 {selectedStore.salesRepName || '-'}</span>
-                  <span>🚚 {selectedStore.deliveryContact || '-'}</span>
+              <div style={{ marginTop: 6, padding: 10, background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', borderRadius: 8, fontSize: 12, lineHeight: 1.6, border: '1px solid #90caf9' }}>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: '#1565c0' }}>{selectedStore.name}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 10px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>📞 <span style={{ color: '#333' }}>{selectedStore.phone || '-'}</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>📱 <span style={{ color: '#333' }}>{selectedStore.deliveryPhone || '-'}</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>👤 <span style={{ color: '#333' }}>{selectedStore.salesRepName || '-'}</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>🚚 <span style={{ color: '#333' }}>{selectedStore.deliveryContact || '-'}</span></span>
                 </div>
                 {selectedStore.address && (
-                  <div style={{ marginTop: 2 }}>📍 {selectedStore.address}</div>
+                  <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>📍 <span style={{ color: '#555' }}>{selectedStore.address}</span></div>
                 )}
-                <div style={{ marginTop: 2, display: 'flex', gap: 8 }}>
-                  <span style={{ color: (selectedStore.outstandingAmount || 0) > 0 ? '#c62828' : '#2e7d32', fontWeight: 600 }}>
+                <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(0,0,0,0.1)', display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <span style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 4,
+                    padding: '3px 8px',
+                    borderRadius: 4,
+                    background: (selectedStore.outstandingAmount || 0) > 0 ? '#ffebee' : '#e8f5e9',
+                    color: (selectedStore.outstandingAmount || 0) > 0 ? '#c62828' : '#2e7d32', 
+                    fontWeight: 700,
+                    fontSize: 13
+                  }}>
                     💰 {(selectedStore.outstandingAmount || 0).toLocaleString()}원
                   </span>
-                  {selectedStore.paymentTermDays ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                      <span style={{ 
-                        display: 'inline-flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 12, 
-                        height: 12, 
-                        background: '#fff',
-                        border: '1px solid #e53935',
-                        borderTop: '3px solid #e53935',
-                        borderRadius: 1,
-                        lineHeight: 1
-                      }}>
-                        <span style={{ fontSize: 7, fontWeight: 700, color: '#1d1d1f' }}>{selectedStore.paymentTermDays}</span>
-                      </span>
+                  {selectedStore.paymentTermDays && (
+                    <span style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 4,
+                      padding: '3px 8px',
+                      borderRadius: 4,
+                      background: '#fff3e0',
+                      color: '#e65100',
+                      fontWeight: 600,
+                      fontSize: 12
+                    }}>
+                      📅 {selectedStore.paymentTermDays}일
                     </span>
-                  ) : '-'}
+                  )}
                 </div>
               </div>
             )}
             {storeSearchText && !selectedStore && filteredStores.length > 0 && (
-              <div style={{ maxHeight: 180, overflow: 'auto', marginTop: 2, border: '1px solid #ddd', borderRadius: 3, background: '#fff' }}>
+              <div style={{ maxHeight: 200, overflow: 'auto', marginTop: 4, border: '2px solid #1976d2', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                 {filteredStores.slice(0, 10).map((s, i) => (
                   <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
-                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: storeFocusIndex === i ? '#e3f2fd' : '#fff', fontSize: 13 }}>{s.name}</div>
+                    style={{ 
+                      padding: '10px 12px', 
+                      cursor: 'pointer', 
+                      borderBottom: '1px solid #eee', 
+                      background: storeFocusIndex === i ? '#1976d2' : '#fff', 
+                      color: storeFocusIndex === i ? '#fff' : '#333',
+                      fontSize: 13,
+                      fontWeight: storeFocusIndex === i ? 600 : 400,
+                      transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => { if (storeFocusIndex !== i) e.currentTarget.style.background = '#e3f2fd' }}
+                    onMouseLeave={e => { if (storeFocusIndex !== i) e.currentTarget.style.background = '#fff' }}
+                  >
+                    <div style={{ fontWeight: 600 }}>{s.name}</div>
+                    <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>{s.code} · {s.phone || '-'}</div>
+                  </div>
                 ))}
+              </div>
+            )}
+            {storeSearchText && !selectedStore && filteredStores.length === 0 && (
+              <div style={{ marginTop: 4, padding: 12, background: '#fff3e0', borderRadius: 8, textAlign: 'center', color: '#e65100', fontSize: 13 }}>
+                검색 결과가 없습니다
               </div>
             )}
           </section>

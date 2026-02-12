@@ -93,6 +93,18 @@ model ProductOption {
   @@index([barcode])
 }
 
+// 배송담당자 테이블
+model DeliveryStaff {
+  id          Int      @id @default(autoincrement())
+  name        String   // 배송담당자명
+  phone       String?  // 연락처
+  areaCode    String?  // 담당지역
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  stores      Store[]
+}
+
 // 가맹점(거래처) 테이블
 model Store {
   id            Int       @id @default(autoincrement())
@@ -102,6 +114,18 @@ model Store {
   address       String?   // 주소
   ownerName     String?   // 대표자명
   isActive      Boolean   @default(true)
+  
+  // ===== 신규 필드 (거래처 등록 확장) =====
+  businessType      String?   // 업태
+  businessCategory  String?   // 업종
+  businessRegNo     String?   // 사업자등록번호
+  groupId           Int?      // StoreGroup FK
+  group             StoreGroup? @relation(fields: [groupId], references: [id])
+  email             String?   // 메일주소
+  memo              String?   // 기타사항
+  status            String    @default("active") // 거래상태: active, suspended, caution
+  deliveryStaffId   Int?      // DeliveryStaff FK
+  deliveryStaff     DeliveryStaff? @relation(fields: [deliveryStaffId], references: [id])
   
   // 배송 정보
   deliveryContact   String?   // 배송 담당자
@@ -123,6 +147,7 @@ model Store {
   outstandingAmount Int       @default(0)  // 미수금 잔액
   creditLimit       Int       @default(0)  // 신용한도
   paymentTermDays   Int       @default(30) // 결제 기한 (일)
+  billingDay        Int?                   // 청구일 (매월 N일, 1-31)
   lastPaymentAt     DateTime?              // 최근 입금일
   
   // ===== 할인 설정 =====
@@ -141,6 +166,9 @@ model Store {
   brandDiscounts    StoreBrandDiscount[]
   productDiscounts  StoreProductDiscount[]
   productPrices     StoreProductPrice[]
+  
+  @@index([groupId])
+  @@index([deliveryStaffId])
 }
 
 // 주문 테이블
@@ -516,8 +544,9 @@ model StoreGroup {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  stores        StoreGroupMember[]
+  members       StoreGroupMember[]
   brandDiscounts BrandDiscount[]
+  stores        Store[]  // 직접 연결된 가맹점
 }
 
 // 가맹점-그룹 연결 테이블

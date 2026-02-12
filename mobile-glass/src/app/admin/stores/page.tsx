@@ -27,6 +27,11 @@ interface Stats {
   newThisMonth: number
 }
 
+interface StoreGroup {
+  id: number
+  name: string
+}
+
 interface FormData {
   code: string
   name: string
@@ -35,6 +40,8 @@ interface FormData {
   mobile: string
   address: string
   paymentTermDays: number
+  billingDay: number | null
+  groupId: number | null
   salesRepName: string
   deliveryContact: string
   isActive: boolean
@@ -48,6 +55,8 @@ const initialFormData: FormData = {
   mobile: '',
   address: '',
   paymentTermDays: 30,
+  billingDay: null,
+  groupId: null,
   salesRepName: '',
   deliveryContact: '',
   isActive: true,
@@ -67,6 +76,19 @@ export default function StoresPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [groups, setGroups] = useState<StoreGroup[]>([])
+
+  // 그룹 목록 가져오기
+  useEffect(() => {
+    fetch('/api/store-groups')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setGroups(data)
+        }
+      })
+      .catch(err => console.error('Failed to fetch groups:', err))
+  }, [])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -114,6 +136,8 @@ export default function StoresPage() {
         mobile: store.mobile || '',
         address: store.address === '-' ? '' : store.address,
         paymentTermDays: store.paymentTermDays || 30,
+        billingDay: store.billingDay || null,
+        groupId: store.groupId || null,
         salesRepName: store.salesRepName || '',
         deliveryContact: store.deliveryContact || '',
         isActive: store.isActive,
@@ -496,7 +520,7 @@ export default function StoresPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>결제일 (일)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>결제기한 (일)</label>
                 <input 
                   type="number" 
                   value={formData.paymentTermDays}
@@ -510,6 +534,46 @@ export default function StoresPage() {
                     fontSize: '14px' 
                   }} 
                 />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>청구일 (매월)</label>
+                <input 
+                  type="number" 
+                  value={formData.billingDay || ''}
+                  onChange={(e) => setFormData({ ...formData, billingDay: e.target.value ? parseInt(e.target.value) : null })}
+                  placeholder="예: 15 (매월 15일)"
+                  min={1}
+                  max={31}
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px 12px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e5e5e5', 
+                    fontSize: '14px' 
+                  }} 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>그룹</label>
+                <select 
+                  value={formData.groupId || ''}
+                  onChange={(e) => setFormData({ ...formData, groupId: e.target.value ? parseInt(e.target.value) : null })}
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px 12px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e5e5e5', 
+                    fontSize: '14px' 
+                  }}
+                >
+                  <option value="">선택 안함</option>
+                  {groups.map(group => (
+                    <option key={group.id} value={group.id}>{group.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 

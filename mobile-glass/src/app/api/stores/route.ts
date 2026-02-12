@@ -7,6 +7,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const search = searchParams.get('search')
+    const groupId = searchParams.get('groupId')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
     
@@ -19,6 +20,11 @@ export async function GET(request: Request) {
       where.isActive = false
     }
     
+    // 그룹 필터
+    if (groupId) {
+      where.groupId = parseInt(groupId)
+    }
+    
     // 검색
     if (search) {
       where.OR = [
@@ -26,6 +32,7 @@ export async function GET(request: Request) {
         { code: { contains: search } },
         { phone: { contains: search } },
         { ownerName: { contains: search } },
+        { businessRegNo: { contains: search } },
       ]
     }
     
@@ -41,6 +48,8 @@ export async function GET(request: Request) {
           take: 1,
           select: { orderedAt: true }
         },
+        group: { select: { id: true, name: true } },
+        deliveryStaff: { select: { id: true, name: true } },
         _count: {
           select: { orders: true }
         }
@@ -76,7 +85,19 @@ export async function GET(request: Request) {
         outstandingAmount: store.outstandingAmount || 0,
         address: store.address || null,
         paymentTermDays: store.paymentTermDays || 30,
+        billingDay: store.billingDay || null,
         isActive: store.isActive,
+        // 신규 필드
+        businessType: store.businessType,
+        businessCategory: store.businessCategory,
+        businessRegNo: store.businessRegNo,
+        email: store.email,
+        memo: store.memo,
+        status: store.status,
+        groupId: store.groupId,
+        groupName: store.group?.name || null,
+        deliveryStaffId: store.deliveryStaffId,
+        deliveryStaffName: store.deliveryStaff?.name || null,
         orderCount: store._count.orders,
         lastOrderDate: store.orders[0]?.orderedAt?.toISOString().split('T')[0] || null,
         createdAt: store.createdAt.toISOString().split('T')[0],
@@ -104,7 +125,34 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { code, name, ownerName, phone, mobile, address, paymentTermDays, salesRepName, deliveryContact, isActive = true } = body
+    const { 
+      code, 
+      name, 
+      ownerName, 
+      phone, 
+      mobile,
+      address, 
+      deliveryContact,
+      deliveryPhone,
+      deliveryAddress,
+      salesRepName,
+      paymentTermDays, 
+      discountRate,
+      areaCode,
+      storeType,
+      isActive = true,
+      // 신규 필드
+      businessType,
+      businessCategory,
+      businessRegNo,
+      groupId,
+      email,
+      memo,
+      status,
+      deliveryStaffId,
+      outstandingAmount,
+      billingDay,
+    } = body
     
     if (!name) {
       return NextResponse.json({ error: '안경원명은 필수입니다.' }, { status: 400 })
@@ -132,12 +180,27 @@ export async function POST(request: Request) {
         name,
         ownerName,
         phone,
-        deliveryPhone: mobile,
         address,
-        paymentTermDays: paymentTermDays || 30,
-        salesRepName,
         deliveryContact,
+        deliveryPhone: deliveryPhone || mobile,
+        deliveryAddress,
+        salesRepName,
+        paymentTermDays: paymentTermDays ? parseInt(String(paymentTermDays)) : 30,
+        billingDay: billingDay ? parseInt(String(billingDay)) : null,
+        discountRate: discountRate ? parseFloat(String(discountRate)) : 0,
+        areaCode,
+        storeType,
         isActive,
+        // 신규 필드
+        businessType,
+        businessCategory,
+        businessRegNo,
+        groupId: groupId ? parseInt(String(groupId)) : null,
+        email,
+        memo,
+        status: status || 'active',
+        deliveryStaffId: deliveryStaffId ? parseInt(String(deliveryStaffId)) : null,
+        outstandingAmount: outstandingAmount ? parseInt(String(outstandingAmount)) : 0,
       },
     })
     

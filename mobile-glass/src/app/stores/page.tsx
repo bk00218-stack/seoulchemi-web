@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Layout, { btnStyle, cardStyle, selectStyle, inputStyle } from '../components/Layout'
 
 const SIDEBAR = [
@@ -8,6 +9,7 @@ const SIDEBAR = [
     title: '가맹점 관리',
     items: [
       { label: '가맹점 관리', href: '/stores' },
+      { label: '배송담당자 관리', href: '/stores/delivery-staff' },
       { label: '가맹점 공지사항', href: '/stores/notices' },
     ]
   },
@@ -34,6 +36,9 @@ interface Store {
   outstandingAmount?: number
   totalOrders?: number
   lastOrderDate?: string
+  status?: string
+  groupName?: string | null
+  deliveryStaffName?: string | null
 }
 
 interface Transaction {
@@ -47,18 +52,92 @@ interface Transaction {
   description: string
 }
 
+interface StoreGroup {
+  id: number
+  name: string
+}
+
+interface DeliveryStaff {
+  id: number
+  name: string
+  phone: string | null
+  areaCode: string | null
+}
+
+const STORE_TYPES = ['소매', '도매', 'VIP', '직영']
+const STATUS_OPTIONS = [
+  { value: 'active', label: '정상', color: '#4caf50' },
+  { value: 'caution', label: '주의', color: '#ff9800' },
+  { value: 'suspended', label: '정지', color: '#f44336' },
+]
+
 export default function StoresPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('가맹점목록')
   const [stores, setStores] = useState<Store[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
+  
+  // 그룹 및 배송담당자 목록
+  const [groups, setGroups] = useState<StoreGroup[]>([])
+  const [deliveryStaffList, setDeliveryStaffList] = useState<DeliveryStaff[]>([])
+  
+  // 신규등록 모달
+  const [showModal, setShowModal] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState({
+    name: '',
+    code: '',
+    ownerName: '',
+    phone: '',
+    mobile: '',
+    address: '',
+    salesRepName: '',
+    paymentTermDays: 30,
+    discountRate: 0,
+    storeType: '',
+    // 신규 필드
+    businessType: '',
+    businessCategory: '',
+    businessRegNo: '',
+    groupId: '',
+    email: '',
+    memo: '',
+    status: 'active',
+    deliveryStaffId: '',
+    outstandingAmount: 0,
+    createdAt: new Date().toISOString().split('T')[0],
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetchStores()
     fetchTransactions()
+    fetchGroups()
+    fetchDeliveryStaff()
   }, [])
+  
+  async function fetchGroups() {
+    try {
+      const res = await fetch('/api/store-groups')
+      const data = await res.json()
+      setGroups(data.groups || [])
+    } catch (e) {
+      console.error('Failed to fetch groups:', e)
+    }
+  }
+  
+  async function fetchDeliveryStaff() {
+    try {
+      const res = await fetch('/api/delivery-staff')
+      const data = await res.json()
+      setDeliveryStaffList(data.deliveryStaff || [])
+    } catch (e) {
+      console.error('Failed to fetch delivery staff:', e)
+    }
+  }
 
   async function fetchStores() {
     try {
@@ -94,6 +173,103 @@ export default function StoresPage() {
     setTransactions(demoTransactions)
   }
 
+  function resetForm() {
+    setForm({
+      name: '',
+      code: '',
+      ownerName: '',
+      phone: '',
+      mobile: '',
+      address: '',
+      salesRepName: '',
+      paymentTermDays: 30,
+      discountRate: 0,
+      storeType: '',
+      // 신규 필드
+      businessType: '',
+      businessCategory: '',
+      businessRegNo: '',
+      groupId: '',
+      email: '',
+      memo: '',
+      status: 'active',
+      deliveryStaffId: '',
+      outstandingAmount: 0,
+      createdAt: new Date().toISOString().split('T')[0],
+    })
+    setErrors({})
+  }
+
+  function validateForm() {
+    const newErrors: Record<string, string> = {}
+    
+    if (!form.name.trim()) {
+      newErrors.name = '거래처명은 필수입니다.'
+    }
+    
+    if (form.phone && !/^[\d-]+$/.test(form.phone)) {
+      newErrors.phone = '올바른 전화번호 형식이 아닙니다.'
+    }
+    
+    if (form.discountRate < 0 || form.discountRate > 100) {
+      newErrors.discountRate = '할인율은 0~100 사이여야 합니다.'
+    }
+    
+    if (form.paymentTermDays < 0) {
+      newErrors.paymentTermDays = '결제 기한은 0 이상이어야 합니다.'
+    }
+    
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = '올바른 이메일 형식이 아닙니다.'
+    }
+    
+    if (form.businessRegNo && !/^[\d-]+$/.test(form.businessRegNo)) {
+      newErrors.businessRegNo = '올바른 사업자등록번호 형식이 아닙니다.'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  async function handleSubmit() {
+    if (!validateForm()) return
+    
+    try {
+      setSaving(true)
+      const submitData = {
+        ...form,
+        groupId: form.groupId ? parseInt(form.groupId) : null,
+        deliveryStaffId: form.deliveryStaffId ? parseInt(form.deliveryStaffId) : null,
+      }
+      const res = await fetch('/api/stores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submitData),
+      })
+      
+      const data = await res.json()
+      
+      if (!res.ok) {
+        alert(data.error || '등록에 실패했습니다.')
+        return
+      }
+      
+      alert('거래처가 등록되었습니다.')
+      setShowModal(false)
+      resetForm()
+      fetchStores()
+    } catch (e) {
+      console.error(e)
+      alert('등록에 실패했습니다.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleRowClick(store: Store) {
+    router.push(`/stores/${store.id}`)
+  }
+
   const filtered = stores.filter(s => 
     s.name.includes(search) || s.code.includes(search) || (s.ownerName && s.ownerName.includes(search))
   )
@@ -110,6 +286,24 @@ export default function StoresPage() {
 
   // 거래 내역 (주문 + 반품)
   const orders = transactions.filter(t => t.type === '주문' || t.type === '반품')
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#333',
+    marginBottom: 6,
+    display: 'block',
+  }
+
+  const fieldGroupStyle: React.CSSProperties = {
+    marginBottom: 16,
+  }
+
+  const errorStyle: React.CSSProperties = {
+    fontSize: 11,
+    color: '#f44336',
+    marginTop: 4,
+  }
 
   return (
     <Layout sidebarMenus={SIDEBAR} activeNav="가맹점">
@@ -129,7 +323,10 @@ export default function StoresPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button style={{ ...btnStyle, background: '#ff9800', color: '#fff', border: 'none' }}>
+          <button 
+            style={{ ...btnStyle, background: '#ff9800', color: '#fff', border: 'none' }}
+            onClick={() => { resetForm(); setShowModal(true); }}
+          >
             + 신규등록
           </button>
           <button style={{ ...btnStyle, background: '#4caf50', color: '#fff', border: 'none' }}>
@@ -289,7 +486,9 @@ export default function StoresPage() {
                           background: index % 2 === 0 ? '#fff' : '#fafafa',
                           cursor: 'pointer'
                         }}
-                        onClick={() => setSelectedStore(store)}
+                        onClick={() => handleRowClick(store)}
+                        onMouseEnter={e => e.currentTarget.style.background = '#e3f2fd'}
+                        onMouseLeave={e => e.currentTarget.style.background = index % 2 === 0 ? '#fff' : '#fafafa'}
                       >
                         <td style={{ padding: '10px 12px', fontSize: 12, fontFamily: 'monospace', color: '#666' }}>{store.code}</td>
                         <td style={{ padding: '10px 12px', fontSize: 12, fontWeight: 500 }}>{store.name}</td>
@@ -352,8 +551,10 @@ export default function StoresPage() {
                     <tr 
                       key={store.id}
                       style={{ 
-                        background: index < 3 ? '#ffebee' : (index % 2 === 0 ? '#fff' : '#fafafa')
+                        background: index < 3 ? '#ffebee' : (index % 2 === 0 ? '#fff' : '#fafafa'),
+                        cursor: 'pointer'
                       }}
+                      onClick={() => handleRowClick(store)}
                     >
                       <td style={{ padding: '12px', fontSize: 13, fontWeight: 600 }}>
                         {index < 3 ? (
@@ -387,7 +588,7 @@ export default function StoresPage() {
                       }}>
                         {(store.outstandingAmount || 0).toLocaleString()}원
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <button style={{
                           padding: '5px 12px',
                           border: 'none',
@@ -498,6 +699,440 @@ export default function StoresPage() {
           </div>
         )}
       </div>
+
+      {/* 신규등록 모달 */}
+      {showModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(4px)'
+        }} onClick={() => setShowModal(false)}>
+          <div 
+            style={{
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+              borderRadius: 16,
+              width: '90%',
+              maxWidth: 900,
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 25px 80px rgba(0,0,0,0.35), 0 10px 30px rgba(0,0,0,0.2)',
+              border: '1px solid rgba(255,255,255,0.8)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 모달 헤더 */}
+            <div style={{
+              padding: '24px 28px',
+              background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              position: 'sticky',
+              top: 0,
+              zIndex: 1
+            }}>
+              <div>
+                <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 28 }}>🏪</span> 신규 거래처 등록
+                </h2>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: '6px 0 0' }}>새로운 거래처 정보를 입력해주세요</p>
+              </div>
+              <button 
+                style={{ 
+                  border: 'none', 
+                  background: 'rgba(255,255,255,0.2)', 
+                  fontSize: 20, 
+                  cursor: 'pointer', 
+                  color: '#fff',
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  transition: 'background 0.2s'
+                }}
+                onClick={() => setShowModal(false)}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* 모달 바디 */}
+            <div style={{ padding: 28 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36 }}>
+                {/* 왼쪽: 기본 정보 */}
+                <div>
+                  <h3 style={{ 
+                    fontSize: 15, 
+                    fontWeight: 700, 
+                    marginBottom: 20, 
+                    color: '#1976d2', 
+                    borderBottom: '2px solid #1976d2', 
+                    paddingBottom: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}>
+                    <span style={{ fontSize: 18 }}>📋</span> 기본 정보
+                  </h3>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>거래처명 *</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%', borderColor: errors.name ? '#f44336' : undefined }}
+                        value={form.name}
+                        onChange={e => setForm({ ...form, name: e.target.value })}
+                        placeholder="예: 글라스안경"
+                      />
+                      {errors.name && <div style={errorStyle}>{errors.name}</div>}
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>코드 (자동생성)</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%', background: '#f9f9f9' }}
+                        value={form.code}
+                        onChange={e => setForm({ ...form, code: e.target.value })}
+                        placeholder="비워두면 자동생성"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>대표자명</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%' }}
+                        value={form.ownerName}
+                        onChange={e => setForm({ ...form, ownerName: e.target.value })}
+                        placeholder="홍길동"
+                      />
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>등록일</label>
+                      <input 
+                        type="date"
+                        style={{ ...inputStyle, width: '100%' }}
+                        value={form.createdAt}
+                        onChange={e => setForm({ ...form, createdAt: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>📞 연락처</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%', borderColor: errors.phone ? '#f44336' : undefined }}
+                        value={form.phone}
+                        onChange={e => setForm({ ...form, phone: e.target.value })}
+                        placeholder="02-1234-5678"
+                      />
+                      {errors.phone && <div style={errorStyle}>{errors.phone}</div>}
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>📱 핸드폰</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%' }}
+                        value={form.mobile}
+                        onChange={e => setForm({ ...form, mobile: e.target.value })}
+                        placeholder="010-1234-5678"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* 사업자 정보 (신규) */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>사업자등록번호</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%', borderColor: errors.businessRegNo ? '#f44336' : undefined }}
+                        value={form.businessRegNo}
+                        onChange={e => setForm({ ...form, businessRegNo: e.target.value })}
+                        placeholder="000-00-00000"
+                      />
+                      {errors.businessRegNo && <div style={errorStyle}>{errors.businessRegNo}</div>}
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>업태</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%' }}
+                        value={form.businessType}
+                        onChange={e => setForm({ ...form, businessType: e.target.value })}
+                        placeholder="소매업"
+                      />
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>업종</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%' }}
+                        value={form.businessCategory}
+                        onChange={e => setForm({ ...form, businessCategory: e.target.value })}
+                        placeholder="안경"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div style={fieldGroupStyle}>
+                    <label style={labelStyle}>주소</label>
+                    <input 
+                      type="text"
+                      style={{ ...inputStyle, width: '100%' }}
+                      value={form.address}
+                      onChange={e => setForm({ ...form, address: e.target.value })}
+                      placeholder="서울시 강남구..."
+                    />
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>거래처 유형</label>
+                      <select 
+                        style={{ ...selectStyle, width: '100%' }}
+                        value={form.storeType}
+                        onChange={e => setForm({ ...form, storeType: e.target.value })}
+                      >
+                        <option value="">선택</option>
+                        {STORE_TYPES.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>영업담당</label>
+                      <select 
+                        style={{ ...selectStyle, width: '100%' }}
+                        value={form.groupId}
+                        onChange={e => setForm({ ...form, groupId: e.target.value })}
+                      >
+                        <option value="">선택 안함</option>
+                        {groups.map(group => (
+                          <option key={group.id} value={group.id}>{group.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>배송담당</label>
+                      <select 
+                        style={{ ...selectStyle, width: '100%' }}
+                        value={form.deliveryStaffId}
+                        onChange={e => setForm({ ...form, deliveryStaffId: e.target.value })}
+                      >
+                        <option value="">선택 안함</option>
+                        {deliveryStaffList.map(staff => (
+                          <option key={staff.id} value={staff.id}>
+                            {staff.name}{staff.areaCode ? ` (${staff.areaCode})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>배송담당자 연락처</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%', background: '#f5f5f5' }}
+                        value={deliveryStaffList.find(s => String(s.id) === form.deliveryStaffId)?.phone || ''}
+                        readOnly
+                        placeholder="배송담당 선택시 자동표시"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div style={fieldGroupStyle}>
+                    <label style={labelStyle}>메일주소</label>
+                    <input 
+                      type="email"
+                      style={{ ...inputStyle, width: '100%', borderColor: errors.email ? '#f44336' : undefined }}
+                      value={form.email}
+                      onChange={e => setForm({ ...form, email: e.target.value })}
+                      placeholder="example@email.com"
+                    />
+                    {errors.email && <div style={errorStyle}>{errors.email}</div>}
+                  </div>
+                  
+                  {/* 거래상태 (신규) */}
+                  <div style={fieldGroupStyle}>
+                    <label style={labelStyle}>거래상태</label>
+                    <div style={{ display: 'flex', gap: 16 }}>
+                      {STATUS_OPTIONS.map(option => (
+                        <label key={option.value} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                          <input 
+                            type="radio"
+                            name="status"
+                            value={option.value}
+                            checked={form.status === option.value}
+                            onChange={e => setForm({ ...form, status: e.target.value })}
+                          />
+                          <span style={{ 
+                            padding: '2px 8px', 
+                            borderRadius: 4, 
+                            background: `${option.color}20`, 
+                            color: option.color,
+                            fontSize: 12,
+                            fontWeight: 500
+                          }}>
+                            {option.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 오른쪽: 결제정보 */}
+                <div>
+                  <h3 style={{ 
+                    fontSize: 15, 
+                    fontWeight: 700, 
+                    marginBottom: 20, 
+                    color: '#4caf50', 
+                    borderBottom: '2px solid #4caf50', 
+                    paddingBottom: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}>
+                    <span style={{ fontSize: 18 }}>💰</span> 결제 정보
+                  </h3>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>결제 기한 (일)</label>
+                      <input 
+                        type="number"
+                        style={{ ...inputStyle, width: '100%', borderColor: errors.paymentTermDays ? '#f44336' : undefined }}
+                        value={form.paymentTermDays}
+                        onChange={e => setForm({ ...form, paymentTermDays: parseInt(e.target.value) || 30 })}
+                        min={0}
+                      />
+                      {errors.paymentTermDays && <div style={errorStyle}>{errors.paymentTermDays}</div>}
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>기본 할인율 (%)</label>
+                      <input 
+                        type="number"
+                        style={{ ...inputStyle, width: '100%', borderColor: errors.discountRate ? '#f44336' : undefined }}
+                        value={form.discountRate}
+                        onChange={e => setForm({ ...form, discountRate: parseFloat(e.target.value) || 0 })}
+                        min={0}
+                        max={100}
+                        step={0.5}
+                      />
+                      {errors.discountRate && <div style={errorStyle}>{errors.discountRate}</div>}
+                    </div>
+                  </div>
+                  
+                  <div style={fieldGroupStyle}>
+                    <label style={labelStyle}>초기 미수금</label>
+                    <input 
+                      type="number"
+                      style={{ ...inputStyle, width: '100%' }}
+                      value={form.outstandingAmount}
+                      onChange={e => setForm({ ...form, outstandingAmount: parseInt(e.target.value) || 0 })}
+                      min={0}
+                      placeholder="0"
+                    />
+                    <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>기존 미수금이 있는 경우 입력</p>
+                  </div>
+                  
+                  <h3 style={{ 
+                    fontSize: 15, 
+                    fontWeight: 700, 
+                    marginBottom: 20, 
+                    marginTop: 28, 
+                    color: '#ff9800', 
+                    borderBottom: '2px solid #ff9800', 
+                    paddingBottom: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}>
+                    <span style={{ fontSize: 18 }}>📝</span> 기타
+                  </h3>
+                  
+                  <div style={fieldGroupStyle}>
+                    <label style={labelStyle}>기타사항</label>
+                    <textarea 
+                      style={{ ...inputStyle, width: '100%', minHeight: 80, resize: 'vertical' }}
+                      value={form.memo}
+                      onChange={e => setForm({ ...form, memo: e.target.value })}
+                      placeholder="특이사항, 메모 등..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* 모달 푸터 */}
+            <div style={{
+              padding: '20px 28px',
+              borderTop: '2px solid #e0e0e0',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 12,
+              position: 'sticky',
+              bottom: 0,
+              background: 'linear-gradient(to top, #f5f5f5 0%, #fff 100%)'
+            }}>
+              <button 
+                style={{ 
+                  ...btnStyle, 
+                  minWidth: 100,
+                  padding: '12px 24px',
+                  fontSize: 14,
+                  borderRadius: 8,
+                  border: '2px solid #ccc',
+                  background: '#fff',
+                  transition: 'all 0.2s'
+                }}
+                onClick={() => setShowModal(false)}
+                onMouseEnter={e => { e.currentTarget.style.background = '#f5f5f5'; e.currentTarget.style.borderColor = '#999' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#ccc' }}
+              >
+                취소
+              </button>
+              <button 
+                style={{ 
+                  ...btnStyle, 
+                  background: saving ? '#ccc' : 'linear-gradient(135deg, #4caf50 0%, #43a047 100%)', 
+                  color: '#fff', 
+                  border: 'none', 
+                  minWidth: 140,
+                  padding: '12px 28px',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  borderRadius: 8,
+                  boxShadow: saving ? 'none' : '0 4px 15px rgba(76, 175, 80, 0.4)',
+                  transition: 'all 0.2s',
+                  cursor: saving ? 'not-allowed' : 'pointer'
+                }}
+                onClick={handleSubmit}
+                disabled={saving}
+              >
+                {saving ? '등록 중...' : '✓ 등록하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }
