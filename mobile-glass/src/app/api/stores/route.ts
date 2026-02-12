@@ -71,6 +71,27 @@ export async function GET(request: Request) {
       where: { createdAt: { gte: monthStart } }
     })
     
+    // 미결제 가맹점 수 (outstandingAmount > 0)
+    const outstandingStoresCount = await prisma.store.count({
+      where: { outstandingAmount: { gt: 0 } }
+    })
+    
+    // 총 미결제액 (outstandingAmount 합계)
+    const outstandingSum = await prisma.store.aggregate({
+      _sum: { outstandingAmount: true }
+    })
+    const totalOutstanding = outstandingSum._sum.outstandingAmount || 0
+    
+    // 이번 달 입금 (Transaction 테이블에서 deposit 타입 합계)
+    const depositsThisMonth = await prisma.transaction.aggregate({
+      where: {
+        type: 'deposit',
+        processedAt: { gte: monthStart }
+      },
+      _sum: { amount: true }
+    })
+    const totalDepositsThisMonth = depositsThisMonth._sum.amount || 0
+    
     return NextResponse.json({
       stores: stores.map(store => ({
         id: store.id,
@@ -113,6 +134,9 @@ export async function GET(request: Request) {
         active: activeStores,
         inactive: totalStores - activeStores,
         newThisMonth,
+        outstandingStoresCount,
+        totalOutstanding,
+        totalDepositsThisMonth,
       },
     })
   } catch (error) {

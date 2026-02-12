@@ -92,6 +92,14 @@ export default function StoresPage() {
   const [deliveryStaffList, setDeliveryStaffList] = useState<DeliveryStaff[]>([])
   const [salesStaffList, setSalesStaffList] = useState<SalesStaff[]>([])
   
+  // 통계
+  const [stats, setStats] = useState({
+    total: 0,
+    outstandingStoresCount: 0,
+    totalOutstanding: 0,
+    totalDepositsThisMonth: 0,
+  })
+  
   // 신규등록 모달
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -162,16 +170,19 @@ export default function StoresPage() {
 
   async function fetchStores() {
     try {
-      const res = await fetch('/api/stores')
+      const res = await fetch('/api/stores?limit=2000')
       const data = await res.json()
-      // 미결제 금액 추가 (데모용)
-      const storesWithOutstanding = (data.stores || []).map((store: Store, index: number) => ({
-        ...store,
-        outstandingAmount: Math.floor(Math.random() * 500000) * (index % 3 === 0 ? 1 : 0),
-        totalOrders: Math.floor(Math.random() * 100),
-        lastOrderDate: index % 2 === 0 ? '2026-02-09' : '2026-02-08'
-      }))
-      setStores(storesWithOutstanding)
+      setStores(data.stores || [])
+      
+      // 통계 저장
+      if (data.stats) {
+        setStats({
+          total: data.stats.total || 0,
+          outstandingStoresCount: data.stats.outstandingStoresCount || 0,
+          totalOutstanding: data.stats.totalOutstanding || 0,
+          totalDepositsThisMonth: data.stats.totalDepositsThisMonth || 0,
+        })
+      }
     } catch (e) {
       console.error(e)
     } finally {
@@ -372,7 +383,7 @@ export default function StoresPage() {
           borderLeft: '4px solid #1976d2'
         }}>
           <div style={{ fontSize: 12, color: '#666' }}>전체 가맹점</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>{stores.length}</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>{stats.total.toLocaleString()}</div>
         </div>
         <div style={{ 
           background: '#fff', 
@@ -382,7 +393,7 @@ export default function StoresPage() {
           borderLeft: '4px solid #f44336'
         }}>
           <div style={{ fontSize: 12, color: '#666' }}>미결제 가맹점</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#f44336' }}>{outstandingStores.length}</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#f44336' }}>{stats.outstandingStoresCount.toLocaleString()}</div>
         </div>
         <div style={{ 
           background: '#fff', 
@@ -392,7 +403,7 @@ export default function StoresPage() {
           borderLeft: '4px solid #ff9800'
         }}>
           <div style={{ fontSize: 12, color: '#666' }}>총 미결제액</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#ff9800' }}>{totalOutstanding.toLocaleString()}원</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#ff9800' }}>{stats.totalOutstanding.toLocaleString()}원</div>
         </div>
         <div style={{ 
           background: '#fff', 
@@ -403,7 +414,7 @@ export default function StoresPage() {
         }}>
           <div style={{ fontSize: 12, color: '#666' }}>이번 달 입금</div>
           <div style={{ fontSize: 24, fontWeight: 700, color: '#4caf50' }}>
-            {deposits.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}원
+            {stats.totalDepositsThisMonth.toLocaleString()}원
           </div>
         </div>
       </div>
