@@ -39,6 +39,14 @@ interface Store {
   status?: string
   groupName?: string | null
   deliveryStaffName?: string | null
+  areaCode?: string | null
+  storeType?: string | null
+  businessRegNo?: string | null
+  businessType?: string | null
+  businessCategory?: string | null
+  email?: string | null
+  billingDay?: number | null
+  memo?: string | null
 }
 
 interface Transaction {
