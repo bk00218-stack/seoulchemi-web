@@ -64,6 +64,13 @@ interface DeliveryStaff {
   areaCode: string | null
 }
 
+interface SalesStaff {
+  id: number
+  name: string
+  phone: string | null
+  areaCode: string | null
+}
+
 const STORE_TYPES = ['소매', '도매', 'VIP', '직영']
 const STATUS_OPTIONS = [
   { value: 'active', label: '정상', color: '#4caf50' },
@@ -80,9 +87,10 @@ export default function StoresPage() {
   const [search, setSearch] = useState('')
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   
-  // 그룹 및 배송담당자 목록
+  // 그룹 및 담당자 목록
   const [groups, setGroups] = useState<StoreGroup[]>([])
   const [deliveryStaffList, setDeliveryStaffList] = useState<DeliveryStaff[]>([])
+  const [salesStaffList, setSalesStaffList] = useState<SalesStaff[]>([])
   
   // 신규등록 모달
   const [showModal, setShowModal] = useState(false)
@@ -108,6 +116,7 @@ export default function StoresPage() {
     memo: '',
     status: 'active',
     deliveryStaffId: '',
+    salesStaffId: '',
     outstandingAmount: 0,
     createdAt: new Date().toISOString().split('T')[0],
   })
@@ -118,13 +127,14 @@ export default function StoresPage() {
     fetchTransactions()
     fetchGroups()
     fetchDeliveryStaff()
+    fetchSalesStaff()
   }, [])
   
   async function fetchGroups() {
     try {
       const res = await fetch('/api/store-groups')
       const data = await res.json()
-      setGroups(data.groups || [])
+      setGroups(Array.isArray(data) ? data : [])
     } catch (e) {
       console.error('Failed to fetch groups:', e)
     }
@@ -137,6 +147,16 @@ export default function StoresPage() {
       setDeliveryStaffList(data.deliveryStaff || [])
     } catch (e) {
       console.error('Failed to fetch delivery staff:', e)
+    }
+  }
+  
+  async function fetchSalesStaff() {
+    try {
+      const res = await fetch('/api/sales-staff')
+      const data = await res.json()
+      setSalesStaffList(data.salesStaff || [])
+    } catch (e) {
+      console.error('Failed to fetch sales staff:', e)
     }
   }
 
@@ -196,6 +216,7 @@ export default function StoresPage() {
       memo: '',
       status: 'active',
       deliveryStaffId: '',
+      salesStaffId: '',
       outstandingAmount: 0,
       createdAt: new Date().toISOString().split('T')[0],
     })
@@ -243,6 +264,7 @@ export default function StoresPage() {
         groupId: form.groupId ? parseInt(form.groupId as string) : null,
         billingDay: form.billingDay ? parseInt(form.billingDay as string) : null,
         deliveryStaffId: form.deliveryStaffId ? parseInt(form.deliveryStaffId) : null,
+        salesStaffId: form.salesStaffId ? parseInt(form.salesStaffId) : null,
       }
       const res = await fetch('/api/stores', {
         method: 'POST',
@@ -955,6 +977,34 @@ export default function StoresPage() {
                         value={deliveryStaffList.find(s => String(s.id) === form.deliveryStaffId)?.phone || ''}
                         readOnly
                         placeholder="배송담당 선택시 자동표시"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>영업담당</label>
+                      <select 
+                        style={{ ...selectStyle, width: '100%' }}
+                        value={form.salesStaffId}
+                        onChange={e => setForm({ ...form, salesStaffId: e.target.value })}
+                      >
+                        <option value="">선택 안함</option>
+                        {salesStaffList.map(staff => (
+                          <option key={staff.id} value={staff.id}>
+                            {staff.name}{staff.areaCode ? ` (${staff.areaCode})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>영업담당자 연락처</label>
+                      <input 
+                        type="text"
+                        style={{ ...inputStyle, width: '100%', background: '#f5f5f5' }}
+                        value={salesStaffList.find(s => String(s.id) === form.salesStaffId)?.phone || ''}
+                        readOnly
+                        placeholder="영업담당 선택시 자동표시"
                       />
                     </div>
                   </div>
