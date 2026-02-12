@@ -2,15 +2,15 @@
 import Layout, { cardStyle } from '../../../components/Layout'
 const SIDEBAR = [
   {
-    title: '가맹점 관리',
+    title: '관리',
     items: [
       { label: '가맹점 관리', href: '/stores' },
-      { label: '배송담당자 관리', href: '/stores/delivery-staff' },
+      { label: '담당자 관리', href: '/stores/delivery-staff' },
       { label: '가맹점 공지사항', href: '/stores/notices' },
     ]
   },
   {
-    title: '가맹점그룹 관리',
+    title: '그룹관리',
     items: [
       { label: '그룹별 가맹점 연결', href: '/stores/groups' },
       { label: '그룹별 할인율 설정', href: '/stores/groups/discounts' },
