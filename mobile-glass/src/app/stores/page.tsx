@@ -983,12 +983,80 @@ export default function StoresPage() {
                   
                 </div>
                 
-                {/* 오른쪽: 담당자 및 결제정보 */}
+                {/* 오른쪽: 결제정보 및 담당자 */}
                 <div>
                   <h3 style={{ 
                     fontSize: 15, 
                     fontWeight: 700, 
                     marginBottom: 20, 
+                    color: '#4caf50', 
+                    borderBottom: '2px solid #4caf50', 
+                    paddingBottom: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}>
+                    <span style={{ fontSize: 18 }}>💰</span> 결제 정보
+                  </h3>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>결제 기한 (일)</label>
+                      <input 
+                        type="number"
+                        style={{ ...inputStyle, width: '100%', borderColor: errors.paymentTermDays ? '#f44336' : undefined }}
+                        value={form.paymentTermDays}
+                        onChange={e => setForm({ ...form, paymentTermDays: parseInt(e.target.value) || 30 })}
+                        min={0}
+                      />
+                      {errors.paymentTermDays && <div style={errorStyle}>{errors.paymentTermDays}</div>}
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>청구일 (매월)</label>
+                      <input 
+                        type="number"
+                        style={{ ...inputStyle, width: '100%' }}
+                        value={form.billingDay}
+                        onChange={e => setForm({ ...form, billingDay: e.target.value })}
+                        min={1}
+                        max={31}
+                        placeholder="예: 15"
+                      />
+                      <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>매월 청구일</p>
+                    </div>
+                    <div style={fieldGroupStyle}>
+                      <label style={labelStyle}>기본 할인율 (%)</label>
+                      <input 
+                        type="number"
+                        style={{ ...inputStyle, width: '100%', borderColor: errors.discountRate ? '#f44336' : undefined }}
+                        value={form.discountRate}
+                        onChange={e => setForm({ ...form, discountRate: parseFloat(e.target.value) || 0 })}
+                        min={0}
+                        max={100}
+                        step={0.5}
+                      />
+                      {errors.discountRate && <div style={errorStyle}>{errors.discountRate}</div>}
+                    </div>
+                  </div>
+                  
+                  <div style={fieldGroupStyle}>
+                    <label style={labelStyle}>초기 미수금</label>
+                    <input 
+                      type="number"
+                      style={{ ...inputStyle, width: '100%' }}
+                      value={form.outstandingAmount}
+                      onChange={e => setForm({ ...form, outstandingAmount: parseInt(e.target.value) || 0 })}
+                      min={0}
+                      placeholder="0"
+                    />
+                    <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>기존 미수금이 있는 경우 입력</p>
+                  </div>
+                  
+                  <h3 style={{ 
+                    fontSize: 15, 
+                    fontWeight: 700, 
+                    marginBottom: 20, 
+                    marginTop: 24,
                     color: '#9c27b0', 
                     borderBottom: '2px solid #9c27b0', 
                     paddingBottom: 10,
@@ -1064,74 +1132,6 @@ export default function StoresPage() {
                         </label>
                       ))}
                     </div>
-                  </div>
-                  
-                  <h3 style={{ 
-                    fontSize: 15, 
-                    fontWeight: 700, 
-                    marginBottom: 20, 
-                    marginTop: 24,
-                    color: '#4caf50', 
-                    borderBottom: '2px solid #4caf50', 
-                    paddingBottom: 10,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8
-                  }}>
-                    <span style={{ fontSize: 18 }}>💰</span> 결제 정보
-                  </h3>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                    <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>결제 기한 (일)</label>
-                      <input 
-                        type="number"
-                        style={{ ...inputStyle, width: '100%', borderColor: errors.paymentTermDays ? '#f44336' : undefined }}
-                        value={form.paymentTermDays}
-                        onChange={e => setForm({ ...form, paymentTermDays: parseInt(e.target.value) || 30 })}
-                        min={0}
-                      />
-                      {errors.paymentTermDays && <div style={errorStyle}>{errors.paymentTermDays}</div>}
-                    </div>
-                    <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>청구일 (매월)</label>
-                      <input 
-                        type="number"
-                        style={{ ...inputStyle, width: '100%' }}
-                        value={form.billingDay}
-                        onChange={e => setForm({ ...form, billingDay: e.target.value })}
-                        min={1}
-                        max={31}
-                        placeholder="예: 15"
-                      />
-                      <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>매월 청구일</p>
-                    </div>
-                    <div style={fieldGroupStyle}>
-                      <label style={labelStyle}>기본 할인율 (%)</label>
-                      <input 
-                        type="number"
-                        style={{ ...inputStyle, width: '100%', borderColor: errors.discountRate ? '#f44336' : undefined }}
-                        value={form.discountRate}
-                        onChange={e => setForm({ ...form, discountRate: parseFloat(e.target.value) || 0 })}
-                        min={0}
-                        max={100}
-                        step={0.5}
-                      />
-                      {errors.discountRate && <div style={errorStyle}>{errors.discountRate}</div>}
-                    </div>
-                  </div>
-                  
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>초기 미수금</label>
-                    <input 
-                      type="number"
-                      style={{ ...inputStyle, width: '100%' }}
-                      value={form.outstandingAmount}
-                      onChange={e => setForm({ ...form, outstandingAmount: parseInt(e.target.value) || 0 })}
-                      min={0}
-                      placeholder="0"
-                    />
-                    <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>기존 미수금이 있는 경우 입력</p>
                   </div>
                   
                   <h3 style={{ 
