@@ -1,9 +1,22 @@
 'use client'
 import Layout, { cardStyle } from '../../components/Layout'
 const SIDEBAR = [
-  { title: '가맹점 관리', items: [{ label: '가맹점 관리', href: '/stores' }, { label: '가맹점 공지사항', href: '/stores/notices' }]},
-  { title: '가맹점그룹 관리', items: [{ label: '그룹별 가맹점 연결', href: '/stores/groups' }, { label: '그룹별 할인율 설정', href: '/stores/groups/discounts' }, { label: '그룹별 타입 설정', href: '/stores/groups/types' }]},
-  { title: '안경원 승인/통합', items: [{ label: '레티나 가입여부 확인', href: '/stores/verify' }, { label: '유통사 코드 승인', href: '/stores/approve' }, { label: '레티나 가맹점 정산통합', href: '/stores/settle' }]}
+  {
+    title: '가맹점 관리',
+    items: [
+      { label: '가맹점 관리', href: '/stores' },
+      { label: '배송담당자 관리', href: '/stores/delivery-staff' },
+      { label: '가맹점 공지사항', href: '/stores/notices' },
+    ]
+  },
+  {
+    title: '가맹점그룹 관리',
+    items: [
+      { label: '그룹별 가맹점 연결', href: '/stores/groups' },
+      { label: '그룹별 할인율 설정', href: '/stores/groups/discounts' },
+      { label: '그룹별 타입 설정', href: '/stores/groups/types' },
+    ]
+  }
 ]
 export default function NoticesPage() {
   return (
