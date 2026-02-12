@@ -981,6 +981,24 @@ export default function StoresPage() {
                     </div>
                   </div>
                   
+                </div>
+                
+                {/* 오른쪽: 담당자 및 결제정보 */}
+                <div>
+                  <h3 style={{ 
+                    fontSize: 15, 
+                    fontWeight: 700, 
+                    marginBottom: 20, 
+                    color: '#9c27b0', 
+                    borderBottom: '2px solid #9c27b0', 
+                    paddingBottom: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}>
+                    <span style={{ fontSize: 18 }}>👔</span> 담당자 정보
+                  </h3>
+                  
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div style={fieldGroupStyle}>
                       <label style={labelStyle}>영업담당</label>
@@ -1021,7 +1039,6 @@ export default function StoresPage() {
                     {errors.email && <div style={errorStyle}>{errors.email}</div>}
                   </div>
                   
-                  {/* 거래상태 (신규) */}
                   <div style={fieldGroupStyle}>
                     <label style={labelStyle}>거래상태</label>
                     <div style={{ display: 'flex', gap: 16 }}>
@@ -1048,14 +1065,12 @@ export default function StoresPage() {
                       ))}
                     </div>
                   </div>
-                </div>
-                
-                {/* 오른쪽: 결제정보 */}
-                <div>
+                  
                   <h3 style={{ 
                     fontSize: 15, 
                     fontWeight: 700, 
                     marginBottom: 20, 
+                    marginTop: 24,
                     color: '#4caf50', 
                     borderBottom: '2px solid #4caf50', 
                     paddingBottom: 10,
