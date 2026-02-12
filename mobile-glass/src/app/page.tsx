@@ -5,20 +5,20 @@ import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle 
 
 const SIDEBAR = [
   {
-    title: '후결제 주문',
+    title: '주문',
     items: [
-      { label: '여벌 주문내역', href: '/' },
-      { label: 'RX 주문내역', href: '/orders/rx' },
-      { label: '관리자 주문등록', href: '/orders/new' },
+      { label: '온라인 여벌 주문', href: '/' },
+      { label: '온라인 RX 주문', href: '/orders/rx' },
+      { label: '주문 등록', href: '/orders/new' },
       { label: '명세표 출력이력', href: '/orders/print-history' },
     ]
   },
   {
-    title: '출고관리',
+    title: '출고',
     items: [
-      { label: '전체 주문내역', href: '/orders/all' },
-      { label: '출고 확인', href: '/orders/shipping' },
-      { label: '출고 배송지 정보', href: '/orders/delivery' },
+      { label: '전체 주문', href: '/orders/all' },
+      { label: '여벌 출고', href: '/orders/shipping' },
+      { label: 'RX 출고', href: '/orders/delivery' },
     ]
   }
 ]

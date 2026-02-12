@@ -244,12 +244,11 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           {sidebarMenus.map((menu, menuIdx) => (
             <div key={menuIdx} style={{ marginBottom: 8 }}>
               <div style={{
-                padding: '6px 10px',
-                fontSize: 10,
+                padding: '10px 10px 6px',
+                fontSize: 14,
                 fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                color: 'var(--gray-400)',
+                letterSpacing: '0.3px',
+                color: '#374151',
                 whiteSpace: 'nowrap'
               }}>{menu.title}</div>
               {menu.items.map(item => {
