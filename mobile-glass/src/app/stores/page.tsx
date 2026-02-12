@@ -343,9 +343,6 @@ export default function StoresPage() {
       }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>거래처 관리</h1>
-          <p style={{ fontSize: 12, color: '#666', margin: '4px 0 0' }}>
-            OlwsPro 스타일 가맹점 관리
-          </p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <button 
