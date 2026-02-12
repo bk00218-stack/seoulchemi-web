@@ -87,6 +87,12 @@ export default function StoresPage() {
   const [search, setSearch] = useState('')
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   
+  // 컬럼별 검색 필터
+  const [filterCode, setFilterCode] = useState('')
+  const [filterName, setFilterName] = useState('')
+  const [filterOwner, setFilterOwner] = useState('')
+  const [filterPhone, setFilterPhone] = useState('')
+  
   // 페이지네이션
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(50)
@@ -317,9 +323,9 @@ export default function StoresPage() {
     router.push(`/stores/${store.id}`)
   }
 
-  // 필터링 로직 (검색 + 그룹 + 지역)
+  // 필터링 로직 (검색 + 그룹 + 지역 + 컬럼별)
   const filtered = stores.filter(s => {
-    // 검색어 필터
+    // 검색어 필터 (통합)
     const matchSearch = !search || 
       s.name.toLowerCase().includes(search.toLowerCase()) || 
       s.code.includes(search) || 
@@ -331,7 +337,13 @@ export default function StoresPage() {
     // 지역 필터
     const matchArea = !filterArea || s.areaCode === filterArea
     
-    return matchSearch && matchGroup && matchArea
+    // 컬럼별 필터
+    const matchCode = !filterCode || s.code.toLowerCase().includes(filterCode.toLowerCase())
+    const matchName = !filterName || s.name.toLowerCase().includes(filterName.toLowerCase())
+    const matchOwner = !filterOwner || (s.ownerName && s.ownerName.toLowerCase().includes(filterOwner.toLowerCase()))
+    const matchPhone = !filterPhone || (s.phone && s.phone.includes(filterPhone))
+    
+    return matchSearch && matchGroup && matchArea && matchCode && matchName && matchOwner && matchPhone
   })
 
   // 페이지네이션 계산
@@ -344,7 +356,7 @@ export default function StoresPage() {
   // 페이지 변경 시 1페이지로 리셋
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, filterGroup, filterArea])
+  }, [search, filterGroup, filterArea, filterCode, filterName, filterOwner, filterPhone])
 
   // 미결제 가맹점만 필터
   const outstandingStores = stores.filter(s => (s.outstandingAmount || 0) > 0)
@@ -556,6 +568,48 @@ export default function StoresPage() {
                     <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>주문수</th>
                     <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>최근주문</th>
                     <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>상태</th>
+                  </tr>
+                  <tr style={{ background: '#e3f2fd' }}>
+                    <th style={{ padding: '6px 8px' }}>
+                      <input
+                        type="text"
+                        placeholder="코드"
+                        value={filterCode}
+                        onChange={e => setFilterCode(e.target.value)}
+                        style={{ ...inputStyle, width: '100%', padding: '4px 8px', fontSize: 11 }}
+                      />
+                    </th>
+                    <th style={{ padding: '6px 8px' }}>
+                      <input
+                        type="text"
+                        placeholder="가맹점명"
+                        value={filterName}
+                        onChange={e => setFilterName(e.target.value)}
+                        style={{ ...inputStyle, width: '100%', padding: '4px 8px', fontSize: 11 }}
+                      />
+                    </th>
+                    <th style={{ padding: '6px 8px' }}>
+                      <input
+                        type="text"
+                        placeholder="대표자"
+                        value={filterOwner}
+                        onChange={e => setFilterOwner(e.target.value)}
+                        style={{ ...inputStyle, width: '100%', padding: '4px 8px', fontSize: 11 }}
+                      />
+                    </th>
+                    <th style={{ padding: '6px 8px' }}>
+                      <input
+                        type="text"
+                        placeholder="연락처"
+                        value={filterPhone}
+                        onChange={e => setFilterPhone(e.target.value)}
+                        style={{ ...inputStyle, width: '100%', padding: '4px 8px', fontSize: 11 }}
+                      />
+                    </th>
+                    <th style={{ padding: '6px 8px' }}></th>
+                    <th style={{ padding: '6px 8px' }}></th>
+                    <th style={{ padding: '6px 8px' }}></th>
+                    <th style={{ padding: '6px 8px' }}></th>
                   </tr>
                 </thead>
                 <tbody>
