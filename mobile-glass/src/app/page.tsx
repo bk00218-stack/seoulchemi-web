@@ -106,9 +106,9 @@ export default function Home() {
             boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
             border: '1px solid #f3f4f6'
           }}>
-            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>{stat.label}</div>
+            <div style={{ fontSize: 14, color: '#374151', fontWeight: 500, marginBottom: 8 }}>{stat.label}</div>
             <div style={{ fontSize: 28, fontWeight: 700, color: stat.color }}>
-              {stat.value}<span style={{ fontSize: 14, fontWeight: 400, marginLeft: 4 }}>{stat.unit}</span>
+              {stat.value}<span style={{ fontSize: 15, fontWeight: 500, marginLeft: 4 }}>{stat.unit}</span>
             </div>
           </div>
         ))}
@@ -125,10 +125,10 @@ export default function Home() {
       }}>
         <select style={selectStyle}><option>가맹점 전체</option></select>
         <select style={selectStyle}><option>상태 전체</option><option>대기</option><option>발송준비</option><option>발송완료</option></select>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {['주문', '반품', '전체'].map((t, i) => (
-            <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer', color: '#374151' }}>
-              <input type="radio" name="type" defaultChecked={i === 2} style={{ accentColor: '#5d7a5d' }} /> {t}
+            <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 15, cursor: 'pointer', color: '#1f2937', fontWeight: 500 }}>
+              <input type="radio" name="type" defaultChecked={i === 2} style={{ accentColor: '#5d7a5d', width: 16, height: 16 }} /> {t}
             </label>
           ))}
         </div>
@@ -140,9 +140,9 @@ export default function Home() {
         <div style={{ display: 'flex', gap: 4 }}>
           {['어제', '오늘', '이번주', '이번달'].map(label => (
             <button key={label} style={{
-              padding: '6px 12px', borderRadius: 20,
+              padding: '8px 14px', borderRadius: 20,
               border: '1px solid #e5e7eb', background: '#fff',
-              fontSize: 12, color: '#4b5563', cursor: 'pointer'
+              fontSize: 14, color: '#374151', cursor: 'pointer', fontWeight: 500
             }}>{label}</button>
           ))}
         </div>
@@ -168,8 +168,8 @@ export default function Home() {
           alignItems: 'center'
         }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>주문 목록</span>
-            <span style={{ fontSize: 13, color: '#9ca3af' }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: '#1f2937' }}>주문 목록</span>
+            <span style={{ fontSize: 14, color: '#6b7280' }}>
               {selectedIds.size > 0 ? `${selectedIds.size}개 선택됨` : `총 ${orders.length}건`}
             </span>
           </div>
@@ -264,7 +264,7 @@ export default function Home() {
         }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button style={{ ...btnStyle, color: '#ef4444' }}>선택 삭제</button>
-            <span style={{ fontSize: 13, color: '#6b7280', marginLeft: 8 }}>
+            <span style={{ fontSize: 14, color: '#374151', marginLeft: 8 }}>
               선택: <strong>{selectedIds.size}</strong> / {orders.length}건
             </span>
           </div>

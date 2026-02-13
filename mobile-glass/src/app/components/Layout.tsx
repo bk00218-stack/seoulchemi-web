@@ -244,11 +244,11 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           {sidebarMenus.map((menu, menuIdx) => (
             <div key={menuIdx} style={{ marginBottom: 8 }}>
               <div style={{
-                padding: '10px 10px 6px',
-                fontSize: 14,
+                padding: '10px 12px 6px',
+                fontSize: 15,
                 fontWeight: 700,
                 letterSpacing: '0.3px',
-                color: '#374151',
+                color: '#1f2937',
                 whiteSpace: 'nowrap'
               }}>{menu.title}</div>
               {menu.items.map(item => {
@@ -264,9 +264,9 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     onFocus={() => setSidebarFocusIndex(currentIndex)}
                     style={{
                       display: 'block',
-                      padding: '8px 10px',
-                      fontSize: 14,
-                      color: isActive ? 'var(--primary)' : 'var(--gray-600)',
+                      padding: '9px 12px',
+                      fontSize: 15,
+                      color: isActive ? 'var(--primary)' : '#374151',
                       background: isActive ? 'var(--primary-light)' : 
                                   sidebarFocusIndex === currentIndex ? 'var(--gray-100)' : 'transparent',
                       borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
@@ -322,7 +322,7 @@ export const selectStyle: React.CSSProperties = {
   padding: '10px 14px',
   borderRadius: 6,
   border: '1px solid var(--gray-200)',
-  fontSize: 14,
+  fontSize: 15,
   background: '#fff',
   minWidth: 130
 }
@@ -331,16 +331,15 @@ export const inputStyle: React.CSSProperties = {
   padding: '10px 14px',
   borderRadius: 6,
   border: '1px solid var(--gray-200)',
-  fontSize: 14
+  fontSize: 15
 }
 
 export const thStyle: React.CSSProperties = {
   padding: '14px 16px',
   textAlign: 'left',
-  fontSize: 13,
+  fontSize: 14,
   fontWeight: 600,
-  color: '#6b7280',
-  textTransform: 'uppercase',
+  color: '#374151',
   letterSpacing: '0.3px',
   whiteSpace: 'nowrap',
   background: '#f9fafb'
@@ -348,10 +347,10 @@ export const thStyle: React.CSSProperties = {
 
 export const tdStyle: React.CSSProperties = {
   padding: '14px 16px',
-  fontSize: 14,
+  fontSize: 15,
   verticalAlign: 'middle',
   borderBottom: '1px solid #f3f4f6',
-  color: '#374151'
+  color: '#1f2937'
 }
 
 export const cardStyle: React.CSSProperties = {
