@@ -43,6 +43,7 @@ interface Product {
   purchasePrice: number
   isActive: boolean
   displayOrder: number
+  _count?: { options: number }
 }
 
 interface ProductOption {
@@ -1077,8 +1078,10 @@ export default function ProductsPage() {
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [showEditPriceModal, setShowEditPriceModal] = useState(false)
+  const [showBrandModal, setShowBrandModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [editingOption, setEditingOption] = useState<ProductOption | null>(null)
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
 
   // 순서 변경 추적
   const [orderChanged, setOrderChanged] = useState(false)
@@ -1182,6 +1185,37 @@ export default function ProductsPage() {
   }
 
   // 상품 저장
+  // 브랜드 저장
+  async function handleSaveBrand(formData: FormData) {
+    const data = {
+      name: formData.get('name'),
+      stockManage: formData.get('stockManage') || null,
+      isActive: formData.get('isActive') === 'true',
+    }
+
+    try {
+      const url = editingBrand ? `/api/brands/${editingBrand.id}` : '/api/brands'
+      const method = editingBrand ? 'PATCH' : 'POST'
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (res.ok) {
+        setShowBrandModal(false)
+        setEditingBrand(null)
+        fetchBrands()
+        alert(editingBrand ? '브랜드가 수정되었습니다.' : '브랜드가 추가되었습니다.')
+      } else {
+        const err = await res.json()
+        alert(err.error || '저장 실패')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('저장 중 오류 발생')
+    }
+  }
+
   async function handleSaveProduct(formData: FormData) {
     const data = {
       brandId: selectedBrand?.id,
@@ -1432,31 +1466,60 @@ export default function ProductsPage() {
                 <div
                   key={brand.id}
                   onClick={() => handleSelectBrand(brand)}
-                  style={listItemStyle(selectedBrand?.id === brand.id)}
+                  onDoubleClick={(e) => { e.stopPropagation(); setEditingBrand(brand); setShowBrandModal(true) }}
+                  style={{
+                    ...listItemStyle(selectedBrand?.id === brand.id),
+                    position: 'relative',
+                  }}
+                  title="더블클릭으로 수정"
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: selectedBrand?.id === brand.id ? 600 : 400, fontSize: 14 }}>
-                      {brand.name}
-                    </span>
-                    <span style={{ 
-                      fontSize: 11, 
-                      color: 'var(--gray-500)',
-                      background: 'var(--gray-100)',
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                    }}>
-                      {brand._count?.products || 0}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {!brand.isActive && (
+                        <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>⛔</span>
+                      )}
+                      <span style={{ fontWeight: selectedBrand?.id === brand.id ? 600 : 400, fontSize: 14 }}>
+                        {brand.name}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ 
+                        fontSize: 11, 
+                        color: 'var(--gray-500)',
+                        background: 'var(--gray-100)',
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                      }}>
+                        {brand._count?.products || 0}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditingBrand(brand); setShowBrandModal(true) }}
+                        style={{
+                          padding: '2px 6px',
+                          border: 'none',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          fontSize: 12,
+                          color: 'var(--gray-400)',
+                          borderRadius: 4,
+                        }}
+                        title="브랜드 수정"
+                      >
+                        ✏️
+                      </button>
+                    </div>
                   </div>
-                  {!brand.isActive && (
-                    <span style={{ fontSize: 11, color: 'var(--gray-400)' }}>비활성</span>
-                  )}
                 </div>
               ))
             )}
           </div>
           <div style={{ padding: 12, borderTop: '1px solid var(--gray-200)' }}>
-            <button style={{ ...primaryBtnStyle, width: '100%' }}>+ 브랜드 추가</button>
+            <button 
+              onClick={() => { setEditingBrand(null); setShowBrandModal(true) }}
+              style={{ ...primaryBtnStyle, width: '100%' }}
+            >
+              + 브랜드 추가
+            </button>
           </div>
         </div>
 
@@ -1547,6 +1610,7 @@ export default function ProductsPage() {
                     <th style={gridHeaderStyle}>묶음상품</th>
                     <th style={gridHeaderStyle}>굴절률</th>
                     <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>판매가</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', width: 50 }}>도수</th>
                     <th style={gridHeaderStyle}>상태</th>
                     <th style={{ ...gridHeaderStyle, textAlign: 'center', width: 60 }}>순서</th>
                   </tr>
@@ -1604,6 +1668,22 @@ export default function ProductsPage() {
                       </td>
                       <td style={{ ...gridCellStyle, textAlign: 'right', fontWeight: 500 }}>
                         {product.sellingPrice.toLocaleString()}원
+                      </td>
+                      <td style={{ ...gridCellStyle, textAlign: 'center' }}>
+                        {product._count?.options ? (
+                          <span style={{
+                            fontSize: 11,
+                            padding: '2px 8px',
+                            borderRadius: 10,
+                            background: '#e3f2fd',
+                            color: '#1565c0',
+                            fontWeight: 500,
+                          }}>
+                            {product._count.options}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 11, color: 'var(--gray-400)' }}>-</span>
+                        )}
                       </td>
                       <td style={gridCellStyle}>
                         <span style={{
@@ -1773,16 +1853,88 @@ export default function ProductsPage() {
       {/* 상품 추가/수정 모달 */}
       {showProductModal && (
         <div style={modalOverlayStyle} onClick={() => setShowProductModal(false)}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
-              {editingProduct ? '상품 수정' : '상품 추가'}
-            </h3>
+          <div style={{ ...modalStyle, width: 560 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
+                {editingProduct ? '상품 수정' : '상품 추가'}
+              </h3>
+              {editingProduct && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('이 상품을 복사하시겠습니까?')) {
+                        setEditingProduct({ ...editingProduct, id: 0, name: editingProduct.name + ' (복사)' } as Product)
+                      }
+                    }}
+                    style={{ ...actionBtnStyle, fontSize: 12 }}
+                  >
+                    📋 복사
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (confirm('정말 이 상품을 삭제하시겠습니까?\n연결된 옵션(도수)도 함께 삭제됩니다.')) {
+                        try {
+                          const res = await fetch(`/api/products/${editingProduct.id}`, { method: 'DELETE' })
+                          if (res.ok) {
+                            setShowProductModal(false)
+                            setEditingProduct(null)
+                            if (selectedBrand) handleSelectBrand(selectedBrand)
+                            alert('삭제되었습니다.')
+                          } else {
+                            alert('삭제 실패')
+                          }
+                        } catch (e) {
+                          console.error(e)
+                          alert('삭제 중 오류 발생')
+                        }
+                      }
+                    }}
+                    style={{ ...actionBtnStyle, fontSize: 12, color: 'var(--error)', borderColor: 'var(--error)' }}
+                  >
+                    🗑️ 삭제
+                  </button>
+                </div>
+              )}
+            </div>
             <form onSubmit={(e) => { e.preventDefault(); handleSaveProduct(new FormData(e.currentTarget)) }}>
               <div style={{ display: 'grid', gap: 16 }}>
+                {/* 상품 코드 (수정시에만 표시) */}
+                {editingProduct && (
+                  <div style={{ 
+                    padding: '10px 14px', 
+                    background: 'var(--gray-50)', 
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12
+                  }}>
+                    <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>상품코드</span>
+                    <code style={{ 
+                      fontSize: 13, 
+                      fontFamily: 'monospace', 
+                      color: 'var(--gray-700)',
+                      background: '#fff',
+                      padding: '2px 8px',
+                      borderRadius: 4
+                    }}>
+                      {editingProduct.code || `P${String(editingProduct.id).padStart(5, '0')}`}
+                    </code>
+                  </div>
+                )}
+                
                 <div>
                   <label style={labelStyle}>상품명 *</label>
-                  <input name="name" defaultValue={editingProduct?.name} required style={inputStyle} />
+                  <input 
+                    name="name" 
+                    defaultValue={editingProduct?.name} 
+                    required 
+                    style={inputStyle}
+                    placeholder="예: 블루라이트 차단 렌즈 1.60"
+                  />
                 </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
                     <label style={labelStyle}>옵션타입 *</label>
@@ -1791,47 +1943,159 @@ export default function ProductsPage() {
                       <option value="안경렌즈 여벌">안경렌즈 여벌</option>
                       <option value="콘택트렌즈">콘택트렌즈</option>
                       <option value="안경테">안경테</option>
+                      <option value="선글라스">선글라스</option>
                       <option value="소모품">소모품</option>
+                      <option value="액세서리">액세서리</option>
                       <option value="기타">기타</option>
                     </select>
                   </div>
                   <div>
-                    <label style={labelStyle}>굴절률</label>
-                    <select name="refractiveIndex" defaultValue={editingProduct?.refractiveIndex || ''} style={inputStyle}>
-                      <option value="">선택</option>
-                      <option value="1.50">1.50</option>
-                      <option value="1.56">1.56</option>
-                      <option value="1.60">1.60</option>
-                      <option value="1.67">1.67</option>
-                      <option value="1.74">1.74</option>
+                    <label style={labelStyle}>상품분류</label>
+                    <select name="productType" defaultValue={editingProduct?.productType || ''} style={inputStyle}>
+                      <option value="">선택 안함</option>
+                      <option value="단초점">단초점</option>
+                      <option value="다초점">다초점</option>
+                      <option value="누진다초점">누진다초점</option>
+                      <option value="실내용">실내용</option>
+                      <option value="스포츠">스포츠</option>
                     </select>
                   </div>
                 </div>
-                <div>
-                  <label style={labelStyle}>묶음상품명</label>
-                  <input name="bundleName" defaultValue={editingProduct?.bundleName || ''} style={inputStyle} />
-                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={labelStyle}>판매가</label>
-                    <input name="sellingPrice" type="number" defaultValue={editingProduct?.sellingPrice || 0} style={inputStyle} />
+                    <label style={labelStyle}>굴절률</label>
+                    <select name="refractiveIndex" defaultValue={editingProduct?.refractiveIndex || ''} style={inputStyle}>
+                      <option value="">선택</option>
+                      <option value="1.50">1.50 (표준)</option>
+                      <option value="1.56">1.56</option>
+                      <option value="1.60">1.60 (중도수)</option>
+                      <option value="1.67">1.67 (고도수)</option>
+                      <option value="1.74">1.74 (초고도수)</option>
+                    </select>
                   </div>
                   <div>
-                    <label style={labelStyle}>매입가</label>
-                    <input name="purchasePrice" type="number" defaultValue={editingProduct?.purchasePrice || 0} style={inputStyle} />
+                    <label style={labelStyle}>묶음상품명</label>
+                    <input 
+                      name="bundleName" 
+                      defaultValue={editingProduct?.bundleName || ''} 
+                      style={inputStyle}
+                      placeholder="묶음 표시명"
+                    />
                   </div>
                 </div>
-                <div>
-                  <label style={labelStyle}>상태</label>
-                  <select name="isActive" defaultValue={editingProduct?.isActive !== false ? 'true' : 'false'} style={inputStyle}>
-                    <option value="true">사용</option>
-                    <option value="false">미사용</option>
-                  </select>
+
+                {/* 가격 섹션 */}
+                <div style={{ 
+                  padding: 14, 
+                  background: 'var(--gray-50)', 
+                  borderRadius: 10,
+                  border: '1px solid var(--gray-200)'
+                }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--gray-700)' }}>
+                    💰 가격 설정
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ ...labelStyle, fontSize: 12 }}>판매가</label>
+                      <div style={{ position: 'relative' }}>
+                        <input 
+                          name="sellingPrice" 
+                          type="number" 
+                          defaultValue={editingProduct?.sellingPrice || 0} 
+                          style={{ ...inputStyle, paddingRight: 30 }}
+                        />
+                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>원</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ ...labelStyle, fontSize: 12 }}>매입가</label>
+                      <div style={{ position: 'relative' }}>
+                        <input 
+                          name="purchasePrice" 
+                          type="number" 
+                          defaultValue={editingProduct?.purchasePrice || 0} 
+                          style={{ ...inputStyle, paddingRight: 30 }}
+                        />
+                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>원</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ ...labelStyle, fontSize: 12 }}>마진율</label>
+                      <div style={{ 
+                        padding: '10px 12px', 
+                        background: '#fff', 
+                        borderRadius: 8, 
+                        border: '1px solid var(--gray-200)',
+                        fontSize: 14,
+                        color: 'var(--success)',
+                        fontWeight: 600
+                      }}>
+                        {editingProduct?.sellingPrice && editingProduct?.purchasePrice 
+                          ? `${Math.round((1 - editingProduct.purchasePrice / editingProduct.sellingPrice) * 100)}%`
+                          : '-'
+                        }
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={labelStyle}>상태</label>
+                    <select name="isActive" defaultValue={editingProduct?.isActive !== false ? 'true' : 'false'} style={inputStyle}>
+                      <option value="true">✅ 사용</option>
+                      <option value="false">⛔ 미사용</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>표시 순서</label>
+                    <input 
+                      name="displayOrder" 
+                      type="number" 
+                      defaultValue={editingProduct?.displayOrder || 0} 
+                      style={inputStyle}
+                      placeholder="숫자가 작을수록 먼저 표시"
+                    />
+                  </div>
+                </div>
+
+                {/* 도수 옵션 요약 (수정시에만) */}
+                {editingProduct && options.length > 0 && (
+                  <div style={{ 
+                    padding: 14, 
+                    background: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)', 
+                    borderRadius: 10,
+                    border: '1px solid #e1bee7'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
+                          📋 등록된 도수: {options.length}개
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>
+                          SPH: {options.length > 0 ? `${Math.min(...options.map(o => parseFloat(o.sph.replace('+', ''))))} ~ ${Math.max(...options.map(o => parseFloat(o.sph.replace('+', ''))))}` : '-'}
+                          {' | '}
+                          CYL: {options.length > 0 ? `${Math.min(...options.map(o => parseFloat(o.cyl.replace('+', ''))))} ~ ${Math.max(...options.map(o => parseFloat(o.cyl.replace('+', ''))))}` : '-'}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setShowProductModal(false); setShowGenerateModal(true) }}
+                        style={{ ...actionBtnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}
+                      >
+                        도수 관리 →
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24 }}>
+
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--gray-200)' }}>
                 <button type="button" onClick={() => setShowProductModal(false)} style={actionBtnStyle}>취소</button>
-                <button type="submit" style={primaryBtnStyle}>저장</button>
+                <button type="submit" style={{ ...primaryBtnStyle, padding: '10px 24px' }}>
+                  {editingProduct ? '저장' : '등록'}
+                </button>
               </div>
             </form>
           </div>
@@ -2006,6 +2270,109 @@ export default function ProductsPage() {
             }
           }}
         />
+      )}
+
+      {/* 브랜드 추가/수정 모달 */}
+      {showBrandModal && (
+        <div style={modalOverlayStyle} onClick={() => setShowBrandModal(false)}>
+          <div style={{ ...modalStyle, width: 420 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
+                {editingBrand ? '브랜드 수정' : '브랜드 추가'}
+              </h3>
+              {editingBrand && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (editingBrand._count?.products && editingBrand._count.products > 0) {
+                      alert(`이 브랜드에 ${editingBrand._count.products}개의 상품이 있어 삭제할 수 없습니다.\n먼저 상품을 이동하거나 삭제해주세요.`)
+                      return
+                    }
+                    if (confirm('정말 이 브랜드를 삭제하시겠습니까?')) {
+                      try {
+                        const res = await fetch(`/api/brands/${editingBrand.id}`, { method: 'DELETE' })
+                        if (res.ok) {
+                          setShowBrandModal(false)
+                          setEditingBrand(null)
+                          setSelectedBrand(null)
+                          fetchBrands()
+                          alert('브랜드가 삭제되었습니다.')
+                        } else {
+                          const err = await res.json()
+                          alert(err.error || '삭제 실패')
+                        }
+                      } catch (e) {
+                        console.error(e)
+                        alert('삭제 중 오류 발생')
+                      }
+                    }
+                  }}
+                  style={{ 
+                    padding: '6px 12px', 
+                    border: '1px solid var(--error)', 
+                    background: 'transparent', 
+                    color: 'var(--error)', 
+                    borderRadius: 6, 
+                    fontSize: 12, 
+                    cursor: 'pointer' 
+                  }}
+                >
+                  🗑️ 삭제
+                </button>
+              )}
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleSaveBrand(new FormData(e.currentTarget)) }}>
+              <div style={{ display: 'grid', gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>브랜드명 *</label>
+                  <input 
+                    name="name" 
+                    defaultValue={editingBrand?.name} 
+                    required 
+                    style={inputStyle}
+                    placeholder="예: HOYA, ZEISS, 니콘"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>재고관리 방식</label>
+                  <select name="stockManage" defaultValue={editingBrand?.stockManage || ''} style={inputStyle}>
+                    <option value="">기본 (개별 관리)</option>
+                    <option value="shared">공유 재고</option>
+                    <option value="none">재고 관리 안함</option>
+                  </select>
+                  <p style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>
+                    공유 재고: 같은 도수의 상품들이 재고를 공유합니다
+                  </p>
+                </div>
+                <div>
+                  <label style={labelStyle}>상태</label>
+                  <select name="isActive" defaultValue={editingBrand?.isActive !== false ? 'true' : 'false'} style={inputStyle}>
+                    <option value="true">✅ 활성</option>
+                    <option value="false">⛔ 비활성 (목록에서 숨김)</option>
+                  </select>
+                </div>
+                {editingBrand && (
+                  <div style={{ 
+                    padding: 12, 
+                    background: 'var(--gray-50)', 
+                    borderRadius: 8,
+                    fontSize: 12,
+                    color: 'var(--gray-600)'
+                  }}>
+                    <div>📦 등록된 상품: <strong>{editingBrand._count?.products || 0}</strong>개</div>
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--gray-200)' }}>
+                <button type="button" onClick={() => setShowBrandModal(false)} style={actionBtnStyle}>취소</button>
+                <button type="submit" style={{ ...primaryBtnStyle, padding: '10px 24px' }}>
+                  {editingBrand ? '저장' : '추가'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </Layout>
   )

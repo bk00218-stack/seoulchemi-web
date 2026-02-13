@@ -30,7 +30,7 @@ export async function GET() {
       }
     }))
     
-    return NextResponse.json(brandsWithStats)
+    return NextResponse.json({ brands: brandsWithStats })
   } catch (error) {
     console.error('Error fetching brands:', error)
     return NextResponse.json({ error: 'Failed to fetch brands' }, { status: 500 })

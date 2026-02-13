@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
     const products = await prisma.product.findMany({
       where,
       include: {
-        brand: true
+        brand: true,
+        _count: {
+          select: { options: true }
+        }
       },
       orderBy: [
         { displayOrder: 'asc' },
@@ -48,7 +51,8 @@ export async function GET(request: NextRequest) {
         displayOrder: p.displayOrder || 0,
         status: p.isActive ? 'active' : 'inactive',
         imageUrl: p.imageUrl,
-        erpCode: p.erpCode
+        erpCode: p.erpCode,
+        _count: p._count
       })),
       brands,
       stats
