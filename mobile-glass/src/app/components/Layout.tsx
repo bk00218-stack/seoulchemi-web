@@ -24,11 +24,24 @@ interface LayoutProps {
   activeNav: string
 }
 
+interface SearchResult {
+  products: { id: number; name: string; brand: string; url: string }[]
+  stores: { id: number; name: string; code: string; url: string }[]
+  orders: { id: number; orderNo: string; storeName: string; status: string; url: string }[]
+}
+
 export default function Layout({ children, sidebarMenus, activeNav }: LayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const now = new Date()
   const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+
+  // Search state
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult>({ products: [], stores: [], orders: [] })
+  const [searching, setSearching] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Refs for keyboard navigation
   const navRefs = useRef<(HTMLAnchorElement | null)[]>([])
@@ -42,9 +55,53 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
   // Flatten sidebar items for easier navigation
   const flatSidebarItems = sidebarMenus.flatMap(menu => menu.items)
 
+  // Search effect
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 2) {
+      setSearchResults({ products: [], stores: [], orders: [] })
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&limit=5`)
+        const data = await res.json()
+        setSearchResults(data)
+      } catch (e) {
+        console.error('Search error:', e)
+      } finally {
+        setSearching(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Focus search input when modal opens
+  useEffect(() => {
+    if (searchOpen) {
+      searchInputRef.current?.focus()
+    }
+  }, [searchOpen])
+
   // Global keyboard shortcuts
   useEffect(() => {
     const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
+      // Cmd/Ctrl + K for search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(true)
+        return
+      }
+
+      // Escape to close search
+      if (e.key === 'Escape' && searchOpen) {
+        setSearchOpen(false)
+        setSearchQuery('')
+        return
+      }
+
       // Alt + number for nav items
       if (e.altKey && !e.ctrlKey && !e.shiftKey) {
         const navItem = NAV_ITEMS.find(item => item.key === e.key)
@@ -81,7 +138,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
     window.addEventListener('keydown', handleGlobalKeyDown)
     return () => window.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [router])
+  }, [router, searchOpen])
 
   // Nav keyboard navigation
   const handleNavKeyDown = (e: KeyboardEvent<HTMLAnchorElement>, index: number) => {
@@ -96,7 +153,6 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
       setNavFocusIndex(prevIndex)
       navRefs.current[prevIndex]?.focus()
     } else if (e.key === 'Tab' && !e.shiftKey) {
-      // Tab to sidebar
       e.preventDefault()
       setSidebarFocusIndex(0)
       sidebarRefs.current[0]?.focus()
@@ -116,11 +172,9 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
       setSidebarFocusIndex(prevIndex)
       sidebarRefs.current[prevIndex]?.focus()
     } else if (e.key === 'Tab' && !e.shiftKey) {
-      // Tab to main content
       e.preventDefault()
       mainRef.current?.focus()
     } else if (e.key === 'Tab' && e.shiftKey) {
-      // Shift+Tab to nav
       e.preventDefault()
       const activeNavIndex = NAV_ITEMS.findIndex(item => item.label === activeNav)
       setNavFocusIndex(activeNavIndex >= 0 ? activeNavIndex : 0)
@@ -128,12 +182,179 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
     }
   }
 
+  const handleSearchResultClick = (url: string) => {
+    setSearchOpen(false)
+    setSearchQuery('')
+    router.push(url)
+  }
+
   // Track sidebar item index across menu groups
   let sidebarItemIndex = 0
 
+  const hasResults = searchResults.products.length > 0 || searchResults.stores.length > 0 || searchResults.orders.length > 0
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Keyboard shortcut help - hidden but accessible */}
+      {/* Search Modal */}
+      {searchOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            paddingTop: 100
+          }}
+          onClick={() => { setSearchOpen(false); setSearchQuery('') }}
+        >
+          <div 
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              width: '100%',
+              maxWidth: 600,
+              boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Search Input */}
+            <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 20 }}>🔍</span>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="상품, 거래처, 주문번호 검색... (Ctrl+K)"
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: 16,
+                    padding: '8px 0'
+                  }}
+                />
+                {searching && <span style={{ color: '#9ca3af' }}>검색중...</span>}
+              </div>
+            </div>
+
+            {/* Search Results */}
+            {hasResults && (
+              <div style={{ maxHeight: 400, overflow: 'auto' }}>
+                {/* Products */}
+                {searchResults.products.length > 0 && (
+                  <div style={{ padding: '12px 16px' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>상품</div>
+                    {searchResults.products.map(p => (
+                      <div
+                        key={p.id}
+                        onClick={() => handleSearchResultClick(p.url)}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <span style={{ fontSize: 16 }}>📦</span>
+                        <div>
+                          <div style={{ fontWeight: 500, color: '#1f2937' }}>{p.name}</div>
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>{p.brand}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Stores */}
+                {searchResults.stores.length > 0 && (
+                  <div style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>거래처</div>
+                    {searchResults.stores.map(s => (
+                      <div
+                        key={s.id}
+                        onClick={() => handleSearchResultClick(s.url)}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <span style={{ fontSize: 16 }}>🏪</span>
+                        <div>
+                          <div style={{ fontWeight: 500, color: '#1f2937' }}>{s.name}</div>
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>{s.code}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Orders */}
+                {searchResults.orders.length > 0 && (
+                  <div style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>주문</div>
+                    {searchResults.orders.map(o => (
+                      <div
+                        key={o.id}
+                        onClick={() => handleSearchResultClick(o.url)}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <span style={{ fontSize: 16 }}>🧾</span>
+                        <div>
+                          <div style={{ fontWeight: 500, color: '#1f2937' }}>{o.orderNo}</div>
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>{o.storeName}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* No Results */}
+            {searchQuery.length >= 2 && !searching && !hasResults && (
+              <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+                검색 결과가 없습니다
+              </div>
+            )}
+
+            {/* Hint */}
+            {searchQuery.length < 2 && (
+              <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+                2글자 이상 입력하세요
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Keyboard shortcut help */}
       <div style={{ 
         position: 'fixed', 
         bottom: 8, 
@@ -143,9 +364,9 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         background: 'rgba(255,255,255,0.9)',
         padding: '4px 8px',
         borderRadius: 4,
-        zIndex: 1000
+        zIndex: 100
       }}>
-        단축키: Alt+1~6 메뉴 | Alt+S 사이드바 | Alt+M 본문 | ↑↓←→ 이동
+        Ctrl+K 검색 | Alt+1~6 메뉴 | Alt+S 사이드바
       </div>
 
       {/* Header */}
@@ -161,7 +382,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         top: 0,
         zIndex: 100
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 48 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <Link 
             href="/" 
             style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}
@@ -183,6 +404,29 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
               </text>
             </svg>
           </Link>
+
+          {/* Search Button */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: '1px solid #e5e7eb',
+              background: '#f9fafb',
+              color: '#6b7280',
+              fontSize: 14,
+              cursor: 'pointer',
+              minWidth: 200
+            }}
+          >
+            <span>🔍</span>
+            <span>검색...</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9ca3af', background: '#fff', padding: '2px 6px', borderRadius: 4, border: '1px solid #e5e7eb' }}>Ctrl+K</span>
+          </button>
+
           <nav style={{ display: 'flex', gap: 4 }} role="navigation" aria-label="메인 메뉴">
             {NAV_ITEMS.map((item, index) => {
               const isActive = item.label === activeNav
@@ -203,7 +447,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     background: isActive ? 'var(--primary-light)' : 'transparent',
                     transition: 'all 0.15s',
                     outline: navFocusIndex === index ? '2px solid var(--primary)' : 'none',
-                    outlineOffset: 2
+                    outlineOffset: 2,
+                    textDecoration: 'none'
                   }}
                   title={`Alt+${item.key}`}
                 >{item.label}</Link>
@@ -212,7 +457,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 13, color: 'var(--gray-500)' }}>
-          <span style={{ fontWeight: 600, color: 'var(--gray-700)' }}>BK COMPANY</span>
+          <span style={{ fontWeight: 600, color: 'var(--gray-700)' }}>서울케미</span>
           <span style={{ color: 'var(--gray-400)' }}>|</span>
           <span>{timeStr}</span>
           <div style={{
@@ -274,7 +519,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                       transition: 'all 0.15s',
                       outline: sidebarFocusIndex === currentIndex ? '2px solid var(--primary)' : 'none',
                       outlineOffset: -2,
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
+                      textDecoration: 'none'
                     }}
                   >{item.label}</Link>
                 )
