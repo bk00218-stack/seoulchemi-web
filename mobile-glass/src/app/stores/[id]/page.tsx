@@ -421,60 +421,68 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      {/* 상단 요약 카드 */}
+      {/* 상단 요약 카드 - 컴팩트 */}
       <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(4, 1fr)', 
-        gap: 12,
-        marginBottom: 15
+        display: 'flex', 
+        gap: 8,
+        marginBottom: 12,
+        flexWrap: 'wrap'
       }}>
         <div style={{ 
           background: '#fff', 
           border: '1px solid #e0e0e0', 
-          borderRadius: 8, 
-          padding: '15px 20px',
-          borderLeft: '4px solid #f44336'
+          borderRadius: 6, 
+          padding: '8px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
         }}>
-          <div style={{ fontSize: 12, color: '#666' }}>미결제액</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#f44336' }}>
+          <span style={{ fontSize: 11, color: '#666' }}>미결제</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#f44336' }}>
             {store.outstandingAmount.toLocaleString()}원
-          </div>
+          </span>
         </div>
         <div style={{ 
           background: '#fff', 
           border: '1px solid #e0e0e0', 
-          borderRadius: 8, 
-          padding: '15px 20px',
-          borderLeft: '4px solid #1976d2'
+          borderRadius: 6, 
+          padding: '8px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
         }}>
-          <div style={{ fontSize: 12, color: '#666' }}>신용한도</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>
+          <span style={{ fontSize: 11, color: '#666' }}>신용한도</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#1976d2' }}>
             {store.creditLimit.toLocaleString()}원
-          </div>
+          </span>
         </div>
         <div style={{ 
           background: '#fff', 
           border: '1px solid #e0e0e0', 
-          borderRadius: 8, 
-          padding: '15px 20px',
-          borderLeft: '4px solid #ff9800'
+          borderRadius: 6, 
+          padding: '8px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
         }}>
-          <div style={{ fontSize: 12, color: '#666' }}>기본 할인율</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#ff9800' }}>
+          <span style={{ fontSize: 11, color: '#666' }}>할인율</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#ff9800' }}>
             {store.discountRate}%
-          </div>
+          </span>
         </div>
         <div style={{ 
           background: '#fff', 
           border: '1px solid #e0e0e0', 
-          borderRadius: 8, 
-          padding: '15px 20px',
-          borderLeft: '4px solid #4caf50'
+          borderRadius: 6, 
+          padding: '8px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
         }}>
-          <div style={{ fontSize: 12, color: '#666' }}>총 주문</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#4caf50' }}>
+          <span style={{ fontSize: 11, color: '#666' }}>주문</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#4caf50' }}>
             {store._count.orders}건
-          </div>
+          </span>
         </div>
       </div>
 
@@ -542,7 +550,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
         {/* 기본정보 탭 */}
         {activeTab === '기본정보' && (
           <div style={{ padding: 24, overflow: 'auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 32 }}>
               {/* 왼쪽: 기본 정보 */}
               <div>
                 <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 20, color: '#333', borderBottom: '1px solid #eee', paddingBottom: 10 }}>
@@ -680,7 +688,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
                     </select>
                   </div>
                   <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>담당 영업사원</label>
+                    <label style={labelStyle}>영업 담당</label>
                     <input 
                       type="text"
                       style={{ ...inputStyle, width: '100%' }}
@@ -738,7 +746,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>배송 담당자 (수령인)</label>
+                    <label style={labelStyle}>배송 담당 (수령인)</label>
                     <input 
                       type="text"
                       style={{ ...inputStyle, width: '100%' }}
@@ -769,7 +777,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 
                 <div style={fieldGroupStyle}>
-                  <label style={labelStyle}>배송담당자 (직원)</label>
+                  <label style={labelStyle}>배송 담당 (직원)</label>
                   <select 
                     style={{ ...selectStyle, width: '100%' }}
                     value={form.deliveryStaffId}
