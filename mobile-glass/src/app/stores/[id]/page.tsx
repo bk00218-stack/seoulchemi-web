@@ -746,7 +746,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>배송 담당 (수령인)</label>
+                    <label style={labelStyle}>배송담당</label>
                     <input 
                       type="text"
                       style={{ ...inputStyle, width: '100%' }}
