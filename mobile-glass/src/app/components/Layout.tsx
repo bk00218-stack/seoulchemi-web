@@ -199,6 +199,19 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Mobile Responsive Styles */}
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          .desktop-sidebar { display: none !important; }
+          .mobile-menu-btn { display: flex !important; }
+          .mobile-sidebar-wrapper { display: block !important; }
+          .desktop-search { display: none !important; }
+          .desktop-nav-links { display: none !important; }
+          .header-right-info { display: none !important; }
+          .main-content { padding: 12px !important; }
+          header { padding: 0 12px !important; }
+        }
+      `}</style>
       {/* Search Modal */}
       {searchOpen && (
         <div 
@@ -432,6 +445,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
           {/* Search Button */}
           <button
+            className="desktop-search"
             onClick={() => setSearchOpen(true)}
             style={{
               display: 'flex',
@@ -452,7 +466,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9ca3af', background: '#fff', padding: '2px 6px', borderRadius: 4, border: '1px solid #e5e7eb' }}>Ctrl+K</span>
           </button>
 
-          <nav className="desktop-nav" style={{ display: 'flex', gap: 4 }} role="navigation" aria-label="메인 메뉴">
+          <nav className="desktop-nav desktop-nav-links" style={{ display: 'flex', gap: 4 }} role="navigation" aria-label="메인 메뉴">
             {NAV_ITEMS.map((item, index) => {
               const isActive = item.label === activeNav
               return (
@@ -482,9 +496,9 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--gray-500)' }}>
-          <span style={{ fontWeight: 600, color: 'var(--gray-700)' }}>서울케미</span>
-          <span style={{ color: 'var(--gray-400)' }}>|</span>
-          <span>{timeStr}</span>
+          <span className="header-right-info" style={{ fontWeight: 600, color: 'var(--gray-700)' }}>서울케미</span>
+          <span className="header-right-info" style={{ color: 'var(--gray-400)' }}>|</span>
+          <span className="header-right-info">{timeStr}</span>
           {/* 알림 버튼 */}
           <NotificationBell />
           <div style={{
@@ -516,7 +530,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
         {/* Mobile Sidebar */}
         <aside
-          className={`mobile-sidebar ${mobileMenuOpen ? 'open' : ''}`}
+          className={`mobile-sidebar mobile-sidebar-wrapper ${mobileMenuOpen ? 'open' : ''}`}
           style={{
             position: 'fixed',
             top: 0,
@@ -527,8 +541,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             zIndex: 999,
             transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
             transition: 'transform 0.3s ease',
-            overflowY: 'auto',
-            display: 'none'
+            overflowY: 'auto'
           }}
         >
           <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
@@ -579,7 +592,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
         {/* Desktop Sidebar */}
         <aside 
-          className="desktop-nav sidebar"
+          className="desktop-nav sidebar desktop-sidebar"
           style={{
             width: 'fit-content',
             minWidth: 100,

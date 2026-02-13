@@ -166,8 +166,16 @@ table {
 
 /* ===== Mobile Responsive ===== */
 @media (max-width: 768px) {
-  /* Hide desktop nav on mobile */
-  .desktop-nav {
+  /* Hide desktop nav and sidebar on mobile */
+  .desktop-nav,
+  .sidebar,
+  header nav,
+  aside.sidebar {
+    display: none !important;
+  }
+  
+  /* Hide top nav items */
+  header nav[role="navigation"] {
     display: none !important;
   }
   
@@ -181,9 +189,28 @@ table {
     display: block !important;
   }
   
+  /* Header adjustments */
+  header {
+    padding: 0 12px !important;
+  }
+  
+  header > div:first-child {
+    gap: 12px !important;
+  }
+  
+  /* Hide search on mobile */
+  header button[style*="minWidth: 200"] {
+    display: none !important;
+  }
+  
   /* Adjust main content padding */
   .main-content {
     padding: 12px !important;
+  }
+  
+  /* Main area takes full width */
+  main {
+    width: 100% !important;
   }
   
   /* Tables scroll horizontally */
