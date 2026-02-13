@@ -113,7 +113,7 @@ export default function NewOrderPage() {
 
   useEffect(() => {
     fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
-    fetch('/api/stores').then(r => r.json()).then(data => setStores(data.stores || []))
+    fetch('/api/stores?limit=10000').then(r => r.json()).then(data => setStores(data.stores || []))
   }, [])
 
   // 그리드 포커스 시 가운데로 스크롤
