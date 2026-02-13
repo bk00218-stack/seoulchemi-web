@@ -122,7 +122,7 @@ export default function NewOrderPage() {
     
     setStoreSearchLoading(true)
     const timer = setTimeout(() => {
-      fetch(`/api/stores?search=${encodeURIComponent(storeSearchText)}&limit=15`)
+      fetch(`/api/stores?search=${encodeURIComponent(storeSearchText)}&limit=30`)
         .then(r => r.json())
         .then(data => {
           setStoreSearchResults(data.stores || [])
@@ -643,24 +643,26 @@ export default function NewOrderPage() {
               </div>
             )}
             {storeSearchText && !selectedStore && !storeSearchLoading && storeSearchResults.length > 0 && (
-              <div style={{ maxHeight: 200, overflow: 'auto', marginTop: 4, border: '2px solid #1976d2', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+              <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #1976d2', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                 {storeSearchResults.map((s, i) => (
                   <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
                     style={{ 
-                      padding: '10px 12px', 
+                      padding: '6px 10px', 
                       cursor: 'pointer', 
                       borderBottom: '1px solid #eee', 
                       background: storeFocusIndex === i ? '#1976d2' : '#fff', 
                       color: storeFocusIndex === i ? '#fff' : '#333',
                       fontSize: 13,
-                      fontWeight: storeFocusIndex === i ? 600 : 400,
-                      transition: 'all 0.15s'
+                      transition: 'all 0.1s',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
                     }}
                     onMouseEnter={e => { if (storeFocusIndex !== i) e.currentTarget.style.background = '#e3f2fd' }}
                     onMouseLeave={e => { if (storeFocusIndex !== i) e.currentTarget.style.background = '#fff' }}
                   >
-                    <div style={{ fontWeight: 600 }}>{s.name}</div>
-                    <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>{s.code} · {s.phone || '-'}</div>
+                    <span style={{ fontWeight: 500 }}>{s.name}</span>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>{s.phone || '-'}</span>
                   </div>
                 ))}
               </div>
