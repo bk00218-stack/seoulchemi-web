@@ -1,0 +1,320 @@
+[
+  {
+    "category": "PERFECT UV",
+    "prodId": 11989,
+    "prodCd": "102506",
+    "prodName": "USH 1.56 SP PERFECT UV -SW",
+    "prodKrName": "중 퍼펙트",
+    "shortcutName": "BPUCS",
+    "hasImage": true,
+    "localImage": "chemi_images/102506_중퍼펙트.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "PERFECT UV",
+    "prodId": 11990,
+    "prodCd": "102516",
+    "prodName": "USH 1.56 ASP PERFECT UV -SW",
+    "prodKrName": "중비 퍼펙트",
+    "shortcutName": "IPUCS",
+    "hasImage": true,
+    "localImage": "chemi_images/102516_중비퍼펙트.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "PERFECT UV",
+    "prodId": 169,
+    "prodCd": "105466",
+    "prodName": "USH MR-8 SP PERFECT UV-V",
+    "prodKrName": "고 퍼펙트-v",
+    "shortcutName": "DPV",
+    "hasImage": true,
+    "localImage": "chemi_images/105466_고퍼펙트v.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "PERFECT UV",
+    "prodId": 172,
+    "prodCd": "105476",
+    "prodName": "USH MR-8 ASP PERFECT UV-V",
+    "prodKrName": "고비 퍼펙트",
+    "shortcutName": "GPV",
+    "hasImage": true,
+    "localImage": "chemi_images/105476_고비퍼펙트.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "PERFECT UV",
+    "prodId": 13915,
+    "prodCd": "105514",
+    "prodName": "USH MR-8 SP HI-CURVE PERFECT UV-V",
+    "prodKrName": "고 퍼펙트 원시,복합 고난시",
+    "shortcutName": "HGP1V",
+    "hasImage": true,
+    "localImage": "chemi_images/105514_고퍼펙트원시복합.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 4, "cylFrom": 0, "cylTo": 3},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 3.75, "cylFrom": -0.5, "cylTo": -4}
+    ]
+  },
+  {
+    "category": "PERFECT UV",
+    "prodId": 316,
+    "prodCd": "106466",
+    "prodName": "USH MR-7 ASP 65 PERFECT UV-V",
+    "prodKrName": "초고비 퍼펙트",
+    "shortcutName": "HPV",
+    "hasImage": true,
+    "localImage": "chemi_images/106466_초고비퍼펙트.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -15, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2}
+    ]
+  },
+  {
+    "category": "PERFECT UV",
+    "prodId": 637,
+    "prodCd": "143225",
+    "prodName": "USH 1.74 ASP PERFECT UV",
+    "prodKrName": "1.74 퍼펙트",
+    "shortcutName": "SRPV",
+    "hasImage": true,
+    "localImage": "chemi_images/143225_174퍼펙트.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -15, "cylFrom": 0, "cylTo": -4},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "IR",
+    "prodId": 6200,
+    "prodCd": "102486",
+    "prodName": "USH NK-55 SP PUV IR",
+    "prodKrName": "중 IR",
+    "shortcutName": "BNP",
+    "hasImage": true,
+    "localImage": "chemi_images/102486_중IR.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 4, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "IR",
+    "prodId": 7144,
+    "prodCd": "102496",
+    "prodName": "USH NK-55 ASP PUV IR",
+    "prodKrName": "중비 IR",
+    "shortcutName": "BANP",
+    "hasImage": true,
+    "localImage": "chemi_images/102496_중비IR.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 4, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "IR",
+    "prodId": 174,
+    "prodCd": "105496",
+    "prodName": "USH MR-8 ASP PUV IR",
+    "prodKrName": "고비 IR",
+    "shortcutName": "GNP",
+    "hasImage": true,
+    "localImage": "chemi_images/105496_고비IR.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "IR",
+    "prodId": 7145,
+    "prodCd": "105596",
+    "prodName": "USH MR-8 SP PUV IR",
+    "prodKrName": "고 IR",
+    "shortcutName": "SNP",
+    "hasImage": true,
+    "localImage": "chemi_images/105596_고IR.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -8, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "IR",
+    "prodId": 322,
+    "prodCd": "106486",
+    "prodName": "USH MR-7 ASP PUV IR",
+    "prodKrName": "초고비 IR",
+    "shortcutName": "HNP",
+    "hasImage": true,
+    "localImage": "chemi_images/106486_초고비IR.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -15, "cylFrom": 0, "cylTo": -4}
+    ]
+  },
+  {
+    "category": "IR",
+    "prodId": 7146,
+    "prodCd": "143716",
+    "prodName": "USH 1.74 ASP PUV IR",
+    "prodKrName": "1.74 IR",
+    "shortcutName": "SHIR",
+    "hasImage": true,
+    "localImage": "chemi_images/143716_174IR.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -15, "cylFrom": 0, "cylTo": -4},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 52,
+    "prodCd": "102400",
+    "prodName": "NC NK-55 SP UV400 TRENDY",
+    "prodKrName": "중 노코팅 트렌디",
+    "shortcutName": "TRB4",
+    "hasImage": false,
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -6, "cylFrom": 0, "cylTo": -2},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 4939,
+    "prodCd": "105513",
+    "prodName": "HMC MR-8 SP HI-CURVE-V",
+    "prodKrName": "고 멀티 하이커브 원시",
+    "shortcutName": "HG1V",
+    "hasImage": true,
+    "localImage": "chemi_images/105513_고멀티하이커브원시.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 4, "cylFrom": 0, "cylTo": 3},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 3.75, "cylFrom": -0.5, "cylTo": -4}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 190,
+    "prodCd": "105603",
+    "prodName": "HMC MR-8 SP UV400 60",
+    "prodKrName": "고 멀티 60파이 원시",
+    "shortcutName": "6D1",
+    "hasImage": true,
+    "localImage": "chemi_images/105603_고멀티60파이원시.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 196,
+    "prodCd": "105613",
+    "prodName": "HMC MR-8 ASP UV400 60",
+    "prodKrName": "고비 멀티 60파이 원시",
+    "shortcutName": "6G1",
+    "hasImage": true,
+    "localImage": "chemi_images/105613_고비멀티60파이원시.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -10, "cylFrom": 0, "cylTo": -4},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 210,
+    "prodCd": "105703",
+    "prodName": "HMC MR-8 SP HI-CURVE 70",
+    "prodKrName": "고 멀티 70파이 하이커브 원시",
+    "shortcutName": "7HD1",
+    "hasImage": true,
+    "localImage": "chemi_images/105703_고멀티70파이하이커브원시.jpg",
+    "diopters": [
+      {"type": "원난시", "sphFrom": 0, "sphTo": 4, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 329,
+    "prodCd": "106613",
+    "prodName": "HMC MR-7 ASP UV400 60",
+    "prodKrName": "초고비 멀티 60파이 원시",
+    "shortcutName": "60H1",
+    "hasImage": true,
+    "localImage": "chemi_images/106613_초고비멀티60파이원시.jpg",
+    "diopters": [
+      {"type": "원난시", "sphFrom": 0, "sphTo": 6, "cylFrom": 0, "cylTo": 2},
+      {"type": "복난시", "sphFrom": 0.25, "sphTo": 1.75, "cylFrom": -0.5, "cylTo": -2}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 504,
+    "prodCd": "123203",
+    "prodName": "HMC 1.56 STYLE UV400",
+    "prodKrName": "중 멀티 스타일",
+    "shortcutName": "ANK1",
+    "hasImage": true,
+    "localImage": "chemi_images/123203_중멀티스타일.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -2, "cylFrom": -0.75, "cylTo": -6},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 2, "cylFrom": 0, "cylTo": 6}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 507,
+    "prodCd": "123303",
+    "prodName": "HMC 1.56 STYLE UV400 MINUS",
+    "prodKrName": "중 멀티 스타일 마이너스",
+    "shortcutName": "MNK1",
+    "hasImage": true,
+    "localImage": "chemi_images/123303_중멀티스타일마이너스.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": -0.25, "sphTo": -2, "cylFrom": -1, "cylTo": -3},
+      {"type": "원난시", "sphFrom": 0.25, "sphTo": 2, "cylFrom": 1, "cylTo": 3}
+    ]
+  },
+  {
+    "category": "양면비구면",
+    "prodId": 529,
+    "prodCd": "134233",
+    "prodName": "HMC STYLE 1.60 UV400",
+    "prodKrName": "고 멀티 스타일",
+    "shortcutName": "AMR1",
+    "hasImage": true,
+    "localImage": "chemi_images/134233_고멀티스타일.jpg",
+    "diopters": [
+      {"type": "근난시", "sphFrom": 0, "sphTo": -2, "cylFrom": 0, "cylTo": -6},
+      {"type": "원난시", "sphFrom": 0, "sphTo": 2, "cylFrom": 0, "cylTo": 6}
+    ]
+  }
+]

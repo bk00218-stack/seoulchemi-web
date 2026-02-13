@@ -20,6 +20,8 @@ interface Product {
   purchasePrice: number
   isActive: boolean
   status: string
+  imageUrl: string | null
+  erpCode: string | null
 }
 
 interface Brand {
@@ -55,6 +57,7 @@ export default function ProductsPage() {
   const [brandFilter, setBrandFilter] = useState('')
   const [optionFilter, setOptionFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [imageUploading, setImageUploading] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -98,6 +101,27 @@ export default function ProductsPage() {
   }
 
   const columns: Column<Product>[] = [
+    { key: 'imageUrl', label: '', render: (v) => (
+      v ? (
+        <img 
+          src={v as string} 
+          alt="" 
+          style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }}
+        />
+      ) : (
+        <div style={{ 
+          width: '40px', 
+          height: '40px', 
+          background: '#f5f5f7', 
+          borderRadius: '6px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '16px',
+          color: '#86868b'
+        }}>📷</div>
+      )
+    )},
     { key: 'code', label: '코드', render: (v) => (
       <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
     )},
@@ -159,6 +183,49 @@ export default function ProductsPage() {
 
   // 옵션타입 목록 추출
   const optionTypes = [...new Set(products.map(p => p.optionType))]
+
+  // 이미지 업로드 핸들러
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!editingProduct || !e.target.files?.[0]) return
+    
+    setImageUploading(true)
+    const formData = new FormData()
+    formData.append('image', e.target.files[0])
+    
+    try {
+      const res = await fetch(`/api/products/${editingProduct.id}/image`, {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json()
+      if (data.imageUrl) {
+        setEditingProduct({ ...editingProduct, imageUrl: data.imageUrl })
+        // 목록도 업데이트
+        setProducts(products.map(p => 
+          p.id === editingProduct.id ? { ...p, imageUrl: data.imageUrl } : p
+        ))
+      }
+    } catch (error) {
+      console.error('Failed to upload image:', error)
+      alert('이미지 업로드 실패')
+    } finally {
+      setImageUploading(false)
+    }
+  }
+
+  async function handleImageDelete() {
+    if (!editingProduct) return
+    
+    try {
+      await fetch(`/api/products/${editingProduct.id}/image`, { method: 'DELETE' })
+      setEditingProduct({ ...editingProduct, imageUrl: null })
+      setProducts(products.map(p => 
+        p.id === editingProduct.id ? { ...p, imageUrl: null } : p
+      ))
+    } catch (error) {
+      console.error('Failed to delete image:', error)
+    }
+  }
 
   if (loading) {
     return (
@@ -284,6 +351,77 @@ export default function ProductsPage() {
             </h3>
             
             <div style={{ display: 'grid', gap: '16px' }}>
+              {/* 이미지 섹션 */}
+              {editingProduct && (
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    background: '#f5f5f7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px dashed #e5e5e5'
+                  }}>
+                    {editingProduct.imageUrl ? (
+                      <img 
+                        src={editingProduct.imageUrl} 
+                        alt="" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: '32px', color: '#86868b' }}>📷</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '8px' }}>
+                      상품 이미지
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <label style={{
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        background: '#007aff',
+                        color: '#fff',
+                        fontSize: '13px',
+                        cursor: imageUploading ? 'wait' : 'pointer',
+                        opacity: imageUploading ? 0.6 : 1
+                      }}>
+                        {imageUploading ? '업로드 중...' : '이미지 선택'}
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleImageUpload}
+                          disabled={imageUploading}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                      {editingProduct.imageUrl && (
+                        <button
+                          onClick={handleImageDelete}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            background: '#fff',
+                            color: '#ff3b30',
+                            border: '1px solid #ff3b30',
+                            fontSize: '13px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          삭제
+                        </button>
+                      )}
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#86868b', marginTop: '8px' }}>
+                      JPG, PNG 형식 (최대 5MB)
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>브랜드 *</label>
                 <select 
@@ -335,13 +473,24 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>묶음상품명</label>
-                <input 
-                  type="text" 
-                  defaultValue={editingProduct?.bundleName || ''} 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>묶음상품명</label>
+                  <input 
+                    type="text" 
+                    defaultValue={editingProduct?.bundleName || ''} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>ERP 코드</label>
+                  <input 
+                    type="text" 
+                    defaultValue={editingProduct?.erpCode || ''} 
+                    placeholder="레티나 상품코드"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                  />
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

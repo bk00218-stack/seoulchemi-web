@@ -48,6 +48,8 @@ export async function PUT(
         purchasePrice: body.purchasePrice || 0,
         isActive: body.isActive ?? true,
         displayOrder: body.displayOrder,
+        erpCode: body.erpCode ?? undefined,
+        imageUrl: body.imageUrl ?? undefined,
       }
     })
 

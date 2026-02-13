@@ -46,7 +46,9 @@ export async function GET(request: NextRequest) {
         purchasePrice: p.purchasePrice,
         isActive: p.isActive,
         displayOrder: p.displayOrder || 0,
-        status: p.isActive ? 'active' : 'inactive'
+        status: p.isActive ? 'active' : 'inactive',
+        imageUrl: p.imageUrl,
+        erpCode: p.erpCode
       })),
       brands,
       stats
@@ -73,6 +75,8 @@ export async function POST(request: NextRequest) {
         purchasePrice: body.purchasePrice || 0,
         isActive: body.isActive ?? true,
         displayOrder: body.displayOrder || 0,
+        erpCode: body.erpCode || null,
+        imageUrl: body.imageUrl || null,
       }
     })
     
