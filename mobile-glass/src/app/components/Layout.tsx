@@ -456,10 +456,26 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             })}
           </nav>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 13, color: 'var(--gray-500)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--gray-500)' }}>
           <span style={{ fontWeight: 600, color: 'var(--gray-700)' }}>서울케미</span>
           <span style={{ color: 'var(--gray-400)' }}>|</span>
           <span>{timeStr}</span>
+          {/* 알림 버튼 */}
+          <a
+            href="/notifications"
+            style={{
+              position: 'relative',
+              width: 36, height: 36, borderRadius: 8,
+              background: '#f3f4f6',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 18,
+              textDecoration: 'none',
+              cursor: 'pointer'
+            }}
+            title="알림"
+          >
+            🔔
+          </a>
           <div style={{
             width: 32, height: 32, borderRadius: '50%',
             background: 'var(--gray-200)',

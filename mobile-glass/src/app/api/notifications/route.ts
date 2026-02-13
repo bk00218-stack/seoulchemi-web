@@ -1,180 +1,124 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { PrismaClient } from '@prisma/client'
 
-// 알림 타입
-type NotificationType = 'order_new' | 'order_shipped' | 'payment_due' | 'low_stock' | 'return_request'
+const prisma = new PrismaClient()
 
-// 알림 설정 (실제로는 DB에서 가져와야 함)
-const NOTIFICATION_CONFIG = {
-  kakao: {
-    enabled: false,
-    apiKey: process.env.KAKAO_API_KEY,
-    senderId: process.env.KAKAO_SENDER_ID,
-  },
-  sms: {
-    enabled: false,
-    apiKey: process.env.SMS_API_KEY,
-    senderId: process.env.SMS_SENDER_ID,
-  },
-  webhook: {
-    enabled: true,
-    url: process.env.NOTIFICATION_WEBHOOK_URL,
-  }
-}
-
-// GET /api/notifications - 알림 이력 조회
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '50')
+    const unreadOnly = searchParams.get('unread') === 'true'
+    const limit = parseInt(searchParams.get('limit') || '20')
 
-    // 작업 로그에서 알림 관련 조회
-    const logs = await prisma.workLog.findMany({
-      where: {
-        workType: { startsWith: 'notification_' }
-      },
+    // 알림 조회
+    const notifications = await prisma.notification.findMany({
+      where: unreadOnly ? { isRead: false } : {},
       orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
       take: limit
     })
 
-    return NextResponse.json({
-      notifications: logs,
-      config: {
-        kakao: NOTIFICATION_CONFIG.kakao.enabled,
-        sms: NOTIFICATION_CONFIG.sms.enabled,
-        webhook: NOTIFICATION_CONFIG.webhook.enabled
-      }
+    // 읽지 않은 알림 수
+    const unreadCount = await prisma.notification.count({
+      where: { isRead: false }
     })
+
+    return NextResponse.json({ notifications, unreadCount })
   } catch (error) {
     console.error('Failed to fetch notifications:', error)
-    return NextResponse.json({ error: '알림 조회에 실패했습니다.' }, { status: 500 })
+    
+    // 테이블이 없으면 빈 배열 반환
+    return NextResponse.json({ 
+      notifications: [], 
+      unreadCount: 0,
+      // 시스템 알림 생성 (테이블 없을 때 대체)
+      systemAlerts: await generateSystemAlerts()
+    })
   }
 }
 
-// POST /api/notifications - 알림 전송
+// 시스템 알림 자동 생성
+async function generateSystemAlerts() {
+  const alerts = []
+  const now = new Date()
+
+  try {
+    // 대기 중인 주문
+    const pendingOrders = await prisma.order.count({
+      where: { status: 'pending' }
+    })
+    if (pendingOrders > 0) {
+      alerts.push({
+        id: 'pending-orders',
+        type: 'warning',
+        title: '대기 주문',
+        message: `처리 대기 중인 주문이 ${pendingOrders}건 있습니다`,
+        createdAt: now,
+        link: '/?status=pending'
+      })
+    }
+
+    // 오늘 새 주문
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayOrders = await prisma.order.count({
+      where: { createdAt: { gte: today } }
+    })
+    if (todayOrders > 0) {
+      alerts.push({
+        id: 'today-orders',
+        type: 'info',
+        title: '오늘 주문',
+        message: `오늘 ${todayOrders}건의 새 주문이 들어왔습니다`,
+        createdAt: now,
+        link: '/'
+      })
+    }
+
+    // 재고 부족 상품 (ProductOption 재고 0인 경우)
+    const outOfStock = await prisma.productOption.count({
+      where: { stock: 0 }
+    })
+    if (outOfStock > 0) {
+      alerts.push({
+        id: 'out-of-stock',
+        type: 'danger',
+        title: '재고 부족',
+        message: `재고가 없는 상품 옵션이 ${outOfStock}개 있습니다`,
+        createdAt: now,
+        link: '/admin/products/inventory'
+      })
+    }
+
+  } catch (e) {
+    console.error('Failed to generate system alerts:', e)
+  }
+
+  return alerts
+}
+
+// POST: 알림 읽음 처리
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { type, title, message, recipients, data } = body
+    const { notificationId, markAllRead } = await request.json()
 
-    if (!type || !message) {
-      return NextResponse.json({ error: '필수 항목을 입력해주세요.' }, { status: 400 })
+    if (markAllRead) {
+      await prisma.notification.updateMany({
+        where: { isRead: false },
+        data: { isRead: true }
+      })
+      return NextResponse.json({ success: true })
     }
 
-    const results: { channel: string; success: boolean; error?: string }[] = []
-
-    // 카카오 알림톡
-    if (NOTIFICATION_CONFIG.kakao.enabled && recipients?.kakao) {
-      try {
-        // 실제 카카오 API 호출 코드 (예시)
-        // const kakaoResult = await sendKakaoNotification(recipients.kakao, message)
-        results.push({ channel: 'kakao', success: true })
-      } catch (error: any) {
-        results.push({ channel: 'kakao', success: false, error: error.message })
-      }
+    if (notificationId) {
+      await prisma.notification.update({
+        where: { id: notificationId },
+        data: { isRead: true }
+      })
+      return NextResponse.json({ success: true })
     }
 
-    // SMS
-    if (NOTIFICATION_CONFIG.sms.enabled && recipients?.sms) {
-      try {
-        // 실제 SMS API 호출 코드 (예시)
-        // const smsResult = await sendSMS(recipients.sms, message)
-        results.push({ channel: 'sms', success: true })
-      } catch (error: any) {
-        results.push({ channel: 'sms', success: false, error: error.message })
-      }
-    }
-
-    // Webhook
-    if (NOTIFICATION_CONFIG.webhook.enabled && NOTIFICATION_CONFIG.webhook.url) {
-      try {
-        const webhookRes = await fetch(NOTIFICATION_CONFIG.webhook.url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type,
-            title,
-            message,
-            data,
-            timestamp: new Date().toISOString()
-          })
-        })
-        results.push({ channel: 'webhook', success: webhookRes.ok })
-      } catch (error: any) {
-        results.push({ channel: 'webhook', success: false, error: error.message })
-      }
-    }
-
-    // 로그 기록
-    await prisma.workLog.create({
-      data: {
-        workType: `notification_${type}`,
-        targetType: 'notification',
-        description: `알림 전송: ${title || type}`,
-        details: JSON.stringify({ message, recipients, results })
-      }
-    })
-
-    return NextResponse.json({
-      success: true,
-      results
-    })
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   } catch (error) {
-    console.error('Failed to send notification:', error)
-    return NextResponse.json({ error: '알림 전송에 실패했습니다.' }, { status: 500 })
-  }
-}
-
-// 알림 헬퍼 함수들
-export async function sendOrderNotification(orderId: number) {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: { items: true, store: true }
-  })
-
-  if (!order) return
-
-  const storeName = order.store?.name || '알 수 없음'
-  const message = `[새 주문] ${storeName}\n주문번호: ${order.orderNo}\n금액: ${order.totalAmount.toLocaleString()}원\n품목: ${order.items.length}개`
-
-  // 웹훅으로 알림
-  if (NOTIFICATION_CONFIG.webhook.url) {
-    try {
-      await fetch(NOTIFICATION_CONFIG.webhook.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'order_new',
-          title: '새 주문',
-          message,
-          data: { orderId, orderNo: order.orderNo, storeName, totalAmount: order.totalAmount }
-        })
-      })
-    } catch (error) {
-      console.error('Failed to send order notification:', error)
-    }
-  }
-}
-
-export async function sendLowStockNotification(productId: number, productName: string, stock: number) {
-  const message = `[재고 부족] ${productName}\n현재 재고: ${stock}개`
-
-  if (NOTIFICATION_CONFIG.webhook.url) {
-    try {
-      await fetch(NOTIFICATION_CONFIG.webhook.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'low_stock',
-          title: '재고 부족 알림',
-          message,
-          data: { productId, productName, stock }
-        })
-      })
-    } catch (error) {
-      console.error('Failed to send low stock notification:', error)
-    }
+    console.error('Failed to update notification:', error)
+    return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
   }
 }
