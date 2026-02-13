@@ -895,6 +895,8 @@ export default function NewOrderPage() {
               {editModal.item.product.name} ({(() => { const v = parseFloat(editModal.item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()})
             </div>
             <input type="number" value={editValue} onChange={e => setEditValue(e.target.value)} autoFocus
+              step={editModal.type === 'quantity' ? 0.5 : 1}
+              min={0}
               style={{ width: '100%', padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 16, marginBottom: 16, boxSizing: 'border-box' }}
               onKeyDown={e => { if (e.key === 'Enter') handleEditConfirm(); if (e.key === 'Escape') { setEditModal(null); setEditValue('') } }} />
             <div style={{ display: 'flex', gap: 8 }}>
