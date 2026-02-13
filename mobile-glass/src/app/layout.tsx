@@ -4,22 +4,25 @@ import { ThemeProvider } from '@/contexts/ThemeContext'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts'
 import PWARegister from '@/components/PWARegister'
 
-export const metadata = {
+import type { Metadata, Viewport } from 'next'
+
+export const metadata: Metadata = {
   title: '렌즈초이스 - 안경렌즈 주문관리',
   description: '안경렌즈 주문관리 시스템',
   manifest: '/manifest.json',
-  themeColor: '#007aff',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: '렌즈초이스',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#007aff',
 }
 
 export default function RootLayout({

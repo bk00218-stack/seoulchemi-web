@@ -70,33 +70,12 @@ export default function Home() {
       setOrders(ordersData.orders || [])
       setStats(statsData)
       
-      // Mock dashboard data (나중에 API로 교체)
+      // 실제 API 데이터 사용
       setDashboard({
-        weeklyRevenue: [
-          { day: '월', amount: 1250000 },
-          { day: '화', amount: 980000 },
-          { day: '수', amount: 1520000 },
-          { day: '목', amount: 1180000 },
-          { day: '금', amount: 2100000 },
-          { day: '토', amount: 890000 },
-          { day: '일', amount: 450000 },
-        ],
-        topProducts: [
-          { name: '1.60 매직폼 프레쉬 PUV', brand: '케미', count: 45 },
-          { name: '1.56 MF-디지털 PUV', brand: '케미매직폼', count: 38 },
-          { name: '1.67 매직폼 오피스 PUV', brand: '케미기능성', count: 32 },
-          { name: '마이데이 원데이 (90P)', brand: '쿠퍼비전', count: 28 },
-          { name: '디파인 래디언트 브라이트', brand: '아큐브', count: 25 },
-        ],
-        alerts: statsData.pendingOrders > 5 
-          ? [{ type: 'warning', message: `대기 중인 주문 ${statsData.pendingOrders}건이 있습니다` }]
-          : [],
-        recentActivity: [
-          { time: '방금', action: '주문', detail: '안경마트 - 케미 1.60 외 2건' },
-          { time: '5분 전', action: '출고', detail: '렌즈월드 - 쿠퍼비전 마이데이' },
-          { time: '12분 전', action: '입금', detail: '서울안경 - 150,000원' },
-          { time: '30분 전', action: '주문', detail: '강남렌즈 - 아큐브 디파인 외 5건' },
-        ]
+        weeklyRevenue: statsData.weeklyRevenue || [],
+        topProducts: statsData.topProducts || [],
+        alerts: statsData.alerts || [],
+        recentActivity: statsData.recentActivity || []
       })
     } catch (e) {
       console.error(e)

@@ -165,12 +165,15 @@ table {
 }
 
 /* ===== Mobile Responsive ===== */
+
+/* Mobile First: Base mobile styles */
 @media (max-width: 768px) {
   /* Hide desktop nav and sidebar on mobile */
   .desktop-nav,
   .sidebar,
   header nav,
-  aside.sidebar {
+  aside.sidebar,
+  .desktop-sidebar {
     display: none !important;
   }
   
@@ -192,20 +195,24 @@ table {
   /* Header adjustments */
   header {
     padding: 0 12px !important;
+    height: 52px !important;
   }
   
   header > div:first-child {
-    gap: 12px !important;
+    gap: 8px !important;
   }
   
-  /* Hide search on mobile */
-  header button[style*="minWidth: 200"] {
+  /* Hide search and info on mobile */
+  header button[style*="minWidth: 200"],
+  .desktop-search,
+  .header-right-info {
     display: none !important;
   }
   
   /* Adjust main content padding */
   .main-content {
     padding: 12px !important;
+    height: calc(100vh - 52px) !important;
   }
   
   /* Main area takes full width */
@@ -213,29 +220,105 @@ table {
     width: 100% !important;
   }
   
-  /* Tables scroll horizontally */
-  .table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  /* ===== Grid Layouts ===== */
+  /* 4-column stats → 2 columns on mobile */
+  div[style*="gridTemplateColumns: repeat(4"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
   }
   
-  /* Cards full width */
-  .stat-cards {
+  /* 2-column layouts → 1 column on mobile */
+  div[style*="gridTemplateColumns: 2fr 1fr"],
+  div[style*="gridTemplateColumns: 1fr 1fr"],
+  div[style*="gridTemplateColumns: 1fr 2fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  /* 3-column layouts → 1 column */
+  div[style*="gridTemplateColumns: repeat(3"] {
     grid-template-columns: 1fr !important;
   }
   
-  /* Smaller fonts on mobile */
-  h1 { font-size: 20px !important; }
-  h2 { font-size: 18px !important; }
-  h3 { font-size: 16px !important; }
-  
-  /* Form inputs full width */
-  input, select, textarea {
-    width: 100%;
-    max-width: 100%;
+  /* Quick action buttons → 2 columns on mobile */
+  div[style*="gridTemplateColumns: repeat(2, 1fr)"] {
+    gap: 8px !important;
   }
   
-  /* Buttons stack on mobile */
+  /* ===== Cards ===== */
+  div[style*="borderRadius: 12"] {
+    border-radius: 10px !important;
+  }
+  
+  div[style*="padding: 20"] {
+    padding: 14px !important;
+  }
+  
+  /* Stat card font sizes */
+  div[style*="fontSize: 28"] {
+    font-size: 22px !important;
+  }
+  
+  div[style*="fontSize: 20"] {
+    font-size: 16px !important;
+  }
+  
+  /* ===== Tables ===== */
+  /* Table container scroll */
+  div[style*="overflow: auto"],
+  .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 700px;
+  }
+  
+  th, td {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+  
+  /* ===== Filters & Toolbars ===== */
+  div[style*="display: flex"][style*="gap: 12"] {
+    flex-wrap: wrap !important;
+  }
+  
+  /* Filter container */
+  div[style*="flexWrap: wrap"] {
+    gap: 8px !important;
+  }
+  
+  /* Date inputs smaller */
+  input[type="date"] {
+    width: 130px !important;
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+  }
+  
+  /* Select dropdowns */
+  select {
+    min-width: 100px !important;
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+  }
+  
+  /* Quick date buttons - scroll horizontally */
+  div[style*="display: flex"][style*="gap: 4"] {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  
+  /* ===== Buttons ===== */
+  button {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+  
+  /* Button groups stack */
   .btn-group {
     flex-direction: column;
     gap: 8px;
@@ -244,16 +327,108 @@ table {
   .btn-group button {
     width: 100%;
   }
+  
+  /* Action buttons at bottom of tables */
+  div[style*="borderTop: 1px solid"][style*="display: flex"][style*="justifyContent: space-between"] {
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 12px !important;
+  }
+  
+  div[style*="borderTop: 1px solid"] div[style*="display: flex"][style*="gap: 8"] {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+  
+  /* ===== Typography ===== */
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 15px !important; }
+  
+  /* ===== Forms ===== */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="date"]),
+  textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Form labels stack */
+  label {
+    font-size: 13px !important;
+  }
+  
+  /* ===== Charts ===== */
+  /* Bar chart height adjustment */
+  div[style*="height: 160"] {
+    height: 120px !important;
+  }
+  
+  /* ===== Misc ===== */
+  /* Hide keyboard shortcuts hint on mobile */
+  div[style*="position: fixed"][style*="bottom: 8"] {
+    display: none !important;
+  }
+  
+  /* Tab buttons */
+  div[style*="display: flex"][style*="gap: 8"][style*="marginBottom: 16"] button {
+    flex: 1;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+  
+  /* Recent activity / list items */
+  div[style*="display: flex"][style*="alignItems: flex-start"][style*="gap: 12"] {
+    gap: 8px !important;
+  }
+  
+  /* Top products list */
+  div[style*="display: flex"][style*="alignItems: center"][style*="gap: 12"] {
+    gap: 8px !important;
+  }
+  
+  /* Truncate long text */
+  div[style*="whiteSpace: nowrap"][style*="overflow: hidden"] {
+    max-width: 140px !important;
+  }
+}
+
+/* Small mobile (iPhone SE, etc) */
+@media (max-width: 375px) {
+  /* 2-column stats → 1 column on very small screens */
+  div[style*="gridTemplateColumns: repeat(4"],
+  div[style*="gridTemplateColumns: repeat(2"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  div[style*="padding: 14"] {
+    padding: 12px !important;
+  }
+  
+  div[style*="fontSize: 22"] {
+    font-size: 20px !important;
+  }
+  
+  /* Smaller quick action buttons */
+  div[style*="gridTemplateColumns: repeat(2, 1fr)"] a {
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
 }
 
 /* Tablet adjustments */
 @media (max-width: 1024px) and (min-width: 769px) {
-  .sidebar {
+  .sidebar,
+  .desktop-sidebar {
     width: 180px !important;
   }
   
   .main-content {
     padding: 16px !important;
+  }
+  
+  /* 4-column → 2-column on tablet */
+  div[style*="gridTemplateColumns: repeat(4"] {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
@@ -262,5 +437,74 @@ table {
   .container {
     max-width: 1400px;
     margin: 0 auto;
+  }
+}
+
+/* ===== Touch-friendly improvements ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button, a, input[type="checkbox"], input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Checkbox/radio larger */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Remove hover effects that don't work on touch */
+  *:hover {
+    transition: none !important;
+  }
+}
+
+/* ===== Utility Classes for Mobile ===== */
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  
+  .mobile-hide {
+    display: none !important;
+  }
+  
+  .mobile-scroll-x {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mobile-text-sm {
+    font-size: 12px !important;
+  }
+  
+  .mobile-p-sm {
+    padding: 8px !important;
+  }
+  
+  .mobile-gap-sm {
+    gap: 8px !important;
   }
 }
