@@ -62,8 +62,8 @@ export default function NewOrderPage() {
   
   const [brands, setBrands] = useState<Brand[]>([])
   const [products, setProducts] = useState<Product[]>([])
-  const [storeSearchResults, setStoreSearchResults] = useState<Store[]>([])
-  const [storeSearchLoading, setStoreSearchLoading] = useState(false)
+  const [allStores, setAllStores] = useState<Store[]>([])
+  const [storesLoaded, setStoresLoaded] = useState(false)
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
@@ -111,28 +111,22 @@ export default function NewOrderPage() {
 
   useEffect(() => {
     fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
+    // 거래처 전체 로드 (백그라운드)
+    fetch('/api/stores?limit=10000').then(r => r.json()).then(data => { 
+      setAllStores(data.stores || [])
+      setStoresLoaded(true)
+    })
   }, [])
 
-  // 상호 검색 - 서버사이드 + 디바운스
-  useEffect(() => {
-    if (!storeSearchText || storeSearchText.length < 1) {
-      setStoreSearchResults([])
-      return
-    }
-    
-    setStoreSearchLoading(true)
-    const timer = setTimeout(() => {
-      fetch(`/api/stores?search=${encodeURIComponent(storeSearchText)}&limit=30`)
-        .then(r => r.json())
-        .then(data => {
-          setStoreSearchResults(data.stores || [])
-          setStoreSearchLoading(false)
-        })
-        .catch(() => setStoreSearchLoading(false))
-    }, 150) // 150ms 디바운스
-    
-    return () => clearTimeout(timer)
-  }, [storeSearchText])
+  // 상호 검색 - 클라이언트 필터링 (즉시)
+  const storeSearchResults = storeSearchText && storesLoaded
+    ? allStores.filter(s => {
+        const q = storeSearchText.toLowerCase().replace(/-/g, '')
+        return s.name.toLowerCase().includes(q) || 
+               s.code.toLowerCase().includes(q) || 
+               (s.phone && s.phone.replace(/-/g, '').includes(q))
+      }).slice(0, 30)
+    : []
 
   // 그리드 포커스 시 가운데로 스크롤
   useEffect(() => {
@@ -637,12 +631,12 @@ export default function NewOrderPage() {
                 </div>
               </div>
             )}
-            {storeSearchText && !selectedStore && storeSearchLoading && (
+            {storeSearchText && !selectedStore && !storesLoaded && (
               <div style={{ marginTop: 4, padding: 12, background: '#e3f2fd', borderRadius: 8, textAlign: 'center', color: '#1976d2', fontSize: 13 }}>
-                검색 중...
+                로딩 중...
               </div>
             )}
-            {storeSearchText && !selectedStore && !storeSearchLoading && storeSearchResults.length > 0 && (
+            {storeSearchText && !selectedStore && storesLoaded && storeSearchResults.length > 0 && (
               <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #1976d2', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                 {storeSearchResults.map((s, i) => (
                   <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
@@ -667,7 +661,7 @@ export default function NewOrderPage() {
                 ))}
               </div>
             )}
-            {storeSearchText && !selectedStore && !storeSearchLoading && storeSearchResults.length === 0 && (
+            {storeSearchText && !selectedStore && storesLoaded && storeSearchResults.length === 0 && (
               <div style={{ marginTop: 4, padding: 12, background: '#fff3e0', borderRadius: 8, textAlign: 'center', color: '#e65100', fontSize: 13 }}>
                 검색 결과가 없습니다
               </div>
