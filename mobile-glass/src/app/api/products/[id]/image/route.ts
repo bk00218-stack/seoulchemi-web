@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { put, del } from '@vercel/blob'
 
 const prisma = new PrismaClient()
 
@@ -25,28 +24,37 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
     }
 
-    // Create directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'images', 'products')
-    await mkdir(uploadDir, { recursive: true })
+    // Get current product to delete old image if exists
+    const currentProduct = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { imageUrl: true }
+    })
+
+    // Delete old image from Vercel Blob if exists
+    if (currentProduct?.imageUrl && currentProduct.imageUrl.includes('blob.vercel-storage.com')) {
+      try {
+        await del(currentProduct.imageUrl)
+      } catch (e) {
+        console.log('Failed to delete old image:', e)
+      }
+    }
 
     // Generate filename
     const ext = file.name.split('.').pop() || 'jpg'
-    const filename = `${productId}.${ext}`
-    const filepath = path.join(uploadDir, filename)
+    const filename = `products/${productId}-${Date.now()}.${ext}`
 
-    // Write file
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
-
-    // Update database
-    const imageUrl = `/images/products/${filename}`
-    await prisma.product.update({
-      where: { id: productId },
-      data: { imageUrl }
+    // Upload to Vercel Blob
+    const blob = await put(filename, file, {
+      access: 'public',
     })
 
-    return NextResponse.json({ imageUrl })
+    // Update database with blob URL
+    await prisma.product.update({
+      where: { id: productId },
+      data: { imageUrl: blob.url }
+    })
+
+    return NextResponse.json({ imageUrl: blob.url })
   } catch (error) {
     console.error('Error uploading image:', error)
     return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 })
@@ -61,6 +69,22 @@ export async function DELETE(
     const { id } = await params
     const productId = parseInt(id)
 
+    // Get current image URL
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { imageUrl: true }
+    })
+
+    // Delete from Vercel Blob if exists
+    if (product?.imageUrl && product.imageUrl.includes('blob.vercel-storage.com')) {
+      try {
+        await del(product.imageUrl)
+      } catch (e) {
+        console.log('Failed to delete image from blob:', e)
+      }
+    }
+
+    // Update database
     await prisma.product.update({
       where: { id: productId },
       data: { imageUrl: null }
