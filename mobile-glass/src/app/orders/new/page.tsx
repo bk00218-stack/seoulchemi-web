@@ -574,7 +574,7 @@ export default function NewOrderPage() {
             </label>
             <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
               onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
-              onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1) }}
+              onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1); if (selectedStore) setSelectedStore(null) }}
               style={{ 
                 width: '100%', 
                 padding: '12px 14px', 
