@@ -52,6 +52,9 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
   // Focus states
   const [navFocusIndex, setNavFocusIndex] = useState(-1)
   const [sidebarFocusIndex, setSidebarFocusIndex] = useState(-1)
+  
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Flatten sidebar items for easier navigation
   const flatSidebarItems = sidebarMenus.flatMap(menu => menu.items)
@@ -384,6 +387,27 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+          {/* Mobile Menu Button */}
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{
+              display: 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: 24
+            }}
+            aria-label="메뉴"
+          >
+            {mobileMenuOpen ? '✕' : '☰'}
+          </button>
+
           <Link 
             href="/" 
             style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}
@@ -428,7 +452,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9ca3af', background: '#fff', padding: '2px 6px', borderRadius: 4, border: '1px solid #e5e7eb' }}>Ctrl+K</span>
           </button>
 
-          <nav style={{ display: 'flex', gap: 4 }} role="navigation" aria-label="메인 메뉴">
+          <nav className="desktop-nav" style={{ display: 'flex', gap: 4 }} role="navigation" aria-label="메인 메뉴">
             {NAV_ITEMS.map((item, index) => {
               const isActive = item.label === activeNav
               return (
@@ -473,8 +497,89 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
       </header>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Sidebar */}
+        {/* Mobile Sidebar Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="sidebar-overlay"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.5)',
+              zIndex: 998
+            }}
+          />
+        )}
+
+        {/* Mobile Sidebar */}
+        <aside
+          className={`mobile-sidebar ${mobileMenuOpen ? 'open' : ''}`}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: 280,
+            height: '100vh',
+            background: '#fff',
+            zIndex: 999,
+            transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.3s ease',
+            overflowY: 'auto',
+            display: 'none'
+          }}
+        >
+          <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#5d7a5d' }}>메뉴</div>
+          </div>
+          {/* Mobile Nav Items */}
+          <div style={{ padding: '8px 0', borderBottom: '1px solid #e5e7eb' }}>
+            {NAV_ITEMS.map(item => (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  display: 'block',
+                  padding: '12px 16px',
+                  fontSize: 16,
+                  color: item.label === activeNav ? 'var(--primary)' : '#374151',
+                  fontWeight: item.label === activeNav ? 600 : 400,
+                  textDecoration: 'none'
+                }}
+              >{item.label}</Link>
+            ))}
+          </div>
+          {/* Mobile Sidebar Menus */}
+          {sidebarMenus.map((menu, menuIdx) => (
+            <div key={menuIdx} style={{ padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <div style={{ padding: '8px 16px', fontSize: 14, fontWeight: 700, color: '#6b7280' }}>
+                {menu.title}
+              </div>
+              {menu.items.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    display: 'block',
+                    padding: '10px 16px 10px 24px',
+                    fontSize: 15,
+                    color: pathname === item.href ? 'var(--primary)' : '#374151',
+                    fontWeight: pathname === item.href ? 600 : 400,
+                    textDecoration: 'none'
+                  }}
+                >{item.label}</Link>
+              ))}
+            </div>
+          ))}
+        </aside>
+
+        {/* Desktop Sidebar */}
         <aside 
+          className="desktop-nav sidebar"
           style={{
             width: 'fit-content',
             minWidth: 100,
@@ -536,6 +641,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         <main 
           ref={mainRef}
           tabIndex={-1}
+          className="main-content"
           style={{ 
             flex: 1, 
             padding: 24, 

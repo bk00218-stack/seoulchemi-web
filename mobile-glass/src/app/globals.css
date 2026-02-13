@@ -163,3 +163,77 @@ table {
     color: black;
   }
 }
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 768px) {
+  /* Hide desktop nav on mobile */
+  .desktop-nav {
+    display: none !important;
+  }
+  
+  /* Show mobile menu button */
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  
+  /* Show mobile sidebar */
+  .mobile-sidebar {
+    display: block !important;
+  }
+  
+  /* Adjust main content padding */
+  .main-content {
+    padding: 12px !important;
+  }
+  
+  /* Tables scroll horizontally */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Cards full width */
+  .stat-cards {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Smaller fonts on mobile */
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 16px !important; }
+  
+  /* Form inputs full width */
+  input, select, textarea {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Buttons stack on mobile */
+  .btn-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .btn-group button {
+    width: 100%;
+  }
+}
+
+/* Tablet adjustments */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sidebar {
+    width: 180px !important;
+  }
+  
+  .main-content {
+    padding: 16px !important;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
