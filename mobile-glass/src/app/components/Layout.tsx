@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { ReactNode, useEffect, useRef, useState, KeyboardEvent } from 'react'
+import NotificationBell from '@/components/NotificationBell'
 
 const NAV_ITEMS = [
   { label: '주문', href: '/', key: '1' },
@@ -461,21 +462,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           <span style={{ color: 'var(--gray-400)' }}>|</span>
           <span>{timeStr}</span>
           {/* 알림 버튼 */}
-          <a
-            href="/notifications"
-            style={{
-              position: 'relative',
-              width: 36, height: 36, borderRadius: 8,
-              background: '#f3f4f6',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 18,
-              textDecoration: 'none',
-              cursor: 'pointer'
-            }}
-            title="알림"
-          >
-            🔔
-          </a>
+          <NotificationBell />
           <div style={{
             width: 32, height: 32, borderRadius: '50%',
             background: 'var(--gray-200)',

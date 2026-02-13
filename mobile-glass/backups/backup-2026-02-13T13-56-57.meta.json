@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-02-13T13-56-57",
+  "tables": {
+    "brands": 20,
+    "products": 259,
+    "productOptions": 0,
+    "stores": 1665,
+    "storeGroups": 5,
+    "orders": 1,
+    "orderItems": 3,
+    "suppliers": 0,
+    "purchases": 0,
+    "purchaseItems": 0,
+    "transactions": 0,
+    "categories": 17,
+    "settings": 8,
+    "users": 1,
+    "notices": 0,
+    "smsTemplates": 4,
+    "shippingZones": 6,
+    "diopterRanges": 7,
+    "deliveryStaff": 1,
+    "salesStaff": 1
+  },
+  "totalRecords": 1998,
+  "file": "C:\\Users\\User\\clawd\\mobile-glass\\backups\\backup-2026-02-13T13-56-57.json",
+  "size": 2129259
+}

@@ -6,31 +6,20 @@ const prisma = new PrismaClient()
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const unreadOnly = searchParams.get('unread') === 'true'
     const limit = parseInt(searchParams.get('limit') || '20')
 
-    // 알림 조회
-    const notifications = await prisma.notification.findMany({
-      where: unreadOnly ? { isRead: false } : {},
-      orderBy: { createdAt: 'desc' },
-      take: limit
+    // 시스템 알림 생성
+    const systemAlerts = await generateSystemAlerts()
+    
+    return NextResponse.json({ 
+      notifications: systemAlerts.slice(0, limit), 
+      unreadCount: systemAlerts.length
     })
-
-    // 읽지 않은 알림 수
-    const unreadCount = await prisma.notification.count({
-      where: { isRead: false }
-    })
-
-    return NextResponse.json({ notifications, unreadCount })
   } catch (error) {
     console.error('Failed to fetch notifications:', error)
-    
-    // 테이블이 없으면 빈 배열 반환
     return NextResponse.json({ 
       notifications: [], 
-      unreadCount: 0,
-      // 시스템 알림 생성 (테이블 없을 때 대체)
-      systemAlerts: await generateSystemAlerts()
+      unreadCount: 0
     })
   }
 }
@@ -52,6 +41,7 @@ async function generateSystemAlerts() {
         title: '대기 주문',
         message: `처리 대기 중인 주문이 ${pendingOrders}건 있습니다`,
         createdAt: now,
+        isRead: false,
         link: '/?status=pending'
       })
     }
@@ -69,6 +59,7 @@ async function generateSystemAlerts() {
         title: '오늘 주문',
         message: `오늘 ${todayOrders}건의 새 주문이 들어왔습니다`,
         createdAt: now,
+        isRead: false,
         link: '/'
       })
     }
@@ -84,7 +75,27 @@ async function generateSystemAlerts() {
         title: '재고 부족',
         message: `재고가 없는 상품 옵션이 ${outOfStock}개 있습니다`,
         createdAt: now,
+        isRead: false,
         link: '/admin/products/inventory'
+      })
+    }
+
+    // 미수금 경고
+    const overdueStores = await prisma.store.count({
+      where: { 
+        outstandingAmount: { gt: 0 },
+        lastPaymentAt: { lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+      }
+    })
+    if (overdueStores > 0) {
+      alerts.push({
+        id: 'overdue-payments',
+        type: 'danger',
+        title: '미수금 연체',
+        message: `30일 이상 미입금 거래처가 ${overdueStores}곳 있습니다`,
+        createdAt: now,
+        isRead: false,
+        link: '/stores/settle'
       })
     }
 
@@ -95,28 +106,17 @@ async function generateSystemAlerts() {
   return alerts
 }
 
-// POST: 알림 읽음 처리
+// POST: 알림 읽음 처리 (시스템 알림은 실제 상태 저장 없음)
 export async function POST(request: NextRequest) {
   try {
-    const { notificationId, markAllRead } = await request.json()
+    const { markAllRead } = await request.json()
 
     if (markAllRead) {
-      await prisma.notification.updateMany({
-        where: { isRead: false },
-        data: { isRead: true }
-      })
+      // 시스템 알림은 DB에 저장되지 않으므로 성공만 반환
       return NextResponse.json({ success: true })
     }
 
-    if (notificationId) {
-      await prisma.notification.update({
-        where: { id: notificationId },
-        data: { isRead: true }
-      })
-      return NextResponse.json({ success: true })
-    }
-
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to update notification:', error)
     return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
