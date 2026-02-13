@@ -62,7 +62,8 @@ export default function NewOrderPage() {
   
   const [brands, setBrands] = useState<Brand[]>([])
   const [products, setProducts] = useState<Product[]>([])
-  const [stores, setStores] = useState<Store[]>([])
+  const [storeSearchResults, setStoreSearchResults] = useState<Store[]>([])
+  const [storeSearchLoading, setStoreSearchLoading] = useState(false)
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
@@ -99,9 +100,6 @@ export default function NewOrderPage() {
 
   const selectedProduct = products.find(p => p.id === selectedProductId)
   const filteredProducts = selectedBrandId ? products.filter(p => p.brandId === selectedBrandId) : []
-  const filteredStores = storeSearchText
-    ? stores.filter(s => s.name.toLowerCase().includes(storeSearchText.toLowerCase()) || s.code.toLowerCase().includes(storeSearchText.toLowerCase()) || (s.phone && s.phone.replace(/-/g, '').includes(storeSearchText.replace(/-/g, ''))))
-    : stores
 
   const sphRows = generateSphRows()
   const cylColsLeft = generateCylColsLeft()   // -4.00 → 0.00 (왼쪽, -Sph용)
@@ -113,8 +111,28 @@ export default function NewOrderPage() {
 
   useEffect(() => {
     fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
-    fetch('/api/stores?limit=10000').then(r => r.json()).then(data => setStores(data.stores || []))
   }, [])
+
+  // 상호 검색 - 서버사이드 + 디바운스
+  useEffect(() => {
+    if (!storeSearchText || storeSearchText.length < 1) {
+      setStoreSearchResults([])
+      return
+    }
+    
+    setStoreSearchLoading(true)
+    const timer = setTimeout(() => {
+      fetch(`/api/stores?search=${encodeURIComponent(storeSearchText)}&limit=15`)
+        .then(r => r.json())
+        .then(data => {
+          setStoreSearchResults(data.stores || [])
+          setStoreSearchLoading(false)
+        })
+        .catch(() => setStoreSearchLoading(false))
+    }, 150) // 150ms 디바운스
+    
+    return () => clearTimeout(timer)
+  }, [storeSearchText])
 
   // 그리드 포커스 시 가운데로 스크롤
   useEffect(() => {
@@ -561,7 +579,7 @@ export default function NewOrderPage() {
               🏪 상호 <span style={{ fontSize: 10, color: '#999', fontWeight: 400 }}>[Esc]</span>
             </label>
             <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
-              onKeyDown={e => { const vs = filteredStores.slice(0, 10); if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
+              onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1) }}
               style={{ 
                 width: '100%', 
@@ -619,9 +637,14 @@ export default function NewOrderPage() {
                 </div>
               </div>
             )}
-            {storeSearchText && !selectedStore && filteredStores.length > 0 && (
+            {storeSearchText && !selectedStore && storeSearchLoading && (
+              <div style={{ marginTop: 4, padding: 12, background: '#e3f2fd', borderRadius: 8, textAlign: 'center', color: '#1976d2', fontSize: 13 }}>
+                검색 중...
+              </div>
+            )}
+            {storeSearchText && !selectedStore && !storeSearchLoading && storeSearchResults.length > 0 && (
               <div style={{ maxHeight: 200, overflow: 'auto', marginTop: 4, border: '2px solid #1976d2', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-                {filteredStores.slice(0, 10).map((s, i) => (
+                {storeSearchResults.map((s, i) => (
                   <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
                     style={{ 
                       padding: '10px 12px', 
@@ -642,7 +665,7 @@ export default function NewOrderPage() {
                 ))}
               </div>
             )}
-            {storeSearchText && !selectedStore && filteredStores.length === 0 && (
+            {storeSearchText && !selectedStore && !storeSearchLoading && storeSearchResults.length === 0 && (
               <div style={{ marginTop: 4, padding: 12, background: '#fff3e0', borderRadius: 8, textAlign: 'center', color: '#e65100', fontSize: 13 }}>
                 검색 결과가 없습니다
               </div>
