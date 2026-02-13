@@ -10,10 +10,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 브랜드 테이블
+// ===== 대분류 (Main Category) =====
+// 안경렌즈 여벌, 안경렌즈 RX, 콘택트렌즈, 착색 등
+model MainCategory {
+  id            Int       @id @default(autoincrement())
+  name          String    @unique // 대분류명
+  code          String    @unique // 코드 (SPARE, RX, CONTACT, TINT 등)
+  description   String?   // 설명
+  displayOrder  Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  brands        Brand[]
+}
+
+// ===== 브랜드 테이블 =====
 model Brand {
   id            Int       @id @default(autoincrement())
-  name          String    @unique // 브랜드명 (케미, 하이텍, 진명 등)
+  categoryId    Int?      // 대분류 연결
+  category      MainCategory? @relation(fields: [categoryId], references: [id])
+  name          String    // 브랜드명 (케미, 하이텍, 진명 등)
   stockManage   String?   // 출고 관리 (바코드, 미사용)
   canExchange   Boolean   @default(false) // 교환 가능 여부
   canReturn     Boolean   @default(false) // 반품 가능 여부
@@ -22,8 +39,32 @@ model Brand {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  productLines  ProductLine[]
   products      Product[]
   storeDiscounts StoreBrandDiscount[]
+
+  @@unique([categoryId, name]) // 같은 대분류 내 브랜드명 중복 불가
+  @@index([categoryId])
+}
+
+// ===== 품목 (Product Line) =====
+// 블루라이트차단, 누진다초점, 변색렌즈 등
+model ProductLine {
+  id            Int       @id @default(autoincrement())
+  brandId       Int
+  brand         Brand     @relation(fields: [brandId], references: [id])
+  name          String    // 품목명
+  code          String?   // 품목 코드
+  description   String?   // 설명
+  displayOrder  Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  products      Product[]
+
+  @@unique([brandId, name]) // 같은 브랜드 내 품목명 중복 불가
+  @@index([brandId])
 }
 
 // 상품 테이블
@@ -31,9 +72,11 @@ model Product {
   id              Int       @id @default(autoincrement())
   brandId         Int
   brand           Brand     @relation(fields: [brandId], references: [id])
+  productLineId   Int?      // 품목 연결
+  productLine     ProductLine? @relation(fields: [productLineId], references: [id])
   
   name            String    // 상품명 (1.56 착색, [케미 근적외선] 1.74 등)
-  optionType      String    // 옵션타입 (안경렌즈 RX, 안경렌즈 여벌, 콘택트렌즈)
+  optionType      String    // 옵션타입 (안경렌즈 RX, 안경렌즈 여벌, 콘택트렌즈) - 대분류 참조용 (레거시)
   productType     String    // 상품구분
   bundleName      String?   // 묶음상품명 (착색, 근적외선IR 등)
   erpCode         String?   // ERP 상품코드
@@ -66,6 +109,7 @@ model Product {
   storePrices     StoreProductPrice[]
 
   @@index([brandId])
+  @@index([productLineId])
   @@index([optionType])
 }
 

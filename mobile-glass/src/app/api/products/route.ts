@@ -7,13 +7,19 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const brandId = searchParams.get('brandId')
+    const productLineId = searchParams.get('productLineId')
     
-    const where = brandId ? { brandId: parseInt(brandId) } : {}
+    const where: Record<string, unknown> = {}
+    if (brandId) where.brandId = parseInt(brandId)
+    if (productLineId) where.productLineId = parseInt(productLineId)
     
     const products = await prisma.product.findMany({
       where,
       include: {
         brand: true,
+        productLine: {
+          select: { id: true, name: true }
+        },
         _count: {
           select: { options: true }
         }
@@ -40,6 +46,8 @@ export async function GET(request: NextRequest) {
         code: `PRD${String(p.id).padStart(3, '0')}`,
         brand: p.brand.name,
         brandId: p.brandId,
+        productLineId: p.productLineId,
+        productLine: p.productLine,
         name: p.name,
         optionType: p.optionType,
         productType: p.productType,
@@ -70,6 +78,7 @@ export async function POST(request: NextRequest) {
     const product = await prisma.product.create({
       data: {
         brandId: body.brandId,
+        productLineId: body.productLineId || null,
         name: body.name,
         optionType: body.optionType,
         productType: body.productType || body.optionType,

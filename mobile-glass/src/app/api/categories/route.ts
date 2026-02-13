@@ -1,39 +1,44 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(request: Request) {
+// 대분류 목록 조회
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type')
-    
-    const categories = await prisma.category.findMany({
-      where: type ? { type } : undefined,
-      orderBy: [{ type: 'asc' }, { displayOrder: 'asc' }]
+    const categories = await prisma.mainCategory.findMany({
+      where: { isActive: true },
+      include: {
+        _count: {
+          select: { brands: true }
+        }
+      },
+      orderBy: { displayOrder: 'asc' }
     })
-    
-    return NextResponse.json(categories)
+
+    return NextResponse.json({ categories })
   } catch (error) {
-    console.error('Error:', error)
-    return NextResponse.json({ error: 'Failed' }, { status: 500 })
+    console.error('Error fetching categories:', error)
+    return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 })
   }
 }
 
-export async function POST(request: Request) {
+// 대분류 생성
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const category = await prisma.category.create({
+    const { code, name, description, displayOrder } = body
+
+    const category = await prisma.mainCategory.create({
       data: {
-        type: body.type,
-        code: body.code,
-        name: body.name,
-        description: body.description,
-        displayOrder: body.displayOrder || 0,
-        isActive: body.isActive ?? true
+        code,
+        name,
+        description,
+        displayOrder: displayOrder || 0,
       }
     })
+
     return NextResponse.json(category)
   } catch (error) {
-    console.error('Error:', error)
-    return NextResponse.json({ error: 'Failed' }, { status: 500 })
+    console.error('Error creating category:', error)
+    return NextResponse.json({ error: 'Failed to create category' }, { status: 500 })
   }
 }

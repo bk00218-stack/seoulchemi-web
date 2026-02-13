@@ -1,13 +1,29 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 // 브랜드 목록 조회
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const categoryId = searchParams.get('categoryId')
+
+    const where = categoryId ? { categoryId: parseInt(categoryId) } : {}
+
     const brands = await prisma.brand.findMany({
+      where,
       include: {
+        category: {
+          select: { id: true, name: true, code: true }
+        },
+        productLines: {
+          where: { isActive: true },
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            _count: { select: { products: true } }
+          }
+        },
         _count: {
-          select: { products: true }
+          select: { products: true, productLines: true }
         }
       },
       orderBy: { displayOrder: 'asc' }
@@ -25,6 +41,7 @@ export async function GET() {
       return {
         ...brand,
         productCount: brand._count.products,
+        productLineCount: brand._count.productLines,
         activeCount: activeProducts,
         inactiveCount: inactiveProducts
       }
@@ -41,10 +58,11 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { name, stockManage, canExchange, canReturn, isActive, displayOrder } = body
+    const { categoryId, name, stockManage, canExchange, canReturn, isActive, displayOrder } = body
     
     const brand = await prisma.brand.create({
       data: {
+        categoryId: categoryId || null,
         name,
         stockManage,
         canExchange: canExchange ?? false,
