@@ -99,7 +99,7 @@ export default function SuppliersPage() {
 
   const handleSubmit = async () => {
     if (!form.name || !form.code) {
-      alert('매입처명�?코드???�수?�니??)
+      alert('매입처명과 코드는 필수입니다')
       return
     }
 
@@ -119,16 +119,16 @@ export default function SuppliersPage() {
         fetchSuppliers()
       } else {
         const error = await res.json()
-        alert(error.error || '?�?�에 ?�패?�습?�다')
+        alert(error.error || '저장에 실패했습니다')
       }
     } catch (error) {
       console.error('Failed to save supplier:', error)
-      alert('?�?�에 ?�패?�습?�다')
+      alert('저장에 실패했습니다')
     }
   }
 
   const handleDelete = async (supplier: Supplier) => {
-    if (!confirm(`"${supplier.name}" 매입처�? ??��?�시겠습?�까?`)) return
+    if (!confirm(`"${supplier.name}" 매입처를 삭제하시겠습니까?`)) return
 
     try {
       const res = await fetch(`/api/purchase/suppliers/${supplier.id}`, {
@@ -146,24 +146,24 @@ export default function SuppliersPage() {
   return (
     <AdminLayout activeMenu="purchase">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>매입�?관�?/h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>
-          �?{stats.totalSuppliers}�??�체 · 미납�??�계 {stats.totalOutstanding.toLocaleString()}??
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>매입처 관리</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
+          총 {stats.totalSuppliers}개 업체 · 미납금 합계 {stats.totalOutstanding.toLocaleString()}원
         </p>
       </div>
 
-      {/* 검???�터 */}
+      {/* 검색/필터 */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
         <input
           type="text"
-          placeholder="매입처명, 코드, ?�당??검??.."
+          placeholder="매입처명, 코드, 담당자 검색..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
             flex: 1,
             padding: '10px 16px',
             borderRadius: '8px',
-            border: '1px solid var(--border-color)',
+            border: '1px solid #e9ecef',
             fontSize: '14px'
           }}
         />
@@ -179,36 +179,36 @@ export default function SuppliersPage() {
             cursor: 'pointer'
           }}
         >
-          + 매입�??�록
+          + 매입처 등록
         </button>
       </div>
 
       {/* 목록 */}
-      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#f9fafb', borderBottom: '1px solid var(--border-color)' }}>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e9ecef' }}>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>코드</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>매입처명</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>?�당??/th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>?�락�?/th>
-              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>미납�?/th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>담당자</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>연락처</th>
+              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>미납금</th>
               <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>매입건수</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>?�태</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>관�?/th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>상태</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>관리</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                  로딩 �?..
+                <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  로딩 중...
                 </td>
               </tr>
             ) : suppliers.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                  ?�록??매입처�? ?�습?�다
+                <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  등록된 매입처가 없습니다
                 </td>
               </tr>
             ) : (
@@ -233,10 +233,10 @@ export default function SuppliersPage() {
                     fontWeight: supplier.outstandingAmount > 0 ? 600 : 400,
                     color: supplier.outstandingAmount > 0 ? '#dc2626' : '#666'
                   }}>
-                    {supplier.outstandingAmount.toLocaleString()}??
+                    {supplier.outstandingAmount.toLocaleString()}원
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '14px', textAlign: 'center', color: '#666' }}>
-                    {supplier._count.purchases}�?
+                    {supplier._count.purchases}건
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                     <span style={{
@@ -246,7 +246,7 @@ export default function SuppliersPage() {
                       background: supplier.isActive ? '#d1fae5' : '#f3f4f6',
                       color: supplier.isActive ? '#059669' : '#6b7280'
                     }}>
-                      {supplier.isActive ? '?�용' : '미사??}
+                      {supplier.isActive ? '사용' : '미사용'}
                     </span>
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -255,14 +255,14 @@ export default function SuppliersPage() {
                       style={{
                         padding: '4px 8px',
                         borderRadius: '4px',
-                        border: '1px solid var(--border-color)',
-                        background: 'var(--bg-primary)',
+                        border: '1px solid #e9ecef',
+                        background: '#fff',
                         fontSize: '12px',
                         cursor: 'pointer',
                         marginRight: '4px'
                       }}
                     >
-                      ?�정
+                      수정
                     </button>
                     <button
                       onClick={() => handleDelete(supplier)}
@@ -276,7 +276,7 @@ export default function SuppliersPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      ??��
+                      삭제
                     </button>
                   </td>
                 </tr>
@@ -301,7 +301,7 @@ export default function SuppliersPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: 'var(--bg-primary)',
+            background: '#fff',
             borderRadius: '16px',
             padding: '24px',
             width: '500px',
@@ -309,7 +309,7 @@ export default function SuppliersPage() {
             overflow: 'auto'
           }}>
             <h2 style={{ margin: '0 0 20px', fontSize: '18px' }}>
-              {editingSupplier ? '매입�??�정' : '매입�??�록'}
+              {editingSupplier ? '매입처 수정' : '매입처 등록'}
             </h2>
 
             <div style={{ display: 'grid', gap: '16px' }}>
@@ -326,7 +326,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -344,7 +344,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px',
                       background: editingSupplier ? '#f9fafb' : '#fff'
                     }}
@@ -355,7 +355,7 @@ export default function SuppliersPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                    ?�당?�명
+                    담당자명
                   </label>
                   <input
                     type="text"
@@ -365,14 +365,14 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                    ?�락�?
+                    연락처
                   </label>
                   <input
                     type="text"
@@ -382,7 +382,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -391,7 +391,7 @@ export default function SuppliersPage() {
 
               <div>
                 <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  ?�메??
+                  이메일
                 </label>
                 <input
                   type="email"
@@ -401,7 +401,7 @@ export default function SuppliersPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -419,7 +419,7 @@ export default function SuppliersPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -427,18 +427,18 @@ export default function SuppliersPage() {
 
               <div>
                 <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  계좌?�보
+                  계좌정보
                 </label>
                 <input
                   type="text"
                   value={form.bankInfo}
                   onChange={(e) => setForm({ ...form, bankInfo: e.target.value })}
-                  placeholder="?�?�명 계좌번호 ?�금�?
+                  placeholder="은행명 계좌번호 예금주"
                   style={{
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -447,7 +447,7 @@ export default function SuppliersPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                    ?�용?�도
+                    신용한도
                   </label>
                   <input
                     type="number"
@@ -457,14 +457,14 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                    결제기한 (??
+                    결제기한 (일)
                   </label>
                   <input
                     type="number"
@@ -474,7 +474,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -493,7 +493,7 @@ export default function SuppliersPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px',
                     resize: 'vertical'
                   }}
@@ -507,8 +507,8 @@ export default function SuppliersPage() {
                 style={{
                   padding: '10px 20px',
                   borderRadius: '8px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-primary)',
+                  border: '1px solid #e9ecef',
+                  background: '#fff',
                   cursor: 'pointer'
                 }}
               >
@@ -526,7 +526,7 @@ export default function SuppliersPage() {
                   cursor: 'pointer'
                 }}
               >
-                {editingSupplier ? '?�정' : '?�록'}
+                {editingSupplier ? '수정' : '등록'}
               </button>
             </div>
           </div>

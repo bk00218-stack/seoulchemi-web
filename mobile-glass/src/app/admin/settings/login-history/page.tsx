@@ -69,7 +69,7 @@ export default function LoginHistoryPage() {
   const columns: Column<LoginRecord>[] = [
     {
       key: 'createdAt',
-      label: '?�시',
+      label: '일시',
       width: '160px',
       render: (v) => (
         <span style={{ fontSize: '13px', color: '#666' }}>
@@ -85,7 +85,7 @@ export default function LoginHistoryPage() {
     },
     {
       key: 'username',
-      label: '?�용??,
+      label: '사용자',
       render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span>
     },
     {
@@ -102,13 +102,13 @@ export default function LoginHistoryPage() {
           background: v ? '#d1fae5' : '#fee2e2',
           color: v ? '#059669' : '#dc2626',
         }}>
-          {v ? '?�공' : '?�패'}
+          {v ? '성공' : '실패'}
         </span>
       )
     },
     {
       key: 'failReason',
-      label: '?�패 ?�유',
+      label: '실패 사유',
       render: (v) => (
         <span style={{ fontSize: '13px', color: '#dc2626' }}>
           {v as string || '-'}
@@ -131,7 +131,7 @@ export default function LoginHistoryPage() {
     },
     {
       key: 'userAgent',
-      label: '브라?��?',
+      label: '브라우저',
       render: (v) => (
         <span style={{ fontSize: '13px', color: '#666' }}>{v as string}</span>
       )
@@ -141,35 +141,35 @@ export default function LoginHistoryPage() {
   return (
     <AdminLayout activeMenu="settings">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0 }}>?�� 로그???�력</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0 }}>🔐 로그인 이력</h1>
       </div>
 
-      {/* ?�계 카드 */}
+      {/* 통계 카드 */}
       <StatCardGrid>
         <StatCard
-          label="?�늘 로그??
+          label="오늘 로그인"
           value={stats.todayLogins}
-          unit="??
-          icon="??
+          unit="회"
+          icon="✅"
         />
         <StatCard
-          label="?�늘 ?�패"
+          label="오늘 실패"
           value={stats.todayFails}
-          unit="??
-          icon="??
+          unit="회"
+          icon="❌"
           highlight={stats.todayFails > 5}
         />
         <StatCard
-          label="?�속 ?�용??
+          label="접속 사용자"
           value={stats.uniqueUsers}
-          unit="�?
-          icon="?��"
+          unit="명"
+          icon="👤"
         />
       </StatCardGrid>
 
-      {/* ?�터 */}
+      {/* 필터 */}
       <div style={{ 
-        background: 'var(--bg-primary)', 
+        background: '#fff', 
         padding: '16px 20px', 
         borderRadius: '12px', 
         marginBottom: '16px',
@@ -180,9 +180,9 @@ export default function LoginHistoryPage() {
       }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           {[
-            { key: 'all', label: '?�체' },
-            { key: 'success', label: '?�공' },
-            { key: 'fail', label: '?�패' },
+            { key: 'all', label: '전체' },
+            { key: 'success', label: '성공' },
+            { key: 'fail', label: '실패' },
           ].map(item => (
             <button
               key={item.key}
@@ -215,7 +215,7 @@ export default function LoginHistoryPage() {
               fontSize: '13px',
             }}
           />
-          <span style={{ color: 'var(--text-tertiary)' }}>~</span>
+          <span style={{ color: '#868e96' }}>~</span>
           <input
             type="date"
             value={endDate}
@@ -234,26 +234,26 @@ export default function LoginHistoryPage() {
                 padding: '8px 12px',
                 borderRadius: '8px',
                 border: '1px solid #e5e7eb',
-                background: 'var(--bg-primary)',
+                background: '#fff',
                 fontSize: '13px',
                 cursor: 'pointer',
               }}
             >
-              초기??
+              초기화
             </button>
           )}
         </div>
       </div>
 
-      {/* ?�이�?*/}
+      {/* 테이블 */}
       <DataTable
         columns={columns}
         data={data}
         loading={loading}
-        emptyMessage="로그???�력???�습?�다"
+        emptyMessage="로그인 이력이 없습니다"
       />
 
-      {/* ?�이지?�이??*/}
+      {/* 페이지네이션 */}
       {totalPages > 1 && (
         <div style={{
           display: 'flex',
@@ -269,12 +269,12 @@ export default function LoginHistoryPage() {
               padding: '8px 16px',
               borderRadius: '8px',
               border: '1px solid #e5e7eb',
-              background: 'var(--bg-primary)',
+              background: '#fff',
               cursor: page === 1 ? 'not-allowed' : 'pointer',
               opacity: page === 1 ? 0.5 : 1,
             }}
           >
-            ?�전
+            이전
           </button>
           <span style={{ fontSize: '14px', color: '#666' }}>
             {page} / {totalPages}
@@ -286,17 +286,17 @@ export default function LoginHistoryPage() {
               padding: '8px 16px',
               borderRadius: '8px',
               border: '1px solid #e5e7eb',
-              background: 'var(--bg-primary)',
+              background: '#fff',
               cursor: page === totalPages ? 'not-allowed' : 'pointer',
               opacity: page === totalPages ? 0.5 : 1,
             }}
           >
-            ?�음
+            다음
           </button>
         </div>
       )}
 
-      {/* ?�내 */}
+      {/* 안내 */}
       <div style={{
         marginTop: '24px',
         padding: '16px 20px',
@@ -305,12 +305,12 @@ export default function LoginHistoryPage() {
         border: '1px solid #bae6fd',
       }}>
         <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', color: '#0369a1' }}>
-          ?�� 보안 ?�림
+          💡 보안 알림
         </h3>
         <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#0369a1' }}>
-          <li>로그???�패가 5???�상 발생?�면 ?�당 계정???�인?�주?�요.</li>
-          <li>?�숙?��? ?��? IP 주소?�서 ?�속 ??비�?번호 변경을 권장?�니??</li>
-          <li>로그???�력?� 90?�간 보�??�니??</li>
+          <li>로그인 실패가 5회 이상 발생하면 해당 계정을 확인해주세요.</li>
+          <li>익숙하지 않은 IP 주소에서 접속 시 비밀번호 변경을 권장합니다.</li>
+          <li>로그인 이력은 90일간 보관됩니다.</li>
         </ul>
       </div>
     </AdminLayout>

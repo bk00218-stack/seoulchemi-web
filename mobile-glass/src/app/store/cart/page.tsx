@@ -18,7 +18,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false)
   const [orderResult, setOrderResult] = useState<{ success: boolean; orderNo?: string; message?: string } | null>(null)
 
-  // localStorage?�서 ?�바구니 불러?�기
+  // localStorage에서 장바구니 불러오기
   useEffect(() => {
     const saved = localStorage.getItem('store-cart')
     if (saved) {
@@ -26,7 +26,7 @@ export default function CartPage() {
     }
   }, [])
 
-  // ?�바구니 변경시 localStorage ?�??
+  // 장바구니 변경시 localStorage 저장
   useEffect(() => {
     localStorage.setItem('store-cart', JSON.stringify(items))
   }, [items])
@@ -45,7 +45,7 @@ export default function CartPage() {
 
   const total = items.reduce((sum, item) => sum + item.price * item.qty, 0)
 
-  // 주문?�기
+  // 주문하기
   const handleOrder = async () => {
     if (items.length === 0) return
     
@@ -57,7 +57,7 @@ export default function CartPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // storeId 미�??�시 API?�서 밝�??�경(BK-001) ?�용
+          // storeId 미지정시 API에서 밝은안경(BK-001) 사용
           items: items.map(item => ({
             productId: item.id,
             quantity: item.qty,
@@ -71,15 +71,15 @@ export default function CartPage() {
         setOrderResult({ 
           success: true, 
           orderNo: data.order.orderNo,
-          message: `주문???�료?�었?�니??`
+          message: `주문이 완료되었습니다!`
         })
-        setItems([]) // ?�바구니 비우�?
+        setItems([]) // 장바구니 비우기
         localStorage.removeItem('store-cart')
       } else {
-        setOrderResult({ success: false, message: data.error || '주문 ?�패' })
+        setOrderResult({ success: false, message: data.error || '주문 실패' })
       }
     } catch (e) {
-      setOrderResult({ success: false, message: '주문 �??�류가 발생?�습?�다' })
+      setOrderResult({ success: false, message: '주문 중 오류가 발생했습니다' })
     } finally {
       setLoading(false)
     }
@@ -92,19 +92,19 @@ export default function CartPage() {
     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   }
 
-  // 주문 ?�료 ?�면
+  // 주문 완료 화면
   if (orderResult?.success) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-        <div style={{ fontSize: 64, marginBottom: 24 }}>??/div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>
-          주문???�료?�었?�니??
+        <div style={{ fontSize: 64, marginBottom: 24 }}>✅</div>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1d1d1f', margin: '0 0 12px' }}>
+          주문이 완료되었습니다!
         </h1>
-        <p style={{ fontSize: 16, color: 'var(--text-tertiary)', marginBottom: 8 }}>
+        <p style={{ fontSize: 16, color: '#86868b', marginBottom: 8 }}>
           주문번호: <strong style={{ color: '#007aff' }}>{orderResult.orderNo}</strong>
         </p>
-        <p style={{ fontSize: 14, color: 'var(--text-tertiary)', marginBottom: 32 }}>
-          관리자가 주문???�인?�면 출고?�니??
+        <p style={{ fontSize: 14, color: '#86868b', marginBottom: 32 }}>
+          관리자가 주문을 확인하면 출고됩니다.
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           <Link
@@ -119,21 +119,21 @@ export default function CartPage() {
               fontWeight: 600,
             }}
           >
-            주문?�역 보기
+            주문내역 보기
           </Link>
           <Link
             href="/store/products"
             style={{
               padding: '14px 28px',
-              background: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
+              background: '#f5f5f7',
+              color: '#1d1d1f',
               borderRadius: 10,
               textDecoration: 'none',
               fontSize: 15,
               fontWeight: 600,
             }}
           >
-            계속 ?�핑?�기
+            계속 쇼핑하기
           </Link>
         </div>
       </div>
@@ -144,11 +144,11 @@ export default function CartPage() {
     <div>
       {/* Page Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-          ?�바구니
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
+          장바구니
         </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 8 }}>
-          주문?�실 ?�품???�인?�세??
+        <p style={{ fontSize: 14, color: '#86868b', marginTop: 8 }}>
+          주문하실 상품을 확인하세요
         </p>
       </div>
 
@@ -161,7 +161,7 @@ export default function CartPage() {
           marginBottom: 16,
           fontSize: 14,
         }}>
-          ??{orderResult.message}
+          ❌ {orderResult.message}
         </div>
       )}
 
@@ -170,9 +170,9 @@ export default function CartPage() {
         <div style={{ flex: 1 }}>
           <div style={cardStyle}>
             {items.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-tertiary)' }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>?��</div>
-                <div style={{ fontSize: 16 }}>?�바구니가 비어?�습?�다</div>
+              <div style={{ textAlign: 'center', padding: 60, color: '#86868b' }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>🛒</div>
+                <div style={{ fontSize: 16 }}>장바구니가 비어있습니다</div>
                 <Link
                   href="/store/products"
                   style={{
@@ -187,14 +187,14 @@ export default function CartPage() {
                     fontWeight: 600,
                   }}
                 >
-                  ?�품 주문?�기
+                  상품 주문하기
                 </Link>
               </div>
             ) : (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                    �?{items.length}�??�품
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>
+                    총 {items.length}개 상품
                   </span>
                   <button
                     onClick={() => setItems([])}
@@ -208,7 +208,7 @@ export default function CartPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    ?�체 ??��
+                    전체 삭제
                   </button>
                 </div>
 
@@ -226,11 +226,11 @@ export default function CartPage() {
                       <div style={{ fontSize: 11, color: '#007aff', fontWeight: 600 }}>
                         {item.brand}
                       </div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginTop: 4 }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f', marginTop: 4 }}>
                         {item.name}
                       </div>
-                      <div style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 4 }}>
-                        {item.price.toLocaleString()}??
+                      <div style={{ fontSize: 14, color: '#86868b', marginTop: 4 }}>
+                        {item.price.toLocaleString()}원
                       </div>
                     </div>
 
@@ -242,7 +242,7 @@ export default function CartPage() {
                             width: 32,
                             height: 32,
                             borderRadius: 8,
-                            border: '1px solid var(--border-color)',
+                            border: '1px solid #e9ecef',
                             background: 'white',
                             fontSize: 16,
                             cursor: 'pointer',
@@ -255,7 +255,7 @@ export default function CartPage() {
                             width: 32,
                             height: 32,
                             borderRadius: 8,
-                            border: '1px solid var(--border-color)',
+                            border: '1px solid #e9ecef',
                             background: 'white',
                             fontSize: 16,
                             cursor: 'pointer',
@@ -264,20 +264,20 @@ export default function CartPage() {
                       </div>
 
                       <div style={{ width: 100, textAlign: 'right', fontWeight: 700, fontSize: 15 }}>
-                        {(item.price * item.qty).toLocaleString()}??
+                        {(item.price * item.qty).toLocaleString()}원
                       </div>
 
                       <button
                         onClick={() => removeItem(item.id)}
                         style={{
                           padding: '8px',
-                          color: 'var(--text-tertiary)',
+                          color: '#86868b',
                           background: 'transparent',
                           border: 'none',
                           cursor: 'pointer',
                           fontSize: 18,
                         }}
-                      >??/button>
+                      >✕</button>
                     </div>
                   </div>
                 ))}
@@ -289,22 +289,22 @@ export default function CartPage() {
         {/* Order Summary */}
         <div style={{ width: 320 }}>
           <div style={{ ...cardStyle, position: 'sticky', top: 80 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 20px' }}>
-              주문 ?�약
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', margin: '0 0 20px' }}>
+              주문 요약
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
-                <span style={{ color: 'var(--text-tertiary)' }}>?�품금액</span>
-                <span style={{ color: 'var(--text-primary)' }}>{total.toLocaleString()}??/span>
+                <span style={{ color: '#86868b' }}>상품금액</span>
+                <span style={{ color: '#1d1d1f' }}>{total.toLocaleString()}원</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
-                <span style={{ color: 'var(--text-tertiary)' }}>배송�?/span>
+                <span style={{ color: '#86868b' }}>배송비</span>
                 <span style={{ color: '#34c759' }}>무료</span>
               </div>
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>�?결제금액</span>
-                <span style={{ fontSize: 20, fontWeight: 700, color: '#007aff' }}>{total.toLocaleString()}??/span>
+              <div style={{ borderTop: '1px solid #e5e5e5', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>총 결제금액</span>
+                <span style={{ fontSize: 20, fontWeight: 700, color: '#007aff' }}>{total.toLocaleString()}원</span>
               </div>
             </div>
 
@@ -323,11 +323,11 @@ export default function CartPage() {
                 cursor: items.length === 0 || loading ? 'not-allowed' : 'pointer',
               }}
             >
-              {loading ? '주문 처리�?..' : '주문?�기'}
+              {loading ? '주문 처리중...' : '주문하기'}
             </button>
 
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', marginTop: 12 }}>
-              ?�불 결제 (?�말 ?�산)
+            <p style={{ fontSize: 12, color: '#86868b', textAlign: 'center', marginTop: 12 }}>
+              후불 결제 (월말 정산)
             </p>
           </div>
         </div>

@@ -23,7 +23,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg-secondary)'
+        background: '#f5f5f7'
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
@@ -44,24 +44,24 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
   if (!user) return null
 
   const navItems = [
-    { path: '/mobile', icon: '?��', label: '?? },
-    { path: '/mobile/orders', icon: '?��', label: '주문' },
-    { path: '/mobile/order', icon: '??, label: '주문?�록' },
-    { path: '/mobile/scan', icon: '?��', label: '?�캔' },
-    { path: '/mobile/more', icon: '??, label: '?�보�? },
+    { path: '/mobile', icon: '🏠', label: '홈' },
+    { path: '/mobile/orders', icon: '📦', label: '주문' },
+    { path: '/mobile/order', icon: '➕', label: '주문등록' },
+    { path: '/mobile/scan', icon: '📷', label: '스캔' },
+    { path: '/mobile/more', icon: '⋯', label: '더보기' },
   ]
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--bg-secondary)',
+      background: '#f5f5f7',
       paddingBottom: '80px'
     }}>
-      {/* ?�더 */}
+      {/* 헤더 */}
       <header style={{
         position: 'sticky',
         top: 0,
-        background: 'var(--bg-primary)',
+        background: '#fff',
         borderBottom: '1px solid var(--border-color)',
         padding: '12px 16px',
         display: 'flex',
@@ -72,24 +72,24 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
         <div style={{ fontWeight: 600, fontSize: '18px' }}>
           Lens<span style={{ color: '#007aff' }}>Choice</span>
         </div>
-        <div style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>
+        <div style={{ fontSize: '14px', color: '#86868b' }}>
           {user.name}
         </div>
       </header>
 
-      {/* 콘텐�?*/}
+      {/* 콘텐츠 */}
       <main style={{ padding: '16px' }}>
         {children}
       </main>
 
-      {/* ?�단 ?�비게이??*/}
+      {/* 하단 네비게이션 */}
       <nav style={{
         position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'var(--bg-primary)',
-        borderTop: '1px solid var(--border-color)',
+        background: '#fff',
+        borderTop: '1px solid #e5e5e5',
         display: 'flex',
         padding: '8px 0',
         paddingBottom: 'env(safe-area-inset-bottom, 8px)',

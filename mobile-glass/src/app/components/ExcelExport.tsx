@@ -9,7 +9,7 @@ interface ExcelExportProps {
   params?: Record<string, string>
 }
 
-export default function ExcelExport({ endpoint, filename, label = '?��? ?�운로드', params = {} }: ExcelExportProps) {
+export default function ExcelExport({ endpoint, filename, label = '엑셀 다운로드', params = {} }: ExcelExportProps) {
   const [loading, setLoading] = useState(false)
 
   const handleExport = async () => {
@@ -19,7 +19,7 @@ export default function ExcelExport({ endpoint, filename, label = '?��? ?�운로
       const res = await fetch(`${endpoint}?${queryString}`)
       
       if (!res.ok) {
-        throw new Error('?�운로드 ?�패')
+        throw new Error('다운로드 실패')
       }
 
       const blob = await res.blob()
@@ -33,7 +33,7 @@ export default function ExcelExport({ endpoint, filename, label = '?��? ?�운로
       document.body.removeChild(a)
     } catch (error) {
       console.error('Export failed:', error)
-      alert('?�운로드???�패?�습?�다.')
+      alert('다운로드에 실패했습니다.')
     } finally {
       setLoading(false)
     }
@@ -50,7 +50,7 @@ export default function ExcelExport({ endpoint, filename, label = '?��? ?�운로
         padding: '8px 16px',
         borderRadius: '8px',
         border: '1px solid #10b981',
-        background: 'var(--bg-primary)',
+        background: '#fff',
         color: '#10b981',
         fontSize: '13px',
         fontWeight: 500,
@@ -59,13 +59,13 @@ export default function ExcelExport({ endpoint, filename, label = '?��? ?�운로
         transition: 'all 0.2s',
       }}
     >
-      <span style={{ fontSize: '16px' }}>{loading ? '?? : '?��'}</span>
-      {loading ? '?�운로드 �?..' : label}
+      <span style={{ fontSize: '16px' }}>{loading ? '⏳' : '📥'}</span>
+      {loading ? '다운로드 중...' : label}
     </button>
   )
 }
 
-// ?�이�??�이?��? CSV�?변?�하???�틸
+// 테이블 데이터를 CSV로 변환하는 유틸
 export function exportToCSV(data: Record<string, unknown>[], columns: { key: string; label: string }[], filename: string) {
   // BOM for Korean support
   const BOM = '\uFEFF'
@@ -99,12 +99,12 @@ export function exportToCSV(data: Record<string, unknown>[], columns: { key: str
   document.body.removeChild(a)
 }
 
-// ?�라?�언???�이???��? ?�보?�기 버튼
+// 클라이언트 사이드 엑셀 내보내기 버튼
 export function ExcelExportButton({ 
   data, 
   columns, 
   filename, 
-  label = '?��? ?�운로드' 
+  label = '엑셀 다운로드' 
 }: { 
   data: Record<string, unknown>[]
   columns: { key: string; label: string }[]
@@ -113,7 +113,7 @@ export function ExcelExportButton({
 }) {
   const handleExport = () => {
     if (data.length === 0) {
-      alert('?�보???�이?��? ?�습?�다.')
+      alert('내보낼 데이터가 없습니다.')
       return
     }
     exportToCSV(data, columns, filename)
@@ -129,7 +129,7 @@ export function ExcelExportButton({
         padding: '8px 16px',
         borderRadius: '8px',
         border: '1px solid #10b981',
-        background: 'var(--bg-primary)',
+        background: '#fff',
         color: '#10b981',
         fontSize: '13px',
         fontWeight: 500,
@@ -137,7 +137,7 @@ export function ExcelExportButton({
         transition: 'all 0.2s',
       }}
     >
-      <span style={{ fontSize: '16px' }}>?��</span>
+      <span style={{ fontSize: '16px' }}>📥</span>
       {label}
     </button>
   )

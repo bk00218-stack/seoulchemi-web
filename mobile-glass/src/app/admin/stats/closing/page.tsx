@@ -71,8 +71,8 @@ export default function ClosingPage() {
 
   const handleClose = async (action: 'close' | 'reopen') => {
     const confirmMsg = action === 'close' 
-      ? `${year}??${month}?�을 마감?�시겠습?�까?`
-      : `${year}??${month}??마감??취소?�시겠습?�까?`
+      ? `${year}년 ${month}월을 마감하시겠습니까?`
+      : `${year}년 ${month}월 마감을 취소하시겠습니까?`
     
     if (!confirm(confirmMsg)) return
 
@@ -115,18 +115,18 @@ export default function ClosingPage() {
   return (
     <AdminLayout activeMenu="stats">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>?�마�?결산</h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>
-          ?�별 매출/매입 ?�황???�인?�고 마감 처리?�니??
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>월마감/결산</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
+          월별 매출/매입 현황을 확인하고 마감 처리합니다
         </p>
       </div>
 
-      {/* 기간 ?�택 */}
+      {/* 기간 선택 */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        background: 'var(--bg-primary)',
+        background: '#fff',
         borderRadius: '12px',
         padding: '16px 24px',
         marginBottom: '24px'
@@ -136,18 +136,18 @@ export default function ClosingPage() {
           style={{
             padding: '8px 16px',
             borderRadius: '8px',
-            border: '1px solid var(--border-color)',
-            background: 'var(--bg-primary)',
+            border: '1px solid #e9ecef',
+            background: '#fff',
             cursor: 'pointer',
             fontSize: '16px'
           }}
         >
-          ???�전
+          ← 이전
         </button>
         
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '24px', fontWeight: 700 }}>
-            {year}??{month}??
+            {year}년 {month}월
           </div>
           {data?.isClosed && (
             <span style={{
@@ -160,7 +160,7 @@ export default function ClosingPage() {
               fontSize: '13px',
               fontWeight: 500
             }}>
-              ??마감 ?�료
+              ✓ 마감 완료
             </span>
           )}
         </div>
@@ -170,21 +170,21 @@ export default function ClosingPage() {
           style={{
             padding: '8px 16px',
             borderRadius: '8px',
-            border: '1px solid var(--border-color)',
-            background: 'var(--bg-primary)',
+            border: '1px solid #e9ecef',
+            background: '#fff',
             cursor: 'pointer',
             fontSize: '16px'
           }}
         >
-          ?�음 ??
+          다음 →
         </button>
       </div>
 
       {loading ? (
-        <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
+        <div style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
       ) : data ? (
         <>
-          {/* ?�약 카드 */}
+          {/* 요약 카드 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
             <div style={{ 
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
@@ -194,38 +194,38 @@ export default function ClosingPage() {
             }}>
               <div style={{ fontSize: '14px', opacity: 0.9 }}>매출</div>
               <div style={{ fontSize: '28px', fontWeight: 700, marginTop: '8px' }}>
-                {data.sales.totalAmount.toLocaleString()}??
+                {data.sales.totalAmount.toLocaleString()}원
               </div>
               <div style={{ fontSize: '13px', opacity: 0.8, marginTop: '4px' }}>
-                {data.sales.totalOrders}�?
+                {data.sales.totalOrders}건
               </div>
             </div>
 
             <div style={{ 
-              background: 'var(--bg-primary)', 
+              background: '#fff', 
               borderRadius: '16px', 
               padding: '24px'
             }}>
-              <div style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>매입</div>
+              <div style={{ fontSize: '14px', color: '#86868b' }}>매입</div>
               <div style={{ fontSize: '28px', fontWeight: 700, marginTop: '8px' }}>
-                {data.purchases.totalAmount.toLocaleString()}??
+                {data.purchases.totalAmount.toLocaleString()}원
               </div>
-              <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-                {data.purchases.totalPurchases}�?
+              <div style={{ fontSize: '13px', color: '#86868b', marginTop: '4px' }}>
+                {data.purchases.totalPurchases}건
               </div>
             </div>
 
             <div style={{ 
-              background: 'var(--bg-primary)', 
+              background: '#fff', 
               borderRadius: '16px', 
               padding: '24px'
             }}>
-              <div style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>?�금 (?�수)</div>
+              <div style={{ fontSize: '14px', color: '#86868b' }}>입금 (회수)</div>
               <div style={{ fontSize: '28px', fontWeight: 700, marginTop: '8px', color: '#10b981' }}>
-                {data.deposits.totalAmount.toLocaleString()}??
+                {data.deposits.totalAmount.toLocaleString()}원
               </div>
-              <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-                {data.deposits.totalDeposits}�?
+              <div style={{ fontSize: '13px', color: '#86868b', marginTop: '4px' }}>
+                {data.deposits.totalDeposits}건
               </div>
             </div>
 
@@ -235,7 +235,7 @@ export default function ClosingPage() {
               padding: '24px'
             }}>
               <div style={{ fontSize: '14px', color: data.profit.gross >= 0 ? '#059669' : '#dc2626' }}>
-                매출총이??
+                매출총이익
               </div>
               <div style={{ 
                 fontSize: '28px', 
@@ -243,19 +243,19 @@ export default function ClosingPage() {
                 marginTop: '8px',
                 color: data.profit.gross >= 0 ? '#059669' : '#dc2626'
               }}>
-                {data.profit.gross.toLocaleString()}??
+                {data.profit.gross.toLocaleString()}원
               </div>
               <div style={{ fontSize: '13px', color: data.profit.gross >= 0 ? '#059669' : '#dc2626', marginTop: '4px' }}>
-                마진??{data.profit.margin}%
+                마진율 {data.profit.margin}%
               </div>
             </div>
           </div>
 
-          {/* ?�세 */}
+          {/* 상세 */}
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '24px' }}>
-            {/* ?�별 추이 */}
-            <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>?�별 매출 추이</h2>
+            {/* 일별 추이 */}
+            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>일별 매출 추이</h2>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '150px' }}>
                 {data.dailySales.map((day, idx) => {
                   const maxAmount = Math.max(...data.dailySales.map(d => d.amount), 1)
@@ -270,7 +270,7 @@ export default function ClosingPage() {
                         alignItems: 'center',
                         gap: '4px'
                       }}
-                      title={`${day.date}: ${day.amount.toLocaleString()}??(${day.orders}�?`}
+                      title={`${day.date}: ${day.amount.toLocaleString()}원 (${day.orders}건)`}
                     >
                       <div style={{
                         width: '100%',
@@ -282,7 +282,7 @@ export default function ClosingPage() {
                         minHeight: '2px'
                       }} />
                       {idx % 5 === 0 && (
-                        <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
+                        <div style={{ fontSize: '10px', color: '#86868b' }}>
                           {day.date.slice(8)}
                         </div>
                       )}
@@ -293,60 +293,60 @@ export default function ClosingPage() {
             </div>
 
             {/* 채권/채무 */}
-            <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>채권/채무 ?�황</h2>
+            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>채권/채무 현황</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ padding: '16px', background: '#fef3c7', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '13px', color: '#d97706' }}>미수�?(받을 ??</div>
+                  <div style={{ fontSize: '13px', color: '#d97706' }}>미수금 (받을 돈)</div>
                   <div style={{ fontSize: '24px', fontWeight: 700, color: '#d97706', marginTop: '4px' }}>
-                    {data.receivables.toLocaleString()}??
+                    {data.receivables.toLocaleString()}원
                   </div>
                 </div>
                 <div style={{ padding: '16px', background: '#fee2e2', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '13px', color: '#dc2626' }}>미납�?(�???</div>
+                  <div style={{ fontSize: '13px', color: '#dc2626' }}>미납금 (줄 돈)</div>
                   <div style={{ fontSize: '24px', fontWeight: 700, color: '#dc2626', marginTop: '4px' }}>
-                    {data.payables.toLocaleString()}??
+                    {data.payables.toLocaleString()}원
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ?�고/반품 */}
+          {/* 재고/반품 */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-            <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>?�고 ?�황</h2>
+            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>재고 현황</h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                 <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>�??�고</div>
+                  <div style={{ fontSize: '12px', color: '#86868b' }}>총 재고</div>
                   <div style={{ fontSize: '20px', fontWeight: 600 }}>{data.inventory.totalStock.toLocaleString()}</div>
                 </div>
                 <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>?�목 ??/div>
+                  <div style={{ fontSize: '12px', color: '#86868b' }}>품목 수</div>
                   <div style={{ fontSize: '20px', fontWeight: 600 }}>{data.inventory.totalOptions}</div>
                 </div>
                 <div style={{ padding: '12px', background: '#fef3c7', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '12px', color: '#d97706' }}>?�고 부�?/div>
+                  <div style={{ fontSize: '12px', color: '#d97706' }}>재고 부족</div>
                   <div style={{ fontSize: '20px', fontWeight: 600, color: '#d97706' }}>{data.inventory.lowStock}</div>
                 </div>
                 <div style={{ padding: '12px', background: '#fef2f2', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '12px', color: '#dc2626' }}>?�절</div>
+                  <div style={{ fontSize: '12px', color: '#dc2626' }}>품절</div>
                   <div style={{ fontSize: '20px', fontWeight: 600, color: '#dc2626' }}>{data.inventory.outOfStock}</div>
                 </div>
               </div>
             </div>
 
-            <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>반품 ?�황</h2>
+            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>반품 현황</h2>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>반품 건수</div>
-                  <div style={{ fontSize: '28px', fontWeight: 600 }}>{data.returns.totalReturns}�?/div>
+                  <div style={{ fontSize: '13px', color: '#86868b' }}>반품 건수</div>
+                  <div style={{ fontSize: '28px', fontWeight: 600 }}>{data.returns.totalReturns}건</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>반품 금액</div>
+                  <div style={{ fontSize: '13px', color: '#86868b' }}>반품 금액</div>
                   <div style={{ fontSize: '20px', fontWeight: 600, color: '#dc2626' }}>
-                    -{data.returns.totalAmount.toLocaleString()}??
+                    -{data.returns.totalAmount.toLocaleString()}원
                   </div>
                 </div>
               </div>
@@ -355,7 +355,7 @@ export default function ClosingPage() {
 
           {/* 마감 버튼 */}
           <div style={{ 
-            background: 'var(--bg-primary)', 
+            background: '#fff', 
             borderRadius: '16px', 
             padding: '24px',
             display: 'flex',
@@ -363,11 +363,11 @@ export default function ClosingPage() {
             alignItems: 'center'
           }}>
             <div>
-              <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px' }}>??마감</h2>
-              <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', margin: 0 }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px' }}>월 마감</h2>
+              <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>
                 {data.isClosed 
-                  ? '???��? 마감?�었?�니?? ?�이???�정???�한?�니??'
-                  : '마감?�면 ?�당 ?�의 ?�이???�정???�한?�니??'
+                  ? '이 달은 마감되었습니다. 데이터 수정이 제한됩니다.'
+                  : '마감하면 해당 월의 데이터 수정이 제한됩니다.'
                 }
               </p>
             </div>
@@ -378,13 +378,13 @@ export default function ClosingPage() {
                 style={{
                   padding: '12px 24px',
                   borderRadius: '8px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-primary)',
+                  border: '1px solid #e9ecef',
+                  background: '#fff',
                   fontSize: '15px',
                   cursor: processing ? 'not-allowed' : 'pointer'
                 }}
               >
-                {processing ? '처리 �?..' : '마감 취소'}
+                {processing ? '처리 중...' : '마감 취소'}
               </button>
             ) : (
               <button
@@ -401,14 +401,14 @@ export default function ClosingPage() {
                   cursor: processing ? 'not-allowed' : 'pointer'
                 }}
               >
-                {processing ? '처리 �?..' : `${year}??${month}??마감`}
+                {processing ? '처리 중...' : `${year}년 ${month}월 마감`}
               </button>
             )}
           </div>
         </>
       ) : (
-        <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
-          ?�이?��? 불러?????�습?�다
+        <div style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>
+          데이터를 불러올 수 없습니다
         </div>
       )}
     </AdminLayout>

@@ -263,7 +263,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
             <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>브랜드별 할인율</h3>
             
             {/* 추가 폼 */}
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: '#f5f5f7', borderRadius: '8px' }}>
               <select
                 value={newBrandId}
                 onChange={(e) => setNewBrandId(parseInt(e.target.value))}
@@ -341,7 +341,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
             <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>상품별 할인율</h3>
             
             {/* 추가 폼 */}
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: '#f5f5f7', borderRadius: '8px' }}>
               <select
                 value={newProductId}
                 onChange={(e) => setNewProductId(parseInt(e.target.value))}
@@ -429,7 +429,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
             </p>
             
             {/* 추가 폼 */}
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: '#f5f5f7', borderRadius: '8px' }}>
               <select
                 value={newPriceProductId}
                 onChange={(e) => {

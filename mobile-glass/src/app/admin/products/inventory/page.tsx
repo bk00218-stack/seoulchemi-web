@@ -90,71 +90,71 @@ export default function InventoryPage() {
         fetchInventory()
       } else {
         const data = await res.json()
-        alert(data.error || '?�고 조정???�패?�습?�다.')
+        alert(data.error || '재고 조정에 실패했습니다.')
       }
     } catch (error) {
-      alert('?�버 ?�류가 발생?�습?�다.')
+      alert('서버 오류가 발생했습니다.')
     }
   }
 
   return (
     <AdminLayout activeMenu="products">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>?�고 관�?/h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>?�품�??�고 ?�황???�인?�고 ?�출고�? 처리?�니??</p>
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>재고 관리</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>상품별 재고 현황을 확인하고 입출고를 처리합니다.</p>
       </div>
 
-      {/* ?�계 카드 */}
+      {/* 통계 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>?�체 ?�품</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#86868b', marginBottom: '4px' }}>전체 상품</div>
           <div style={{ fontSize: '28px', fontWeight: 600 }}>{stats.totalProducts}</div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>�??�고</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#86868b', marginBottom: '4px' }}>총 재고</div>
           <div style={{ fontSize: '28px', fontWeight: 600 }}>{stats.totalStock.toLocaleString()}</div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ fontSize: '13px', color: '#f59e0b', marginBottom: '4px' }}>?�?�고</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#f59e0b', marginBottom: '4px' }}>저재고</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#f59e0b' }}>{stats.lowStock}</div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ fontSize: '13px', color: '#ef4444', marginBottom: '4px' }}>?�절</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#ef4444', marginBottom: '4px' }}>품절</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#ef4444' }}>{stats.zeroStock}</div>
         </div>
       </div>
 
-      {/* ?�터 */}
-      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px', marginBottom: '16px', display: 'flex', gap: '12px' }}>
+      {/* 필터 */}
+      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', marginBottom: '16px', display: 'flex', gap: '12px' }}>
         <select
           value={selectedBrand}
           onChange={e => setSelectedBrand(e.target.value)}
-          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '14px' }}
+          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
         >
-          <option value="all">?�체 브랜??/option>
+          <option value="all">전체 브랜드</option>
           {brands.map(brand => (
             <option key={brand.id} value={brand.id}>{brand.name}</option>
           ))}
         </select>
         <input
           type="text"
-          placeholder="?�품�?검??.."
+          placeholder="상품명 검색..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '14px' }}
+          style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
         />
       </div>
 
-      {/* ?�품 목록 */}
-      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', overflow: 'hidden' }}>
+      {/* 상품 목록 */}
+      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
         ) : products.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>?�고 ?�이?��? ?�습?�다.</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>재고 데이터가 없습니다.</div>
         ) : (
           products.map(product => (
             <div key={product.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-              {/* ?�품 ?�더 */}
+              {/* 상품 헤더 */}
               <div
                 onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)}
                 style={{
@@ -167,37 +167,37 @@ export default function InventoryPage() {
                 }}
               >
                 <div>
-                  <span style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginRight: '8px' }}>{product.brandName}</span>
+                  <span style={{ color: '#86868b', fontSize: '12px', marginRight: '8px' }}>{product.brandName}</span>
                   <span style={{ fontWeight: 500 }}>{product.name}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <span style={{ fontSize: '14px' }}>
-                    ?�고: <strong>{product.totalStock}</strong>
+                    재고: <strong>{product.totalStock}</strong>
                   </span>
                   {product.lowStockOptions > 0 && (
                     <span style={{ fontSize: '12px', color: '#f59e0b', background: '#fef3c7', padding: '2px 8px', borderRadius: '4px' }}>
-                      ?�?�고 {product.lowStockOptions}
+                      저재고 {product.lowStockOptions}
                     </span>
                   )}
-                  <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-                    ?�션 {product.optionCount}�?
+                  <span style={{ fontSize: '12px', color: '#86868b' }}>
+                    옵션 {product.optionCount}개
                   </span>
-                  <span style={{ color: 'var(--text-tertiary)' }}>{expandedProduct === product.id ? '?? : '??}</span>
+                  <span style={{ color: '#86868b' }}>{expandedProduct === product.id ? '▲' : '▼'}</span>
                 </div>
               </div>
 
-              {/* ?�션 목록 (?�장 ?? */}
+              {/* 옵션 목록 (확장 시) */}
               {expandedProduct === product.id && product.options.length > 0 && (
                 <div style={{ padding: '0 16px 16px', background: '#f9fafb' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                         <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>SPH</th>
                         <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>CYL</th>
-                        <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>?�션</th>
-                        <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>바코??/th>
-                        <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>?�치</th>
-                        <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>?�고</th>
+                        <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>옵션</th>
+                        <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>바코드</th>
+                        <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>위치</th>
+                        <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>재고</th>
                         <th style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 500, color: '#6b7280' }}>조정</th>
                       </tr>
                     </thead>
@@ -223,8 +223,8 @@ export default function InventoryPage() {
                               style={{
                                 padding: '4px 12px',
                                 borderRadius: '4px',
-                                border: '1px solid var(--border-color)',
-                                background: 'var(--bg-primary)',
+                                border: '1px solid #e9ecef',
+                                background: '#fff',
                                 fontSize: '12px',
                                 cursor: 'pointer'
                               }}
@@ -243,7 +243,7 @@ export default function InventoryPage() {
         )}
       </div>
 
-      {/* ?�고 조정 모달 */}
+      {/* 재고 조정 모달 */}
       {showAdjustModal && adjustTarget && (
         <div style={{
           position: 'fixed',
@@ -254,24 +254,24 @@ export default function InventoryPage() {
           justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px', width: '400px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>?�고 조정</h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '20px' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '400px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>재고 조정</h2>
+            <p style={{ fontSize: '14px', color: '#86868b', marginBottom: '20px' }}>
               {adjustTarget.product.brandName} - {adjustTarget.product.name}
               {adjustTarget.option.sph && ` (${adjustTarget.option.sph}/${adjustTarget.option.cyl || '0'})`}
             </p>
 
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '14px', marginBottom: '8px' }}>?�재 ?�고: <strong>{adjustTarget.option.stock}</strong></div>
+              <div style={{ fontSize: '14px', marginBottom: '8px' }}>현재 재고: <strong>{adjustTarget.option.stock}</strong></div>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>조정 ?�형</label>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>조정 유형</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[
-                  { value: 'in', label: '?�고 (+)' },
+                  { value: 'in', label: '입고 (+)' },
                   { value: 'out', label: '출고 (-)' },
-                  { value: 'adjust', label: '직접 ?�정' }
+                  { value: 'adjust', label: '직접 설정' }
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -297,14 +297,14 @@ export default function InventoryPage() {
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>
-                {adjustType === 'adjust' ? '변경할 ?�고 ?�량' : '조정 ?�량'}
+                {adjustType === 'adjust' ? '변경할 재고 수량' : '조정 수량'}
               </label>
               <input
                 type="number"
                 value={adjustQty}
                 onChange={e => setAdjustQty(parseInt(e.target.value) || 0)}
                 min={0}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '14px' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
               />
             </div>
 
@@ -314,15 +314,15 @@ export default function InventoryPage() {
                 type="text"
                 value={adjustMemo}
                 onChange={e => setAdjustMemo(e.target.value)}
-                placeholder="조정 ?�유 ?�력"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '14px' }}
+                placeholder="조정 사유 입력"
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
               />
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => setShowAdjustModal(false)}
-                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', fontSize: '14px', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
               >
                 취소
               </button>
@@ -330,7 +330,7 @@ export default function InventoryPage() {
                 onClick={handleAdjust}
                 style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#007aff', color: '#fff', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
               >
-                ?�인
+                확인
               </button>
             </div>
           </div>

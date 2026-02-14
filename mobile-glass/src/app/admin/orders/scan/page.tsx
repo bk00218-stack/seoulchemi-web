@@ -67,10 +67,10 @@ export default function BarcodeScanPage() {
     setBarcode('')
 
     if (mode === 'inventory') {
-      // ?�고 ?�인 모드
+      // 재고 확인 모드
       await checkInventory(scannedBarcode)
     } else {
-      // 출고 ?�킹 모드
+      // 출고 피킹 모드
       await pickItem(scannedBarcode)
     }
 
@@ -79,7 +79,7 @@ export default function BarcodeScanPage() {
 
   const checkInventory = async (code: string) => {
     try {
-      // 바코?�로 ?�품 검??
+      // 바코드로 상품 검색
       const res = await fetch(`/api/products?barcode=${encodeURIComponent(code)}`)
       if (res.ok) {
         const data = await res.json()
@@ -98,14 +98,14 @@ export default function BarcodeScanPage() {
 
           setMessage({
             type: 'success',
-            text: `${product.name} - ?�고: ${option?.stock || 0}�?
+            text: `${product.name} - 재고: ${option?.stock || 0}개`
           })
         } else {
-          setMessage({ type: 'error', text: `바코??${code}�?찾을 ???�습?�다.` })
+          setMessage({ type: 'error', text: `바코드 ${code}를 찾을 수 없습니다.` })
         }
       }
     } catch (error) {
-      setMessage({ type: 'error', text: '조회 �??�류가 발생?�습?�다.' })
+      setMessage({ type: 'error', text: '조회 중 오류가 발생했습니다.' })
     }
 
     setTimeout(() => setMessage(null), 3000)
@@ -113,29 +113,29 @@ export default function BarcodeScanPage() {
 
   const pickItem = async (code: string) => {
     if (!selectedOrder) {
-      setMessage({ type: 'info', text: '먼�? 주문???�택?�주?�요.' })
+      setMessage({ type: 'info', text: '먼저 주문을 선택해주세요.' })
       setTimeout(() => setMessage(null), 3000)
       return
     }
 
-    // 주문?�서 ?�당 바코???�이??찾기
+    // 주문에서 해당 바코드 아이템 찾기
     const itemIndex = selectedOrder.items.findIndex(
       item => item.barcode === code && !item.picked
     )
 
     if (itemIndex === -1) {
-      // 바코?��? ?�거???��? ?�킹??
+      // 바코드가 없거나 이미 피킹됨
       const alreadyPicked = selectedOrder.items.find(item => item.barcode === code && item.picked)
       if (alreadyPicked) {
-        setMessage({ type: 'info', text: '?��? ?�킹???�품?�니??' })
+        setMessage({ type: 'info', text: '이미 피킹된 상품입니다.' })
       } else {
-        setMessage({ type: 'error', text: '??주문???�당 바코?��? ?�습?�다.' })
+        setMessage({ type: 'error', text: '이 주문에 해당 바코드가 없습니다.' })
       }
       setTimeout(() => setMessage(null), 3000)
       return
     }
 
-    // ?�킹 처리
+    // 피킹 처리
     const newItems = [...selectedOrder.items]
     newItems[itemIndex].picked = true
 
@@ -144,14 +144,14 @@ export default function BarcodeScanPage() {
     const pickedItem = newItems[itemIndex]
     setMessage({
       type: 'success',
-      text: `??${pickedItem.productName} ${pickedItem.sph || ''} ${pickedItem.cyl || ''}`
+      text: `✓ ${pickedItem.productName} ${pickedItem.sph || ''} ${pickedItem.cyl || ''}`
     })
 
-    // 모든 ?�이???�킹 ?�료 ?�인
+    // 모든 아이템 피킹 완료 확인
     const allPicked = newItems.every(item => item.picked)
     if (allPicked) {
       setTimeout(() => {
-        setMessage({ type: 'success', text: '?�� 모든 ?�품 ?�킹 ?�료!' })
+        setMessage({ type: 'success', text: '🎉 모든 상품 피킹 완료!' })
       }, 1000)
     }
 
@@ -163,13 +163,13 @@ export default function BarcodeScanPage() {
 
     const unpicked = selectedOrder.items.filter(item => !item.picked)
     if (unpicked.length > 0) {
-      if (!confirm(`${unpicked.length}�?미피???�품???�습?�다. 계속?�시겠습?�까?`)) {
+      if (!confirm(`${unpicked.length}개 미피킹 상품이 있습니다. 계속하시겠습니까?`)) {
         return
       }
     }
 
     try {
-      // 출고 처리 API ?�출
+      // 출고 처리 API 호출
       const res = await fetch(`/api/orders/${selectedOrder.id}/shipping`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -180,15 +180,15 @@ export default function BarcodeScanPage() {
       })
 
       if (res.ok) {
-        setMessage({ type: 'success', text: '출고 처리가 ?�료?�었?�니??' })
+        setMessage({ type: 'success', text: '출고 처리가 완료되었습니다!' })
         setSelectedOrder(null)
         fetchPendingOrders()
       } else {
         const data = await res.json()
-        setMessage({ type: 'error', text: data.error || '출고 처리???�패?�습?�다.' })
+        setMessage({ type: 'error', text: data.error || '출고 처리에 실패했습니다.' })
       }
     } catch (error) {
-      setMessage({ type: 'error', text: '?�버 ?�류가 발생?�습?�다.' })
+      setMessage({ type: 'error', text: '서버 오류가 발생했습니다.' })
     }
 
     setTimeout(() => setMessage(null), 3000)
@@ -197,13 +197,13 @@ export default function BarcodeScanPage() {
   return (
     <AdminLayout activeMenu="order">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>바코???�캔</h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>
-          바코?��? ?�캔?�여 ?�고�??�인?�거??출고 ?�킹??진행?�니??
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>바코드 스캔</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
+          바코드를 스캔하여 재고를 확인하거나 출고 피킹을 진행합니다.
         </p>
       </div>
 
-      {/* 모드 ?�택 */}
+      {/* 모드 선택 */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
         <button
           onClick={() => setMode('shipping')}
@@ -212,13 +212,13 @@ export default function BarcodeScanPage() {
             borderRadius: '8px',
             border: 'none',
             background: mode === 'shipping' ? '#007aff' : '#f3f4f6',
-            color: mode === 'shipping' ? '#fff' : 'var(--text-primary)',
+            color: mode === 'shipping' ? '#fff' : '#1d1d1f',
             fontSize: '14px',
             fontWeight: 500,
             cursor: 'pointer'
           }}
         >
-          ?�� 출고 ?�킹
+          📦 출고 피킹
         </button>
         <button
           onClick={() => setMode('inventory')}
@@ -227,13 +227,13 @@ export default function BarcodeScanPage() {
             borderRadius: '8px',
             border: 'none',
             background: mode === 'inventory' ? '#007aff' : '#f3f4f6',
-            color: mode === 'inventory' ? '#fff' : 'var(--text-primary)',
+            color: mode === 'inventory' ? '#fff' : '#1d1d1f',
             fontSize: '14px',
             fontWeight: 500,
             cursor: 'pointer'
           }}
         >
-          ?�� ?�고 ?�인
+          📊 재고 확인
         </button>
       </div>
 
@@ -253,12 +253,12 @@ export default function BarcodeScanPage() {
         </div>
       )}
 
-      {/* 바코???�력 */}
+      {/* 바코드 입력 */}
       <form onSubmit={handleScan} style={{ marginBottom: '24px' }}>
         <div style={{
           display: 'flex',
           gap: '12px',
-          background: 'var(--bg-primary)',
+          background: '#fff',
           borderRadius: '16px',
           padding: '20px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
@@ -268,7 +268,7 @@ export default function BarcodeScanPage() {
             type="text"
             value={barcode}
             onChange={e => setBarcode(e.target.value)}
-            placeholder="바코?��? ?�캔?�세??.."
+            placeholder="바코드를 스캔하세요..."
             autoFocus
             style={{
               flex: 1,
@@ -279,7 +279,7 @@ export default function BarcodeScanPage() {
               outline: 'none'
             }}
             onFocus={e => e.target.style.borderColor = '#007aff'}
-            onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+            onBlur={e => e.target.style.borderColor = '#e5e5e5'}
           />
           <button
             type="submit"
@@ -294,17 +294,17 @@ export default function BarcodeScanPage() {
               cursor: 'pointer'
             }}
           >
-            ?�캔
+            스캔
           </button>
         </div>
       </form>
 
       <div style={{ display: 'grid', gridTemplateColumns: mode === 'shipping' ? '1fr 1fr' : '1fr', gap: '24px' }}>
-        {/* 출고 모드: 주문 ?�택 */}
+        {/* 출고 모드: 주문 선택 */}
         {mode === 'shipping' && (
-          <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '20px' }}>
             <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
-              출고 ?��?주문 ({pendingOrders.length})
+              출고 대기 주문 ({pendingOrders.length})
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflow: 'auto' }}>
               {pendingOrders.map(order => (
@@ -315,31 +315,31 @@ export default function BarcodeScanPage() {
                     padding: '12px 16px',
                     borderRadius: '8px',
                     border: selectedOrder?.id === order.id ? '2px solid #007aff' : '1px solid #e5e5e5',
-                    background: selectedOrder?.id === order.id ? '#eff6ff' : 'var(--bg-primary)',
+                    background: selectedOrder?.id === order.id ? '#eff6ff' : '#fff',
                     cursor: 'pointer'
                   }}
                 >
                   <div style={{ fontWeight: 500, marginBottom: '4px' }}>{order.storeName}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
-                    {order.orderNo} · {order.items?.length || 0}�??�목
+                  <div style={{ fontSize: '13px', color: '#86868b' }}>
+                    {order.orderNo} · {order.items?.length || 0}개 품목
                   </div>
                 </div>
               ))}
               {pendingOrders.length === 0 && (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                  출고 ?��?주문???�습?�다.
+                <div style={{ padding: '20px', textAlign: 'center', color: '#86868b' }}>
+                  출고 대기 주문이 없습니다.
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* 출고 모드: ?�킹 목록 */}
+        {/* 출고 모드: 피킹 목록 */}
         {mode === 'shipping' && selectedOrder && (
-          <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>
-                ?�킹 목록 - {selectedOrder.storeName}
+                피킹 목록 - {selectedOrder.storeName}
               </h2>
               <button
                 onClick={completeShipping}
@@ -354,7 +354,7 @@ export default function BarcodeScanPage() {
                   cursor: 'pointer'
                 }}
               >
-                출고 ?�료
+                출고 완료
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -374,25 +374,25 @@ export default function BarcodeScanPage() {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    background: item.picked ? '#10b981' : 'var(--gray-300)',
+                    background: item.picked ? '#10b981' : '#e5e5e5',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#fff',
                     fontSize: '14px'
                   }}>
-                    {item.picked ? '?? : ''}
+                    {item.picked ? '✓' : ''}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 500, marginBottom: '2px' }}>
                       {item.brandName} {item.productName}
                     </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
-                      {item.sph || '-'} / {item.cyl || '-'} · {item.quantity}�?
+                    <div style={{ fontSize: '13px', color: '#86868b' }}>
+                      {item.sph || '-'} / {item.cyl || '-'} · {item.quantity}개
                     </div>
                   </div>
                   {item.barcode && (
-                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '11px', color: '#86868b', fontFamily: 'monospace' }}>
                       {item.barcode}
                     </div>
                   )}
@@ -401,17 +401,17 @@ export default function BarcodeScanPage() {
             </div>
             <div style={{ marginTop: '16px', padding: '12px', background: '#f9fafb', borderRadius: '8px', textAlign: 'center' }}>
               <span style={{ fontSize: '14px' }}>
-                ?�킹 ?�료: {selectedOrder.items.filter(i => i.picked).length} / {selectedOrder.items.length}
+                피킹 완료: {selectedOrder.items.filter(i => i.picked).length} / {selectedOrder.items.length}
               </span>
             </div>
           </div>
         )}
 
-        {/* ?�고 ?�인 모드: ?�캔 ?�력 */}
+        {/* 재고 확인 모드: 스캔 이력 */}
         {mode === 'inventory' && (
-          <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '20px' }}>
             <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
-              ?�캔 ?�력 ({scannedItems.length})
+              스캔 이력 ({scannedItems.length})
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px', overflow: 'auto' }}>
               {scannedItems.map((item, idx) => (
@@ -430,8 +430,8 @@ export default function BarcodeScanPage() {
                     <div style={{ fontWeight: 500, marginBottom: '2px' }}>
                       {item.brandName} {item.productName}
                     </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
-                      {item.optionName || '-'} · 바코?? {item.barcode}
+                    <div style={{ fontSize: '13px', color: '#86868b' }}>
+                      {item.optionName || '-'} · 바코드: {item.barcode}
                     </div>
                   </div>
                   <div style={{
@@ -441,13 +441,13 @@ export default function BarcodeScanPage() {
                     color: item.stock > 5 ? '#059669' : item.stock > 0 ? '#d97706' : '#dc2626',
                     fontWeight: 600
                   }}>
-                    {item.stock}�?
+                    {item.stock}개
                   </div>
                 </div>
               ))}
               {scannedItems.length === 0 && (
-                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                  바코?��? ?�캔?�면 ?�기???�시?�니??
+                <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  바코드를 스캔하면 여기에 표시됩니다.
                 </div>
               )}
             </div>

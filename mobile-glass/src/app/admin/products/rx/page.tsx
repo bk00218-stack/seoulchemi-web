@@ -31,7 +31,7 @@ export default function RxProductsPage() {
   const loadData = async () => {
     try {
       const params = new URLSearchParams()
-      params.append('optionType', '?�경?�즈 RX')
+      params.append('optionType', '안경렌즈 RX')
       if (brandFilter) params.append('brandId', brandFilter)
       if (search) params.append('search', search)
       
@@ -46,28 +46,28 @@ export default function RxProductsPage() {
   }
 
   const columns: Column<RxProduct>[] = [
-    { key: 'brandName', label: '브랜??, render: (v) => (
+    { key: 'brandName', label: '브랜드', render: (v) => (
       <span style={{ background: '#f0f7ff', color: '#007aff', padding: '2px 8px', borderRadius: '4px', fontSize: '12px' }}>
         {v as string}
       </span>
     )},
-    { key: 'name', label: '?�품�?, render: (v) => (
+    { key: 'name', label: '상품명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
-    { key: 'refractiveIndex', label: '굴절�?, align: 'center', render: (v) => (
+    { key: 'refractiveIndex', label: '굴절률', align: 'center', render: (v) => (
       <span style={{ color: '#666' }}>{(v as string) || '-'}</span>
     )},
     { key: 'hasSph', label: 'SPH', align: 'center', render: (v, row) => {
       const options = [row.hasSph && 'S', row.hasCyl && 'C', row.hasAxis && 'A'].filter(Boolean).join(' ')
-      return <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{options || '-'}</span>
+      return <span style={{ color: '#86868b', fontSize: '12px' }}>{options || '-'}</span>
     }},
     { key: 'purchasePrice', label: '매입가', align: 'right', render: (v) => (
-      <span style={{ color: 'var(--text-tertiary)' }}>{(v as number).toLocaleString()}??/span>
+      <span style={{ color: '#86868b' }}>{(v as number).toLocaleString()}원</span>
     )},
-    { key: 'sellingPrice', label: '?�매가', align: 'right', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{(v as number).toLocaleString()}??/span>
+    { key: 'sellingPrice', label: '판매가', align: 'right', render: (v) => (
+      <span style={{ fontWeight: 500 }}>{(v as number).toLocaleString()}원</span>
     )},
-    { key: 'isActive', label: '?�태', align: 'center', render: (v) => (
+    { key: 'isActive', label: '상태', align: 'center', render: (v) => (
       <StatusBadge status={v ? 'active' : 'inactive'} />
     )},
   ]
@@ -82,41 +82,41 @@ export default function RxProductsPage() {
 
   return (
     <AdminLayout activeMenu="products">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
-        RX?�품 관�?
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
+        RX상품 관리
       </h2>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>�?RX?�품</div>
-          <div style={{ fontSize: '28px', fontWeight: 600 }}>{data.length}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 RX상품</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{data.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�성</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{activeCount}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>활성</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{activeCount}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>브랜??/div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{brands.length}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>브랜드</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{brands.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
         </div>
       </div>
 
       <SearchFilter
-        placeholder="?�품�? 브랜??검??
+        placeholder="상품명, 브랜드 검색"
         value={search}
         onChange={setSearch}
         onSearch={() => { setLoading(true); loadData(); }}
         filters={[{
-          key: 'brand', label: '브랜??,
+          key: 'brand', label: '브랜드',
           options: [
-            { label: '?�체 브랜??, value: '' },
+            { label: '전체 브랜드', value: '' },
             ...brands.map(b => ({ label: b, value: b }))
           ],
           value: brandFilter, onChange: setBrandFilter
         }]}
       />
 
-      <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="RX?�품???�습?�다" />
+      <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="RX상품이 없습니다" />
     </AdminLayout>
   )
 }

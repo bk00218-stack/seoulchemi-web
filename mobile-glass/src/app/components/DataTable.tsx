@@ -26,7 +26,7 @@ export default function DataTable<T extends Record<string, any>>({
   columns,
   data,
   loading = false,
-  emptyMessage = '?�이?��? ?�습?�다',
+  emptyMessage = '데이터가 없습니다',
   selectable = false,
   selectedIds = new Set(),
   onSelectionChange,
@@ -55,7 +55,7 @@ export default function DataTable<T extends Record<string, any>>({
   }
 
   return (
-    <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
@@ -77,7 +77,7 @@ export default function DataTable<T extends Record<string, any>>({
                   textAlign: col.align || 'left',
                   fontSize: '11px',
                   fontWeight: 500,
-                  color: 'var(--text-tertiary)',
+                  color: '#86868b',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
                   width: col.width
@@ -93,16 +93,16 @@ export default function DataTable<T extends Record<string, any>>({
             <tr>
               <td
                 colSpan={columns.length + (selectable ? 1 : 0)}
-                style={{ padding: '60px', textAlign: 'center', color: 'var(--text-tertiary)' }}
+                style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}
               >
-                로딩�?..
+                로딩중...
               </td>
             </tr>
           ) : data.length === 0 ? (
             <tr>
               <td
                 colSpan={columns.length + (selectable ? 1 : 0)}
-                style={{ padding: '60px', textAlign: 'center', color: 'var(--text-tertiary)' }}
+                style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}
               >
                 {emptyMessage}
               </td>
@@ -116,7 +116,7 @@ export default function DataTable<T extends Record<string, any>>({
                   key={rowId}
                   onClick={() => onRowClick?.(row)}
                   style={{
-                    borderBottom: '1px solid var(--border-color)',
+                    borderBottom: '1px solid #f5f5f5',
                     background: isSelected ? '#f0f7ff' : 'transparent',
                     cursor: onRowClick ? 'pointer' : 'default'
                   }}
@@ -142,7 +142,7 @@ export default function DataTable<T extends Record<string, any>>({
                         padding: '12px 14px',
                         textAlign: col.align || 'left',
                         fontSize: '13px',
-                        color: 'var(--text-primary)'
+                        color: '#1d1d1f'
                       }}
                     >
                       {col.render
@@ -160,22 +160,22 @@ export default function DataTable<T extends Record<string, any>>({
   )
 }
 
-// ?�태 뱃�? 컴포?�트
+// 상태 뱃지 컴포넌트
 export function StatusBadge({ status, statusMap }: { 
   status: string
   statusMap?: Record<string, { bg: string; color: string; label: string }>
 }) {
   const defaultMap: Record<string, { bg: string; color: string; label: string }> = {
-    pending: { bg: '#fff3e0', color: '#ff9500', label: '?��? },
-    confirmed: { bg: '#eef4ee', color: '#007aff', label: '?�인' },
+    pending: { bg: '#fff3e0', color: '#ff9500', label: '대기' },
+    confirmed: { bg: '#eef4ee', color: '#007aff', label: '확인' },
     shipped: { bg: '#e8f5e9', color: '#34c759', label: '출고' },
-    delivered: { bg: '#f3e5f5', color: '#af52de', label: '?�료' },
+    delivered: { bg: '#f3e5f5', color: '#af52de', label: '완료' },
     cancelled: { bg: '#ffebee', color: '#ff3b30', label: '취소' },
-    active: { bg: '#e8f5e9', color: '#34c759', label: '?�성' },
-    inactive: { bg: '#f5f5f5', color: 'var(--text-tertiary)', label: '비활?? }
+    active: { bg: '#e8f5e9', color: '#34c759', label: '활성' },
+    inactive: { bg: '#f5f5f5', color: '#86868b', label: '비활성' }
   }
   const map = statusMap || defaultMap
-  const s = map[status] || { bg: 'var(--bg-secondary)', color: 'var(--text-tertiary)', label: status }
+  const s = map[status] || { bg: '#f5f5f5', color: '#86868b', label: status }
 
   return (
     <span

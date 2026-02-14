@@ -87,7 +87,7 @@ export default function ShortcutsPage() {
 
   const handleSubmit = async () => {
     if (!form.shortcode || !form.productId) {
-      alert('?�축코드?� ?�품???�력?�주?�요')
+      alert('단축코드와 상품을 입력해주세요')
       return
     }
 
@@ -107,7 +107,7 @@ export default function ShortcutsPage() {
         fetchData()
       } else {
         const error = await res.json()
-        alert(error.error || '?�?�에 ?�패?�습?�다')
+        alert(error.error || '저장에 실패했습니다')
       }
     } catch (error) {
       console.error('Failed to save:', error)
@@ -115,7 +115,7 @@ export default function ShortcutsPage() {
   }
 
   const handleDelete = async (shortcut: Shortcut) => {
-    if (!confirm(`"${shortcut.shortcode}" ?�축코드�???��?�시겠습?�까?`)) return
+    if (!confirm(`"${shortcut.shortcode}" 단축코드를 삭제하시겠습니까?`)) return
 
     try {
       const res = await fetch(`/api/products/shortcuts/${shortcut.id}`, {
@@ -150,24 +150,24 @@ export default function ShortcutsPage() {
   return (
     <AdminLayout activeMenu="products">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>?�품 ?�축코드</h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>
-          ?�축코드�?빠르�??�품??찾습?�다 (?? K156 ??케�?1.56)
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>상품 단축코드</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
+          단축코드로 빠르게 상품을 찾습니다 (예: K156 → 케미 1.56)
         </p>
       </div>
 
-      {/* 검??추�? */}
+      {/* 검색/추가 */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
         <input
           type="text"
-          placeholder="?�축코드, ?�품�?검??.."
+          placeholder="단축코드, 상품명 검색..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
             flex: 1,
             padding: '10px 16px',
             borderRadius: '8px',
-            border: '1px solid var(--border-color)',
+            border: '1px solid #e9ecef',
             fontSize: '14px'
           }}
         />
@@ -183,34 +183,34 @@ export default function ShortcutsPage() {
             cursor: 'pointer'
           }}
         >
-          + ?�축코드 ?�록
+          + 단축코드 등록
         </button>
       </div>
 
       {/* 목록 */}
-      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#f9fafb', borderBottom: '1px solid var(--border-color)' }}>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>?�축코드</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>?�품</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>?�명</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>?�용?�수</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>?�태</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>관�?/th>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e9ecef' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>단축코드</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>상품</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>설명</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>사용횟수</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>상태</th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>관리</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                  로딩 �?..
+                <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  로딩 중...
                 </td>
               </tr>
             ) : filteredShortcuts.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                  {search ? '검??결과가 ?�습?�다' : '?�록???�축코드가 ?�습?�다'}
+                <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
+                  {search ? '검색 결과가 없습니다' : '등록된 단축코드가 없습니다'}
                 </td>
               </tr>
             ) : (
@@ -232,7 +232,7 @@ export default function ShortcutsPage() {
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ fontWeight: 500, fontSize: '14px' }}>{shortcut.product?.name}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{shortcut.product?.brand.name}</div>
+                    <div style={{ fontSize: '12px', color: '#86868b' }}>{shortcut.product?.brand.name}</div>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '14px', color: '#666' }}>
                     {shortcut.description || '-'}
@@ -244,7 +244,7 @@ export default function ShortcutsPage() {
                       borderRadius: '10px',
                       fontSize: '13px'
                     }}>
-                      {shortcut.useCount}??
+                      {shortcut.useCount}회
                     </span>
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -260,7 +260,7 @@ export default function ShortcutsPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      {shortcut.isActive ? '?�용' : '미사??}
+                      {shortcut.isActive ? '사용' : '미사용'}
                     </button>
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -269,14 +269,14 @@ export default function ShortcutsPage() {
                       style={{
                         padding: '4px 8px',
                         borderRadius: '4px',
-                        border: '1px solid var(--border-color)',
-                        background: 'var(--bg-primary)',
+                        border: '1px solid #e9ecef',
+                        background: '#fff',
                         fontSize: '12px',
                         cursor: 'pointer',
                         marginRight: '4px'
                       }}
                     >
-                      ?�정
+                      수정
                     </button>
                     <button
                       onClick={() => handleDelete(shortcut)}
@@ -290,7 +290,7 @@ export default function ShortcutsPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      ??��
+                      삭제
                     </button>
                   </td>
                 </tr>
@@ -315,31 +315,31 @@ export default function ShortcutsPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: 'var(--bg-primary)',
+            background: '#fff',
             borderRadius: '16px',
             padding: '24px',
             width: '450px'
           }}>
             <h2 style={{ margin: '0 0 20px', fontSize: '18px' }}>
-              {editingShortcut ? '?�축코드 ?�정' : '?�축코드 ?�록'}
+              {editingShortcut ? '단축코드 수정' : '단축코드 등록'}
             </h2>
 
             <div style={{ display: 'grid', gap: '16px' }}>
               <div>
                 <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  ?�축코드 *
+                  단축코드 *
                 </label>
                 <input
                   type="text"
                   value={form.shortcode}
                   onChange={(e) => setForm({ ...form, shortcode: e.target.value.toUpperCase() })}
-                  placeholder="?? K156, CHM174"
+                  placeholder="예: K156, CHM174"
                   disabled={!!editingShortcut}
                   style={{
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px',
                     fontFamily: 'monospace',
                     textTransform: 'uppercase',
@@ -350,7 +350,7 @@ export default function ShortcutsPage() {
 
               <div>
                 <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  ?�품 *
+                  상품 *
                 </label>
                 
                 {form.productId && (
@@ -365,7 +365,7 @@ export default function ShortcutsPage() {
                   }}>
                     <div>
                       <div style={{ fontWeight: 500, fontSize: '14px' }}>{getProductById(form.productId)?.name}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{getProductById(form.productId)?.brand.name}</div>
+                      <div style={{ fontSize: '12px', color: '#86868b' }}>{getProductById(form.productId)?.brand.name}</div>
                     </div>
                     <button
                       onClick={() => setForm({ ...form, productId: null })}
@@ -373,11 +373,11 @@ export default function ShortcutsPage() {
                         padding: '4px 8px',
                         borderRadius: '4px',
                         border: 'none',
-                        background: 'var(--bg-primary)',
+                        background: '#fff',
                         cursor: 'pointer'
                       }}
                     >
-                      변�?
+                      변경
                     </button>
                   </div>
                 )}
@@ -386,14 +386,14 @@ export default function ShortcutsPage() {
                   <>
                     <input
                       type="text"
-                      placeholder="?�품 검??.."
+                      placeholder="상품 검색..."
                       value={productSearch}
                       onChange={(e) => setProductSearch(e.target.value)}
                       style={{
                         width: '100%',
                         padding: '10px',
                         borderRadius: '8px',
-                        border: '1px solid var(--border-color)',
+                        border: '1px solid #e9ecef',
                         fontSize: '14px'
                       }}
                     />
@@ -402,7 +402,7 @@ export default function ShortcutsPage() {
                       <div style={{ 
                         maxHeight: '200px', 
                         overflow: 'auto', 
-                        border: '1px solid var(--border-color)',
+                        border: '1px solid #e9ecef',
                         borderRadius: '8px',
                         marginTop: '8px'
                       }}>
@@ -420,7 +420,7 @@ export default function ShortcutsPage() {
                             }}
                           >
                             <div style={{ fontSize: '14px' }}>{product.name}</div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{product.brand.name}</div>
+                            <div style={{ fontSize: '12px', color: '#86868b' }}>{product.brand.name}</div>
                           </div>
                         ))}
                       </div>
@@ -431,18 +431,18 @@ export default function ShortcutsPage() {
 
               <div>
                 <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  ?�명 (?�택)
+                  설명 (선택)
                 </label>
                 <input
                   type="text"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="?? 케�?1.56 기본"
+                  placeholder="예: 케미 1.56 기본"
                   style={{
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -455,8 +455,8 @@ export default function ShortcutsPage() {
                 style={{
                   padding: '10px 20px',
                   borderRadius: '8px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-primary)',
+                  border: '1px solid #e9ecef',
+                  background: '#fff',
                   cursor: 'pointer'
                 }}
               >
@@ -474,7 +474,7 @@ export default function ShortcutsPage() {
                   cursor: 'pointer'
                 }}
               >
-                {editingShortcut ? '?�정' : '?�록'}
+                {editingShortcut ? '수정' : '등록'}
               </button>
             </div>
           </div>

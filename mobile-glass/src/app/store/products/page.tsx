@@ -37,7 +37,7 @@ export default function StoreProductsPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [addedProduct, setAddedProduct] = useState<string | null>(null)
 
-  // localStorage?�서 ?�바구니 불러?�기
+  // localStorage에서 장바구니 불러오기
   useEffect(() => {
     const saved = localStorage.getItem('store-cart')
     if (saved) {
@@ -96,12 +96,12 @@ export default function StoreProductsPage() {
       } else {
         newCart = [...prev, cartItem]
       }
-      // localStorage???�??
+      // localStorage에 저장
       localStorage.setItem('store-cart', JSON.stringify(newCart))
       return newCart
     })
 
-    // 추�? ?�림 ?�시
+    // 추가 알림 표시
     setAddedProduct(product.name)
     setTimeout(() => setAddedProduct(null), 2000)
   }
@@ -117,33 +117,33 @@ export default function StoreProductsPage() {
     <div>
       {/* Page Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-          ?�품 주문
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
+          상품 주문
         </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 8 }}>
-          ?�하?�는 ?�즈�??�택?�여 주문?�세??
+        <p style={{ fontSize: 14, color: '#86868b', marginTop: 8 }}>
+          원하시는 렌즈를 선택하여 주문하세요
         </p>
       </div>
 
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         <div style={{ ...cardStyle, borderLeft: '4px solid #007aff' }}>
-          <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>?�체 ?�품</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#007aff', marginTop: 4 }}>{products.length}<span style={{ fontSize: 14, fontWeight: 400 }}>�?/span></div>
+          <div style={{ fontSize: 13, color: '#86868b' }}>전체 상품</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#007aff', marginTop: 4 }}>{products.length}<span style={{ fontSize: 14, fontWeight: 400 }}>개</span></div>
         </div>
         <div style={{ ...cardStyle, borderLeft: '4px solid #34c759' }}>
-          <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>브랜??/div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#34c759', marginTop: 4 }}>{brands.length}<span style={{ fontSize: 14, fontWeight: 400 }}>�?/span></div>
+          <div style={{ fontSize: 13, color: '#86868b' }}>브랜드</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#34c759', marginTop: 4 }}>{brands.length}<span style={{ fontSize: 14, fontWeight: 400 }}>개</span></div>
         </div>
         <div style={{ ...cardStyle, borderLeft: '4px solid #ff9500' }}>
-          <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>?�바구니</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#ff9500', marginTop: 4 }}>{cart.length}<span style={{ fontSize: 14, fontWeight: 400 }}>�?/span></div>
+          <div style={{ fontSize: 13, color: '#86868b' }}>장바구니</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#ff9500', marginTop: 4 }}>{cart.length}<span style={{ fontSize: 14, fontWeight: 400 }}>개</span></div>
         </div>
         <div style={{ ...cardStyle, borderLeft: '4px solid #af52de' }}>
-          <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>주문금액</div>
+          <div style={{ fontSize: 13, color: '#86868b' }}>주문금액</div>
           <div style={{ fontSize: 28, fontWeight: 700, color: '#af52de', marginTop: 4 }}>
             {cart.reduce((sum, item) => sum + item.price * item.qty, 0).toLocaleString()}
-            <span style={{ fontSize: 14, fontWeight: 400 }}>??/span>
+            <span style={{ fontSize: 14, fontWeight: 400 }}>원</span>
           </div>
         </div>
       </div>
@@ -152,7 +152,7 @@ export default function StoreProductsPage() {
         {/* Brands Sidebar */}
         <div style={{ width: 200, flexShrink: 0 }}>
           <div style={cardStyle}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 12px' }}>브랜??/h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', margin: '0 0 12px' }}>브랜드</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <button
                 onClick={() => setSelectedBrand(null)}
@@ -169,7 +169,7 @@ export default function StoreProductsPage() {
                   transition: 'all 0.2s',
                 }}
               >
-                ?�체 ({products.length})
+                전체 ({products.length})
               </button>
               {brands.map(brand => (
                 <button
@@ -201,14 +201,14 @@ export default function StoreProductsPage() {
           <div style={{ ...cardStyle, marginBottom: 16, padding: 16 }}>
             <input
               type="text"
-              placeholder="?�품�? 브랜??검??.."
+              placeholder="상품명, 브랜드 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
                 width: '100%',
                 padding: '12px 16px',
                 fontSize: 14,
-                border: '1px solid var(--border-color)',
+                border: '1px solid #e9ecef',
                 borderRadius: 10,
                 outline: 'none',
                 boxSizing: 'border-box',
@@ -219,12 +219,12 @@ export default function StoreProductsPage() {
           {/* Products */}
           <div style={cardStyle}>
             {loading ? (
-              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
-                로딩 �?..
+              <div style={{ textAlign: 'center', padding: 40, color: '#86868b' }}>
+                로딩 중...
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
-                ?�품???�습?�다
+              <div style={{ textAlign: 'center', padding: 40, color: '#86868b' }}>
+                상품이 없습니다
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
@@ -232,7 +232,7 @@ export default function StoreProductsPage() {
                   <div
                     key={product.id}
                     style={{
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       borderRadius: 12,
                       padding: 16,
                       transition: 'all 0.2s',
@@ -243,15 +243,15 @@ export default function StoreProductsPage() {
                     <div style={{ fontSize: 11, color: '#007aff', fontWeight: 600, marginBottom: 4 }}>
                       {product.brand}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 4 }}>
                       {product.name}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, color: '#86868b', marginBottom: 8 }}>
                       {product.bundleName || product.optionType}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {product.sellingPrice?.toLocaleString()}??
+                      <span style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f' }}>
+                        {product.sellingPrice?.toLocaleString()}원
                       </span>
                       <button
                         style={{
@@ -265,7 +265,7 @@ export default function StoreProductsPage() {
                           cursor: 'pointer',
                         }}
                       >
-                        ?�기
+                        담기
                       </button>
                     </div>
                   </div>
@@ -274,8 +274,8 @@ export default function StoreProductsPage() {
             )}
             
             {filteredProducts.length > 30 && (
-              <div style={{ textAlign: 'center', marginTop: 20, color: 'var(--text-tertiary)', fontSize: 13 }}>
-                + {filteredProducts.length - 30}�????�음
+              <div style={{ textAlign: 'center', marginTop: 20, color: '#86868b', fontSize: 13 }}>
+                + {filteredProducts.length - 30}개 더 있음
               </div>
             )}
           </div>
@@ -298,7 +298,7 @@ export default function StoreProductsPage() {
           zIndex: 1000,
           animation: 'slideIn 0.3s ease',
         }}>
-          ??{addedProduct} ?�바구니???��?
+          ✓ {addedProduct} 장바구니에 담김
         </div>
       )}
 
@@ -323,10 +323,10 @@ export default function StoreProductsPage() {
             fontWeight: 600,
           }}
         >
-          <span>?��</span>
-          <span>?�바구니 ({cart.length})</span>
+          <span>🛒</span>
+          <span>장바구니 ({cart.length})</span>
           <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 20 }}>
-            {cart.reduce((sum, item) => sum + item.price * item.qty, 0).toLocaleString()}??
+            {cart.reduce((sum, item) => sum + item.price * item.qty, 0).toLocaleString()}원
           </span>
         </Link>
       )}

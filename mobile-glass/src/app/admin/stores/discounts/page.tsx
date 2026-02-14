@@ -35,9 +35,9 @@ export default function DiscountsPage() {
   }
 
   const columns: Column<GroupDiscount>[] = [
-    { key: 'name', label: '그룹�?, render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
-    { key: 'storeCount', label: '가맹점 ??, align: 'center', render: (v) => <span>{v as number}�?/span> },
-    { key: 'discountRate', label: '기본 ?�인??, align: 'center', render: (v) => (
+    { key: 'name', label: '그룹명', render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
+    { key: 'storeCount', label: '가맹점 수', align: 'center', render: (v) => <span>{v as number}개</span> },
+    { key: 'discountRate', label: '기본 할인율', align: 'center', render: (v) => (
       <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '3px 10px', borderRadius: '12px', fontSize: '13px', fontWeight: 500 }}>
         {v as number}%
       </span>
@@ -46,43 +46,43 @@ export default function DiscountsPage() {
       key: `brand_${brand.id}` as keyof GroupDiscount,
       label: brand.name,
       align: 'center' as const,
-      render: () => <input type="number" defaultValue={0} style={{ width: '50px', textAlign: 'center', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px' }} />
+      render: () => <input type="number" defaultValue={0} style={{ width: '50px', textAlign: 'center', padding: '4px', border: '1px solid #e9ecef', borderRadius: '4px' }} />
     }))
   ]
 
   return (
     <AdminLayout activeMenu="stores">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>그룹�??�인???�정</h2>
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>그룹별 할인율 설정</h2>
 
       <div style={{ background: '#eef4ee', borderRadius: '8px', padding: '16px 20px', marginBottom: '24px', fontSize: '14px', color: '#4a6b4a' }}>
-        ?�� �?그룹별로 브랜???�인?�을 ?�정?????�습?�다. �?칸�? 기본 ?�인?�이 ?�용?�니??
+        💡 각 그룹별로 브랜드 할인율을 설정할 수 있습니다. 빈 칸은 기본 할인율이 적용됩니다.
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>�?그룹</div>
-          <div style={{ fontSize: '28px', fontWeight: 600 }}>{groups.length}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 그룹</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{groups.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>브랜??/div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{brands.length}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>브랜드</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{brands.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�정 ??��</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{groups.length * brands.length}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>설정 항목</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{groups.length * brands.length}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>개</span></div>
         </div>
       </div>
 
       <SearchFilter
-        placeholder="그룹�?검??
+        placeholder="그룹명 검색"
         actions={
           <button style={{ padding: '8px 16px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
-            ?�� ?�??
+            💾 저장
           </button>
         }
       />
 
-      <DataTable columns={columns} data={groups} loading={loading} emptyMessage="그룹???�습?�다" />
+      <DataTable columns={columns} data={groups} loading={loading} emptyMessage="그룹이 없습니다" />
     </AdminLayout>
   )
 }

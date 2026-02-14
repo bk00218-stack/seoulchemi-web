@@ -192,7 +192,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
       </div>
 
       {/* 출력 문서 */}
-      <div style={{ paddingTop: '80px', background: 'var(--bg-secondary)', minHeight: '100vh' }}>
+      <div style={{ paddingTop: '80px', background: '#f5f5f7', minHeight: '100vh' }}>
         <div className="print-page" style={{
           width: '210mm',
           minHeight: '297mm',

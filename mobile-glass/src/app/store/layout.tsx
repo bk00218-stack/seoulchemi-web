@@ -9,9 +9,9 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
   const [cartCount, setCartCount] = useState(0)
 
   const navItems = [
-    { label: '?�품주문', href: '/store/products', icon: '?��' },
-    { label: '주문?�역', href: '/store/orders', icon: '?��' },
-    { label: '?�액조회', href: '/store/account', icon: '?��' },
+    { label: '상품주문', href: '/store/products', icon: '🛒' },
+    { label: '주문내역', href: '/store/orders', icon: '📋' },
+    { label: '잔액조회', href: '/store/account', icon: '💰' },
   ]
 
   const isLoginPage = pathname === '/store/login'
@@ -21,7 +21,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)' }}>
+    <div style={{ minHeight: '100vh', background: '#f5f5f7' }}>
       {/* Header */}
       <header style={{
         background: 'white',
@@ -53,8 +53,8 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               fontSize: 16,
               fontWeight: 700,
             }}>L</div>
-            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>LensChoice</span>
-            <span style={{ fontSize: 12, color: 'var(--text-tertiary)', marginLeft: 4 }}>주문</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: '#1d1d1f' }}>LensChoice</span>
+            <span style={{ fontSize: 12, color: '#86868b', marginLeft: 4 }}>주문</span>
           </Link>
 
           {/* Navigation */}
@@ -99,8 +99,8 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               fontSize: 14,
               fontWeight: 500,
             }}>
-              <span>?���?/span>
-              <span>?�바구니</span>
+              <span>🛍️</span>
+              <span>장바구니</span>
               {cartCount > 0 && (
                 <span style={{
                   position: 'absolute',
@@ -122,15 +122,15 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               alignItems: 'center',
               gap: 8,
               padding: '6px 12px',
-              background: 'var(--bg-secondary)',
+              background: '#f5f5f7',
               borderRadius: 20,
             }}>
-              <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>밝�??�경</span>
+              <span style={{ fontSize: 13, color: '#86868b' }}>밝은안경</span>
               <Link href="/store/login" style={{
                 fontSize: 12,
                 color: '#007aff',
                 textDecoration: 'none',
-              }}>로그?�웃</Link>
+              }}>로그아웃</Link>
             </div>
           </div>
         </div>
@@ -148,7 +148,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       {/* Footer */}
       <footer style={{
         background: 'white',
-        borderTop: '1px solid var(--border-color)',
+        borderTop: '1px solid #e5e5e5',
         padding: '20px',
         marginTop: 40,
       }}>
@@ -159,10 +159,10 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
           justifyContent: 'space-between',
           alignItems: 'center',
           fontSize: 13,
-          color: 'var(--text-tertiary)',
+          color: '#86868b',
         }}>
           <span>© 2026 LensChoice. BK Company</span>
-          <span>고객?�터: 1588-0000</span>
+          <span>고객센터: 1588-0000</span>
         </div>
       </footer>
     </div>

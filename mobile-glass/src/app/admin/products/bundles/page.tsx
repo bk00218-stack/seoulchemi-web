@@ -122,7 +122,7 @@ export default function BundlesPage() {
 
   const handleSubmit = async () => {
     if (!form.name || form.items.length === 0) {
-      alert('묶음?�품명과 구성?�품???�력?�주?�요')
+      alert('묶음상품명과 구성상품을 입력해주세요')
       return
     }
 
@@ -142,7 +142,7 @@ export default function BundlesPage() {
         fetchData()
       } else {
         const error = await res.json()
-        alert(error.error || '?�?�에 ?�패?�습?�다')
+        alert(error.error || '저장에 실패했습니다')
       }
     } catch (error) {
       console.error('Failed to save:', error)
@@ -150,7 +150,7 @@ export default function BundlesPage() {
   }
 
   const handleDelete = async (bundle: Bundle) => {
-    if (!confirm(`"${bundle.name}" 묶음?�품????��?�시겠습?�까?`)) return
+    if (!confirm(`"${bundle.name}" 묶음상품을 삭제하시겠습니까?`)) return
 
     try {
       const res = await fetch(`/api/products/bundles/${bundle.id}`, {
@@ -188,9 +188,9 @@ export default function BundlesPage() {
   return (
     <AdminLayout activeMenu="products">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>묶음?�품 ?�정</h1>
-        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>
-          ?�러 ?�품??묶어???�인 ?�매?�니??
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>묶음상품 설정</h1>
+        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
+          여러 상품을 묶어서 할인 판매합니다
         </p>
       </div>
 
@@ -207,23 +207,23 @@ export default function BundlesPage() {
             cursor: 'pointer'
           }}
         >
-          + 묶음?�품 ?�록
+          + 묶음상품 등록
         </button>
       </div>
 
       {/* 목록 */}
       <div style={{ display: 'grid', gap: '16px' }}>
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
         ) : bundles.length === 0 ? (
           <div style={{ 
-            background: 'var(--bg-primary)', 
+            background: '#fff', 
             borderRadius: '12px', 
             padding: '60px', 
             textAlign: 'center',
-            color: 'var(--text-tertiary)'
+            color: '#86868b'
           }}>
-            ?�록??묶음?�품???�습?�다
+            등록된 묶음상품이 없습니다
           </div>
         ) : (
           bundles.map(bundle => {
@@ -236,7 +236,7 @@ export default function BundlesPage() {
               <div 
                 key={bundle.id} 
                 style={{ 
-                  background: 'var(--bg-primary)', 
+                  background: '#fff', 
                   borderRadius: '12px', 
                   padding: '20px',
                   opacity: bundle.isActive ? 1 : 0.6
@@ -255,12 +255,12 @@ export default function BundlesPage() {
                           fontSize: '11px',
                           color: '#6b7280'
                         }}>
-                          비활??
+                          비활성
                         </span>
                       )}
                     </h3>
                     {bundle.description && (
-                      <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-tertiary)' }}>{bundle.description}</p>
+                      <p style={{ margin: 0, fontSize: '13px', color: '#86868b' }}>{bundle.description}</p>
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -269,13 +269,13 @@ export default function BundlesPage() {
                       style={{
                         padding: '6px 12px',
                         borderRadius: '6px',
-                        border: '1px solid var(--border-color)',
-                        background: 'var(--bg-primary)',
+                        border: '1px solid #e9ecef',
+                        background: '#fff',
                         fontSize: '13px',
                         cursor: 'pointer'
                       }}
                     >
-                      ?�정
+                      수정
                     </button>
                     <button
                       onClick={() => handleDelete(bundle)}
@@ -289,12 +289,12 @@ export default function BundlesPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      ??��
+                      삭제
                     </button>
                   </div>
                 </div>
 
-                {/* 구성 ?�품 */}
+                {/* 구성 상품 */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
                   {bundle.items.map(item => (
                     <div 
@@ -312,19 +312,19 @@ export default function BundlesPage() {
                   ))}
                 </div>
 
-                {/* 가�?*/}
+                {/* 가격 */}
                 <div style={{ display: 'flex', gap: '16px', fontSize: '14px' }}>
-                  <span style={{ color: 'var(--text-tertiary)' }}>
-                    ?��?: <span style={{ textDecoration: 'line-through' }}>{bundle.totalPrice.toLocaleString()}??/span>
+                  <span style={{ color: '#86868b' }}>
+                    정가: <span style={{ textDecoration: 'line-through' }}>{bundle.totalPrice.toLocaleString()}원</span>
                   </span>
                   {discount > 0 && (
                     <span style={{ color: '#dc2626' }}>
-                      ?�인: -{discount.toLocaleString()}??
+                      할인: -{discount.toLocaleString()}원
                       {bundle.discountRate > 0 && ` (${bundle.discountRate}%)`}
                     </span>
                   )}
                   <span style={{ fontWeight: 600 }}>
-                    ?�매가: {finalPrice.toLocaleString()}??
+                    판매가: {finalPrice.toLocaleString()}원
                   </span>
                 </div>
               </div>
@@ -348,7 +348,7 @@ export default function BundlesPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: 'var(--bg-primary)',
+            background: '#fff',
             borderRadius: '16px',
             padding: '24px',
             width: '600px',
@@ -356,24 +356,24 @@ export default function BundlesPage() {
             overflow: 'auto'
           }}>
             <h2 style={{ margin: '0 0 20px', fontSize: '18px' }}>
-              {editingBundle ? '묶음?�품 ?�정' : '묶음?�품 ?�록'}
+              {editingBundle ? '묶음상품 수정' : '묶음상품 등록'}
             </h2>
 
             <div style={{ display: 'grid', gap: '16px' }}>
               <div>
                 <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  묶음?�품�?*
+                  묶음상품명 *
                 </label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="?? ?�진 + 착색 ?�트"
+                  placeholder="예: 누진 + 착색 세트"
                   style={{
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -381,7 +381,7 @@ export default function BundlesPage() {
 
               <div>
                 <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  ?�명
+                  설명
                 </label>
                 <input
                   type="text"
@@ -391,7 +391,7 @@ export default function BundlesPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -400,7 +400,7 @@ export default function BundlesPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                    ?�인??(%)
+                    할인율 (%)
                   </label>
                   <input
                     type="number"
@@ -410,14 +410,14 @@ export default function BundlesPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                    ?�인??(??
+                    할인액 (원)
                   </label>
                   <input
                     type="number"
@@ -427,20 +427,20 @@ export default function BundlesPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid var(--border-color)',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
                 </div>
               </div>
 
-              {/* ?�품 ?�택 */}
+              {/* 상품 선택 */}
               <div>
                 <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '4px' }}>
-                  구성 ?�품 *
+                  구성 상품 *
                 </label>
                 
-                {/* ?�택???�품 */}
+                {/* 선택된 상품 */}
                 {form.items.length > 0 && (
                   <div style={{ marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {form.items.map(item => {
@@ -459,10 +459,10 @@ export default function BundlesPage() {
                         >
                           <div style={{ flex: 1 }}>
                             <div style={{ fontWeight: 500, fontSize: '14px' }}>{product?.name}</div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{product?.brand.name}</div>
+                            <div style={{ fontSize: '12px', color: '#86868b' }}>{product?.brand.name}</div>
                           </div>
                           <div style={{ fontSize: '13px', color: '#666' }}>
-                            {product?.sellingPrice.toLocaleString()}??
+                            {product?.sellingPrice.toLocaleString()}원
                           </div>
                           <input
                             type="number"
@@ -473,7 +473,7 @@ export default function BundlesPage() {
                               width: '60px',
                               padding: '4px 8px',
                               borderRadius: '4px',
-                              border: '1px solid var(--border-color)',
+                              border: '1px solid #e9ecef',
                               textAlign: 'center'
                             }}
                           />
@@ -488,7 +488,7 @@ export default function BundlesPage() {
                               cursor: 'pointer'
                             }}
                           >
-                            ??
+                            ✕
                           </button>
                         </div>
                       )
@@ -496,17 +496,17 @@ export default function BundlesPage() {
                   </div>
                 )}
 
-                {/* ?�품 검??추�? */}
+                {/* 상품 검색/추가 */}
                 <input
                   type="text"
-                  placeholder="?�품 검??.."
+                  placeholder="상품 검색..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   style={{
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px',
                     marginBottom: '8px'
                   }}
@@ -516,7 +516,7 @@ export default function BundlesPage() {
                   <div style={{ 
                     maxHeight: '150px', 
                     overflow: 'auto', 
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid #e9ecef',
                     borderRadius: '8px'
                   }}>
                     {filteredProducts.slice(0, 10).map(product => (
@@ -533,10 +533,10 @@ export default function BundlesPage() {
                       >
                         <div>
                           <div style={{ fontSize: '14px' }}>{product.name}</div>
-                          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{product.brand.name}</div>
+                          <div style={{ fontSize: '12px', color: '#86868b' }}>{product.brand.name}</div>
                         </div>
                         <div style={{ fontSize: '13px', color: '#666' }}>
-                          {product.sellingPrice.toLocaleString()}??
+                          {product.sellingPrice.toLocaleString()}원
                         </div>
                       </div>
                     ))}
@@ -544,7 +544,7 @@ export default function BundlesPage() {
                 )}
               </div>
 
-              {/* 가�?미리보기 */}
+              {/* 가격 미리보기 */}
               {form.items.length > 0 && (
                 <div style={{ 
                   padding: '16px', 
@@ -557,13 +557,13 @@ export default function BundlesPage() {
                     return (
                       <>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <span>?��?</span>
-                          <span>{total.toLocaleString()}??/span>
+                          <span>정가</span>
+                          <span>{total.toLocaleString()}원</span>
                         </div>
                         {discount > 0 && (
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#dc2626' }}>
-                            <span>?�인</span>
-                            <span>-{discount.toLocaleString()}??/span>
+                            <span>할인</span>
+                            <span>-{discount.toLocaleString()}원</span>
                           </div>
                         )}
                         <div style={{ 
@@ -571,10 +571,10 @@ export default function BundlesPage() {
                           justifyContent: 'space-between', 
                           fontWeight: 600,
                           paddingTop: '8px',
-                          borderTop: '1px solid var(--border-color)'
+                          borderTop: '1px solid #e5e5e5'
                         }}>
-                          <span>?�매가</span>
-                          <span style={{ color: '#007aff' }}>{final.toLocaleString()}??/span>
+                          <span>판매가</span>
+                          <span style={{ color: '#007aff' }}>{final.toLocaleString()}원</span>
                         </div>
                       </>
                     )
@@ -589,8 +589,8 @@ export default function BundlesPage() {
                 style={{
                   padding: '10px 20px',
                   borderRadius: '8px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-primary)',
+                  border: '1px solid #e9ecef',
+                  background: '#fff',
                   cursor: 'pointer'
                 }}
               >
@@ -608,7 +608,7 @@ export default function BundlesPage() {
                   cursor: 'pointer'
                 }}
               >
-                {editingBundle ? '?�정' : '?�록'}
+                {editingBundle ? '수정' : '등록'}
               </button>
             </div>
           </div>

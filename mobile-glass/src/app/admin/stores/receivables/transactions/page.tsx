@@ -24,16 +24,16 @@ interface Transaction {
 
 const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   sale: { label: '매출', color: '#ff3b30', bg: '#ffebee' },
-  deposit: { label: '?�금', color: '#34c759', bg: '#e8f5e9' },
+  deposit: { label: '입금', color: '#34c759', bg: '#e8f5e9' },
   return: { label: '반품', color: '#ff9500', bg: '#fff3e0' },
   adjustment: { label: '조정', color: '#007aff', bg: '#eef4ee' },
 }
 
 const METHOD_LABELS: Record<string, string> = {
-  transfer: '계좌?�체',
-  cash: '?�금',
+  transfer: '계좌이체',
+  cash: '현금',
   card: '카드',
-  check: '?�음',
+  check: '어음',
 }
 
 export default function TransactionsPage() {
@@ -95,7 +95,7 @@ export default function TransactionsPage() {
   }
 
   const columns: Column<Transaction>[] = [
-    { key: 'processedAt', label: '?�시', width: '140px', render: (v) => (
+    { key: 'processedAt', label: '일시', width: '140px', render: (v) => (
       <span style={{ fontSize: '13px' }}>
         {new Date(v as string).toLocaleString('ko-KR', {
           year: '2-digit',
@@ -107,9 +107,9 @@ export default function TransactionsPage() {
       </span>
     )},
     { key: 'storeCode', label: '코드', width: '80px', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-tertiary)' }}>{v as string}</span>
+      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
     )},
-    { key: 'storeName', label: '가맹점�?, render: (v) => (
+    { key: 'storeName', label: '가맹점명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
     { key: 'type', label: '구분', width: '80px', render: (v) => {
@@ -137,13 +137,13 @@ export default function TransactionsPage() {
           fontFamily: 'monospace',
           color: isDeposit ? '#34c759' : '#ff3b30'
         }}>
-          {sign}{formatCurrency(v as number)}??
+          {sign}{formatCurrency(v as number)}원
         </span>
       )
     }},
-    { key: 'balanceAfter', label: '?�액', align: 'right', render: (v) => (
+    { key: 'balanceAfter', label: '잔액', align: 'right', render: (v) => (
       <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>
-        {formatCurrency(v as number)}??
+        {formatCurrency(v as number)}원
       </span>
     )},
     { key: 'paymentMethod', label: '결제방법', width: '90px', render: (v) => (
@@ -169,24 +169,24 @@ export default function TransactionsPage() {
         {v || '-'}
       </span>
     )},
-    { key: 'processedBy', label: '처리??, width: '80px', render: (v) => (
-      <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{(v as string) || '-'}</span>
+    { key: 'processedBy', label: '처리자', width: '80px', render: (v) => (
+      <span style={{ fontSize: '12px', color: '#86868b' }}>{(v as string) || '-'}</span>
     )},
   ]
 
   return (
     <AdminLayout activeMenu="stores">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
-        ?�출�??�역
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
+        입출금 내역
         {storeName && (
-          <span style={{ fontSize: '16px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '12px' }}>
+          <span style={{ fontSize: '16px', fontWeight: 400, color: '#86868b', marginLeft: '12px' }}>
             - {storeName}
           </span>
         )}
       </h2>
 
       <SearchFilter
-        placeholder="가맹점�? 코드, 주문번호, 메모 검??
+        placeholder="가맹점명, 코드, 주문번호, 메모 검색"
         value={search}
         onChange={setSearch}
         onSearch={handleSearch}
@@ -200,11 +200,11 @@ export default function TransactionsPage() {
                 style={{
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: '1px solid var(--border-color)',
+                  border: '1px solid #e9ecef',
                   fontSize: '13px'
                 }}
               />
-              <span style={{ color: 'var(--text-tertiary)' }}>~</span>
+              <span style={{ color: '#86868b' }}>~</span>
               <input
                 type="date"
                 value={dateRange.end}
@@ -212,24 +212,24 @@ export default function TransactionsPage() {
                 style={{
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: '1px solid var(--border-color)',
+                  border: '1px solid #e9ecef',
                   fontSize: '13px'
                 }}
               />
             </div>
-            <OutlineButton onClick={() => alert('?��? ?�운로드 - 준�?�?)}>
-              ?�� ?��?
+            <OutlineButton onClick={() => alert('엑셀 다운로드 - 준비 중')}>
+              📥 엑셀
             </OutlineButton>
           </>
         }
       />
 
-      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
         <FilterButtonGroup
           options={[
-            { label: '?�체', value: 'all' },
+            { label: '전체', value: 'all' },
             { label: '매출', value: 'sale' },
-            { label: '?�금', value: 'deposit' },
+            { label: '입금', value: 'deposit' },
             { label: '반품', value: 'return' },
             { label: '조정', value: 'adjustment' },
           ]}
@@ -239,15 +239,15 @@ export default function TransactionsPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>
-          로딩 �?..
+        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
+          로딩 중...
         </div>
       ) : (
         <>
           <DataTable
             columns={columns}
             data={data}
-            emptyMessage="?�출�??�역???�습?�다"
+            emptyMessage="입출금 내역이 없습니다"
           />
           
           {totalPages > 1 && (
@@ -265,15 +265,15 @@ export default function TransactionsPage() {
                   borderRadius: '6px',
                   background: page === 1 ? '#f5f5f7' : '#fff',
                   color: page === 1 ? '#c5c5c7' : '#007aff',
-                  border: '1px solid var(--border-color)',
+                  border: '1px solid #e9ecef',
                   cursor: page === 1 ? 'default' : 'pointer',
                 }}
               >
-                ?�전
+                이전
               </button>
               <span style={{ 
                 padding: '8px 16px', 
-                color: 'var(--text-tertiary)',
+                color: '#86868b',
                 display: 'flex',
                 alignItems: 'center'
               }}>
@@ -287,11 +287,11 @@ export default function TransactionsPage() {
                   borderRadius: '6px',
                   background: page === totalPages ? '#f5f5f7' : '#fff',
                   color: page === totalPages ? '#c5c5c7' : '#007aff',
-                  border: '1px solid var(--border-color)',
+                  border: '1px solid #e9ecef',
                   cursor: page === totalPages ? 'default' : 'pointer',
                 }}
               >
-                ?�음
+                다음
               </button>
             </div>
           )}

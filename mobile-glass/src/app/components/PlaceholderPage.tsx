@@ -14,7 +14,7 @@ export default function PlaceholderPage({ title, description, activeMenu }: Plac
   return (
     <AdminLayout activeMenu={activeMenu}>
       <div style={{
-        background: 'var(--bg-primary)',
+        background: '#fff',
         borderRadius: '12px',
         padding: '60px 40px',
         textAlign: 'center'
@@ -29,13 +29,13 @@ export default function PlaceholderPage({ title, description, activeMenu }: Plac
         <h2 style={{ 
           fontSize: '24px', 
           fontWeight: 600, 
-          color: 'var(--text-primary)',
+          color: '#1d1d1f',
           marginBottom: '8px'
         }}>
           {title}
         </h2>
         <p style={{ 
-          color: 'var(--text-tertiary)', 
+          color: '#86868b', 
           fontSize: '14px',
           maxWidth: '400px',
           margin: '0 auto'

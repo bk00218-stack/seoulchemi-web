@@ -54,7 +54,7 @@ export default function ProductStatsPage() {
   }
 
   const columns: Column<ProductStat>[] = [
-    { key: 'id', label: '?�위', width: '60px', align: 'center', render: (_, __, idx) => (
+    { key: 'id', label: '순위', width: '60px', align: 'center', render: (_, __, idx) => (
       <span style={{ 
         fontWeight: 600, 
         color: (idx || 0) < 3 ? '#007aff' : '#86868b' 
@@ -62,7 +62,7 @@ export default function ProductStatsPage() {
         {(idx || 0) + 1}
       </span>
     )},
-    { key: 'brandName', label: '브랜??, render: (v) => (
+    { key: 'brandName', label: '브랜드', render: (v) => (
       <span style={{ 
         background: '#f0f7ff', 
         color: '#007aff', 
@@ -73,20 +73,20 @@ export default function ProductStatsPage() {
         {v as string}
       </span>
     )},
-    { key: 'productName', label: '?�품�?, render: (v) => (
+    { key: 'productName', label: '상품명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
     { key: 'optionType', label: '구분', render: (v) => (
       <span style={{ color: '#666', fontSize: '12px' }}>{v as string}</span>
     )},
-    { key: 'quantity', label: '?�매?�량', align: 'right', render: (v) => (
-      <span>{(v as number).toLocaleString()}�?/span>
+    { key: 'quantity', label: '판매수량', align: 'right', render: (v) => (
+      <span>{(v as number).toLocaleString()}개</span>
     )},
-    { key: 'amount', label: '매출??, align: 'right', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{(v as number).toLocaleString()}??/span>
+    { key: 'amount', label: '매출액', align: 'right', render: (v) => (
+      <span style={{ fontWeight: 500 }}>{(v as number).toLocaleString()}원</span>
     )},
     { key: 'orderCount', label: '주문건수', align: 'center', render: (v) => (
-      <span style={{ color: 'var(--text-tertiary)' }}>{v as number}�?/span>
+      <span style={{ color: '#86868b' }}>{v as number}건</span>
     )},
   ]
 
@@ -102,8 +102,8 @@ export default function ProductStatsPage() {
 
   return (
     <AdminLayout activeMenu="stats">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
-        가맹점 ?�품 ?�계
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
+        가맹점 상품 통계
       </h2>
 
       <div style={{ 
@@ -112,34 +112,34 @@ export default function ProductStatsPage() {
         gap: '16px', 
         marginBottom: '24px' 
       }}>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>�?매출??/div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 매출액</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>
             {summary.totalAmount.toLocaleString()}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>??/span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>원</span>
           </div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>�??�매?�량</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 판매수량</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>
             {summary.totalCount.toLocaleString()}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>개</span>
           </div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�매 ?�품</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>판매 상품</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>
             {summary.productCount}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>종</span>
           </div>
         </div>
       </div>
 
-      {/* 브랜?�별 ?�약 */}
+      {/* 브랜드별 요약 */}
       {brands.length > 0 && (
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '16px', color: 'var(--text-primary)' }}>
-            브랜?�별 매출
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '16px', color: '#1d1d1f' }}>
+            브랜드별 매출
           </h3>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {brands.slice(0, 8).map((brand, idx) => (
@@ -154,8 +154,8 @@ export default function ProductStatsPage() {
                 }}
               >
                 <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '4px' }}>{brand.name}</div>
-                <div style={{ fontSize: '16px', fontWeight: 600 }}>{brand.amount.toLocaleString()}??/div>
-                <div style={{ fontSize: '11px', opacity: 0.7 }}>{brand.count}�?/div>
+                <div style={{ fontSize: '16px', fontWeight: 600 }}>{brand.amount.toLocaleString()}원</div>
+                <div style={{ fontSize: '11px', opacity: 0.7 }}>{brand.count}개</div>
               </div>
             ))}
           </div>
@@ -163,15 +163,15 @@ export default function ProductStatsPage() {
       )}
 
       <SearchFilter
-        placeholder="?�품�? 브랜??검??
+        placeholder="상품명, 브랜드 검색"
         value={search}
         onChange={setSearch}
         filters={[
           {
             key: 'brand',
-            label: '브랜??,
+            label: '브랜드',
             options: [
-              { label: '?�체 브랜??, value: '' },
+              { label: '전체 브랜드', value: '' },
               ...brandNames.map(b => ({ label: b, value: b }))
             ],
             value: brandFilter,
@@ -183,14 +183,14 @@ export default function ProductStatsPage() {
             style={{
               padding: '8px 12px',
               borderRadius: '6px',
-              background: 'var(--bg-primary)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)',
+              background: '#fff',
+              color: '#1d1d1f',
+              border: '1px solid #e9ecef',
               fontSize: '13px',
               cursor: 'pointer'
             }}
           >
-            ?�� ?��?
+            📥 엑셀
           </button>
         }
       />
@@ -199,7 +199,7 @@ export default function ProductStatsPage() {
         columns={columns}
         data={filteredProducts}
         loading={loading}
-        emptyMessage="?�매 ?�이?��? ?�습?�다"
+        emptyMessage="판매 데이터가 없습니다"
       />
     </AdminLayout>
   )

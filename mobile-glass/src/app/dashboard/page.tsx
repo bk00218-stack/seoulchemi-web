@@ -42,10 +42,10 @@ function formatNumber(num: number): string {
 
 function formatCurrency(num: number): string {
   if (num >= 100000000) {
-    return `${(num / 100000000).toFixed(1)}??
+    return `${(num / 100000000).toFixed(1)}억`
   }
   if (num >= 10000) {
-    return `${(num / 10000).toFixed(0)}�?
+    return `${(num / 10000).toFixed(0)}만`
   }
   return formatNumber(num)
 }
@@ -60,7 +60,7 @@ function StatCard({ title, value, subValue, icon, color, trend }: {
 }) {
   return (
     <div style={{
-      background: 'var(--bg-primary)',
+      background: '#fff',
       borderRadius: '16px',
       padding: '24px',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
@@ -106,7 +106,7 @@ function StatCard({ title, value, subValue, icon, color, trend }: {
           fontSize: '12px',
           color: trend === 'up' ? '#10b981' : trend === 'down' ? '#ef4444' : 'var(--text-secondary)'
         }}>
-          {trend === 'up' ? '?? : trend === 'down' ? '?? : '??} ?�일 ?��?
+          {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→'} 전일 대비
         </div>
       )}
     </div>
@@ -131,7 +131,7 @@ export default function DashboardPage() {
       const json = await res.json()
       setData(json)
     } catch (err) {
-      setError('?�이?��? 불러?�는???�패?�습?�다.')
+      setError('데이터를 불러오는데 실패했습니다.')
     } finally {
       setLoading(false)
     }
@@ -140,8 +140,8 @@ export default function DashboardPage() {
   if (loading && !data) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '24px', marginBottom: '12px' }}>??/div>
-        <p>?�?�보??로딩 �?..</p>
+        <div style={{ fontSize: '24px', marginBottom: '12px' }}>⏳</div>
+        <p>대시보드 로딩 중...</p>
       </div>
     )
   }
@@ -149,7 +149,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>
-        <div style={{ fontSize: '24px', marginBottom: '12px' }}>??/div>
+        <div style={{ fontSize: '24px', marginBottom: '12px' }}>❌</div>
         <p>{error}</p>
       </div>
     )
@@ -159,14 +159,14 @@ export default function DashboardPage() {
 
   const chartData = data.chart.daily.map(d => ({
     ...d,
-    date: d.date.slice(5), // MM-DD ?�식
+    date: d.date.slice(5), // MM-DD 형식
     매출: d.revenue,
     주문: d.orders
   }))
 
   return (
     <div style={{ padding: '24px', background: 'var(--gray-100)', minHeight: '100vh' }}>
-      {/* ?�더 */}
+      {/* 헤더 */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -174,9 +174,9 @@ export default function DashboardPage() {
         marginBottom: '24px'
       }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>?�?�보??/h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>대시보드</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-            ?�시�?비즈?�스 ?�황
+            실시간 비즈니스 현황
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -195,13 +195,13 @@ export default function DashboardPage() {
                 fontWeight: 500
               }}
             >
-              {p === '7d' ? '7?? : p === '30d' ? '30?? : '90??}
+              {p === '7d' ? '7일' : p === '30d' ? '30일' : '90일'}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ?�계 카드 */}
+      {/* 통계 카드 */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -209,36 +209,36 @@ export default function DashboardPage() {
         marginBottom: '24px'
       }}>
         <StatCard
-          title="?�늘 주문"
+          title="오늘 주문"
           value={data.today.orders}
-          subValue={`?��?${data.today.pending}�?}
-          icon="?��"
+          subValue={`대기 ${data.today.pending}건`}
+          icon="📦"
           color="#667eea"
         />
         <StatCard
-          title="?�늘 매출"
-          value={`${formatCurrency(data.today.revenue)}??}
-          subValue={`?�평�?${formatCurrency(data.period.avgRevenuePerDay)}??}
-          icon="?��"
+          title="오늘 매출"
+          value={`${formatCurrency(data.today.revenue)}원`}
+          subValue={`일평균 ${formatCurrency(data.period.avgRevenuePerDay)}원`}
+          icon="💰"
           color="#10b981"
         />
         <StatCard
-          title="?�성 거래�?
+          title="활성 거래처"
           value={data.stores.active}
-          subValue={`미수�?${formatCurrency(data.stores.totalOutstanding)}??}
-          icon="?��"
+          subValue={`미수금 ${formatCurrency(data.stores.totalOutstanding)}원`}
+          icon="🏪"
           color="#f59e0b"
         />
         <StatCard
-          title="?�록 ?�품"
+          title="등록 상품"
           value={data.products.total}
-          subValue={`?�고부�?${data.products.lowStock}�?}
-          icon="?��"
+          subValue={`재고부족 ${data.products.lowStock}개`}
+          icon="👓"
           color="#ec4899"
         />
       </div>
 
-      {/* 차트 ?�역 */}
+      {/* 차트 영역 */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
@@ -246,13 +246,13 @@ export default function DashboardPage() {
       }}>
         {/* 매출 추이 */}
         <div style={{
-          background: 'var(--bg-primary)',
+          background: '#fff',
           borderRadius: '16px',
           padding: '24px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}>
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
-            ?�� 매출 추이
+            📈 매출 추이
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData}>
@@ -266,7 +266,7 @@ export default function DashboardPage() {
               <XAxis dataKey="date" stroke="var(--text-tertiary)" fontSize={12} />
               <YAxis stroke="var(--text-tertiary)" fontSize={12} tickFormatter={(v) => formatCurrency(v)} />
               <Tooltip 
-                formatter={(value: number) => [`${formatNumber(value)}??, '매출']}
+                formatter={(value: number) => [`${formatNumber(value)}원`, '매출']}
                 contentStyle={{ borderRadius: '8px', border: '1px solid var(--gray-200)' }}
               />
               <Area 
@@ -281,15 +281,15 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* 주문 ??추이 */}
+        {/* 주문 수 추이 */}
         <div style={{
-          background: 'var(--bg-primary)',
+          background: '#fff',
           borderRadius: '16px',
           padding: '24px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}>
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
-            ?�� 주문 ??추이
+            📊 주문 수 추이
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
@@ -297,7 +297,7 @@ export default function DashboardPage() {
               <XAxis dataKey="date" stroke="var(--text-tertiary)" fontSize={12} />
               <YAxis stroke="var(--text-tertiary)" fontSize={12} />
               <Tooltip 
-                formatter={(value: number) => [`${value}�?, '주문']}
+                formatter={(value: number) => [`${value}건`, '주문']}
                 contentStyle={{ borderRadius: '8px', border: '1px solid var(--gray-200)' }}
               />
               <Bar 
@@ -310,16 +310,16 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 기간 ?�약 */}
+      {/* 기간 요약 */}
       <div style={{
         marginTop: '24px',
-        background: 'var(--bg-primary)',
+        background: '#fff',
         borderRadius: '16px',
         padding: '24px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
       }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--text-primary)' }}>
-          ?�� {data.period.days}???�약
+          📋 {data.period.days}일 요약
         </h3>
         <div style={{ 
           display: 'grid', 
@@ -327,20 +327,20 @@ export default function DashboardPage() {
           gap: '24px'
         }}>
           <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>�?주문</p>
-            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatNumber(data.period.orders)}�?/p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>총 주문</p>
+            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatNumber(data.period.orders)}건</p>
           </div>
           <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>�?매출</p>
-            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatNumber(data.period.revenue)}??/p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>총 매출</p>
+            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatNumber(data.period.revenue)}원</p>
           </div>
           <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>?�평�?주문</p>
-            <p style={{ fontSize: '24px', fontWeight: 600 }}>{data.period.avgOrdersPerDay}�?/p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>일평균 주문</p>
+            <p style={{ fontSize: '24px', fontWeight: 600 }}>{data.period.avgOrdersPerDay}건</p>
           </div>
           <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>?�평�?매출</p>
-            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatCurrency(data.period.avgRevenuePerDay)}??/p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>일평균 매출</p>
+            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatCurrency(data.period.avgRevenuePerDay)}원</p>
           </div>
         </div>
       </div>

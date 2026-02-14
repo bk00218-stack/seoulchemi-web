@@ -19,7 +19,7 @@ export default function AuthGuard({ children, requiredRoles }: AuthGuardProps) {
     }
   }, [user, loading, router])
 
-  // 로딩 �?
+  // 로딩 중
   if (loading) {
     return (
       <div style={{
@@ -27,7 +27,7 @@ export default function AuthGuard({ children, requiredRoles }: AuthGuardProps) {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: 'var(--bg-secondary)'
+        background: '#f5f5f7'
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
@@ -39,7 +39,7 @@ export default function AuthGuard({ children, requiredRoles }: AuthGuardProps) {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }} />
-          <p style={{ color: 'var(--text-tertiary)' }}>로딩 �?..</p>
+          <p style={{ color: '#86868b' }}>로딩 중...</p>
           <style>{`
             @keyframes spin {
               to { transform: rotate(360deg); }
@@ -50,7 +50,7 @@ export default function AuthGuard({ children, requiredRoles }: AuthGuardProps) {
     )
   }
 
-  // 로그???�됨
+  // 로그인 안됨
   if (!user) {
     return null
   }
@@ -63,21 +63,21 @@ export default function AuthGuard({ children, requiredRoles }: AuthGuardProps) {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: 'var(--bg-secondary)'
+        background: '#f5f5f7'
       }}>
         <div style={{
-          background: 'var(--bg-primary)',
+          background: '#fff',
           padding: '40px',
           borderRadius: '16px',
           textAlign: 'center',
           boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>?��</div>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
           <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px' }}>
-            ?�근 권한???�습?�다
+            접근 권한이 없습니다
           </h2>
-          <p style={{ color: 'var(--text-tertiary)', marginBottom: '24px' }}>
-            ???�이지???�근??권한???�습?�다.
+          <p style={{ color: '#86868b', marginBottom: '24px' }}>
+            이 페이지에 접근할 권한이 없습니다.
           </p>
           <button
             onClick={() => router.back()}
@@ -92,7 +92,7 @@ export default function AuthGuard({ children, requiredRoles }: AuthGuardProps) {
               cursor: 'pointer'
             }}
           >
-            ?�로 가�?
+            뒤로 가기
           </button>
         </div>
       </div>

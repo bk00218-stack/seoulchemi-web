@@ -92,12 +92,12 @@ export default function SettingsPage() {
       })
 
       if (res.ok) {
-        alert('?�정???�?�되?�습?�다.')
+        alert('설정이 저장되었습니다.')
       } else {
-        alert('?�?�에 ?�패?�습?�다.')
+        alert('저장에 실패했습니다.')
       }
     } catch (error) {
-      alert('?�?�에 ?�패?�습?�다.')
+      alert('저장에 실패했습니다.')
     }
     setSaving(false)
   }
@@ -116,12 +116,12 @@ export default function SettingsPage() {
     display: 'block',
     fontSize: '13px',
     fontWeight: 500 as const,
-    color: 'var(--text-primary)',
+    color: '#1d1d1f',
     marginBottom: '8px',
   }
 
   const sectionStyle = {
-    background: 'var(--bg-primary)',
+    background: '#fff',
     borderRadius: '12px',
     padding: '24px',
     marginBottom: '24px',
@@ -130,15 +130,15 @@ export default function SettingsPage() {
   const sectionTitleStyle = {
     fontSize: '16px',
     fontWeight: 600 as const,
-    color: 'var(--text-primary)',
+    color: '#1d1d1f',
     marginBottom: '20px',
   }
 
   if (loading) {
     return (
       <AdminLayout activeMenu="settings">
-        <div style={{ textAlign: 'center', padding: '100px', color: 'var(--text-tertiary)' }}>
-          로딩 �?..
+        <div style={{ textAlign: 'center', padding: '100px', color: '#86868b' }}>
+          로딩 중...
         </div>
       </AdminLayout>
     )
@@ -146,17 +146,17 @@ export default function SettingsPage() {
 
   return (
     <AdminLayout activeMenu="settings">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
-        기본?�정
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
+        기본설정
       </h2>
 
-      {/* ?�업???�보 */}
+      {/* 사업자 정보 */}
       <div style={sectionStyle}>
-        <h3 style={sectionTitleStyle}>?�업???�보</h3>
+        <h3 style={sectionTitleStyle}>사업자 정보</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
             <label style={labelStyle}>
-              ?�사�?<span style={{ color: '#ff3b30' }}>*</span>
+              회사명 <span style={{ color: '#ff3b30' }}>*</span>
             </label>
             <input
               type="text"
@@ -167,7 +167,7 @@ export default function SettingsPage() {
           </div>
           <div>
             <label style={labelStyle}>
-              ?�업?�등록번??<span style={{ color: '#ff3b30' }}>*</span>
+              사업자등록번호 <span style={{ color: '#ff3b30' }}>*</span>
             </label>
             <input
               type="text"
@@ -177,7 +177,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label style={labelStyle}>?�?�자�?/label>
+            <label style={labelStyle}>대표자명</label>
             <input
               type="text"
               value={formData.owner}
@@ -186,7 +186,7 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label style={labelStyle}>?�???�락�?/label>
+            <label style={labelStyle}>대표 연락처</label>
             <input
               type="text"
               value={formData.phone}
@@ -195,7 +195,7 @@ export default function SettingsPage() {
             />
           </div>
           <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>?�메??/label>
+            <label style={labelStyle}>이메일</label>
             <input
               type="email"
               value={formData.email}
@@ -215,24 +215,24 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* 주문 ?�정 */}
+      {/* 주문 설정 */}
       <div style={sectionStyle}>
-        <h3 style={sectionTitleStyle}>주문 ?�정</h3>
+        <h3 style={sectionTitleStyle}>주문 설정</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
-            <label style={labelStyle}>주문번호 ?�두??/label>
+            <label style={labelStyle}>주문번호 접두사</label>
             <input
               type="text"
               value={formData.orderPrefix}
               onChange={(e) => setFormData({ ...formData, orderPrefix: e.target.value })}
               style={inputStyle}
             />
-            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-              주문번호 ?�에 붙을 문자 (?? ORD-2024-0001)
+            <p style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>
+              주문번호 앞에 붙을 문자 (예: ORD-2024-0001)
             </p>
           </div>
           <div>
-            <label style={labelStyle}>?�동 ?�정 기간</label>
+            <label style={labelStyle}>자동 확정 기간</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
                 type="number"
@@ -240,10 +240,10 @@ export default function SettingsPage() {
                 onChange={(e) => setFormData({ ...formData, autoConfirmDays: parseInt(e.target.value) || 0 })}
                 style={{ ...inputStyle, flex: 1 }}
               />
-              <span style={{ color: '#666' }}>??/span>
+              <span style={{ color: '#666' }}>일</span>
             </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-              배송 ?�료 ???�동 구매?�정 기간
+            <p style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>
+              배송 완료 후 자동 구매확정 기간
             </p>
           </div>
           <div style={{ gridColumn: '1 / -1' }}>
@@ -255,18 +255,18 @@ export default function SettingsPage() {
                 onChange={(e) => setFormData({ ...formData, minAmount: parseInt(e.target.value) || 0 })}
                 style={{ ...inputStyle, flex: 1 }}
               />
-              <span style={{ color: '#666' }}>??/span>
+              <span style={{ color: '#666' }}>원</span>
             </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-              최소 주문금액 미만 ??주문 불�?
+            <p style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>
+              최소 주문금액 미만 시 주문 불가
             </p>
           </div>
         </div>
       </div>
 
-      {/* ?�림 ?�정 */}
+      {/* 알림 설정 */}
       <div style={sectionStyle}>
-        <h3 style={sectionTitleStyle}>?�림 ?�정</h3>
+        <h3 style={sectionTitleStyle}>알림 설정</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
             <input
@@ -276,8 +276,8 @@ export default function SettingsPage() {
               style={{ width: '18px', height: '18px', accentColor: '#007aff' }}
             />
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>?�시 ?�림</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>??주문, ?�고 부�??�의 ?�림??받습?�다.</div>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f' }}>푸시 알림</div>
+              <div style={{ fontSize: '12px', color: '#86868b' }}>새 주문, 재고 부족 등의 알림을 받습니다.</div>
             </div>
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
@@ -288,14 +288,14 @@ export default function SettingsPage() {
               style={{ width: '18px', height: '18px', accentColor: '#007aff' }}
             />
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>?�메???�림</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>중요 ?�림???�메?�로??받습?�다.</div>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f' }}>이메일 알림</div>
+              <div style={{ fontSize: '12px', color: '#86868b' }}>중요 알림을 이메일로도 받습니다.</div>
             </div>
           </label>
         </div>
       </div>
 
-      {/* ?�??버튼 */}
+      {/* 저장 버튼 */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
         <button
           onClick={() => fetchSettings()}
@@ -303,10 +303,10 @@ export default function SettingsPage() {
             padding: '12px 24px',
             borderRadius: '8px',
             border: '1px solid #e1e1e1',
-            background: 'var(--bg-primary)',
+            background: '#fff',
             fontSize: '14px',
             fontWeight: 500,
-            color: 'var(--text-primary)',
+            color: '#1d1d1f',
             cursor: 'pointer',
           }}
         >
@@ -327,7 +327,7 @@ export default function SettingsPage() {
             opacity: saving ? 0.7 : 1,
           }}
         >
-          {saving ? '?�??�?..' : '?�??}
+          {saving ? '저장 중...' : '저장'}
         </button>
       </div>
     </AdminLayout>

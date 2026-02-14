@@ -1,25 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AdminLayout } from '@/app/components/Navigation'
-
-const cardStyle: React.CSSProperties = {
-  background: 'var(--bg-primary)',
-  borderRadius: 12,
-  boxShadow: 'var(--shadow-sm)',
-  border: '1px solid var(--gray-100)'
-}
-
-const btnStyle: React.CSSProperties = {
-  padding: '10px 18px',
-  borderRadius: 6,
-  border: '1px solid var(--gray-200)',
-  background: 'var(--bg-primary)',
-  fontSize: 14,
-  fontWeight: 500,
-  cursor: 'pointer',
-  transition: 'all 0.15s'
-}
+import Layout, { cardStyle, btnStyle } from '../components/Layout'
+import { SETTINGS_SIDEBAR } from '../constants/sidebar'
 
 interface Notification {
   id: string | number
@@ -85,7 +68,7 @@ export default function NotificationsPage() {
     : allNotifications
 
   return (
-    <AdminLayout activeMenu="settings">
+    <Layout sidebarMenus={SETTINGS_SIDEBAR} activeNav="설정">
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
@@ -234,6 +217,6 @@ export default function NotificationsPage() {
           ))}
         </div>
       </div>
-    </AdminLayout>
+    </Layout>
   )
 }

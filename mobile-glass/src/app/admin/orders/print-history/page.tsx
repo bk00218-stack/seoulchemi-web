@@ -54,7 +54,7 @@ export default function PrintHistoryPage() {
   }
 
   const handleReprint = async (item: PrintHistory) => {
-    // ?�출??기록 추�?
+    // 재출력 기록 추가
     try {
       await fetch('/api/print-history', {
         method: 'POST',
@@ -69,14 +69,14 @@ export default function PrintHistoryPage() {
         })
       })
       loadData()
-      alert(`${item.orderNo} ?�출?�이 기록?�었?�니??`)
+      alert(`${item.orderNo} 재출력이 기록되었습니다.`)
     } catch (error) {
-      alert('?�출??기록???�패?�습?�다.')
+      alert('재출력 기록에 실패했습니다.')
     }
   }
 
   const columns: Column<PrintHistory>[] = [
-    { key: 'printedAt', label: '출력?�시', render: (v) => (
+    { key: 'printedAt', label: '출력일시', render: (v) => (
       <span style={{ fontSize: '12px', color: '#666' }}>
         {new Date(v as string).toLocaleString('ko-KR')}
       </span>
@@ -85,13 +85,13 @@ export default function PrintHistoryPage() {
       <span style={{ fontFamily: 'monospace', fontWeight: 500 }}>{v as string}</span>
     )},
     { key: 'storeName', label: '가맹점' },
-    { key: 'printType', label: '출력?�형', render: (v) => {
+    { key: 'printType', label: '출력유형', render: (v) => {
       const types: Record<string, { bg: string; color: string }> = {
-        '거래명세??: { bg: '#eef4ee', color: '#4a6b4a' },
-        '출고명세??: { bg: '#e8f5e9', color: '#2e7d32' },
-        '?�품?�인??: { bg: '#fff3e0', color: '#ef6c00' }
+        '거래명세서': { bg: '#eef4ee', color: '#4a6b4a' },
+        '출고명세서': { bg: '#e8f5e9', color: '#2e7d32' },
+        '납품확인서': { bg: '#fff3e0', color: '#ef6c00' }
       }
-      const style = types[v as string] || { bg: 'var(--bg-secondary)', color: 'var(--text-tertiary)' }
+      const style = types[v as string] || { bg: '#f5f5f5', color: '#666' }
       return (
         <span style={{ 
           background: style.bg, 
@@ -104,35 +104,35 @@ export default function PrintHistoryPage() {
         </span>
       )
     }},
-    { key: 'printedBy', label: '출력?? },
-    { key: 'pageCount', label: '?�이지', align: 'center', render: (v) => (
-      <span>{v as number}??/span>
+    { key: 'printedBy', label: '출력자' },
+    { key: 'pageCount', label: '페이지', align: 'center', render: (v) => (
+      <span>{v as number}장</span>
     )},
-    { key: 'id', label: '?�출??, align: 'center', render: (_, row) => (
+    { key: 'id', label: '재출력', align: 'center', render: (_, row) => (
       <button
         onClick={() => handleReprint(row)}
         style={{
           padding: '4px 10px',
           borderRadius: '4px',
-          background: 'var(--bg-secondary)',
+          background: '#f5f5f7',
           color: '#007aff',
           border: 'none',
           fontSize: '12px',
           cursor: 'pointer'
         }}
       >
-        ?���??�출??
+        🖨️ 재출력
       </button>
     )},
   ]
 
-  // 출력??목록 추출
+  // 출력자 목록 추출
   const printers = [...new Set(history.map(h => h.printedBy))]
 
   return (
     <AdminLayout activeMenu="order">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
-        명세??출력?�력
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
+        명세표 출력이력
       </h2>
 
       <div style={{ 
@@ -141,59 +141,59 @@ export default function PrintHistoryPage() {
         gap: '16px', 
         marginBottom: '24px' 
       }}>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�늘 출력</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            ?���?{stats.todayCount}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>오늘 출력</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#1d1d1f' }}>
+            🖨️ {stats.todayCount}
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>건</span>
           </div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�번 �?출력</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>이번 주 출력</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>
             {stats.weekCount}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>건</span>
           </div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�번 ??출력</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>이번 달 출력</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>
             {stats.monthCount}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>건</span>
           </div>
         </div>
-        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>�??�이지</div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 페이지</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>
             {stats.totalPages.toLocaleString()}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>??/span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>장</span>
           </div>
         </div>
       </div>
 
       <SearchFilter
-        placeholder="주문번호, 가맹점�?검??
+        placeholder="주문번호, 가맹점명 검색"
         value={search}
         onChange={setSearch}
         onSearch={() => { setLoading(true); loadData(); }}
         filters={[
           {
             key: 'printType',
-            label: '출력?�형',
+            label: '출력유형',
             options: [
-              { label: '출력?�형', value: '' },
-              { label: '거래명세??, value: '거래명세?? },
-              { label: '출고명세??, value: '출고명세?? },
-              { label: '?�품?�인??, value: '?�품?�인?? }
+              { label: '출력유형', value: '' },
+              { label: '거래명세서', value: '거래명세서' },
+              { label: '출고명세서', value: '출고명세서' },
+              { label: '납품확인서', value: '납품확인서' }
             ],
             value: printType,
             onChange: setPrintType
           },
           {
             key: 'printedBy',
-            label: '출력??,
+            label: '출력자',
             options: [
-              { label: '출력??, value: '' },
+              { label: '출력자', value: '' },
               ...printers.map(p => ({ label: p, value: p }))
             ],
             value: printedBy,
@@ -205,14 +205,14 @@ export default function PrintHistoryPage() {
             style={{
               padding: '8px 12px',
               borderRadius: '6px',
-              background: 'var(--bg-primary)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)',
+              background: '#fff',
+              color: '#1d1d1f',
+              border: '1px solid #e9ecef',
               fontSize: '13px',
               cursor: 'pointer'
             }}
           >
-            ?�� ?�보?�기
+            📥 내보내기
           </button>
         }
       />
@@ -221,18 +221,18 @@ export default function PrintHistoryPage() {
         columns={columns}
         data={history}
         loading={loading}
-        emptyMessage="출력 ?�력???�습?�다"
+        emptyMessage="출력 이력이 없습니다"
       />
 
       <div style={{ 
         marginTop: '16px', 
         padding: '12px 16px', 
-        background: 'var(--bg-primary)', 
+        background: '#fff', 
         borderRadius: '8px',
         fontSize: '13px',
         color: '#666'
       }}>
-        �?{history.length}건의 출력 ?�력
+        총 {history.length}건의 출력 이력
       </div>
     </AdminLayout>
   )

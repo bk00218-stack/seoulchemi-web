@@ -34,7 +34,7 @@ export default function NotificationBell() {
   useEffect(() => {
     fetchNotifications()
     
-    // 30초마???�링
+    // 30초마다 폴링
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
   }, [fetchNotifications])
@@ -56,15 +56,15 @@ export default function NotificationBell() {
   }
 
   const typeColors = {
-    info: { bg: '#dbeafe', text: '#1d4ed8', icon: '?�️' },
-    warning: { bg: '#fef3c7', text: '#d97706', icon: '?�️' },
-    danger: { bg: '#fee2e2', text: '#dc2626', icon: '?��' },
-    success: { bg: '#d1fae5', text: '#059669', icon: '?? }
+    info: { bg: '#dbeafe', text: '#1d4ed8', icon: 'ℹ️' },
+    warning: { bg: '#fef3c7', text: '#d97706', icon: '⚠️' },
+    danger: { bg: '#fee2e2', text: '#dc2626', icon: '🚨' },
+    success: { bg: '#d1fae5', text: '#059669', icon: '✅' }
   }
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* ?�림 버튼 */}
+      {/* 알림 버튼 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
@@ -80,7 +80,7 @@ export default function NotificationBell() {
         onMouseOver={(e) => e.currentTarget.style.background = '#f3f4f6'}
         onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
       >
-        ?��
+        🔔
         {unreadCount > 0 && (
           <span style={{
             position: 'absolute',
@@ -102,10 +102,10 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {/* ?�림 ?�롭?�운 */}
+      {/* 알림 드롭다운 */}
       {isOpen && (
         <>
-          {/* 백드�?*/}
+          {/* 백드롭 */}
           <div
             onClick={() => setIsOpen(false)}
             style={{
@@ -118,7 +118,7 @@ export default function NotificationBell() {
             }}
           />
           
-          {/* ?�림 ?�널 */}
+          {/* 알림 패널 */}
           <div style={{
             position: 'absolute',
             top: '100%',
@@ -126,13 +126,13 @@ export default function NotificationBell() {
             marginTop: '8px',
             width: '360px',
             maxHeight: '480px',
-            background: 'var(--bg-primary)',
+            background: '#fff',
             borderRadius: '12px',
             boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
             zIndex: 50,
             overflow: 'hidden'
           }}>
-            {/* ?�더 */}
+            {/* 헤더 */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -140,7 +140,7 @@ export default function NotificationBell() {
               padding: '16px',
               borderBottom: '1px solid #e5e7eb'
             }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600 }}>?�림</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: 600 }}>알림</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
@@ -153,12 +153,12 @@ export default function NotificationBell() {
                     cursor: 'pointer'
                   }}
                 >
-                  {loading ? '처리 �?..' : '모두 ?�음'}
+                  {loading ? '처리 중...' : '모두 읽음'}
                 </button>
               )}
             </div>
 
-            {/* ?�림 목록 */}
+            {/* 알림 목록 */}
             <div style={{ maxHeight: '400px', overflow: 'auto' }}>
               {notifications.length === 0 ? (
                 <div style={{
@@ -166,8 +166,8 @@ export default function NotificationBell() {
                   textAlign: 'center',
                   color: '#9ca3af'
                 }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>?��</div>
-                  <p>?�로???�림???�습?�다</p>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔕</div>
+                  <p>새로운 알림이 없습니다</p>
                 </div>
               ) : (
                 notifications.map((notif) => {
@@ -242,7 +242,7 @@ export default function NotificationBell() {
               )}
             </div>
 
-            {/* ?�터 */}
+            {/* 푸터 */}
             <div style={{
               padding: '12px 16px',
               borderTop: '1px solid #e5e7eb',
@@ -256,7 +256,7 @@ export default function NotificationBell() {
                   textDecoration: 'none'
                 }}
               >
-                ?�체 ?�림 보기 ??
+                전체 알림 보기 →
               </a>
             </div>
           </div>
