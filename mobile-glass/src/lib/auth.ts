@@ -287,8 +287,8 @@ export async function changePassword(userId: number, currentPassword: string, ne
     await prisma.user.update({
       where: { id: userId },
       data: { 
-        password: hashedPassword,
-        passwordChangedAt: new Date()
+        password: hashedPassword
+        // passwordChangedAt: new Date() // TODO: DB 마이그레이션 후 활성화
       }
     })
 

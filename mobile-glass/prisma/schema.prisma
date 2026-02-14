@@ -763,7 +763,7 @@ model User {
   // 상태
   isActive          Boolean   @default(true)
   lastLoginAt       DateTime?
-  passwordChangedAt DateTime?
+  // passwordChangedAt DateTime?  // TODO: DB 마이그레이션 후 활성화
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
