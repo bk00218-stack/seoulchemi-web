@@ -7,7 +7,7 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    router.replace('/orders/new')
+    router.replace('/dashboard')
   }, [router])
 
   return (
