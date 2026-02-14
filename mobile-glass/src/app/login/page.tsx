@@ -11,7 +11,7 @@ function LoginForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const redirect = searchParams.get('redirect') || '/admin'
+  const redirect = searchParams.get('redirect') || '/orders/new'
   const expired = searchParams.get('expired')
 
   useEffect(() => {
