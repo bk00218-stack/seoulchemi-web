@@ -73,7 +73,7 @@ export default function NotificationsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>🔔 알림</h1>
-          <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 14 }}>
+          <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0', fontSize: 14 }}>
             시스템 알림 및 주요 업데이트
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function NotificationsPage() {
               ...btnStyle,
               background: filter === 'unread' ? '#5d7a5d' : '#fff',
               color: filter === 'unread' ? '#fff' : '#374151',
-              border: filter === 'unread' ? 'none' : '1px solid #e5e7eb'
+              border: filter === 'unread' ? 'none' : '1px solid var(--gray-200)'
             }}
           >
             {filter === 'unread' ? '읽지 않은 알림만' : '전체 보기'}
@@ -116,11 +116,11 @@ export default function NotificationsPage() {
       {/* Notifications List */}
       <div style={{ ...cardStyle, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 60, textAlign: 'center', color: '#9ca3af' }}>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-tertiary)' }}>
             로딩 중...
           </div>
         ) : filteredNotifications.length === 0 ? (
-          <div style={{ padding: 60, textAlign: 'center', color: '#9ca3af' }}>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-tertiary)' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🔔</div>
             <p>알림이 없습니다</p>
           </div>
@@ -139,8 +139,8 @@ export default function NotificationsPage() {
                     alignItems: 'flex-start',
                     gap: 16,
                     padding: 20,
-                    borderBottom: idx < filteredNotifications.length - 1 ? '1px solid #f3f4f6' : 'none',
-                    background: isUnread ? '#f9fafb' : '#fff',
+                    borderBottom: idx < filteredNotifications.length - 1 ? '1px solid var(--gray-100)' : 'none',
+                    background: isUnread ? 'var(--gray-50)' : '#fff',
                     textDecoration: 'none',
                     color: 'inherit',
                     transition: 'background 0.2s'
@@ -160,7 +160,7 @@ export default function NotificationsPage() {
                   {/* Content */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontWeight: 600, color: '#1f2937' }}>{notification.title}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{notification.title}</span>
                       {isUnread && (
                         <span style={{
                           width: 8, height: 8, borderRadius: '50%',
@@ -168,17 +168,17 @@ export default function NotificationsPage() {
                         }} />
                       )}
                     </div>
-                    <p style={{ margin: 0, fontSize: 14, color: '#6b7280', lineHeight: 1.5 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       {notification.message}
                     </p>
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#9ca3af' }}>
+                    <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-tertiary)' }}>
                       {new Date(notification.createdAt).toLocaleString('ko-KR')}
                     </div>
                   </div>
 
                   {/* Arrow */}
                   {notification.link && (
-                    <span style={{ color: '#9ca3af', fontSize: 18 }}>→</span>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>→</span>
                   )}
                 </a>
               )
@@ -201,12 +201,12 @@ export default function NotificationsPage() {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '12px 0',
-              borderBottom: i < 2 ? '1px solid #f3f4f6' : 'none',
+              borderBottom: i < 2 ? '1px solid var(--gray-100)' : 'none',
               cursor: 'pointer'
             }}>
               <div>
-                <div style={{ fontWeight: 500, color: '#1f2937' }}>{item.label}</div>
-                <div style={{ fontSize: 13, color: '#6b7280' }}>{item.desc}</div>
+                <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{item.label}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{item.desc}</div>
               </div>
               <input
                 type="checkbox"

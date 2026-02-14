@@ -636,11 +636,11 @@ export default function StoresPage() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>로딩 중...</td>
+                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 중...</td>
                     </tr>
                   ) : paginatedStores.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>검색 결과가 없습니다</td>
+                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>검색 결과가 없습니다</td>
                     </tr>
                   ) : (
                     paginatedStores.map((store, index) => (
@@ -826,7 +826,7 @@ export default function StoresPage() {
         {activeTab === '미결제현황' && (
           <div style={{ flex: 1, overflow: 'auto' }}>
             {outstandingStores.length === 0 ? (
-              <div style={{ padding: 60, textAlign: 'center', color: '#868e96' }}>
+              <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-tertiary)' }}>
                 <div style={{ fontSize: 48, marginBottom: 15 }}>✅</div>
                 미결제 가맹점이 없습니다
               </div>
@@ -869,7 +869,7 @@ export default function StoresPage() {
                             {index + 1}
                           </span>
                         ) : (
-                          <span style={{ color: '#868e96' }}>{index + 1}</span>
+                          <span style={{ color: 'var(--text-tertiary)' }}>{index + 1}</span>
                         )}
                       </td>
                       <td style={{ padding: '12px', fontSize: 12, fontFamily: 'monospace' }}>{store.code}</td>
@@ -922,7 +922,7 @@ export default function StoresPage() {
               <tbody>
                 {deposits.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>입금 내역이 없습니다</td>
+                    <td colSpan={5} style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>입금 내역이 없습니다</td>
                   </tr>
                 ) : (
                   deposits.map((tx, index) => (
@@ -959,7 +959,7 @@ export default function StoresPage() {
               <tbody>
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>거래 내역이 없습니다</td>
+                    <td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>거래 내역이 없습니다</td>
                   </tr>
                 ) : (
                   orders.map((tx, index) => (
@@ -1294,7 +1294,7 @@ export default function StoresPage() {
                         max={31}
                         placeholder="예: 15"
                       />
-                      <p style={{ fontSize: 11, color: '#868e96', marginTop: 4 }}>매월 청구일</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>매월 청구일</p>
                     </div>
                     <div style={fieldGroupStyle}>
                       <label style={labelStyle}>기본 할인율 (%)</label>
@@ -1321,7 +1321,7 @@ export default function StoresPage() {
                       min={0}
                       placeholder="0"
                     />
-                    <p style={{ fontSize: 11, color: '#868e96', marginTop: 4 }}>기존 미수금이 있는 경우 입력</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>기존 미수금이 있는 경우 입력</p>
                   </div>
                   
                   <h3 style={{ 
@@ -1796,7 +1796,7 @@ export default function StoresPage() {
                 {bulkUploading ? '처리 중...' : `🚀 일괄 ${bulkMode === 'register' ? '등록' : '수정'}하기`}
               </button>
               
-              <p style={{ fontSize: 11, color: '#868e96', marginTop: 12, textAlign: 'center' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 12, textAlign: 'center' }}>
                 {bulkMode === 'register' 
                   ? '※ 기존 거래처는 유지되며, 새 거래처만 추가됩니다.'
                   : '※ 코드가 일치하는 거래처의 정보가 업데이트됩니다.'}

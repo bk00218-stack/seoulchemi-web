@@ -66,7 +66,7 @@ const QuickAction = ({ icon, label, href, color = '#007aff' }: { icon: string; l
       textDecoration: 'none',
       color: 'inherit',
       transition: 'transform 0.2s, box-shadow 0.2s',
-      border: '1px solid #e5e7eb',
+      border: '1px solid var(--gray-200)',
     }}
   >
     <span style={{ fontSize: '24px' }}>{icon}</span>
@@ -84,7 +84,7 @@ const TodoItem = ({ icon, label, count, href, urgent = false }: { icon: string; 
       justifyContent: 'space-between',
       padding: '12px 16px',
       borderRadius: '10px',
-      background: urgent ? '#fef2f2' : '#f9fafb',
+      background: urgent ? '#fef2f2' : 'var(--gray-50)',
       textDecoration: 'none',
       color: 'inherit',
       border: urgent ? '1px solid #fecaca' : '1px solid transparent',
@@ -211,7 +211,7 @@ export default function DashboardPage() {
             style={{
               padding: '8px 16px',
               borderRadius: '8px',
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--gray-200)',
               background: '#fff',
               fontSize: '13px',
               cursor: 'pointer',
@@ -342,7 +342,7 @@ export default function DashboardPage() {
                 <div style={{
                   width: '100%',
                   height: `${(day.orders / maxTrend) * 80}px`,
-                  background: idx === data.dailyTrend.length - 1 ? 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)' : '#e5e7eb',
+                  background: idx === data.dailyTrend.length - 1 ? 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)' : 'var(--gray-200)',
                   borderRadius: '4px',
                   minHeight: '4px'
                 }} />
@@ -382,7 +382,7 @@ export default function DashboardPage() {
                     justifyContent: 'space-between',
                     padding: '12px',
                     borderRadius: '8px',
-                    background: '#f9fafb',
+                    background: 'var(--gray-50)',
                     textDecoration: 'none',
                     color: 'inherit'
                   }}

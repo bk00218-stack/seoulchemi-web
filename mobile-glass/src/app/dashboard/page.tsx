@@ -79,12 +79,12 @@ function StatCard({ title, value, subValue, icon, color, trend }: {
       }} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
-          <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{title}</p>
-          <p style={{ fontSize: '28px', fontWeight: 700, color: '#1f2937', marginBottom: '4px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>{title}</p>
+          <p style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
             {typeof value === 'number' ? formatNumber(value) : value}
           </p>
           {subValue && (
-            <p style={{ fontSize: '13px', color: '#9ca3af' }}>{subValue}</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>{subValue}</p>
           )}
         </div>
         <div style={{
@@ -104,7 +104,7 @@ function StatCard({ title, value, subValue, icon, color, trend }: {
         <div style={{
           marginTop: '12px',
           fontSize: '12px',
-          color: trend === 'up' ? '#10b981' : trend === 'down' ? '#ef4444' : '#6b7280'
+          color: trend === 'up' ? '#10b981' : trend === 'down' ? '#ef4444' : 'var(--text-secondary)'
         }}>
           {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→'} 전일 대비
         </div>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
   }))
 
   return (
-    <div style={{ padding: '24px', background: '#f3f4f6', minHeight: '100vh' }}>
+    <div style={{ padding: '24px', background: 'var(--gray-100)', minHeight: '100vh' }}>
       {/* 헤더 */}
       <div style={{ 
         display: 'flex', 
@@ -174,8 +174,8 @@ export default function DashboardPage() {
         marginBottom: '24px'
       }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1f2937' }}>대시보드</h1>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)' }}>대시보드</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
             실시간 비즈니스 현황
           </p>
         </div>
@@ -251,7 +251,7 @@ export default function DashboardPage() {
           padding: '24px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: '#1f2937' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
             📈 매출 추이
           </h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -262,12 +262,12 @@ export default function DashboardPage() {
                   <stop offset="95%" stopColor="#667eea" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} />
-              <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(v) => formatCurrency(v)} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-200)" />
+              <XAxis dataKey="date" stroke="var(--text-tertiary)" fontSize={12} />
+              <YAxis stroke="var(--text-tertiary)" fontSize={12} tickFormatter={(v) => formatCurrency(v)} />
               <Tooltip 
                 formatter={(value: number) => [`${formatNumber(value)}원`, '매출']}
-                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                contentStyle={{ borderRadius: '8px', border: '1px solid var(--gray-200)' }}
               />
               <Area 
                 type="monotone" 
@@ -288,17 +288,17 @@ export default function DashboardPage() {
           padding: '24px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: '#1f2937' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
             📊 주문 수 추이
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} />
-              <YAxis stroke="#9ca3af" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-200)" />
+              <XAxis dataKey="date" stroke="var(--text-tertiary)" fontSize={12} />
+              <YAxis stroke="var(--text-tertiary)" fontSize={12} />
               <Tooltip 
                 formatter={(value: number) => [`${value}건`, '주문']}
-                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                contentStyle={{ borderRadius: '8px', border: '1px solid var(--gray-200)' }}
               />
               <Bar 
                 dataKey="주문" 
@@ -318,7 +318,7 @@ export default function DashboardPage() {
         padding: '24px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
       }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: '#1f2937' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--text-primary)' }}>
           📋 {data.period.days}일 요약
         </h3>
         <div style={{ 
@@ -327,19 +327,19 @@ export default function DashboardPage() {
           gap: '24px'
         }}>
           <div>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '4px' }}>총 주문</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>총 주문</p>
             <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatNumber(data.period.orders)}건</p>
           </div>
           <div>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '4px' }}>총 매출</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>총 매출</p>
             <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatNumber(data.period.revenue)}원</p>
           </div>
           <div>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '4px' }}>일평균 주문</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>일평균 주문</p>
             <p style={{ fontSize: '24px', fontWeight: 600 }}>{data.period.avgOrdersPerDay}건</p>
           </div>
           <div>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '4px' }}>일평균 매출</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>일평균 매출</p>
             <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatCurrency(data.period.avgRevenuePerDay)}원</p>
           </div>
         </div>

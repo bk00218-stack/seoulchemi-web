@@ -86,7 +86,7 @@ export default function SearchFilter({
             style={{
               padding: '8px 12px',
               borderRadius: '8px',
-              border: '1px solid #e9ecef',
+              border: '1px solid var(--border-color)',
               fontSize: '14px',
               width: '200px',
               outline: 'none'
@@ -118,7 +118,7 @@ export default function SearchFilter({
             style={{
               padding: '8px 12px',
               borderRadius: '8px',
-              border: '1px solid #e9ecef',
+              border: '1px solid var(--border-color)',
               fontSize: '14px',
               background: '#fff',
               cursor: 'pointer',
@@ -144,7 +144,7 @@ export default function SearchFilter({
               style={{
                 padding: '8px 12px',
                 borderRadius: '8px',
-                border: '1px solid #e9ecef',
+                border: '1px solid var(--border-color)',
                 fontSize: '14px',
                 outline: 'none'
               }}
@@ -157,7 +157,7 @@ export default function SearchFilter({
               style={{
                 padding: '8px 12px',
                 borderRadius: '8px',
-                border: '1px solid #e9ecef',
+                border: '1px solid var(--border-color)',
                 fontSize: '14px',
                 outline: 'none'
               }}
@@ -225,7 +225,7 @@ export function OutlineButton({
         borderRadius: '6px',
         background: '#fff',
         color: disabled ? '#c5c5c7' : '#1d1d1f',
-        border: '1px solid #e9ecef',
+        border: '1px solid var(--border-color)',
         fontSize: '13px',
         cursor: disabled ? 'not-allowed' : 'pointer'
       }}

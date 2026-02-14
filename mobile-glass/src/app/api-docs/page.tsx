@@ -41,7 +41,7 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
       background: '#fff',
       borderRadius: '8px',
       marginBottom: '8px',
-      border: '1px solid #e5e7eb',
+      border: '1px solid var(--gray-200)',
       overflow: 'hidden'
     }}>
       <div
@@ -52,13 +52,13 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
           gap: '12px',
           padding: '12px 16px',
           cursor: 'pointer',
-          background: expanded ? '#f9fafb' : '#fff'
+          background: expanded ? 'var(--gray-50)' : '#fff'
         }}
       >
         <span style={{
           padding: '4px 8px',
           borderRadius: '4px',
-          background: methodColors[endpoint.method] || '#6b7280',
+          background: methodColors[endpoint.method] || 'var(--text-secondary)',
           color: '#fff',
           fontSize: '12px',
           fontWeight: 600,
@@ -68,20 +68,20 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
           {endpoint.method}
         </span>
         <code style={{ fontSize: '14px', color: '#374151' }}>{endpoint.path}</code>
-        <span style={{ color: '#6b7280', fontSize: '14px', marginLeft: 'auto' }}>
+        <span style={{ color: 'var(--text-secondary)', fontSize: '14px', marginLeft: 'auto' }}>
           {endpoint.summary}
         </span>
-        <span style={{ color: '#9ca3af' }}>{expanded ? '▲' : '▼'}</span>
+        <span style={{ color: 'var(--text-tertiary)' }}>{expanded ? '▲' : '▼'}</span>
       </div>
 
       {expanded && (
-        <div style={{ padding: '16px', borderTop: '1px solid #e5e7eb', background: '#f9fafb' }}>
+        <div style={{ padding: '16px', borderTop: '1px solid var(--gray-200)', background: 'var(--gray-50)' }}>
           {endpoint.parameters && endpoint.parameters.length > 0 && (
             <div style={{ marginBottom: '16px' }}>
               <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Parameters</h4>
               <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ background: '#e5e7eb' }}>
+                  <tr style={{ background: 'var(--gray-200)' }}>
                     <th style={{ padding: '8px', textAlign: 'left' }}>Name</th>
                     <th style={{ padding: '8px', textAlign: 'left' }}>In</th>
                     <th style={{ padding: '8px', textAlign: 'left' }}>Type</th>
@@ -90,7 +90,7 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
                 </thead>
                 <tbody>
                   {endpoint.parameters.map((param, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid var(--gray-200)' }}>
                       <td style={{ padding: '8px' }}>
                         <code>{param.name}</code>
                         {param.required && <span style={{ color: '#ef4444' }}>*</span>}
@@ -100,7 +100,7 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
                         {param.schema.type}
                         {param.schema.enum && ` (${param.schema.enum.join(', ')})`}
                       </td>
-                      <td style={{ padding: '8px', color: '#6b7280' }}>
+                      <td style={{ padding: '8px', color: 'var(--text-secondary)' }}>
                         {param.description || '-'}
                       </td>
                     </tr>
@@ -114,8 +114,8 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
             <div style={{ marginBottom: '16px' }}>
               <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Request Body</h4>
               <pre style={{
-                background: '#1f2937',
-                color: '#f3f4f6',
+                background: 'var(--text-primary)',
+                color: 'var(--gray-100)',
                 padding: '12px',
                 borderRadius: '4px',
                 fontSize: '12px',
@@ -204,12 +204,12 @@ export default function ApiDocsPage() {
     : endpoints
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--gray-100)' }}>
       {/* Sidebar */}
       <div style={{
         width: '240px',
         background: '#fff',
-        borderRight: '1px solid #e5e7eb',
+        borderRight: '1px solid var(--gray-200)',
         padding: '24px 16px',
         position: 'sticky',
         top: 0,
@@ -220,7 +220,7 @@ export default function ApiDocsPage() {
           <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#667eea' }}>
             {spec.info?.title || 'API Docs'}
           </h1>
-          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             v{spec.info?.version}
           </p>
         </div>
@@ -276,10 +276,10 @@ export default function ApiDocsPage() {
       {/* Main Content */}
       <div style={{ flex: 1, padding: '24px', maxWidth: '900px' }}>
         <div style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#1f2937' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
             {activeTag || '전체 API'}
           </h2>
-          <p style={{ color: '#6b7280', marginTop: '4px' }}>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
             {spec.info?.description}
           </p>
         </div>

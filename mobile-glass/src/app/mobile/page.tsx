@@ -185,7 +185,7 @@ export default function MobileHomePage() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '12px',
-                  background: '#f9fafb',
+                  background: 'var(--gray-50)',
                   borderRadius: '8px',
                   textDecoration: 'none',
                   color: 'inherit'

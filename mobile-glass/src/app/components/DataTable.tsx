@@ -58,7 +58,7 @@ export default function DataTable<T extends Record<string, any>>({
     <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #e9ecef' }}>
+          <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
             {selectable && (
               <th style={{ padding: '12px 14px', width: '40px' }}>
                 <input

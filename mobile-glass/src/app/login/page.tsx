@@ -93,14 +93,14 @@ function LoginForm() {
             width: '100%',
             padding: '12px 16px',
             borderRadius: '8px',
-            border: '1px solid #e5e7eb',
+            border: '1px solid var(--gray-200)',
             fontSize: '15px',
             outline: 'none',
             transition: 'border-color 0.2s',
             boxSizing: 'border-box'
           }}
           onFocus={(e) => e.target.style.borderColor = '#667eea'}
-          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+          onBlur={(e) => e.target.style.borderColor = 'var(--gray-200)'}
         />
       </div>
 
@@ -125,14 +125,14 @@ function LoginForm() {
             width: '100%',
             padding: '12px 16px',
             borderRadius: '8px',
-            border: '1px solid #e5e7eb',
+            border: '1px solid var(--gray-200)',
             fontSize: '15px',
             outline: 'none',
             transition: 'border-color 0.2s',
             boxSizing: 'border-box'
           }}
           onFocus={(e) => e.target.style.borderColor = '#667eea'}
-          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+          onBlur={(e) => e.target.style.borderColor = 'var(--gray-200)'}
         />
       </div>
 
@@ -144,7 +144,7 @@ function LoginForm() {
           padding: '14px',
           borderRadius: '8px',
           border: 'none',
-          background: loading ? '#9ca3af' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: loading ? 'var(--text-tertiary)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           color: '#fff',
           fontSize: '16px',
           fontWeight: 600,
@@ -163,7 +163,7 @@ function LoginForm() {
 function LoginFormFallback() {
   return (
     <div style={{ textAlign: 'center', padding: '40px 0' }}>
-      <div style={{ color: '#6b7280' }}>로딩 중...</div>
+      <div style={{ color: 'var(--text-secondary)' }}>로딩 중...</div>
     </div>
   )
 }
@@ -214,10 +214,10 @@ export default function LoginPage() {
         <div style={{
           marginTop: '20px',
           padding: '12px',
-          background: '#f3f4f6',
+          background: 'var(--gray-100)',
           borderRadius: '8px',
           fontSize: '12px',
-          color: '#6b7280'
+          color: 'var(--text-secondary)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
             <span>🔒</span>
@@ -232,10 +232,10 @@ export default function LoginPage() {
         <div style={{
           marginTop: '24px',
           paddingTop: '24px',
-          borderTop: '1px solid #e5e7eb',
+          borderTop: '1px solid var(--gray-200)',
           textAlign: 'center',
           fontSize: '13px',
-          color: '#9ca3af'
+          color: 'var(--text-tertiary)'
         }}>
           © 2026 LensChoice. All rights reserved.
         </div>

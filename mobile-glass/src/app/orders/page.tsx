@@ -193,7 +193,7 @@ export default async function OrdersPage() {
           background: '#f9f9f9',
           borderRadius: '8px'
         }}>
-          <p style={{ color: '#868e96', fontSize: '18px' }}>주문 내역이 없습니다.</p>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '18px' }}>주문 내역이 없습니다.</p>
           <Link href="/orders/new" style={{
             display: 'inline-block',
             marginTop: '20px',
@@ -212,7 +212,7 @@ export default async function OrdersPage() {
         marginTop: '50px', 
         paddingTop: '20px', 
         borderTop: '1px solid #eee',
-        color: '#868e96',
+        color: 'var(--text-tertiary)',
         fontSize: '12px'
       }}>
         MobileGlass Admin v0.1 | 서울케미렌즈

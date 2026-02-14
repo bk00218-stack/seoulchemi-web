@@ -96,7 +96,7 @@ export default function PrintHistoryPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>🖨️ 출력 이력</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>🖨️ 출력 이력</h1>
           <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 14 }}>
             출력 기록 관리 및 재출력
           </p>

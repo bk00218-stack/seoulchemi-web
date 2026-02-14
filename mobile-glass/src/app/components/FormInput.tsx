@@ -180,7 +180,7 @@ export function FormSection({ title, children }: { title?: string; children: Rea
             color: '#1d1d1f',
             marginBottom: '20px',
             paddingBottom: '12px',
-            borderBottom: '1px solid #e9ecef'
+            borderBottom: '1px solid var(--border-color)'
           }}
         >
           {title}

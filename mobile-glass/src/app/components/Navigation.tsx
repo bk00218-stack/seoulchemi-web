@@ -200,7 +200,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
       {/* 헤더 */}
       <header style={{ 
         background: '#ffffff',
-        borderBottom: '1px solid #e9ecef',
+        borderBottom: '1px solid var(--border-color)',
         padding: '12px 32px',
         display: 'flex',
         justifyContent: 'space-between',
@@ -224,7 +224,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
               <circle cx="18" cy="18" r="8" fill="url(#lensGrad)" opacity="0.15"/>
               <circle cx="18" cy="18" r="4" fill="url(#lensGrad)" opacity="0.3"/>
               <circle cx="14" cy="14" r="2" fill="white" opacity="0.8"/>
-              <text x="42" y="24" fontFamily="Inter, -apple-system, sans-serif" fontSize="18" fontWeight="600" fill="#212529">
+              <text x="42" y="24" fontFamily="Inter, -apple-system, sans-serif" fontSize="18" fontWeight="600" fill="var(--text-primary)">
                 AI<tspan fill="#5d7a5d">Optic</tspan>
               </text>
             </svg>
@@ -261,7 +261,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
             style={{
               padding: '8px 12px',
               borderRadius: '8px',
-              border: '1px solid #e9ecef',
+              border: '1px solid var(--border-color)',
               background: '#ffffff',
               cursor: 'pointer',
               fontSize: '18px',
@@ -293,10 +293,10 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
                 style={{
                   padding: '8px 16px',
                   borderRadius: '8px',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border-color)',
                   background: '#ffffff',
                   fontSize: '14px',
-                  color: '#6c757d',
+                  color: 'var(--text-secondary)',
                   fontWeight: 500,
                   cursor: 'pointer',
                   boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
@@ -313,7 +313,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
       <aside style={{ 
         width: '220px', 
         background: '#ffffff', 
-        borderRight: '1px solid #e9ecef',
+        borderRight: '1px solid var(--border-color)',
         minHeight: 'calc(100vh - 60px)',
         padding: '24px 16px',
         position: 'fixed',

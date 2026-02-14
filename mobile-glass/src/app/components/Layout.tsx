@@ -241,7 +241,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             onClick={e => e.stopPropagation()}
           >
             {/* Search Input */}
-            <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ padding: 16, borderBottom: '1px solid var(--gray-200)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <span style={{ fontSize: 20 }}>🔍</span>
                 <input
@@ -258,7 +258,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     padding: '8px 0'
                   }}
                 />
-                {searching && <span style={{ color: '#9ca3af' }}>검색중...</span>}
+                {searching && <span style={{ color: 'var(--text-tertiary)' }}>검색중...</span>}
               </div>
             </div>
 
@@ -268,7 +268,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                 {/* Products */}
                 {searchResults.products.length > 0 && (
                   <div style={{ padding: '12px 16px' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>상품</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>상품</div>
                     {searchResults.products.map(p => (
                       <div
                         key={p.id}
@@ -281,13 +281,13 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                           alignItems: 'center',
                           gap: 12
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--gray-100)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <span style={{ fontSize: 16 }}>📦</span>
                         <div>
-                          <div style={{ fontWeight: 500, color: '#1f2937' }}>{p.name}</div>
-                          <div style={{ fontSize: 12, color: '#6b7280' }}>{p.brand}</div>
+                          <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{p.name}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{p.brand}</div>
                         </div>
                       </div>
                     ))}
@@ -296,8 +296,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
                 {/* Stores */}
                 {searchResults.stores.length > 0 && (
-                  <div style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>거래처</div>
+                  <div style={{ padding: '12px 16px', borderTop: '1px solid var(--gray-100)' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>거래처</div>
                     {searchResults.stores.map(s => (
                       <div
                         key={s.id}
@@ -310,13 +310,13 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                           alignItems: 'center',
                           gap: 12
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--gray-100)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <span style={{ fontSize: 16 }}>🏪</span>
                         <div>
-                          <div style={{ fontWeight: 500, color: '#1f2937' }}>{s.name}</div>
-                          <div style={{ fontSize: 12, color: '#6b7280' }}>{s.code}</div>
+                          <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{s.name}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{s.code}</div>
                         </div>
                       </div>
                     ))}
@@ -325,8 +325,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
                 {/* Orders */}
                 {searchResults.orders.length > 0 && (
-                  <div style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>주문</div>
+                  <div style={{ padding: '12px 16px', borderTop: '1px solid var(--gray-100)' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>주문</div>
                     {searchResults.orders.map(o => (
                       <div
                         key={o.id}
@@ -339,13 +339,13 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                           alignItems: 'center',
                           gap: 12
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--gray-100)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <span style={{ fontSize: 16 }}>🧾</span>
                         <div>
-                          <div style={{ fontWeight: 500, color: '#1f2937' }}>{o.orderNo}</div>
-                          <div style={{ fontSize: 12, color: '#6b7280' }}>{o.storeName}</div>
+                          <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{o.orderNo}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{o.storeName}</div>
                         </div>
                       </div>
                     ))}
@@ -356,14 +356,14 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
             {/* No Results */}
             {searchQuery.length >= 2 && !searching && !hasResults && (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
                 검색 결과가 없습니다
               </div>
             )}
 
             {/* Hint */}
             {searchQuery.length < 2 && (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
                 2글자 이상 입력하세요
               </div>
             )}
@@ -377,7 +377,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         bottom: 8, 
         left: 8, 
         fontSize: 10, 
-        color: '#868e96',
+        color: 'var(--text-tertiary)',
         background: 'rgba(255,255,255,0.9)',
         padding: '4px 8px',
         borderRadius: 4,
@@ -389,7 +389,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
       {/* Header */}
       <header style={{
         background: '#ffffff',
-        borderBottom: '1px solid #e9ecef',
+        borderBottom: '1px solid var(--border-color)',
         height: 60,
         display: 'flex',
         alignItems: 'center',
@@ -454,9 +454,9 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
               gap: 10,
               padding: '10px 16px',
               borderRadius: 10,
-              border: '1px solid #e9ecef',
+              border: '1px solid var(--border-color)',
               background: '#ffffff',
-              color: '#6c757d',
+              color: 'var(--text-secondary)',
               fontSize: 14,
               cursor: 'pointer',
               minWidth: 220,
@@ -465,7 +465,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           >
             <span style={{ opacity: 0.7 }}>🔍</span>
             <span>검색...</span>
-            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#868e96', background: '#f1f3f5', padding: '3px 8px', borderRadius: 5, fontWeight: 500 }}>Ctrl+K</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)', background: '#f1f3f5', padding: '3px 8px', borderRadius: 5, fontWeight: 500 }}>Ctrl+K</span>
           </button>
 
           <nav className="desktop-nav desktop-nav-links" style={{ display: 'flex', gap: 6, background: '#f1f3f5', padding: '6px', borderRadius: 10 }} role="navigation" aria-label="메인 메뉴">
@@ -501,7 +501,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 14 }}>
           <span className="header-right-info" style={{ fontWeight: 600, color: '#495057' }}>서울케미</span>
           <span className="header-right-info" style={{ color: '#dee2e6' }}>|</span>
-          <span className="header-right-info" style={{ color: '#6c757d', fontWeight: 500 }}>{timeStr}</span>
+          <span className="header-right-info" style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{timeStr}</span>
           {/* 알림 버튼 */}
           <NotificationBell />
           <div style={{
@@ -548,11 +548,11 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             overflowY: 'auto'
           }}
         >
-          <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--gray-200)' }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: '#5d7a5d' }}>메뉴</div>
           </div>
           {/* Mobile Nav Items */}
-          <div style={{ padding: '8px 0', borderBottom: '1px solid #e5e7eb' }}>
+          <div style={{ padding: '8px 0', borderBottom: '1px solid var(--gray-200)' }}>
             {NAV_ITEMS.map(item => (
               <Link
                 key={item.label}
@@ -571,8 +571,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           </div>
           {/* Mobile Sidebar Menus */}
           {sidebarMenus.map((menu, menuIdx) => (
-            <div key={menuIdx} style={{ padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
-              <div style={{ padding: '8px 16px', fontSize: 14, fontWeight: 700, color: '#6b7280' }}>
+            <div key={menuIdx} style={{ padding: '8px 0', borderBottom: '1px solid var(--gray-100)' }}>
+              <div style={{ padding: '8px 16px', fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>
                 {menu.title}
               </div>
               {menu.items.map(item => (
@@ -601,7 +601,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             width: 'fit-content',
             minWidth: 140,
             background: '#ffffff',
-            borderRight: '1px solid #e9ecef',
+            borderRight: '1px solid var(--border-color)',
             padding: '20px 12px',
             position: 'sticky',
             top: 60,
@@ -716,15 +716,15 @@ export const thStyle: React.CSSProperties = {
   color: '#374151',
   letterSpacing: '0.3px',
   whiteSpace: 'nowrap',
-  background: '#f9fafb'
+  background: 'var(--gray-50)'
 }
 
 export const tdStyle: React.CSSProperties = {
   padding: '14px 16px',
   fontSize: 15,
   verticalAlign: 'middle',
-  borderBottom: '1px solid #f3f4f6',
-  color: '#1f2937'
+  borderBottom: '1px solid var(--gray-100)',
+  color: 'var(--text-primary)'
 }
 
 export const cardStyle: React.CSSProperties = {

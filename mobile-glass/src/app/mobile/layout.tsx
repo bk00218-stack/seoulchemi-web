@@ -62,7 +62,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
         position: 'sticky',
         top: 0,
         background: '#fff',
-        borderBottom: '1px solid #e9ecef',
+        borderBottom: '1px solid var(--border-color)',
         padding: '12px 16px',
         display: 'flex',
         justifyContent: 'space-between',
