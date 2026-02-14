@@ -1,5 +1,6 @@
 'use client'
 import Layout, { cardStyle } from '../../components/Layout'
+import { STORES_SIDEBAR } from '../../constants/sidebar'
 export default function GroupsPage() {
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">

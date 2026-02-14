@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Layout, { btnStyle, cardStyle, selectStyle, inputStyle } from '../components/Layout'
+import { STORES_SIDEBAR } from '../constants/sidebar'
 
 type TabType = '가맹점목록' | '미결제현황' | '입금내역' | '거래내역'
 

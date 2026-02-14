@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Layout, { btnStyle, cardStyle, inputStyle, selectStyle } from '../../components/Layout'
+import { STORES_SIDEBAR } from '../../constants/sidebar'
 
 const STATUS_OPTIONS = [
   { value: 'active', label: '정상', color: '#4caf50' },

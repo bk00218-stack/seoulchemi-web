@@ -1,5 +1,6 @@
 'use client'
 import Layout, { cardStyle } from '../../../components/Layout'
+import { STORES_SIDEBAR } from '../../../constants/sidebar'
 export default function TypesPage() {
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
