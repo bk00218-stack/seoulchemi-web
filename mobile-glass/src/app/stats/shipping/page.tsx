@@ -1,12 +1,7 @@
 'use client'
 import Layout, { cardStyle } from '../../components/Layout'
-const SIDEBAR = [{ title: '주제별 통계', items: [
-  { label: '가맹점 매출 통계', href: '/stats' },
-  { label: '가맹점 상품 통계', href: '/stats/products' },
-  { label: '가맹점 출고 통계', href: '/stats/shipping' },
-  { label: '그룹별 상품 통계', href: '/stats/groups' },
-  { label: '기타 통계', href: '/stats/etc' },
-]}]
+import { STATS_SIDEBAR } from '../../constants/sidebar'
+
 export default function ShippingStatsPage() {
   return (
     <Layout sidebarMenus={STATS_SIDEBAR} activeNav="통계">

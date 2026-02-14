@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from '../components/Layout'
+import { STATS_SIDEBAR } from '../constants/sidebar'
 
 export default function StatsPage() {
   const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0])
