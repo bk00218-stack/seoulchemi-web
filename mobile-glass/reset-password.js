@@ -1,19 +1,17 @@
 const { PrismaClient } = require('@prisma/client')
 const bcrypt = require('bcryptjs')
-
 const prisma = new PrismaClient()
 
 async function main() {
-  const hashedPassword = await bcrypt.hash('admin1234', 12)
+  const newPassword = 'Seoul2026!'
+  const hashedPassword = await bcrypt.hash(newPassword, 12)
   
-  const updated = await prisma.user.update({
+  const user = await prisma.user.update({
     where: { username: 'admin' },
     data: { password: hashedPassword }
   })
   
-  console.log('Password reset for:', updated.username)
+  console.log('Password reset successful for:', user.username)
 }
 
-main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect())
+main().catch(console.error).finally(() => prisma.$disconnect())
