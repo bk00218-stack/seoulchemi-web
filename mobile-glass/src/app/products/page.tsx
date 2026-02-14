@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Layout from '../components/Layout'
-import { PRODUCTS_SIDEBAR } from 'constants/sidebar'
+import { PRODUCTS_SIDEBAR } from '../constants/sidebar'
 
 // 대분류
 interface MainCategory {

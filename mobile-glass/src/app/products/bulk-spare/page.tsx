@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Layout from '@/app/components/Layout'
-import { PRODUCTS_SIDEBAR } from '../constants/sidebar'
+import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
 
 interface Brand {
   id: number

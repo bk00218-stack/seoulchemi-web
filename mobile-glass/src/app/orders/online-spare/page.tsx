@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from '@/app/components/Layout'
-import { ORDER_SIDEBAR } from '@/app/constants/sidebar'
+import { ORDER_SIDEBAR } from '../../constants/sidebar'
 
 interface Order {
   id: number
