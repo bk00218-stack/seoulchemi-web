@@ -10,7 +10,8 @@ export const ORDER_SIDEBAR: SidebarMenu[] = [
   {
     title: '주문',
     items: [
-      { label: '온라인 여벌 주문', href: '/' },
+      { label: '대시보드', href: '/' },
+      { label: '온라인 여벌 주문', href: '/orders/online-spare' },
       { label: '온라인 RX 주문', href: '/orders/rx' },
       { label: '주문 등록', href: '/orders/new' },
       { label: '명세표 출력이력', href: '/orders/print-history' },
