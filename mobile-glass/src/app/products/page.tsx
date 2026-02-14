@@ -1110,6 +1110,13 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [editingOption, setEditingOption] = useState<ProductOption | null>(null)
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
+  
+  // 도수 옵션 함께 생성 (신규 등록시)
+  const [generateWithProduct, setGenerateWithProduct] = useState(false)
+  const [diopterRange, setDiopterRange] = useState({
+    sphMin: -6, sphMax: 4, sphStep: 0.25,
+    cylMin: -2, cylMax: 0, cylStep: 0.25
+  })
 
   // 순서 변경 추적
   const [orderChanged, setOrderChanged] = useState(false)
@@ -1301,6 +1308,7 @@ export default function ProductsPage() {
   async function handleSaveProduct(formData: FormData) {
     const data = {
       brandId: selectedBrand?.id,
+      productLineId: selectedProductLine?.id,
       name: formData.get('name'),
       optionType: formData.get('optionType'),
       productType: formData.get('productType') || formData.get('optionType'),
@@ -1319,10 +1327,56 @@ export default function ProductsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
+      
       if (res.ok) {
+        const savedProduct = await res.json()
+        
+        // 신규 등록 + 도수 옵션 함께 생성
+        if (!editingProduct && generateWithProduct) {
+          const formatValue = (v: number) => {
+            const rounded = Math.round(v * 100) / 100
+            if (rounded === 0) return '0.00'
+            return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2)
+          }
+          
+          // 도수 옵션 생성
+          const optionsToCreate: { sph: string; cyl: string; priceAdjustment: number }[] = []
+          for (let sph = diopterRange.sphMin; sph <= diopterRange.sphMax; sph += diopterRange.sphStep) {
+            for (let cyl = diopterRange.cylMin; cyl <= diopterRange.cylMax; cyl += diopterRange.cylStep) {
+              optionsToCreate.push({
+                sph: formatValue(Math.round(sph * 100) / 100),
+                cyl: formatValue(Math.round(cyl * 100) / 100),
+                priceAdjustment: 0
+              })
+            }
+          }
+          
+          if (optionsToCreate.length > 0) {
+            const optRes = await fetch(`/api/products/${savedProduct.id}/options/bulk`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ options: optionsToCreate })
+            })
+            
+            if (optRes.ok) {
+              const optData = await optRes.json()
+              alert(`상품이 등록되었습니다.\n도수 옵션 ${optData.created || optionsToCreate.length}개가 함께 생성되었습니다.`)
+            } else {
+              alert('상품은 등록되었으나, 도수 옵션 생성에 실패했습니다.')
+            }
+          }
+          
+          setGenerateWithProduct(false)
+        } else {
+          // 일반 저장
+          if (!editingProduct) {
+            alert('상품이 등록되었습니다.')
+          }
+        }
+        
         setShowProductModal(false)
         setEditingProduct(null)
-        if (selectedBrand) handleSelectBrand(selectedBrand)
+        if (selectedProductLine) handleSelectProductLine(selectedProductLine)
       } else {
         alert('저장 실패')
       }
@@ -2169,6 +2223,96 @@ export default function ProductsPage() {
                     />
                   </div>
                 </div>
+
+                {/* 도수 옵션 함께 생성 (신규 등록시에만) */}
+                {!editingProduct && (
+                  <div style={{ 
+                    padding: 14, 
+                    background: generateWithProduct ? 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)' : 'var(--gray-50)', 
+                    borderRadius: 10,
+                    border: generateWithProduct ? '1px solid #81c784' : '1px solid var(--gray-200)'
+                  }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={generateWithProduct}
+                        onChange={(e) => setGenerateWithProduct(e.target.checked)}
+                        style={{ width: 18, height: 18 }}
+                      />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
+                        📋 도수 옵션 함께 생성 (여벌용)
+                      </span>
+                    </label>
+                    
+                    {generateWithProduct && (
+                      <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                          <div>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 최소</label>
+                            <input 
+                              type="number" step="0.25" value={diopterRange.sphMin}
+                              onChange={(e) => setDiopterRange(prev => ({ ...prev, sphMin: parseFloat(e.target.value) }))}
+                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 최대</label>
+                            <input 
+                              type="number" step="0.25" value={diopterRange.sphMax}
+                              onChange={(e) => setDiopterRange(prev => ({ ...prev, sphMax: parseFloat(e.target.value) }))}
+                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 단위</label>
+                            <select 
+                              value={diopterRange.sphStep}
+                              onChange={(e) => setDiopterRange(prev => ({ ...prev, sphStep: parseFloat(e.target.value) }))}
+                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+                            >
+                              <option value={0.25}>0.25</option>
+                              <option value={0.5}>0.50</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                          <div>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 최소</label>
+                            <input 
+                              type="number" step="0.25" value={diopterRange.cylMin}
+                              onChange={(e) => setDiopterRange(prev => ({ ...prev, cylMin: parseFloat(e.target.value) }))}
+                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 최대</label>
+                            <input 
+                              type="number" step="0.25" value={diopterRange.cylMax}
+                              onChange={(e) => setDiopterRange(prev => ({ ...prev, cylMax: parseFloat(e.target.value) }))}
+                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+                            />
+                          </div>
+                          <div>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 단위</label>
+                            <select 
+                              value={diopterRange.cylStep}
+                              onChange={(e) => setDiopterRange(prev => ({ ...prev, cylStep: parseFloat(e.target.value) }))}
+                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
+                            >
+                              <option value={0.25}>0.25</option>
+                              <option value={0.5}>0.50</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--gray-600)', background: '#fff', padding: 8, borderRadius: 6 }}>
+                          📊 생성될 옵션: 약 {Math.ceil((diopterRange.sphMax - diopterRange.sphMin) / diopterRange.sphStep + 1) * Math.ceil((diopterRange.cylMax - diopterRange.cylMin) / diopterRange.cylStep + 1)}개
+                          <br />
+                          SPH: {diopterRange.sphMin} ~ {diopterRange.sphMax > 0 ? '+' : ''}{diopterRange.sphMax} | CYL: {diopterRange.cylMin} ~ {diopterRange.cylMax}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* 도수 옵션 요약 (수정시에만) */}
                 {editingProduct && options.length > 0 && (
