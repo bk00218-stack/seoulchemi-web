@@ -679,8 +679,8 @@ export default function NewOrderPage() {
               ] as const).map(({ label: t, key }) => (
                 <label key={t} style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                   <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />
-                  <span>{t}</span>
-                  <span style={{ fontSize: 10, opacity: 0.7 }}>[{key}]</span>
+                  <span style={{ color: 'inherit' }}>{t}</span>
+                  <span style={{ fontSize: 10, color: orderType === t ? 'rgba(255,255,255,0.7)' : '#666' }}>[{key}]</span>
                 </label>
               ))}
             </div>
@@ -695,7 +695,7 @@ export default function NewOrderPage() {
           </section>
           <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <label style={{ fontWeight: 600, color: '#212529' }}>상품 [F6]</label>
-            <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 1, border: '1px solid #ccc', borderRadius: 2, background: '#fff', flex: 1, overflow: 'auto', outline: 'none' }}>
+            <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 1, border: '1px solid #ccc', borderRadius: 2, background: '#fff', color: '#212529', flex: 1, overflow: 'auto', outline: 'none' }}>
               {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#868e96' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
                 filteredProducts.map((p, i) => (
                   <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
