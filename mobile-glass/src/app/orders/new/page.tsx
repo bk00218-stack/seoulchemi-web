@@ -561,8 +561,8 @@ export default function NewOrderPage() {
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 8, borderBottom: '2px solid #5d7a5d' }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>판매전표 입력</h1>
-        <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
+        <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#212529' }}>판매전표 입력</h1>
+        <span style={{ fontSize: 12, color: '#6c757d' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 280px', gap: 4, height: 'calc(100vh - 110px)' }}>
@@ -570,7 +570,7 @@ export default function NewOrderPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f8f9fa', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <section>
             <label style={{ fontWeight: 700, color: '#5d7a5d', display: 'flex', alignItems: 'center', gap: 4 }}>
-              🏪 상호 <span style={{ fontSize: 10, color: 'var(--text-tertiary)', fontWeight: 400 }}>[Esc]</span>
+              🏪 상호 <span style={{ fontSize: 10, color: '#868e96', fontWeight: 400 }}>[Esc]</span>
             </label>
             <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
               onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
@@ -583,7 +583,7 @@ export default function NewOrderPage() {
                 fontSize: 15, 
                 marginTop: 6,
                 background: '#fff',
-                color: 'var(--text-primary)',
+                color: '#212529',
                 boxShadow: '0 2px 8px rgba(93, 122, 93, 0.15)',
                 outline: 'none',
                 transition: 'all 0.2s'
@@ -646,7 +646,7 @@ export default function NewOrderPage() {
                       cursor: 'pointer', 
                       borderBottom: '1px solid #eee', 
                       background: storeFocusIndex === i ? '#5d7a5d' : '#fff',
-                      color: storeFocusIndex === i ? '#fff' : 'var(--text-primary)',
+                      color: storeFocusIndex === i ? '#fff' : '#212529',
                       fontSize: 14,
                       transition: 'all 0.1s',
                       display: 'flex',
@@ -669,7 +669,7 @@ export default function NewOrderPage() {
             )}
           </section>
           <section>
-            <label style={{ fontWeight: 600, color: 'var(--text-primary)' }}>주문 구분</label>
+            <label style={{ fontWeight: 600, color: '#212529' }}>주문 구분</label>
             <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
               {([
                 { label: '여벌', key: 'F7' },
@@ -686,17 +686,17 @@ export default function NewOrderPage() {
             </div>
           </section>
           <section>
-            <label style={{ fontWeight: 600, color: 'var(--text-primary)' }}>품목 [F5]</label>
+            <label style={{ fontWeight: 600, color: '#212529' }}>품목 [F5]</label>
             <select ref={brandSelectRef} value={selectedBrandId || ''} onChange={e => { const bid = e.target.value ? parseInt(e.target.value) : null; setSelectedBrandId(bid); setSelectedProductId(null); if (bid) setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
-              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: '#fff', color: 'var(--text-primary)' }}>
+              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: '#fff', color: '#212529' }}>
               <option value="">브랜드...</option>
               {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </section>
           <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <label style={{ fontWeight: 600, color: 'var(--text-primary)' }}>상품 [F6]</label>
+            <label style={{ fontWeight: 600, color: '#212529' }}>상품 [F6]</label>
             <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 1, border: '1px solid #ccc', borderRadius: 2, background: '#fff', flex: 1, overflow: 'auto', outline: 'none' }}>
-              {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: 'var(--text-tertiary)' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
+              {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#868e96' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
                 filteredProducts.map((p, i) => (
                   <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
                     style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#eef4ee' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
@@ -808,7 +808,7 @@ export default function NewOrderPage() {
             <span style={{ textAlign: 'right' }}>금액</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
-            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: 'var(--text-tertiary)' }}>도수표에서 수량 입력</div> : (
+            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#868e96' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
                 <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#666' }}>{item.product.brand}</div>
@@ -840,17 +840,17 @@ export default function NewOrderPage() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 32, width: 400, textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 40 }}>✓</div>
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>접수 완료</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#212529', marginBottom: 8 }}>접수 완료</h2>
             <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>주문이 정상적으로 접수되었습니다.</p>
             
             <div style={{ background: '#f9fafb', borderRadius: 12, padding: 20, marginBottom: 24, textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#6b7280' }}>주문번호</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{completedOrder.orderNumber}</span>
+                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.orderNumber}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#6b7280' }}>가맹점</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{completedOrder.storeName}</span>
+                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.storeName}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#6b7280' }}>주문유형</span>
@@ -858,7 +858,7 @@ export default function NewOrderPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#6b7280' }}>상품수</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{completedOrder.itemCount}건</span>
+                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.itemCount}건</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
                 <span style={{ color: '#6b7280' }}>총 금액</span>
@@ -938,7 +938,7 @@ export default function NewOrderPage() {
           <div style={{ background: '#fff', borderRadius: 6, padding: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.15)', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
             <div style={{ marginBottom: 8, fontSize: 11, textAlign: 'center', color: '#333' }}>
               <span style={{ fontWeight: 600 }}>{quantityActionModal.sphStr}/{quantityActionModal.cylStr}</span>
-              <span style={{ margin: '0 6px', color: 'var(--text-tertiary)' }}>|</span>
+              <span style={{ margin: '0 6px', color: '#868e96' }}>|</span>
               <span>{quantityActionModal.existingQty} → {quantityActionModal.newQty}</span>
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
