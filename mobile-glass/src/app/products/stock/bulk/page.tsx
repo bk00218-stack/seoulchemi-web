@@ -1,6 +1,7 @@
 'use client'
 
 import Layout, { cardStyle } from '../../../components/Layout'
+import { PRODUCTS_SIDEBAR } from '../../../constants/sidebar'
 
 export default function BulkStockPage() {
   return (

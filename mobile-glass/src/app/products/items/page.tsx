@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Layout, { cardStyle, btnStyle } from '../../components/Layout'
+import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
 
 interface Brand {
   id: number
