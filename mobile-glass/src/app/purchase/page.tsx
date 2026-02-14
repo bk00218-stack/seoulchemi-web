@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from '../components/Layout'
+import { PURCHASE_SIDEBAR } from '../constants/sidebar'
 
 export default function PurchasePage() {
   const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0])

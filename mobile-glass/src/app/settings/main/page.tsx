@@ -1,5 +1,6 @@
 'use client'
 import Layout, { cardStyle } from '../../components/Layout'
+import { SETTINGS_SIDEBAR } from '../../constants/sidebar'
 export default function MainSettingsPage() {
   return (
     <Layout sidebarMenus={SETTINGS_SIDEBAR} activeNav="설정">

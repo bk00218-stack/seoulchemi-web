@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Layout, { btnStyle, cardStyle, inputStyle } from '../components/Layout'
+import { SETTINGS_SIDEBAR } from '../constants/sidebar'
 
 interface Setting {
   key: string

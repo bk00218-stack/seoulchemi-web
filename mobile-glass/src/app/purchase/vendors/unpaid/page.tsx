@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from '../../../components/Layout'
+import { PURCHASE_SIDEBAR } from '../../../constants/sidebar'
 
 interface VendorUnpaid {
   id: number

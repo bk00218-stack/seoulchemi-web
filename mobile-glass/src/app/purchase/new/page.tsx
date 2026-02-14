@@ -1,6 +1,7 @@
 'use client'
 
 import Layout, { cardStyle } from '../../components/Layout'
+import { PURCHASE_SIDEBAR } from '../../constants/sidebar'
 
 export default function NewPurchasePage() {
   return (
