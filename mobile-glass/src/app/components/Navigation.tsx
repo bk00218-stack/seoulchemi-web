@@ -65,6 +65,7 @@ export const menuStructure = {
           { label: '판매상품 관리', path: '/admin/products' },
           { label: '묶음상품 설정', path: '/admin/products/bundles' },
           { label: 'RX상품 관리', path: '/admin/products/rx' },
+          { label: '여벌 일괄등록', path: '/products/bulk-spare' },
           { label: '상품 단축코드 설정', path: '/admin/products/shortcuts' },
         ]
       },

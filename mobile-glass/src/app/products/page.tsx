@@ -8,6 +8,8 @@ const SIDEBAR = [
     title: '상품관리',
     items: [
       { label: '상품 관리', href: '/products' },
+      { label: '여벌 일괄등록', href: '/products/bulk-spare' },
+      { label: 'RX상품 관리', href: '/products/rx' },
       { label: '묶음상품 설정', href: '/products/bundles' },
       { label: '상품 단축코드 설정', href: '/products/shortcuts' },
     ]
