@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { AdminLayout } from '@/app/components/Navigation';
 
 interface SmsTemplate {
   id: number;
@@ -153,7 +154,7 @@ export default function SmsManagementPage() {
   };
 
   return (
-    <div className="p-6">
+    <AdminLayout activeMenu="settings">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">📱 SMS 관리</h1>
         <Link
@@ -471,6 +472,6 @@ export default function SmsManagementPage() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
