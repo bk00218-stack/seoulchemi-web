@@ -11,13 +11,13 @@ export interface AuthUser {
   storeId: number | null
 }
 
-// 비밀번호 정책
+// 비밀번호 정책 (최소 길이만 체크)
 export const PASSWORD_POLICY = {
   minLength: 8,
-  requireUppercase: true,
-  requireLowercase: true,
-  requireNumber: true,
-  requireSpecial: true,
+  requireUppercase: false,
+  requireLowercase: false,
+  requireNumber: false,
+  requireSpecial: false,
   specialChars: '!@#$%^&*()_+-=[]{}|;:,.<>?'
 }
 
