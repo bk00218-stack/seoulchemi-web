@@ -42,7 +42,7 @@ async function main() {
   console.log(`\n브랜드 생성 중... (${uniqueBrands.length}개)`)
   
   for (const brandName of uniqueBrands) {
-    const existing = await prisma.brand.findUnique({
+    const existing = await prisma.brand.findFirst({
       where: { name: brandName }
     })
     

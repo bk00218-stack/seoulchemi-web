@@ -19,11 +19,19 @@ async function main() {
   ]
 
   for (const brand of brands) {
-    await prisma.brand.upsert({
-      where: { name: brand.name },
-      update: brand,
-      create: brand
+    const existing = await prisma.brand.findFirst({
+      where: { name: brand.name }
     })
+    if (existing) {
+      await prisma.brand.update({
+        where: { id: existing.id },
+        data: brand
+      })
+    } else {
+      await prisma.brand.create({
+        data: brand
+      })
+    }
   }
   console.log(`   ✅ ${brands.length}개 브랜드 생성/업데이트`)
 
