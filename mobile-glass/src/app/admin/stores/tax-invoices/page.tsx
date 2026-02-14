@@ -34,7 +34,7 @@ interface Store {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   issued: { label: '발행', color: '#3b82f6', bg: '#dbeafe' },
-  sent: { label: '전송완료', color: '#10b981', bg: '#d1fae5' },
+  sent: { label: '?�송?�료', color: '#10b981', bg: '#d1fae5' },
   cancelled: { label: '취소', color: '#ef4444', bg: '#fee2e2' }
 }
 
@@ -46,11 +46,11 @@ export default function TaxInvoicesPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<TaxInvoice | null>(null)
   const [stats, setStats] = useState({ issued: 0, sent: 0, cancelled: 0, totalAmount: 0 })
 
-  // 새 세금계산서 폼
+  // ???�금계산????
   const [formData, setFormData] = useState({
     storeId: '',
     supplyDate: new Date().toISOString().slice(0, 10),
-    items: [{ itemName: '안경렌즈', specification: '', quantity: 1, unitPrice: 0, supplyAmount: 0 }]
+    items: [{ itemName: '?�경?�즈', specification: '', quantity: 1, unitPrice: 0, supplyAmount: 0 }]
   })
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function TaxInvoicesPage() {
     const newItems = [...formData.items]
     newItems[index] = { ...newItems[index], [field]: value }
     
-    // 공급가액 자동 계산
+    // 공급가???�동 계산
     if (field === 'quantity' || field === 'unitPrice') {
       newItems[index].supplyAmount = newItems[index].quantity * newItems[index].unitPrice
     }
@@ -117,12 +117,12 @@ export default function TaxInvoicesPage() {
     e.preventDefault()
 
     if (!formData.storeId) {
-      alert('가맹점을 선택해주세요.')
+      alert('가맹점???�택?�주?�요.')
       return
     }
 
     if (formData.items.some(item => !item.itemName || item.supplyAmount <= 0)) {
-      alert('품목 정보를 올바르게 입력해주세요.')
+      alert('?�목 ?�보�??�바르게 ?�력?�주?�요.')
       return
     }
 
@@ -142,15 +142,15 @@ export default function TaxInvoicesPage() {
         setFormData({
           storeId: '',
           supplyDate: new Date().toISOString().slice(0, 10),
-          items: [{ itemName: '안경렌즈', specification: '', quantity: 1, unitPrice: 0, supplyAmount: 0 }]
+          items: [{ itemName: '?�경?�즈', specification: '', quantity: 1, unitPrice: 0, supplyAmount: 0 }]
         })
         fetchInvoices()
       } else {
         const data = await res.json()
-        alert(data.error || '발행에 실패했습니다.')
+        alert(data.error || '발행???�패?�습?�다.')
       }
     } catch (error) {
-      alert('서버 오류가 발생했습니다.')
+      alert('?�버 ?�류가 발생?�습?�다.')
     }
   }
 
@@ -161,8 +161,8 @@ export default function TaxInvoicesPage() {
     <AdminLayout activeMenu="stores">
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>세금계산서</h1>
-          <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>세금계산서 발행 및 관리</p>
+          <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>?�금계산??/h1>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>?�금계산??발행 �?관�?/p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -176,49 +176,49 @@ export default function TaxInvoicesPage() {
             cursor: 'pointer'
           }}
         >
-          + 세금계산서 발행
+          + ?�금계산??발행
         </button>
       </div>
 
-      {/* 통계 */}
+      {/* ?�계 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
           <div style={{ fontSize: '13px', color: '#3b82f6', marginBottom: '4px' }}>발행</div>
           <div style={{ fontSize: '28px', fontWeight: 600 }}>{stats.issued}</div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ fontSize: '13px', color: '#10b981', marginBottom: '4px' }}>전송완료</div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#10b981', marginBottom: '4px' }}>?�송?�료</div>
           <div style={{ fontSize: '28px', fontWeight: 600 }}>{stats.sent}</div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
           <div style={{ fontSize: '13px', color: '#ef4444', marginBottom: '4px' }}>취소</div>
           <div style={{ fontSize: '28px', fontWeight: 600 }}>{stats.cancelled}</div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ fontSize: '13px', color: '#86868b', marginBottom: '4px' }}>총 발행액</div>
-          <div style={{ fontSize: '24px', fontWeight: 600 }}>{stats.totalAmount.toLocaleString()}원</div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>�?발행??/div>
+          <div style={{ fontSize: '24px', fontWeight: 600 }}>{stats.totalAmount.toLocaleString()}??/div>
         </div>
       </div>
 
       {/* 목록 */}
-      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
         ) : invoices.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>세금계산서가 없습니다.</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>?�금계산?��? ?�습?�다.</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e9ecef', background: '#f9fafb' }}>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>계산서번호</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>거래처</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>사업자번호</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>공급가액</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>세액</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>합계</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>상태</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>발행일</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>관리</th>
+              <tr style={{ borderBottom: '1px solid var(--border-color)', background: '#f9fafb' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>계산?�번??/th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>거래�?/th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�업?�번??/th>
+                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>공급가??/th>
+                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�액</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�계</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�태</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>발행??/th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>관�?/th>
               </tr>
             </thead>
             <tbody>
@@ -253,13 +253,13 @@ export default function TaxInvoicesPage() {
                         style={{
                           padding: '6px 12px',
                           borderRadius: '6px',
-                          border: '1px solid #e9ecef',
-                          background: '#fff',
+                          border: '1px solid var(--border-color)',
+                          background: 'var(--bg-primary)',
                           fontSize: '13px',
                           cursor: 'pointer'
                         }}
                       >
-                        상세
+                        ?�세
                       </button>
                     </td>
                   </tr>
@@ -281,58 +281,58 @@ export default function TaxInvoicesPage() {
           justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '700px', maxHeight: '90vh', overflow: 'auto' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>세금계산서 발행</h2>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px', width: '700px', maxHeight: '90vh', overflow: 'auto' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>?�금계산??발행</h2>
 
             <form onSubmit={handleSubmit}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>거래처 *</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>거래�?*</label>
                   <select
                     value={formData.storeId}
                     onChange={e => setFormData({ ...formData, storeId: e.target.value })}
                     required
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '14px' }}
                   >
-                    <option value="">선택</option>
+                    <option value="">?�택</option>
                     {stores.map(store => (
                       <option key={store.id} value={store.id}>{store.name} ({store.code})</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>공급일자 *</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>공급?�자 *</label>
                   <input
                     type="date"
                     value={formData.supplyDate}
                     onChange={e => setFormData({ ...formData, supplyDate: e.target.value })}
                     required
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '14px' }}
                   />
                 </div>
               </div>
 
-              {/* 품목 */}
+              {/* ?�목 */}
               <div style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <label style={{ fontSize: '14px', fontWeight: 500 }}>품목</label>
+                  <label style={{ fontSize: '14px', fontWeight: 500 }}>?�목</label>
                   <button
                     type="button"
                     onClick={addItem}
-                    style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #007aff', background: '#fff', color: '#007aff', fontSize: '13px', cursor: 'pointer' }}
+                    style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #007aff', background: 'var(--bg-primary)', color: '#007aff', fontSize: '13px', cursor: 'pointer' }}
                   >
-                    + 품목 추가
+                    + ?�목 추�?
                   </button>
                 </div>
 
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ background: '#f9fafb' }}>
-                      <th style={{ padding: '8px', textAlign: 'left', fontWeight: 500 }}>품명</th>
+                      <th style={{ padding: '8px', textAlign: 'left', fontWeight: 500 }}>?�명</th>
                       <th style={{ padding: '8px', textAlign: 'left', fontWeight: 500, width: '100px' }}>규격</th>
-                      <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500, width: '80px' }}>수량</th>
-                      <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500, width: '100px' }}>단가</th>
-                      <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500, width: '120px' }}>공급가액</th>
+                      <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500, width: '80px' }}>?�량</th>
+                      <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500, width: '100px' }}>?��?</th>
+                      <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500, width: '120px' }}>공급가??/th>
                       <th style={{ padding: '8px', width: '40px' }}></th>
                     </tr>
                   </thead>
@@ -344,8 +344,8 @@ export default function TaxInvoicesPage() {
                             type="text"
                             value={item.itemName}
                             onChange={e => updateItem(idx, 'itemName', e.target.value)}
-                            placeholder="품명"
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '13px' }}
+                            placeholder="?�명"
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '13px' }}
                           />
                         </td>
                         <td style={{ padding: '4px' }}>
@@ -354,7 +354,7 @@ export default function TaxInvoicesPage() {
                             value={item.specification}
                             onChange={e => updateItem(idx, 'specification', e.target.value)}
                             placeholder="규격"
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '13px' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '13px' }}
                           />
                         </td>
                         <td style={{ padding: '4px' }}>
@@ -363,7 +363,7 @@ export default function TaxInvoicesPage() {
                             value={item.quantity}
                             onChange={e => updateItem(idx, 'quantity', parseInt(e.target.value) || 0)}
                             min={1}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '13px', textAlign: 'right' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '13px', textAlign: 'right' }}
                           />
                         </td>
                         <td style={{ padding: '4px' }}>
@@ -372,7 +372,7 @@ export default function TaxInvoicesPage() {
                             value={item.unitPrice}
                             onChange={e => updateItem(idx, 'unitPrice', parseInt(e.target.value) || 0)}
                             min={0}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '13px', textAlign: 'right' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '13px', textAlign: 'right' }}
                           />
                         </td>
                         <td style={{ padding: '4px', textAlign: 'right', fontWeight: 500 }}>
@@ -385,7 +385,7 @@ export default function TaxInvoicesPage() {
                               onClick={() => removeItem(idx)}
                               style={{ padding: '4px 8px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
                             >
-                              ✕
+                              ??
                             </button>
                           )}
                         </td>
@@ -395,19 +395,19 @@ export default function TaxInvoicesPage() {
                 </table>
               </div>
 
-              {/* 합계 */}
+              {/* ?�계 */}
               <div style={{ background: '#f9fafb', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>공급가액</span>
-                  <span>{totalSupply.toLocaleString()} 원</span>
+                  <span>공급가??/span>
+                  <span>{totalSupply.toLocaleString()} ??/span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>세액 (10%)</span>
-                  <span>{totalTax.toLocaleString()} 원</span>
+                  <span>?�액 (10%)</span>
+                  <span>{totalTax.toLocaleString()} ??/span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: '16px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>
-                  <span>합계</span>
-                  <span>{(totalSupply + totalTax).toLocaleString()} 원</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: '16px', paddingTop: '8px', borderTop: '1px solid var(--border-color)' }}>
+                  <span>?�계</span>
+                  <span>{(totalSupply + totalTax).toLocaleString()} ??/span>
                 </div>
               </div>
 
@@ -415,7 +415,7 @@ export default function TaxInvoicesPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', fontSize: '14px', cursor: 'pointer' }}
                 >
                   취소
                 </button>
@@ -431,7 +431,7 @@ export default function TaxInvoicesPage() {
         </div>
       )}
 
-      {/* 상세 모달 */}
+      {/* ?�세 모달 */}
       {selectedInvoice && (
         <div style={{
           position: 'fixed',
@@ -442,7 +442,7 @@ export default function TaxInvoicesPage() {
           justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '600px' }}>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px', width: '600px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>{selectedInvoice.invoiceNo}</h2>
               <span style={{
@@ -458,20 +458,20 @@ export default function TaxInvoicesPage() {
             </div>
 
             <div style={{ marginBottom: '20px', fontSize: '14px' }}>
-              <div style={{ marginBottom: '8px' }}><strong>거래처:</strong> {selectedInvoice.buyerName}</div>
-              <div style={{ marginBottom: '8px' }}><strong>사업자번호:</strong> {selectedInvoice.buyerBizNo || '-'}</div>
-              <div style={{ marginBottom: '8px' }}><strong>발행일:</strong> {new Date(selectedInvoice.issueDate).toLocaleDateString('ko-KR')}</div>
-              <div><strong>공급일:</strong> {new Date(selectedInvoice.supplyDate).toLocaleDateString('ko-KR')}</div>
+              <div style={{ marginBottom: '8px' }}><strong>거래�?</strong> {selectedInvoice.buyerName}</div>
+              <div style={{ marginBottom: '8px' }}><strong>?�업?�번??</strong> {selectedInvoice.buyerBizNo || '-'}</div>
+              <div style={{ marginBottom: '8px' }}><strong>발행??</strong> {new Date(selectedInvoice.issueDate).toLocaleDateString('ko-KR')}</div>
+              <div><strong>공급??</strong> {new Date(selectedInvoice.supplyDate).toLocaleDateString('ko-KR')}</div>
             </div>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', marginBottom: '20px' }}>
               <thead>
                 <tr style={{ background: '#f9fafb' }}>
-                  <th style={{ padding: '8px', textAlign: 'left' }}>품명</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>수량</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>단가</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>공급가액</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>세액</th>
+                  <th style={{ padding: '8px', textAlign: 'left' }}>?�명</th>
+                  <th style={{ padding: '8px', textAlign: 'right' }}>?�량</th>
+                  <th style={{ padding: '8px', textAlign: 'right' }}>?��?</th>
+                  <th style={{ padding: '8px', textAlign: 'right' }}>공급가??/th>
+                  <th style={{ padding: '8px', textAlign: 'right' }}>?�액</th>
                 </tr>
               </thead>
               <tbody>
@@ -487,7 +487,7 @@ export default function TaxInvoicesPage() {
               </tbody>
               <tfoot>
                 <tr style={{ fontWeight: 600, borderTop: '2px solid #e5e5e5' }}>
-                  <td colSpan={3} style={{ padding: '12px 8px' }}>합계</td>
+                  <td colSpan={3} style={{ padding: '12px 8px' }}>?�계</td>
                   <td style={{ padding: '12px 8px', textAlign: 'right' }}>{selectedInvoice.supplyAmount.toLocaleString()}</td>
                   <td style={{ padding: '12px 8px', textAlign: 'right' }}>{selectedInvoice.taxAmount.toLocaleString()}</td>
                 </tr>
@@ -495,15 +495,15 @@ export default function TaxInvoicesPage() {
             </table>
 
             <div style={{ background: '#007aff', color: '#fff', borderRadius: '8px', padding: '16px', textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{ fontSize: '14px', marginBottom: '4px' }}>총 합계</div>
-              <div style={{ fontSize: '24px', fontWeight: 700 }}>{selectedInvoice.totalAmount.toLocaleString()} 원</div>
+              <div style={{ fontSize: '14px', marginBottom: '4px' }}>�??�계</div>
+              <div style={{ fontSize: '24px', fontWeight: 700 }}>{selectedInvoice.totalAmount.toLocaleString()} ??/div>
             </div>
 
             <button
               onClick={() => setSelectedInvoice(null)}
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
+              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', fontSize: '14px', cursor: 'pointer' }}
             >
-              닫기
+              ?�기
             </button>
           </div>
         </div>

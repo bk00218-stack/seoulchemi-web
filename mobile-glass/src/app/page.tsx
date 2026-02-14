@@ -81,7 +81,7 @@ export default function Home() {
           { label: '총 매출', value: stats.totalRevenue.toLocaleString(), unit: '원', color: '#5d7a5d', bg: '#f0f7f0', icon: '💰' },
         ].map((stat, i) => (
           <div key={i} style={{
-            background: stat.bg || '#fff',
+            background: stat.bg || 'var(--bg-primary)',
             borderRadius: 12,
             padding: 20,
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',

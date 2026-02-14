@@ -25,7 +25,7 @@ interface SearchFilterProps {
 }
 
 export default function SearchFilter({
-  placeholder = '검색어를 입력하세요',
+  placeholder = '검?�어�??�력?�세??,
   value: controlledValue,
   onChange: controlledOnChange,
   onSearch,
@@ -63,7 +63,7 @@ export default function SearchFilter({
   return (
     <div
       style={{
-        background: '#fff',
+        background: 'var(--bg-primary)',
         borderRadius: '12px',
         padding: '16px 20px',
         marginBottom: '16px',
@@ -75,7 +75,7 @@ export default function SearchFilter({
       }}
     >
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-        {/* 검색 입력 */}
+        {/* 검???�력 */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input
             type="text"
@@ -105,11 +105,11 @@ export default function SearchFilter({
               cursor: 'pointer'
             }}
           >
-            검색
+            검??
           </button>
         </div>
 
-        {/* 필터 드롭다운 */}
+        {/* ?�터 ?�롭?�운 */}
         {filters.map((filter) => (
           <select
             key={filter.key}
@@ -120,7 +120,7 @@ export default function SearchFilter({
               borderRadius: '8px',
               border: '1px solid var(--border-color)',
               fontSize: '14px',
-              background: '#fff',
+              background: 'var(--bg-primary)',
               cursor: 'pointer',
               outline: 'none'
             }}
@@ -134,7 +134,7 @@ export default function SearchFilter({
           </select>
         ))}
 
-        {/* 날짜 범위 */}
+        {/* ?�짜 범위 */}
         {dateRange && (
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <input
@@ -149,7 +149,7 @@ export default function SearchFilter({
                 outline: 'none'
               }}
             />
-            <span style={{ color: '#86868b' }}>~</span>
+            <span style={{ color: 'var(--text-tertiary)' }}>~</span>
             <input
               type="date"
               value={endDate}
@@ -166,13 +166,13 @@ export default function SearchFilter({
         )}
       </div>
 
-      {/* 액션 버튼 영역 */}
+      {/* ?�션 버튼 ?�역 */}
       {actions && <div style={{ display: 'flex', gap: '8px' }}>{actions}</div>}
     </div>
   )
 }
 
-// 필터 버튼 그룹
+// ?�터 버튼 그룹
 export function FilterButtonGroup({
   options,
   value,
@@ -191,8 +191,8 @@ export function FilterButtonGroup({
           style={{
             padding: '6px 14px',
             borderRadius: '16px',
-            background: value === opt.value ? '#1d1d1f' : 'transparent',
-            color: value === opt.value ? '#fff' : '#1d1d1f',
+            background: value === opt.value ? 'var(--text-primary)' : 'transparent',
+            color: value === opt.value ? '#fff' : 'var(--text-primary)',
             border: 'none',
             fontSize: '13px',
             fontWeight: 500,
@@ -206,7 +206,7 @@ export function FilterButtonGroup({
   )
 }
 
-// 아웃라인 버튼
+// ?�웃?�인 버튼
 export function OutlineButton({
   onClick,
   children,
@@ -223,8 +223,8 @@ export function OutlineButton({
       style={{
         padding: '6px 12px',
         borderRadius: '6px',
-        background: '#fff',
-        color: disabled ? '#c5c5c7' : '#1d1d1f',
+        background: 'var(--bg-primary)',
+        color: disabled ? 'var(--text-tertiary)' : 'var(--text-primary)',
         border: '1px solid var(--border-color)',
         fontSize: '13px',
         cursor: disabled ? 'not-allowed' : 'pointer'
@@ -235,7 +235,7 @@ export function OutlineButton({
   )
 }
 
-// 프라이머리 버튼
+// ?�라?�머�?버튼
 export function PrimaryButton({
   onClick,
   children,
@@ -254,8 +254,8 @@ export function PrimaryButton({
       style={{
         padding: '8px 16px',
         borderRadius: '6px',
-        background: disabled ? '#e5e5e5' : color,
-        color: disabled ? '#86868b' : '#fff',
+        background: disabled ? 'var(--gray-300)' : color,
+        color: disabled ? 'var(--text-tertiary)' : '#fff',
         border: 'none',
         fontSize: '13px',
         fontWeight: 500,

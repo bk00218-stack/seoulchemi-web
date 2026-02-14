@@ -100,13 +100,13 @@ export default function ReceivablesPage() {
 
   const handleDeposit = async () => {
     if (!selectedStore || !depositAmount) {
-      alert('입금액을 입력해주세요.')
+      alert('?�금?�을 ?�력?�주?�요.')
       return
     }
 
     const amount = parseInt(depositAmount.replace(/,/g, ''))
     if (isNaN(amount) || amount <= 0) {
-      alert('유효한 금액을 입력해주세요.')
+      alert('?�효??금액???�력?�주?�요.')
       return
     }
 
@@ -130,11 +130,11 @@ export default function ReceivablesPage() {
         return
       }
 
-      alert(`${formatCurrency(amount)}원 입금 처리되었습니다.`)
+      alert(`${formatCurrency(amount)}???�금 처리?�었?�니??`)
       setShowDepositModal(false)
       fetchData()
     } catch (error) {
-      alert('입금 처리에 실패했습니다.')
+      alert('?�금 처리???�패?�습?�다.')
     }
     setSaving(false)
   }
@@ -151,15 +151,15 @@ export default function ReceivablesPage() {
 
   const columns: Column<StoreReceivable>[] = [
     { key: 'code', label: '코드', width: '80px', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
+      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-tertiary)' }}>{v as string}</span>
     )},
-    { key: 'name', label: '가맹점명', render: (v) => (
+    { key: 'name', label: '가맹점�?, render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
-    { key: 'areaCode', label: '지역', width: '80px', render: (v) => (
+    { key: 'areaCode', label: '지??, width: '80px', render: (v) => (
       <span style={{ fontSize: '12px', color: '#666' }}>{(v as string) || '-'}</span>
     )},
-    { key: 'outstandingAmount', label: '미수금', align: 'right', render: (v) => {
+    { key: 'outstandingAmount', label: '미수�?, align: 'right', render: (v) => {
       const amount = v as number
       const isHigh = amount > 1000000
       return (
@@ -168,21 +168,21 @@ export default function ReceivablesPage() {
           color: amount > 0 ? (isHigh ? '#ff3b30' : '#ff9500') : '#34c759',
           fontFamily: 'monospace'
         }}>
-          {formatCurrency(amount)}원
+          {formatCurrency(amount)}??
         </span>
       )
     }},
-    { key: 'creditLimit', label: '신용한도', align: 'right', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '13px', color: '#86868b' }}>
-        {formatCurrency(v as number)}원
+    { key: 'creditLimit', label: '?�용?�도', align: 'right', render: (v) => (
+      <span style={{ fontFamily: 'monospace', fontSize: '13px', color: 'var(--text-tertiary)' }}>
+        {formatCurrency(v as number)}??
       </span>
     )},
-    { key: 'totalSales', label: '총매출', align: 'right', render: (v) => (
+    { key: 'totalSales', label: '총매�?, align: 'right', render: (v) => (
       <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>
-        {formatCurrency(v as number)}원
+        {formatCurrency(v as number)}??
       </span>
     )},
-    { key: 'lastPaymentAt', label: '최근입금', width: '100px', render: (v, row) => {
+    { key: 'lastPaymentAt', label: '최근?�금', width: '100px', render: (v, row) => {
       const daysOverdue = getDaysOverdue(v as string | null, row.paymentTermDays)
       return (
         <div>
@@ -191,23 +191,23 @@ export default function ReceivablesPage() {
           </div>
           {daysOverdue && (
             <div style={{ fontSize: '11px', color: '#ff3b30' }}>
-              {daysOverdue}일 연체
+              {daysOverdue}???�체
             </div>
           )}
         </div>
       )
     }},
-    { key: 'orderCount', label: '주문수', align: 'center', width: '70px', render: (v) => (
+    { key: 'orderCount', label: '주문??, align: 'center', width: '70px', render: (v) => (
       <span style={{ 
-        background: '#f5f5f7', 
+        background: 'var(--bg-secondary)', 
         padding: '2px 8px', 
         borderRadius: '4px', 
         fontSize: '12px' 
       }}>
-        {v as number}건
+        {v as number}�?
       </span>
     )},
-    { key: 'id', label: '관리', align: 'center', width: '140px', render: (_, row) => (
+    { key: 'id', label: '관�?, align: 'center', width: '140px', render: (_, row) => (
       <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
         <button
           onClick={() => openDepositModal(row)}
@@ -221,21 +221,21 @@ export default function ReceivablesPage() {
             cursor: 'pointer'
           }}
         >
-          입금
+          ?�금
         </button>
         <button
           onClick={() => window.location.href = `/admin/stores/receivables/transactions?storeId=${row.id}`}
           style={{
             padding: '4px 10px',
             borderRadius: '4px',
-            background: '#f5f5f7',
+            background: 'var(--bg-secondary)',
             color: '#007aff',
             border: 'none',
             fontSize: '12px',
             cursor: 'pointer'
           }}
         >
-          내역
+          ?�역
         </button>
       </div>
     )},
@@ -243,62 +243,62 @@ export default function ReceivablesPage() {
 
   return (
     <AdminLayout activeMenu="stores">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        미수금 현황
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        미수�??�황
       </h2>
 
       <StatCardGrid>
         <StatCard 
-          label="총 미수금" 
+          label="�?미수�? 
           value={formatCurrency(stats.totalOutstanding)} 
-          unit="원" 
-          icon="💰" 
+          unit="?? 
+          icon="?��" 
           highlight 
         />
         <StatCard 
-          label="미수 거래처" 
+          label="미수 거래�? 
           value={stats.storesWithDebt} 
-          unit="개" 
-          subValue={`전체 ${stats.totalStores}개 중`}
+          unit="�? 
+          subValue={`?�체 ${stats.totalStores}�?�?}
         />
         <StatCard 
-          label="연체 금액" 
+          label="?�체 금액" 
           value={formatCurrency(stats.overdueAmount)} 
-          unit="원" 
-          icon="⚠️"
+          unit="?? 
+          icon="?�️"
         />
         <StatCard 
-          label="이번 달 입금" 
+          label="?�번 ???�금" 
           value={formatCurrency(stats.thisMonthReceived)} 
-          unit="원" 
-          icon="✅"
+          unit="?? 
+          icon="??
         />
       </StatCardGrid>
 
       <SearchFilter
-        placeholder="가맹점명, 코드, 지역 검색"
+        placeholder="가맹점�? 코드, 지??검??
         value={search}
         onChange={setSearch}
         onSearch={handleSearch}
         actions={
           <>
             <OutlineButton onClick={() => window.location.href = '/admin/stores/receivables/transactions'}>
-              📋 입출금 내역
+              ?�� ?�출�??�역
             </OutlineButton>
-            <OutlineButton onClick={() => alert('엑셀 다운로드 - 준비 중')}>
-              📥 엑셀
+            <OutlineButton onClick={() => alert('?��? ?�운로드 - 준�?�?)}>
+              ?�� ?��?
             </OutlineButton>
           </>
         }
       />
 
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
         <FilterButtonGroup
           options={[
-            { label: `전체 (${stats.totalStores})`, value: 'all' },
-            { label: `미수 있음 (${stats.storesWithDebt})`, value: 'hasDebt' },
-            { label: '연체', value: 'overdue' },
-            { label: '한도 초과', value: 'overLimit' },
+            { label: `?�체 (${stats.totalStores})`, value: 'all' },
+            { label: `미수 ?�음 (${stats.storesWithDebt})`, value: 'hasDebt' },
+            { label: '?�체', value: 'overdue' },
+            { label: '?�도 초과', value: 'overLimit' },
           ]}
           value={filter}
           onChange={(v) => { setFilter(v); setPage(1); }}
@@ -306,15 +306,15 @@ export default function ReceivablesPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
-          로딩 중...
+        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>
+          로딩 �?..
         </div>
       ) : (
         <>
           <DataTable
             columns={columns}
             data={data}
-            emptyMessage="미수금 데이터가 없습니다"
+            emptyMessage="미수�??�이?��? ?�습?�다"
           />
           
           {totalPages > 1 && (
@@ -332,15 +332,15 @@ export default function ReceivablesPage() {
                   borderRadius: '6px',
                   background: page === 1 ? '#f5f5f7' : '#fff',
                   color: page === 1 ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border-color)',
                   cursor: page === 1 ? 'default' : 'pointer',
                 }}
               >
-                이전
+                ?�전
               </button>
               <span style={{ 
                 padding: '8px 16px', 
-                color: '#86868b',
+                color: 'var(--text-tertiary)',
                 display: 'flex',
                 alignItems: 'center'
               }}>
@@ -354,18 +354,18 @@ export default function ReceivablesPage() {
                   borderRadius: '6px',
                   background: page === totalPages ? '#f5f5f7' : '#fff',
                   color: page === totalPages ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border-color)',
                   cursor: page === totalPages ? 'default' : 'pointer',
                 }}
               >
-                다음
+                ?�음
               </button>
             </div>
           )}
         </>
       )}
 
-      {/* 입금 모달 */}
+      {/* ?�금 모달 */}
       {showDepositModal && selectedStore && (
         <div style={{
           position: 'fixed',
@@ -380,32 +380,32 @@ export default function ReceivablesPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
+            background: 'var(--bg-primary)',
             borderRadius: '16px',
             padding: '24px',
             width: '440px',
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              입금 처리
+              ?�금 처리
             </h3>
             
             <div style={{ 
-              background: '#f5f5f7', 
+              background: 'var(--bg-secondary)', 
               borderRadius: '8px', 
               padding: '16px', 
               marginBottom: '20px' 
             }}>
-              <div style={{ fontSize: '14px', color: '#86868b', marginBottom: '4px' }}>
+              <div style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
                 {selectedStore.code} · {selectedStore.name}
               </div>
               <div style={{ fontSize: '20px', fontWeight: 600, color: '#ff3b30' }}>
-                미수금: {formatCurrency(selectedStore.outstandingAmount)}원
+                미수�? {formatCurrency(selectedStore.outstandingAmount)}??
               </div>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-                입금액 <span style={{ color: '#ff3b30' }}>*</span>
+                ?�금??<span style={{ color: '#ff3b30' }}>*</span>
               </label>
               <input 
                 type="text" 
@@ -419,7 +419,7 @@ export default function ReceivablesPage() {
                   width: '100%', 
                   padding: '12px', 
                   borderRadius: '8px', 
-                  border: '1px solid #e9ecef', 
+                  border: '1px solid var(--border-color)', 
                   fontSize: '18px',
                   fontWeight: 600,
                   textAlign: 'right'
@@ -429,14 +429,14 @@ export default function ReceivablesPage() {
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-                입금 방법
+                ?�금 방법
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[
-                  { value: 'transfer', label: '계좌이체' },
-                  { value: 'cash', label: '현금' },
+                  { value: 'transfer', label: '계좌?�체' },
+                  { value: 'cash', label: '?�금' },
                   { value: 'card', label: '카드' },
-                  { value: 'check', label: '어음' },
+                  { value: 'check', label: '?�음' },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -467,12 +467,12 @@ export default function ReceivablesPage() {
                 type="text" 
                 value={depositMemo}
                 onChange={(e) => setDepositMemo(e.target.value)}
-                placeholder="입금자명, 참고사항 등"
+                placeholder="?�금?�명, 참고?�항 ??
                 style={{ 
                   width: '100%', 
                   padding: '10px 12px', 
                   borderRadius: '8px', 
-                  border: '1px solid #e9ecef', 
+                  border: '1px solid var(--border-color)', 
                   fontSize: '14px' 
                 }} 
               />
@@ -485,8 +485,8 @@ export default function ReceivablesPage() {
                 style={{ 
                   padding: '10px 20px', 
                   borderRadius: '8px', 
-                  background: '#f5f5f7', 
-                  color: '#1d1d1f', 
+                  background: 'var(--bg-secondary)', 
+                  color: 'var(--text-primary)', 
                   border: 'none', 
                   fontSize: '14px', 
                   cursor: 'pointer' 
@@ -508,7 +508,7 @@ export default function ReceivablesPage() {
                   cursor: saving || !depositAmount ? 'default' : 'pointer' 
                 }}
               >
-                {saving ? '처리 중...' : '입금 처리'}
+                {saving ? '처리 �?..' : '?�금 처리'}
               </button>
             </div>
           </div>

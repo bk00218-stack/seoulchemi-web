@@ -38,7 +38,7 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
 
   return (
     <div style={{
-      background: '#fff',
+      background: 'var(--bg-primary)',
       borderRadius: '8px',
       marginBottom: '8px',
       border: '1px solid var(--gray-200)',
@@ -71,7 +71,7 @@ function EndpointCard({ endpoint }: { endpoint: ApiEndpoint }) {
         <span style={{ color: 'var(--text-secondary)', fontSize: '14px', marginLeft: 'auto' }}>
           {endpoint.summary}
         </span>
-        <span style={{ color: 'var(--text-tertiary)' }}>{expanded ? '▲' : '▼'}</span>
+        <span style={{ color: 'var(--text-tertiary)' }}>{expanded ? '?? : '??}</span>
       </div>
 
       {expanded && (
@@ -169,7 +169,7 @@ export default function ApiDocsPage() {
   if (loading) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <p>API 문서 로딩 중...</p>
+        <p>API 문서 로딩 �?..</p>
       </div>
     )
   }
@@ -177,7 +177,7 @@ export default function ApiDocsPage() {
   if (!spec) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>
-        <p>API 문서를 불러올 수 없습니다.</p>
+        <p>API 문서�?불러?????�습?�다.</p>
       </div>
     )
   }
@@ -208,7 +208,7 @@ export default function ApiDocsPage() {
       {/* Sidebar */}
       <div style={{
         width: '240px',
-        background: '#fff',
+        background: 'var(--bg-primary)',
         borderRight: '1px solid var(--gray-200)',
         padding: '24px 16px',
         position: 'sticky',
@@ -241,7 +241,7 @@ export default function ApiDocsPage() {
               marginBottom: '4px'
             }}
           >
-            전체 ({endpoints.length})
+            ?�체 ({endpoints.length})
           </button>
           {tags.map((tag: any) => (
             <button
@@ -277,7 +277,7 @@ export default function ApiDocsPage() {
       <div style={{ flex: 1, padding: '24px', maxWidth: '900px' }}>
         <div style={{ marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {activeTag || '전체 API'}
+            {activeTag || '?�체 API'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
             {spec.info?.description}
@@ -292,7 +292,7 @@ export default function ApiDocsPage() {
           fontSize: '14px',
           color: '#92400e'
         }}>
-          🔐 모든 API는 인증이 필요합니다. 먼저 <code>/api/auth/login</code>으로 로그인하세요.
+          ?�� 모든 API???�증???�요?�니?? 먼�? <code>/api/auth/login</code>?�로 로그?�하?�요.
         </div>
 
         {filteredEndpoints.map((endpoint, i) => (

@@ -5,20 +5,20 @@ import Layout from '@/app/components/Layout'
 
 const SIDEBAR = [
   {
-    title: '상품관리',
+    title: '?�품관�?,
     items: [
-      { label: '상품 관리', href: '/products' },
-      { label: '여벌 일괄등록', href: '/products/bulk-spare' },
-      { label: 'RX상품 관리', href: '/products/rx' },
-      { label: '묶음상품 설정', href: '/products/bundles' },
-      { label: '상품 단축코드 설정', href: '/products/shortcuts' },
+      { label: '?�품 관�?, href: '/products' },
+      { label: '?�벌 ?�괄?�록', href: '/products/bulk-spare' },
+      { label: 'RX?�품 관�?, href: '/products/rx' },
+      { label: '묶음?�품 ?�정', href: '/products/bundles' },
+      { label: '?�품 ?�축코드 ?�정', href: '/products/shortcuts' },
     ]
   },
   {
-    title: '재고관리',
+    title: '?�고관�?,
     items: [
-      { label: '일괄재고수정', href: '/products/stock/bulk' },
-      { label: '적정재고 설정', href: '/products/stock/optimal' },
+      { label: '?�괄?�고?�정', href: '/products/stock/bulk' },
+      { label: '?�정?�고 ?�정', href: '/products/stock/optimal' },
     ]
   }
 ]
@@ -35,14 +35,14 @@ interface ProductLine {
   brandId: number
 }
 
-// 도수 포맷팅
+// ?�수 ?�맷??
 const formatDiopter = (value: number): string => {
   const rounded = Math.round(value * 100) / 100
   if (rounded === 0) return '0.00'
   return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2)
 }
 
-// SPH/CYL 생성
+// SPH/CYL ?�성
 const generateSphRows = (): number[] => {
   const values: number[] = []
   for (let i = 0; i <= 15; i += 0.25) values.push(Math.round(i * 100) / 100)
@@ -56,27 +56,27 @@ const generateCylCols = (): number[] => {
 }
 
 export default function BulkSpareRegistrationPage() {
-  // 브랜드/품목 선택
+  // 브랜???�목 ?�택
   const [brands, setBrands] = useState<Brand[]>([])
   const [productLines, setProductLines] = useState<ProductLine[]>([])
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null)
   const [selectedProductLineId, setSelectedProductLineId] = useState<number | null>(null)
 
-  // 상품 정보
+  // ?�품 ?�보
   const [productName, setProductName] = useState('')
   const [refractiveIndex, setRefractiveIndex] = useState('')
   const [sellingPrice, setSellingPrice] = useState(0)
   const [purchasePrice, setPurchasePrice] = useState(0)
 
-  // 도수표 선택
+  // ?�수???�택
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set())
   const [isDragging, setIsDragging] = useState(false)
   const [dragMode, setDragMode] = useState<'select' | 'deselect'>('select')
   
-  // 선택 모드 (근시/원시)
+  // ?�택 모드 (근시/?�시)
   const [sphMode, setSphMode] = useState<'minus' | 'plus'>('minus')
   
-  // 저장 중
+  // ?�??�?
   const [saving, setSaving] = useState(false)
 
   const sphRows = generateSphRows()
@@ -94,7 +94,7 @@ export default function BulkSpareRegistrationPage() {
 
   const fetchBrands = async () => {
     try {
-      // 여벌 대분류의 브랜드만 가져오기 (categoryId = 1 = SPARE)
+      // ?�벌 ?�분류??브랜?�만 가?�오�?(categoryId = 1 = SPARE)
       const res = await fetch('/api/brands?categoryId=1')
       if (res.ok) {
         const data = await res.json()
@@ -155,7 +155,7 @@ export default function BulkSpareRegistrationPage() {
     setIsDragging(false)
   }
 
-  // 범위 선택 (빠른 선택)
+  // 범위 ?�택 (빠른 ?�택)
   const selectRange = (sphMin: number, sphMax: number, cylMin: number, cylMax: number) => {
     const newSet = new Set(selectedCells)
     for (let s = sphMin; s <= sphMax; s += 0.25) {
@@ -174,21 +174,21 @@ export default function BulkSpareRegistrationPage() {
 
   const handleSave = async () => {
     if (!selectedBrandId) {
-      alert('브랜드를 선택하세요.')
+      alert('브랜?��? ?�택?�세??')
       return
     }
     if (!productName.trim()) {
-      alert('상품명을 입력하세요.')
+      alert('?�품명을 ?�력?�세??')
       return
     }
     if (selectedCells.size === 0) {
-      alert('도수를 선택하세요.')
+      alert('?�수�??�택?�세??')
       return
     }
 
     setSaving(true)
     try {
-      // 1. 상품 생성
+      // 1. ?�품 ?�성
       const productRes = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -196,8 +196,8 @@ export default function BulkSpareRegistrationPage() {
           brandId: selectedBrandId,
           productLineId: selectedProductLineId,
           name: productName,
-          optionType: '안경렌즈 여벌',
-          productType: '안경렌즈 여벌',
+          optionType: '?�경?�즈 ?�벌',
+          productType: '?�경?�즈 ?�벌',
           refractiveIndex: refractiveIndex || null,
           sellingPrice,
           purchasePrice,
@@ -206,12 +206,12 @@ export default function BulkSpareRegistrationPage() {
       })
 
       if (!productRes.ok) {
-        throw new Error('상품 생성 실패')
+        throw new Error('?�품 ?�성 ?�패')
       }
 
       const product = await productRes.json()
 
-      // 2. 도수 옵션 일괄 생성
+      // 2. ?�수 ?�션 ?�괄 ?�성
       const options = Array.from(selectedCells).map(key => {
         const [sph, cyl] = key.split(',')
         return { sph, cyl, priceAdjustment: 0 }
@@ -225,20 +225,20 @@ export default function BulkSpareRegistrationPage() {
 
       if (optionsRes.ok) {
         const result = await optionsRes.json()
-        alert(`✅ 상품이 등록되었습니다!\n- 상품명: ${productName}\n- 도수 옵션: ${result.created || options.length}개`)
+        alert(`???�품???�록?�었?�니??\n- ?�품�? ${productName}\n- ?�수 ?�션: ${result.created || options.length}�?)
         
-        // 폼 초기화
+        // ??초기??
         setProductName('')
         setRefractiveIndex('')
         setSellingPrice(0)
         setPurchasePrice(0)
         setSelectedCells(new Set())
       } else {
-        alert('상품은 생성되었으나, 도수 옵션 생성에 실패했습니다.')
+        alert('?�품?� ?�성?�었?�나, ?�수 ?�션 ?�성???�패?�습?�다.')
       }
     } catch (e) {
       console.error(e)
-      alert('저장 중 오류가 발생했습니다.')
+      alert('?�??�??�류가 발생?�습?�다.')
     } finally {
       setSaving(false)
     }
@@ -255,29 +255,29 @@ export default function BulkSpareRegistrationPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="상품">
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>여벌 상품 일괄등록</h1>
+    <Layout sidebarMenus={SIDEBAR} activeNav="?�품">
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>?�벌 ?�품 ?�괄?�록</h1>
       <p style={{ fontSize: 13, color: 'var(--gray-500)', marginBottom: 24 }}>
-        도수표에서 범위를 선택하여 상품과 도수 옵션을 한번에 등록합니다.
+        ?�수?�에??범위�??�택?�여 ?�품�??�수 ?�션???�번???�록?�니??
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24 }}>
-          {/* 왼쪽: 상품 정보 */}
+          {/* ?�쪽: ?�품 ?�보 */}
           <div style={{ 
-            background: '#fff', 
+            background: 'var(--bg-primary)', 
             borderRadius: 12, 
             padding: 20,
             border: '1px solid var(--gray-200)',
             height: 'fit-content'
           }}>
             <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, color: 'var(--gray-800)' }}>
-              📦 상품 정보
+              ?�� ?�품 ?�보
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--gray-600)', marginBottom: 4, display: 'block' }}>
-                  브랜드 *
+                  브랜??*
                 </label>
                 <select
                   value={selectedBrandId || ''}
@@ -287,7 +287,7 @@ export default function BulkSpareRegistrationPage() {
                   }}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--gray-200)', fontSize: 13 }}
                 >
-                  <option value="">브랜드 선택</option>
+                  <option value="">브랜???�택</option>
                   {brands.map(b => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
@@ -296,7 +296,7 @@ export default function BulkSpareRegistrationPage() {
 
               <div>
                 <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--gray-600)', marginBottom: 4, display: 'block' }}>
-                  품목 (선택)
+                  ?�목 (?�택)
                 </label>
                 <select
                   value={selectedProductLineId || ''}
@@ -304,7 +304,7 @@ export default function BulkSpareRegistrationPage() {
                   disabled={!selectedBrandId}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--gray-200)', fontSize: 13 }}
                 >
-                  <option value="">품목 선택</option>
+                  <option value="">?�목 ?�택</option>
                   {productLines.map(pl => (
                     <option key={pl.id} value={pl.id}>{pl.name}</option>
                   ))}
@@ -313,39 +313,39 @@ export default function BulkSpareRegistrationPage() {
 
               <div>
                 <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--gray-600)', marginBottom: 4, display: 'block' }}>
-                  상품명 *
+                  ?�품�?*
                 </label>
                 <input
                   type="text"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
-                  placeholder="예: 블루라이트 차단 1.60"
+                  placeholder="?? 블루?�이??차단 1.60"
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--gray-200)', fontSize: 13 }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--gray-600)', marginBottom: 4, display: 'block' }}>
-                  굴절률
+                  굴절�?
                 </label>
                 <select
                   value={refractiveIndex}
                   onChange={(e) => setRefractiveIndex(e.target.value)}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--gray-200)', fontSize: 13 }}
                 >
-                  <option value="">선택</option>
-                  <option value="1.50">1.50 (표준)</option>
+                  <option value="">?�택</option>
+                  <option value="1.50">1.50 (?��?)</option>
                   <option value="1.56">1.56</option>
-                  <option value="1.60">1.60 (중도수)</option>
-                  <option value="1.67">1.67 (고도수)</option>
-                  <option value="1.74">1.74 (초고도수)</option>
+                  <option value="1.60">1.60 (중도??</option>
+                  <option value="1.67">1.67 (고도??</option>
+                  <option value="1.74">1.74 (초고?�수)</option>
                 </select>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--gray-600)', marginBottom: 4, display: 'block' }}>
-                    판매가
+                    ?�매가
                   </label>
                   <input
                     type="number"
@@ -367,7 +367,7 @@ export default function BulkSpareRegistrationPage() {
                 </div>
               </div>
 
-              {/* 선택 요약 */}
+              {/* ?�택 ?�약 */}
               <div style={{ 
                 padding: 14, 
                 background: selectedCells.size > 0 ? 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)' : 'var(--gray-50)',
@@ -375,11 +375,11 @@ export default function BulkSpareRegistrationPage() {
                 marginTop: 8
               }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
-                  📋 선택된 도수: {selectedCells.size}개
+                  ?�� ?�택???�수: {selectedCells.size}�?
                 </div>
                 {selectedCells.size > 0 && (
                   <div style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>
-                    클릭하여 저장
+                    ?�릭?�여 ?�??
                   </div>
                 )}
               </div>
@@ -399,20 +399,20 @@ export default function BulkSpareRegistrationPage() {
                   marginTop: 8
                 }}
               >
-                {saving ? '저장 중...' : `상품 + 도수 ${selectedCells.size}개 등록`}
+                {saving ? '?�??�?..' : `?�품 + ?�수 ${selectedCells.size}�??�록`}
               </button>
             </div>
           </div>
 
-          {/* 오른쪽: 도수표 */}
+          {/* ?�른�? ?�수??*/}
           <div style={{ 
-            background: '#fff', 
+            background: 'var(--bg-primary)', 
             borderRadius: 12, 
             padding: 20,
             border: '1px solid var(--gray-200)',
             overflow: 'hidden'
           }}>
-            {/* 탭 & 빠른 선택 */}
+            {/* ??& 빠른 ?�택 */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
@@ -429,7 +429,7 @@ export default function BulkSpareRegistrationPage() {
                     cursor: 'pointer'
                   }}
                 >
-                  근시 (−SPH)
+                  근시 (?�SPH)
                 </button>
                 <button
                   onClick={() => setSphMode('plus')}
@@ -445,7 +445,7 @@ export default function BulkSpareRegistrationPage() {
                     cursor: 'pointer'
                   }}
                 >
-                  원시 (+SPH)
+                  ?�시 (+SPH)
                 </button>
               </div>
               
@@ -454,24 +454,24 @@ export default function BulkSpareRegistrationPage() {
                   onClick={() => selectRange(0, 6, -2, 0)}
                   style={{ padding: '6px 12px', fontSize: 11, background: '#eef4ee', border: '1px solid #a8c8a8', borderRadius: 6, cursor: 'pointer' }}
                 >
-                  저도수 (0~6)
+                  ?�?�수 (0~6)
                 </button>
                 <button
                   onClick={() => selectRange(0, 4, -2, 0)}
                   style={{ padding: '6px 12px', fontSize: 11, background: '#fff3e0', border: '1px solid #ffcc80', borderRadius: 6, cursor: 'pointer' }}
                 >
-                  일반 (0~4)
+                  ?�반 (0~4)
                 </button>
                 <button
                   onClick={clearSelection}
                   style={{ padding: '6px 12px', fontSize: 11, background: '#ffebee', border: '1px solid #ef9a9a', borderRadius: 6, cursor: 'pointer' }}
                 >
-                  초기화
+                  초기??
                 </button>
               </div>
             </div>
 
-            {/* 도수표 그리드 */}
+            {/* ?�수??그리??*/}
             <div 
               style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 300px)' }}
               onMouseUp={handleMouseUp}
@@ -480,7 +480,7 @@ export default function BulkSpareRegistrationPage() {
               <table style={{ borderCollapse: 'collapse', fontSize: 10, userSelect: 'none' }}>
                 <thead>
                   <tr>
-                    <th style={{ ...headerStyle, position: 'sticky', left: 0, background: '#fff', zIndex: 2 }}>
+                    <th style={{ ...headerStyle, position: 'sticky', left: 0, background: 'var(--bg-primary)', zIndex: 2 }}>
                       SPH\CYL
                     </th>
                     {cylCols.map(cyl => (
@@ -497,7 +497,7 @@ export default function BulkSpareRegistrationPage() {
                         ...headerStyle, 
                         position: 'sticky', 
                         left: 0, 
-                        background: '#fff',
+                        background: 'var(--bg-primary)',
                         zIndex: 1,
                         fontWeight: 600
                       }}>
@@ -525,7 +525,7 @@ export default function BulkSpareRegistrationPage() {
                               transition: 'background 0.1s'
                             }}
                           >
-                            {isSelected ? '✓' : ''}
+                            {isSelected ? '?? : ''}
                           </td>
                         )
                       })}
@@ -536,7 +536,7 @@ export default function BulkSpareRegistrationPage() {
             </div>
 
             <div style={{ marginTop: 12, fontSize: 11, color: 'var(--gray-500)' }}>
-              💡 드래그하여 범위 선택 | 클릭하여 개별 선택/해제
+              ?�� ?�래그하??범위 ?�택 | ?�릭?�여 개별 ?�택/?�제
             </div>
           </div>
         </div>

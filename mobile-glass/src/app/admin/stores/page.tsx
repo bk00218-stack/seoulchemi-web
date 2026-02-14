@@ -78,7 +78,7 @@ export default function StoresPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [groups, setGroups] = useState<StoreGroup[]>([])
 
-  // 그룹 목록 가져오기
+  // 그룹 목록 가?�오�?
   useEffect(() => {
     fetch('/api/store-groups')
       .then(res => res.json())
@@ -151,7 +151,7 @@ export default function StoresPage() {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      alert('안경원명을 입력해주세요.')
+      alert('?�경?�명???�력?�주?�요.')
       return
     }
     
@@ -174,17 +174,17 @@ export default function StoresPage() {
         return
       }
       
-      alert(editingStore ? '수정되었습니다.' : '등록되었습니다.')
+      alert(editingStore ? '?�정?�었?�니??' : '?�록?�었?�니??')
       setShowModal(false)
       fetchData()
     } catch (error) {
-      alert('저장에 실패했습니다.')
+      alert('?�?�에 ?�패?�습?�다.')
     }
     setSaving(false)
   }
 
   const handleDelete = async (store: Store) => {
-    if (!confirm(`'${store.name}'을(를) 삭제하시겠습니까?`)) return
+    if (!confirm(`'${store.name}'??�? ??��?�시겠습?�까?`)) return
     
     try {
       const res = await fetch(`/api/stores/${store.id}`, { method: 'DELETE' })
@@ -198,25 +198,25 @@ export default function StoresPage() {
       alert(json.message)
       fetchData()
     } catch (error) {
-      alert('삭제에 실패했습니다.')
+      alert('??��???�패?�습?�다.')
     }
   }
 
   const columns: Column<Store>[] = [
     { key: 'code', label: '코드', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
+      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-tertiary)' }}>{v as string}</span>
     )},
-    { key: 'name', label: '안경원명', render: (v) => (
+    { key: 'name', label: '?�경?�명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
-    { key: 'ownerName', label: '대표자' },
-    { key: 'phone', label: '연락처', render: (v) => (
+    { key: 'ownerName', label: '?�?�자' },
+    { key: 'phone', label: '?�락�?, render: (v) => (
       <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{v as string}</span>
     )},
     { key: 'address', label: '주소', width: '200px', render: (v) => (
       <span style={{ fontSize: '12px', color: '#666' }}>{v as string}</span>
     )},
-    { key: 'orderCount', label: '주문수', align: 'center', render: (v) => (
+    { key: 'orderCount', label: '주문??, align: 'center', render: (v) => (
       <span style={{ 
         background: (v as number) > 0 ? '#eef4ee' : '#f5f5f7', 
         color: (v as number) > 0 ? '#007aff' : '#86868b',
@@ -225,20 +225,20 @@ export default function StoresPage() {
         fontSize: '12px',
         fontWeight: 500
       }}>
-        {v as number}건
+        {v as number}�?
       </span>
     )},
     { key: 'lastOrderDate', label: '최근주문', render: (v) => (
       v ? (
-        <span style={{ color: '#1d1d1f', fontSize: '12px' }}>{v as string}</span>
+        <span style={{ color: 'var(--text-primary)', fontSize: '12px' }}>{v as string}</span>
       ) : (
-        <span style={{ color: '#c5c5c7', fontSize: '12px' }}>없음</span>
+        <span style={{ color: '#c5c5c7', fontSize: '12px' }}>?�음</span>
       )
     )},
-    { key: 'isActive', label: '상태', render: (v) => (
+    { key: 'isActive', label: '?�태', render: (v) => (
       <StatusBadge status={v ? 'active' : 'inactive'} />
     )},
-    { key: 'id', label: '관리', align: 'center', render: (_, row) => (
+    { key: 'id', label: '관�?, align: 'center', render: (_, row) => (
       <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
         <button
           onClick={() => router.push(`/admin/stores/${row.id}/discounts`)}
@@ -252,35 +252,35 @@ export default function StoresPage() {
             cursor: 'pointer'
           }}
         >
-          할인
+          ?�인
         </button>
         <button
           onClick={() => openModal(row)}
           style={{
             padding: '4px 10px',
             borderRadius: '4px',
-            background: '#f5f5f7',
+            background: 'var(--bg-secondary)',
             color: '#007aff',
             border: 'none',
             fontSize: '12px',
             cursor: 'pointer'
           }}
         >
-          수정
+          ?�정
         </button>
         <button
           onClick={() => handleDelete(row)}
           style={{
             padding: '4px 10px',
             borderRadius: '4px',
-            background: '#fff',
+            background: 'var(--bg-primary)',
             color: '#ff3b30',
             border: '1px solid #ff3b30',
             fontSize: '12px',
             cursor: 'pointer'
           }}
         >
-          삭제
+          ??��
         </button>
       </div>
     )},
@@ -288,25 +288,25 @@ export default function StoresPage() {
 
   return (
     <AdminLayout activeMenu="stores">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        가맹점 관리
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        가맹점 관�?
       </h2>
 
       <StatCardGrid>
-        <StatCard label="총 가맹점" value={stats.total} unit="개" icon="🏪" />
-        <StatCard label="활성" value={stats.active} unit="개" />
-        <StatCard label="비활성" value={stats.inactive} unit="개" />
-        <StatCard label="이번 달 신규" value={stats.newThisMonth} unit="개" highlight />
+        <StatCard label="�?가맹점" value={stats.total} unit="�? icon="?��" />
+        <StatCard label="?�성" value={stats.active} unit="�? />
+        <StatCard label="비활?? value={stats.inactive} unit="�? />
+        <StatCard label="?�번 ???�규" value={stats.newThisMonth} unit="�? highlight />
       </StatCardGrid>
 
       <SearchFilter
-        placeholder="가맹점명, 코드, 연락처, 대표자 검색"
+        placeholder="가맹점�? 코드, ?�락�? ?�?�자 검??
         value={search}
         onChange={setSearch}
         onSearch={handleSearch}
         actions={
           <>
-            <OutlineButton onClick={() => alert('엑셀 다운로드 - 준비 중')}>📥 엑셀</OutlineButton>
+            <OutlineButton onClick={() => alert('?��? ?�운로드 - 준�?�?)}>?�� ?��?</OutlineButton>
             <button
               onClick={() => openModal(null)}
               style={{
@@ -320,18 +320,18 @@ export default function StoresPage() {
                 cursor: 'pointer'
               }}
             >
-              + 가맹점 등록
+              + 가맹점 ?�록
             </button>
           </>
         }
       />
 
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
         <FilterButtonGroup
           options={[
-            { label: `전체 (${stats.total})`, value: 'all' },
-            { label: `활성 (${stats.active})`, value: 'active' },
-            { label: `비활성 (${stats.inactive})`, value: 'inactive' },
+            { label: `?�체 (${stats.total})`, value: 'all' },
+            { label: `?�성 (${stats.active})`, value: 'active' },
+            { label: `비활??(${stats.inactive})`, value: 'inactive' },
           ]}
           value={filter}
           onChange={(v) => { setFilter(v); setPage(1); }}
@@ -339,8 +339,8 @@ export default function StoresPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
-          로딩 중...
+        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>
+          로딩 �?..
         </div>
       ) : (
         <>
@@ -350,10 +350,10 @@ export default function StoresPage() {
             selectable
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
-            emptyMessage="등록된 가맹점이 없습니다"
+            emptyMessage="?�록??가맹점???�습?�다"
           />
           
-          {/* 페이지네이션 */}
+          {/* ?�이지?�이??*/}
           {totalPages > 1 && (
             <div style={{ 
               display: 'flex', 
@@ -369,15 +369,15 @@ export default function StoresPage() {
                   borderRadius: '6px',
                   background: page === 1 ? '#f5f5f7' : '#fff',
                   color: page === 1 ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border-color)',
                   cursor: page === 1 ? 'default' : 'pointer',
                 }}
               >
-                이전
+                ?�전
               </button>
               <span style={{ 
                 padding: '8px 16px', 
-                color: '#86868b',
+                color: 'var(--text-tertiary)',
                 display: 'flex',
                 alignItems: 'center'
               }}>
@@ -391,18 +391,18 @@ export default function StoresPage() {
                   borderRadius: '6px',
                   background: page === totalPages ? '#f5f5f7' : '#fff',
                   color: page === totalPages ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border-color)',
                   cursor: page === totalPages ? 'default' : 'pointer',
                 }}
               >
-                다음
+                ?�음
               </button>
             </div>
           )}
         </>
       )}
 
-      {/* 등록/수정 모달 */}
+      {/* ?�록/?�정 모달 */}
       {showModal && (
         <div style={{
           position: 'fixed',
@@ -417,7 +417,7 @@ export default function StoresPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
+            background: 'var(--bg-primary)',
             borderRadius: '16px',
             padding: '24px',
             width: '520px',
@@ -425,25 +425,25 @@ export default function StoresPage() {
             overflow: 'auto'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editingStore ? '가맹점 수정' : '가맹점 등록'}
+              {editingStore ? '가맹점 ?�정' : '가맹점 ?�록'}
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px', color: '#86868b' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px', color: 'var(--text-tertiary)' }}>
                   가맹점 코드
                 </label>
                 <input 
                   type="text" 
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="자동생성"
+                  placeholder="?�동?�성"
                   disabled={!!editingStore}
                   style={{ 
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px',
                     background: editingStore ? '#f5f5f7' : '#fff'
                   }} 
@@ -451,7 +451,7 @@ export default function StoresPage() {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-                  안경원명 <span style={{ color: '#ff3b30' }}>*</span>
+                  ?�경?�명 <span style={{ color: '#ff3b30' }}>*</span>
                 </label>
                 <input 
                   type="text" 
@@ -461,7 +461,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -470,7 +470,7 @@ export default function StoresPage() {
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>대표자</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�?�자</label>
                 <input 
                   type="text" 
                   value={formData.ownerName}
@@ -479,13 +479,13 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }} 
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>전화</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�화</label>
                 <input 
                   type="tel" 
                   value={formData.phone}
@@ -495,7 +495,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -504,7 +504,7 @@ export default function StoresPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>핸드폰</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�드??/label>
                 <input 
                   type="tel" 
                   value={formData.mobile}
@@ -514,13 +514,13 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }} 
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>결제기한 (일)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>결제기한 (??</label>
                 <input 
                   type="number" 
                   value={formData.paymentTermDays}
@@ -530,7 +530,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -539,19 +539,19 @@ export default function StoresPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>청구일 (매월)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>�?��??(매월)</label>
                 <input 
                   type="number" 
                   value={formData.billingDay || ''}
                   onChange={(e) => setFormData({ ...formData, billingDay: e.target.value ? parseInt(e.target.value) : null })}
-                  placeholder="예: 15 (매월 15일)"
+                  placeholder="?? 15 (매월 15??"
                   min={1}
                   max={31}
                   style={{ 
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -565,11 +565,11 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }}
                 >
-                  <option value="">선택 안함</option>
+                  <option value="">?�택 ?�함</option>
                   {groups.map(group => (
                     <option key={group.id} value={group.id}>{group.name}</option>
                   ))}
@@ -579,17 +579,17 @@ export default function StoresPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>담당</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�당</label>
                 <input 
                   type="text" 
                   value={formData.salesRepName}
                   onChange={(e) => setFormData({ ...formData, salesRepName: e.target.value })}
-                  placeholder="담당자명"
+                  placeholder="?�당?�명"
                   style={{ 
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -600,12 +600,12 @@ export default function StoresPage() {
                   type="text" 
                   value={formData.deliveryContact}
                   onChange={(e) => setFormData({ ...formData, deliveryContact: e.target.value })}
-                  placeholder="배송담당"
+                  placeholder="배송?�당"
                   style={{ 
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
+                    border: '1px solid var(--border-color)', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -622,14 +622,14 @@ export default function StoresPage() {
                   width: '100%', 
                   padding: '10px 12px', 
                   borderRadius: '8px', 
-                  border: '1px solid #e9ecef', 
+                  border: '1px solid var(--border-color)', 
                   fontSize: '14px' 
                 }} 
               />
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상태</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�태</label>
               <select 
                 value={formData.isActive ? 'active' : 'inactive'}
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'active' })}
@@ -637,12 +637,12 @@ export default function StoresPage() {
                   width: '100%', 
                   padding: '10px 12px', 
                   borderRadius: '8px', 
-                  border: '1px solid #e9ecef', 
+                  border: '1px solid var(--border-color)', 
                   fontSize: '14px' 
                 }}
               >
-                <option value="active">활성</option>
-                <option value="inactive">비활성</option>
+                <option value="active">?�성</option>
+                <option value="inactive">비활??/option>
               </select>
             </div>
             
@@ -653,8 +653,8 @@ export default function StoresPage() {
                 style={{ 
                   padding: '10px 20px', 
                   borderRadius: '8px', 
-                  background: '#f5f5f7', 
-                  color: '#1d1d1f', 
+                  background: 'var(--bg-secondary)', 
+                  color: 'var(--text-primary)', 
                   border: 'none', 
                   fontSize: '14px', 
                   cursor: 'pointer' 
@@ -676,7 +676,7 @@ export default function StoresPage() {
                   cursor: saving ? 'default' : 'pointer' 
                 }}
               >
-                {saving ? '저장 중...' : '저장'}
+                {saving ? '?�??�?..' : '?�??}
               </button>
             </div>
           </div>

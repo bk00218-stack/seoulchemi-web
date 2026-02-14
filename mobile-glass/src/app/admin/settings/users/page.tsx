@@ -78,15 +78,15 @@ export default function UsersPage() {
         fetchUsers()
       } else {
         const data = await res.json()
-        alert(data.error || '저장에 실패했습니다.')
+        alert(data.error || '?�?�에 ?�패?�습?�다.')
       }
     } catch (error) {
-      alert('서버 오류가 발생했습니다.')
+      alert('?�버 ?�류가 발생?�습?�다.')
     }
   }
 
   const handleDelete = async (user: User) => {
-    if (!confirm(`${user.name}님을 삭제하시겠습니까?`)) return
+    if (!confirm(`${user.name}?�을 ??��?�시겠습?�까?`)) return
 
     try {
       const res = await fetch(`/api/users/${user.id}`, { method: 'DELETE' })
@@ -94,10 +94,10 @@ export default function UsersPage() {
         fetchUsers()
       } else {
         const data = await res.json()
-        alert(data.error || '삭제에 실패했습니다.')
+        alert(data.error || '??��???�패?�습?�다.')
       }
     } catch (error) {
-      alert('서버 오류가 발생했습니다.')
+      alert('?�버 ?�류가 발생?�습?�다.')
     }
   }
 
@@ -122,15 +122,15 @@ export default function UsersPage() {
 
   const roleLabels: Record<string, string> = {
     admin: '관리자',
-    manager: '매니저',
-    user: '사용자',
+    manager: '매니?�',
+    user: '?�용??,
     store: '가맹점'
   }
 
   if (loading) {
     return (
       <AdminLayout activeMenu="settings">
-        <div style={{ textAlign: 'center', padding: '60px' }}>로딩 중...</div>
+        <div style={{ textAlign: 'center', padding: '60px' }}>로딩 �?..</div>
       </AdminLayout>
     )
   }
@@ -139,9 +139,9 @@ export default function UsersPage() {
     <AdminLayout activeMenu="settings">
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0 }}>사용자 관리</h1>
-          <p style={{ color: '#86868b', margin: '4px 0 0', fontSize: '14px' }}>
-            시스템 사용자를 관리합니다.
+          <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0 }}>?�용??관�?/h1>
+          <p style={{ color: 'var(--text-tertiary)', margin: '4px 0 0', fontSize: '14px' }}>
+            ?�스???�용?��? 관리합?�다.
           </p>
         </div>
         <button
@@ -160,20 +160,20 @@ export default function UsersPage() {
             cursor: 'pointer'
           }}
         >
-          + 사용자 추가
+          + ?�용??추�?
         </button>
       </div>
 
-      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #e9ecef', background: '#f9fafb' }}>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>아이디</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>이름</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>이메일</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>역할</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>최근 로그인</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>관리</th>
+            <tr style={{ borderBottom: '1px solid var(--border-color)', background: '#f9fafb' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�이??/th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�름</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�메??/th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>??��</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>최근 로그??/th>
+              <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>관�?/th>
             </tr>
           </thead>
           <tbody>
@@ -207,14 +207,14 @@ export default function UsersPage() {
                     style={{
                       padding: '6px 12px',
                       borderRadius: '6px',
-                      border: '1px solid #e9ecef',
-                      background: '#fff',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-primary)',
                       fontSize: '13px',
                       cursor: 'pointer',
                       marginRight: '8px'
                     }}
                   >
-                    수정
+                    ?�정
                   </button>
                   {user.id !== currentUser?.id && (
                     <button
@@ -223,13 +223,13 @@ export default function UsersPage() {
                         padding: '6px 12px',
                         borderRadius: '6px',
                         border: '1px solid #fee2e2',
-                        background: '#fff',
+                        background: 'var(--bg-primary)',
                         fontSize: '13px',
                         color: '#dc2626',
                         cursor: 'pointer'
                       }}
                     >
-                      삭제
+                      ??��
                     </button>
                   )}
                 </td>
@@ -251,7 +251,7 @@ export default function UsersPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
+            background: 'var(--bg-primary)',
             borderRadius: '16px',
             padding: '24px',
             width: '400px',
@@ -259,13 +259,13 @@ export default function UsersPage() {
             overflow: 'auto'
           }}>
             <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editUser ? '사용자 수정' : '사용자 추가'}
+              {editUser ? '?�용???�정' : '?�용??추�?'}
             </h2>
 
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>
-                  아이디 *
+                  ?�이??*
                 </label>
                 <input
                   type="text"
@@ -277,7 +277,7 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px',
                     background: editUser ? '#f5f5f7' : '#fff'
                   }}
@@ -286,7 +286,7 @@ export default function UsersPage() {
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>
-                  이름 *
+                  ?�름 *
                 </label>
                 <input
                   type="text"
@@ -297,7 +297,7 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px'
                   }}
                 />
@@ -305,7 +305,7 @@ export default function UsersPage() {
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>
-                  이메일 *
+                  ?�메??*
                 </label>
                 <input
                   type="email"
@@ -316,7 +316,7 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px'
                   }}
                 />
@@ -324,19 +324,19 @@ export default function UsersPage() {
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>
-                  비밀번호 {editUser ? '' : '*'}
+                  비�?번호 {editUser ? '' : '*'}
                 </label>
                 <input
                   type="password"
                   value={formData.password}
                   onChange={e => setFormData({ ...formData, password: e.target.value })}
                   required={!editUser}
-                  placeholder={editUser ? '변경하려면 입력' : ''}
+                  placeholder={editUser ? '변경하?�면 ?�력' : ''}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px'
                   }}
                 />
@@ -344,7 +344,7 @@ export default function UsersPage() {
 
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '6px' }}>
-                  역할 *
+                  ??�� *
                 </label>
                 <select
                   value={formData.role}
@@ -353,13 +353,13 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px'
                   }}
                 >
                   <option value="admin">관리자</option>
-                  <option value="manager">매니저</option>
-                  <option value="user">사용자</option>
+                  <option value="manager">매니?�</option>
+                  <option value="user">?�용??/option>
                   <option value="store">가맹점</option>
                 </select>
               </div>
@@ -372,8 +372,8 @@ export default function UsersPage() {
                     flex: 1,
                     padding: '12px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
-                    background: '#fff',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-primary)',
                     fontSize: '14px',
                     fontWeight: 500,
                     cursor: 'pointer'
@@ -395,7 +395,7 @@ export default function UsersPage() {
                     cursor: 'pointer'
                   }}
                 >
-                  {editUser ? '수정' : '추가'}
+                  {editUser ? '?�정' : '추�?'}
                 </button>
               </div>
             </form>

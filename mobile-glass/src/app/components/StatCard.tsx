@@ -28,7 +28,7 @@ export default function StatCard({
     <div
       onClick={onClick}
       style={{
-        background: '#fff',
+        background: 'var(--bg-primary)',
         borderRadius: '12px',
         padding: '16px 20px',
         border: highlight ? '2px solid #007aff' : '1px solid transparent',
@@ -37,19 +37,19 @@ export default function StatCard({
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>{label}</div>
+        <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>{label}</div>
         {icon && <span style={{ fontSize: '20px' }}>{icon}</span>}
       </div>
-      <div style={{ fontSize: '24px', fontWeight: 600, color: '#1d1d1f' }}>
+      <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)' }}>
         {typeof value === 'number' ? value.toLocaleString() : value}
         {unit && (
-          <span style={{ fontSize: '12px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>
             {unit}
           </span>
         )}
       </div>
       {subValue && (
-        <div style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
           {subValue}
         </div>
       )}
@@ -66,7 +66,7 @@ export default function StatCard({
         >
           <span>{trend.isPositive ? '↑' : '↓'}</span>
           <span>{Math.abs(trend.value)}%</span>
-          <span style={{ color: '#86868b', marginLeft: '4px' }}>전월 대비</span>
+          <span style={{ color: 'var(--text-tertiary)', marginLeft: '4px' }}>전월 대비</span>
         </div>
       )}
     </div>
@@ -106,11 +106,11 @@ export function MiniStatCard({
         alignItems: 'center',
         gap: '8px',
         padding: '8px 12px',
-        background: '#f5f5f7',
+        background: 'var(--bg-secondary)',
         borderRadius: '8px'
       }}
     >
-      <span style={{ fontSize: '12px', color: '#86868b' }}>{label}</span>
+      <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{label}</span>
       <span style={{ fontSize: '14px', fontWeight: 600, color }}>{value}</span>
     </div>
   )

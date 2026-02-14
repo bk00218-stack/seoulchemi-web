@@ -81,18 +81,18 @@ export default function DeliveryPage() {
         loadData()
       }
     } catch (error) {
-      alert('저장에 실패했습니다.')
+      alert('?�?�에 ?�패?�습?�다.')
     }
   }
 
   const columns: Column<DeliveryInfo>[] = [
     { key: 'code', label: '가맹점코드', width: '100px', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
+      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-tertiary)' }}>{v as string}</span>
     )},
-    { key: 'name', label: '안경원명', render: (v) => (
+    { key: 'name', label: '?�경?�명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
-    { key: 'deliveryContact', label: '담당자', render: (v, row) => {
+    { key: 'deliveryContact', label: '?�당??, render: (v, row) => {
       if (editingId === row.id) {
         return (
           <input
@@ -105,7 +105,7 @@ export default function DeliveryPage() {
       }
       return <span>{(v as string) || row.ownerName || '-'}</span>
     }},
-    { key: 'deliveryPhone', label: '연락처', render: (v, row) => {
+    { key: 'deliveryPhone', label: '?�락�?, render: (v, row) => {
       if (editingId === row.id) {
         return (
           <input
@@ -139,13 +139,13 @@ export default function DeliveryPage() {
             value={editForm.deliveryMemo || ''}
             onChange={(e) => setEditForm({ ...editForm, deliveryMemo: e.target.value })}
             style={{ width: '100%', padding: '4px 8px', border: '1px solid #007aff', borderRadius: '4px', fontSize: '13px' }}
-            placeholder="배송메모 입력"
+            placeholder="배송메모 ?�력"
           />
         )
       }
       return <span style={{ color: '#666', fontSize: '12px' }}>{(v as string) || '-'}</span>
     }},
-    { key: 'id', label: '관리', width: '100px', align: 'center', render: (_, row) => {
+    { key: 'id', label: '관�?, width: '100px', align: 'center', render: (_, row) => {
       if (editingId === row.id) {
         return (
           <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
@@ -161,14 +161,14 @@ export default function DeliveryPage() {
                 cursor: 'pointer'
               }}
             >
-              저장
+              ?�??
             </button>
             <button
               onClick={() => setEditingId(null)}
               style={{
                 padding: '4px 10px',
                 borderRadius: '4px',
-                background: '#f5f5f7',
+                background: 'var(--bg-secondary)',
                 color: '#666',
                 border: 'none',
                 fontSize: '12px',
@@ -186,14 +186,14 @@ export default function DeliveryPage() {
           style={{
             padding: '4px 10px',
             borderRadius: '4px',
-            background: '#f5f5f7',
+            background: 'var(--bg-secondary)',
             color: '#007aff',
             border: 'none',
             fontSize: '12px',
             cursor: 'pointer'
           }}
         >
-          수정
+          ?�정
         </button>
       )
     }},
@@ -201,8 +201,8 @@ export default function DeliveryPage() {
 
   return (
     <AdminLayout activeMenu="order">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        출고 배송지 정보
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        출고 배송지 ?�보
       </h2>
 
       <div style={{ 
@@ -213,24 +213,24 @@ export default function DeliveryPage() {
         fontSize: '14px',
         color: '#4a6b4a'
       }}>
-        📍 <strong>배송지 관리 안내</strong><br />
-        가맹점별 기본 배송지 정보를 관리합니다. 배송지 변경 시 해당 가맹점의 모든 주문에 적용됩니다.
+        ?�� <strong>배송지 관�??�내</strong><br />
+        가맹점�?기본 배송지 ?�보�?관리합?�다. 배송지 변�????�당 가맹점??모든 주문???�용?�니??
       </div>
 
       <SearchFilter
-        placeholder="가맹점명, 주소 검색"
+        placeholder="가맹점�? 주소 검??
         value={search}
         onChange={setSearch}
         onSearch={handleSearch}
         filters={[
           {
             key: 'region',
-            label: '지역',
+            label: '지??,
             options: [
-              { label: '지역', value: '' },
-              { label: '서울', value: '서울' },
+              { label: '지??, value: '' },
+              { label: '?�울', value: '?�울' },
               { label: '경기', value: '경기' },
-              { label: '인천', value: '인천' }
+              { label: '?�천', value: '?�천' }
             ],
             value: region,
             onChange: setRegion
@@ -242,27 +242,27 @@ export default function DeliveryPage() {
               style={{
                 padding: '8px 12px',
                 borderRadius: '6px',
-                background: '#fff',
-                color: '#1d1d1f',
-                border: '1px solid #e9ecef',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-color)',
                 fontSize: '13px',
                 cursor: 'pointer'
               }}
             >
-              📥 엑셀
+              ?�� ?��?
             </button>
             <button
               style={{
                 padding: '8px 12px',
                 borderRadius: '6px',
-                background: '#fff',
-                color: '#1d1d1f',
-                border: '1px solid #e9ecef',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-color)',
                 fontSize: '13px',
                 cursor: 'pointer'
               }}
             >
-              ✏️ 일괄수정
+              ?�️ ?�괄?�정
             </button>
           </div>
         }
@@ -272,13 +272,13 @@ export default function DeliveryPage() {
         columns={columns}
         data={data}
         loading={loading}
-        emptyMessage="배송지 정보가 없습니다"
+        emptyMessage="배송지 ?�보가 ?�습?�다"
       />
 
       <div style={{ 
         marginTop: '16px', 
         padding: '12px 16px', 
-        background: '#fff', 
+        background: 'var(--bg-primary)', 
         borderRadius: '8px',
         display: 'flex',
         justifyContent: 'space-between',
@@ -286,8 +286,8 @@ export default function DeliveryPage() {
         fontSize: '13px',
         color: '#666'
       }}>
-        <span>총 {data.length}개 가맹점</span>
-        <span>최근 업데이트: {data.length > 0 ? new Date(data[0].updatedAt).toLocaleDateString('ko-KR') : '-'}</span>
+        <span>�?{data.length}�?가맹점</span>
+        <span>최근 ?�데?�트: {data.length > 0 ? new Date(data[0].updatedAt).toLocaleDateString('ko-KR') : '-'}</span>
       </div>
     </AdminLayout>
   )

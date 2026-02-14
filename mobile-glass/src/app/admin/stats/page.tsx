@@ -80,14 +80,14 @@ export default function StatsPage() {
     <AdminLayout activeMenu="stats">
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>통계</h1>
-          <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>매출 및 주문 현황을 분석합니다.</p>
+          <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>?�계</h1>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>매출 �?주문 ?�황??분석?�니??</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           {[
-            { value: 'week', label: '이번 주' },
-            { value: 'month', label: '이번 달' },
-            { value: 'year', label: '올해' }
+            { value: 'week', label: '?�번 �? },
+            { value: 'month', label: '?�번 ?? },
+            { value: 'year', label: '?�해' }
           ].map(opt => (
             <button
               key={opt.value}
@@ -108,44 +108,44 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* 요약 카드 */}
+      {/* ?�약 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '16px', padding: '24px', color: '#fff' }}>
-          <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>총 주문</div>
+          <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>�?주문</div>
           <div style={{ fontSize: '32px', fontWeight: 700 }}>{summary.totalOrders.toLocaleString()}</div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
-          <div style={{ fontSize: '14px', color: '#86868b', marginBottom: '8px' }}>총 매출</div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>�?매출</div>
           <div style={{ fontSize: '28px', fontWeight: 600 }}>{(summary.totalAmount / 10000).toFixed(0)}만원</div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
-          <div style={{ fontSize: '14px', color: '#86868b', marginBottom: '8px' }}>평균 주문액</div>
-          <div style={{ fontSize: '28px', fontWeight: 600 }}>{Math.round(summary.avgOrderAmount).toLocaleString()}원</div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>?�균 주문??/div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{Math.round(summary.avgOrderAmount).toLocaleString()}??/div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
-          <div style={{ fontSize: '14px', color: '#86868b', marginBottom: '8px' }}>거래 가맹점</div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '8px' }}>거래 가맹점</div>
           <div style={{ fontSize: '28px', fontWeight: 600 }}>{summary.totalStores}</div>
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        {/* 가맹점별 매출 */}
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>가맹점별 매출 TOP 10</h2>
+        {/* 가맹점�?매출 */}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>가맹점�?매출 TOP 10</h2>
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
           ) : storeStats.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>데이터가 없습니다.</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>?�이?��? ?�습?�다.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {storeStats.slice(0, 10).map((store, idx) => (
                 <div key={store.id}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span style={{ fontSize: '14px' }}>
-                      <span style={{ color: '#86868b', marginRight: '8px' }}>{idx + 1}</span>
+                      <span style={{ color: 'var(--text-tertiary)', marginRight: '8px' }}>{idx + 1}</span>
                       {store.name}
                     </span>
-                    <span style={{ fontSize: '14px', fontWeight: 500 }}>{store.totalAmount.toLocaleString()}원</span>
+                    <span style={{ fontSize: '14px', fontWeight: 500 }}>{store.totalAmount.toLocaleString()}??/span>
                   </div>
                   <div style={{
                     height: '8px',
@@ -166,23 +166,23 @@ export default function StatsPage() {
           )}
         </div>
 
-        {/* 상품별 판매량 */}
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>상품별 판매량 TOP 10</h2>
+        {/* ?�품�??�매??*/}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>?�품�??�매??TOP 10</h2>
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
           ) : productStats.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>데이터가 없습니다.</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>?�이?��? ?�습?�다.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {productStats.slice(0, 10).map((product, idx) => (
                 <div key={product.id}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span style={{ fontSize: '14px' }}>
-                      <span style={{ color: '#86868b', marginRight: '8px' }}>{idx + 1}</span>
+                      <span style={{ color: 'var(--text-tertiary)', marginRight: '8px' }}>{idx + 1}</span>
                       {product.brandName} {product.name}
                     </span>
-                    <span style={{ fontSize: '14px', fontWeight: 500 }}>{product.totalQuantity}개</span>
+                    <span style={{ fontSize: '14px', fontWeight: 500 }}>{product.totalQuantity}�?/span>
                   </div>
                   <div style={{
                     height: '8px',
@@ -204,17 +204,17 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* 엑셀 다운로드 */}
-      <div style={{ marginTop: '24px', background: '#fff', borderRadius: '16px', padding: '24px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>리포트 다운로드</h2>
+      {/* ?��? ?�운로드 */}
+      <div style={{ marginTop: '24px', background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>리포???�운로드</h2>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
             onClick={() => window.open(`/api/stats/export?type=store&period=${period}`, '_blank')}
             style={{
               padding: '12px 24px',
               borderRadius: '8px',
-              border: '1px solid #e9ecef',
-              background: '#fff',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-primary)',
               fontSize: '14px',
               cursor: 'pointer',
               display: 'flex',
@@ -222,15 +222,15 @@ export default function StatsPage() {
               gap: '8px'
             }}
           >
-            📊 가맹점별 매출
+            ?�� 가맹점�?매출
           </button>
           <button
             onClick={() => window.open(`/api/stats/export?type=product&period=${period}`, '_blank')}
             style={{
               padding: '12px 24px',
               borderRadius: '8px',
-              border: '1px solid #e9ecef',
-              background: '#fff',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-primary)',
               fontSize: '14px',
               cursor: 'pointer',
               display: 'flex',
@@ -238,15 +238,15 @@ export default function StatsPage() {
               gap: '8px'
             }}
           >
-            📦 상품별 판매
+            ?�� ?�품�??�매
           </button>
           <button
             onClick={() => window.open(`/api/stats/export?type=daily&period=${period}`, '_blank')}
             style={{
               padding: '12px 24px',
               borderRadius: '8px',
-              border: '1px solid #e9ecef',
-              background: '#fff',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-primary)',
               fontSize: '14px',
               cursor: 'pointer',
               display: 'flex',
@@ -254,7 +254,7 @@ export default function StatsPage() {
               gap: '8px'
             }}
           >
-            📅 일별 추이
+            ?�� ?�별 추이
           </button>
         </div>
       </div>

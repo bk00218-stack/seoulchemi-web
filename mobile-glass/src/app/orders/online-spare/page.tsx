@@ -33,20 +33,20 @@ interface Order {
 }
 
 const statusColors: Record<string, string> = {
-  '대기': '#fef3c7',
-  '확인': '#dbeafe',
+  '?��?: '#fef3c7',
+  '?�인': '#dbeafe',
   '가공중': '#e0e7ff',
   '출고': '#d1fae5',
-  '배송완료': '#f3f4f6',
+  '배송?�료': '#f3f4f6',
   '취소': '#fee2e2',
 }
 
 const statusTextColors: Record<string, string> = {
-  '대기': '#92400e',
-  '확인': '#1e40af',
+  '?��?: '#92400e',
+  '?�인': '#1e40af',
   '가공중': '#4338ca',
   '출고': '#065f46',
-  '배송완료': '#374151',
+  '배송?�료': '#374151',
   '취소': '#991b1b',
 }
 
@@ -73,7 +73,7 @@ export default function OnlineSpareOrdersPage() {
       const params = new URLSearchParams({
         from: dateFrom,
         to: dateTo,
-        optionType: '안경렌즈 여벌',
+        optionType: '?�경?�즈 ?�벌',
       })
       if (statusFilter !== 'all') {
         params.append('status', statusFilter)
@@ -156,47 +156,47 @@ export default function OnlineSpareOrdersPage() {
 
   const stats = {
     total: filteredOrders.length,
-    pending: filteredOrders.filter(o => o.status === '대기').length,
-    confirmed: filteredOrders.filter(o => o.status === '확인').length,
+    pending: filteredOrders.filter(o => o.status === '?��?).length,
+    confirmed: filteredOrders.filter(o => o.status === '?�인').length,
     shipped: filteredOrders.filter(o => o.status === '출고').length,
   }
 
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>온라인 여벌 주문</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>?�라???�벌 주문</h1>
         <p style={{ fontSize: 13, color: 'var(--gray-500)' }}>
-          안경원에서 온라인으로 들어온 여벌 렌즈 주문을 관리합니다.
+          ?�경?�에???�라?�으�??�어???�벌 ?�즈 주문??관리합?�다.
         </p>
       </div>
 
-      {/* 통계 카드 */}
+      {/* ?�계 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
-        <div style={{ ...cardStyle, background: '#fff' }}>
-          <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>전체 주문</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--gray-800)' }}>{stats.total}<span style={{ fontSize: 14, fontWeight: 400 }}>건</span></div>
+        <div style={{ ...cardStyle, background: 'var(--bg-primary)' }}>
+          <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>?�체 주문</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--gray-800)' }}>{stats.total}<span style={{ fontSize: 14, fontWeight: 400 }}>�?/span></div>
         </div>
         <div style={{ ...cardStyle, background: '#fef3c7' }}>
-          <div style={{ fontSize: 12, color: '#92400e' }}>대기중</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#92400e' }}>{stats.pending}<span style={{ fontSize: 14, fontWeight: 400 }}>건</span></div>
+          <div style={{ fontSize: 12, color: '#92400e' }}>?�기중</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#92400e' }}>{stats.pending}<span style={{ fontSize: 14, fontWeight: 400 }}>�?/span></div>
         </div>
         <div style={{ ...cardStyle, background: '#dbeafe' }}>
-          <div style={{ fontSize: 12, color: '#1e40af' }}>확인</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#1e40af' }}>{stats.confirmed}<span style={{ fontSize: 14, fontWeight: 400 }}>건</span></div>
+          <div style={{ fontSize: 12, color: '#1e40af' }}>?�인</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#1e40af' }}>{stats.confirmed}<span style={{ fontSize: 14, fontWeight: 400 }}>�?/span></div>
         </div>
         <div style={{ ...cardStyle, background: '#d1fae5' }}>
           <div style={{ fontSize: 12, color: '#065f46' }}>출고</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#065f46' }}>{stats.shipped}<span style={{ fontSize: 14, fontWeight: 400 }}>건</span></div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#065f46' }}>{stats.shipped}<span style={{ fontSize: 14, fontWeight: 400 }}>�?/span></div>
         </div>
       </div>
 
-      {/* 필터 */}
+      {/* ?�터 */}
       <div style={{ 
         display: 'flex', 
         gap: 12, 
         marginBottom: 16, 
         padding: 16, 
-        background: '#fff', 
+        background: 'var(--bg-primary)', 
         borderRadius: 12,
         border: '1px solid var(--gray-200)',
         alignItems: 'center',
@@ -220,25 +220,25 @@ export default function OnlineSpareOrdersPage() {
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <label style={{ fontSize: 13, color: 'var(--gray-600)' }}>상태</label>
+          <label style={{ fontSize: 13, color: 'var(--gray-600)' }}>?�태</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{ ...selectStyle, width: 120 }}
           >
-            <option value="all">전체</option>
-            <option value="대기">대기</option>
-            <option value="확인">확인</option>
+            <option value="all">?�체</option>
+            <option value="?��?>?��?/option>
+            <option value="?�인">?�인</option>
             <option value="가공중">가공중</option>
             <option value="출고">출고</option>
-            <option value="배송완료">배송완료</option>
+            <option value="배송?�료">배송?�료</option>
           </select>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
           <input
             type="text"
-            placeholder="주문번호, 가맹점명 검색..."
+            placeholder="주문번호, 가맹점�?검??.."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ ...inputStyle, flex: 1, maxWidth: 300 }}
@@ -248,10 +248,10 @@ export default function OnlineSpareOrdersPage() {
         {selectedIds.size > 0 && (
           <div style={{ display: 'flex', gap: 8 }}>
             <button
-              onClick={() => handleBulkStatusChange('확인')}
+              onClick={() => handleBulkStatusChange('?�인')}
               style={{ ...btnStyle, background: '#dbeafe', color: '#1e40af', border: 'none' }}
             >
-              확인처리 ({selectedIds.size})
+              ?�인처리 ({selectedIds.size})
             </button>
             <button
               onClick={() => handleBulkStatusChange('출고')}
@@ -265,18 +265,18 @@ export default function OnlineSpareOrdersPage() {
 
       {/* 주문 목록 */}
       <div style={{ 
-        background: '#fff', 
+        background: 'var(--bg-primary)', 
         borderRadius: 12, 
         border: '1px solid var(--gray-200)',
         overflow: 'hidden'
       }}>
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>
-            로딩 중...
+            로딩 �?..
           </div>
         ) : filteredOrders.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>
-            주문이 없습니다.
+            주문???�습?�다.
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -291,12 +291,12 @@ export default function OnlineSpareOrdersPage() {
                 </th>
                 <th style={thStyle}>주문번호</th>
                 <th style={thStyle}>가맹점</th>
-                <th style={thStyle}>상품</th>
-                <th style={thStyle}>수량</th>
+                <th style={thStyle}>?�품</th>
+                <th style={thStyle}>?�량</th>
                 <th style={thStyle}>금액</th>
-                <th style={thStyle}>상태</th>
-                <th style={thStyle}>주문일시</th>
-                <th style={thStyle}>관리</th>
+                <th style={thStyle}>?�태</th>
+                <th style={thStyle}>주문?�시</th>
+                <th style={thStyle}>관�?/th>
               </tr>
             </thead>
             <tbody>
@@ -325,7 +325,7 @@ export default function OnlineSpareOrdersPage() {
                     ))}
                     {order.items.length > 2 && (
                       <div style={{ fontSize: 11, color: 'var(--gray-400)' }}>
-                        외 {order.items.length - 2}건
+                        ??{order.items.length - 2}�?
                       </div>
                     )}
                   </td>
@@ -333,7 +333,7 @@ export default function OnlineSpareOrdersPage() {
                     {order.items.reduce((sum, item) => sum + item.quantity, 0)}
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 500 }}>
-                    {order.totalAmount.toLocaleString()}원
+                    {order.totalAmount.toLocaleString()}??
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'center' }}>
                     <span style={{
@@ -362,11 +362,11 @@ export default function OnlineSpareOrdersPage() {
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
                       style={{ ...selectStyle, fontSize: 12, padding: '4px 8px' }}
                     >
-                      <option value="대기">대기</option>
-                      <option value="확인">확인</option>
+                      <option value="?��?>?��?/option>
+                      <option value="?�인">?�인</option>
                       <option value="가공중">가공중</option>
                       <option value="출고">출고</option>
-                      <option value="배송완료">배송완료</option>
+                      <option value="배송?�료">배송?�료</option>
                       <option value="취소">취소</option>
                     </select>
                   </td>

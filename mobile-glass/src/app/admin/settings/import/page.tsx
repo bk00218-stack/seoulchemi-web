@@ -19,9 +19,9 @@ export default function ImportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const tabs: { key: ImportType; label: string; desc: string }[] = [
-    { key: 'products', label: '상품', desc: '상품 대량 등록/수정' },
-    { key: 'inventory', label: '재고', desc: '재고 일괄 수정' },
-    { key: 'stores', label: '가맹점', desc: '가맹점 대량 등록/수정' },
+    { key: 'products', label: '?�품', desc: '?�품 ?�???�록/?�정' },
+    { key: 'inventory', label: '?�고', desc: '?�고 ?�괄 ?�정' },
+    { key: 'stores', label: '가맹점', desc: '가맹점 ?�???�록/?�정' },
   ]
 
   const handleDownloadTemplate = () => {
@@ -63,11 +63,11 @@ export default function ImportPage() {
       if (res.ok) {
         setResults(data.results)
       } else {
-        alert(data.error || '업로드에 실패했습니다')
+        alert(data.error || '?�로?�에 ?�패?�습?�다')
       }
     } catch (error) {
       console.error('Upload failed:', error)
-      alert('업로드에 실패했습니다')
+      alert('?�로?�에 ?�패?�습?�다')
     } finally {
       setUploading(false)
       if (fileInputRef.current) {
@@ -79,13 +79,13 @@ export default function ImportPage() {
   return (
     <AdminLayout activeMenu="settings">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>데이터 가져오기</h1>
-        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
-          CSV 파일로 데이터를 대량 등록하거나 내보냅니다
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>?�이??가?�오�?/h1>
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>
+          CSV ?�일�??�이?��? ?�???�록?�거???�보?�니??
         </p>
       </div>
 
-      {/* 탭 */}
+      {/* ??*/}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
         {tabs.map(tab => (
           <button
@@ -107,27 +107,27 @@ export default function ImportPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        {/* 가져오기 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
+        {/* 가?�오�?*/}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
           <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
-            📥 가져오기 (업로드)
+            ?�� 가?�오�?(?�로??
           </h2>
 
           <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
             {tabs.find(t => t.key === activeTab)?.desc}
           </p>
 
-          {/* 모드 선택 */}
+          {/* 모드 ?�택 */}
           {activeTab !== 'inventory' ? (
             <div style={{ marginBottom: '16px' }}>
               <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '8px' }}>
-                가져오기 모드
+                가?�오�?모드
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[
-                  { value: 'create', label: '신규만', desc: '기존 데이터 건너뜀' },
-                  { value: 'update', label: '수정만', desc: '기존 데이터만 수정' },
-                  { value: 'upsert', label: '통합', desc: '신규 등록 + 기존 수정' },
+                  { value: 'create', label: '?�규�?, desc: '기존 ?�이??건너?�' },
+                  { value: 'update', label: '?�정�?, desc: '기존 ?�이?�만 ?�정' },
+                  { value: 'upsert', label: '?�합', desc: '?�규 ?�록 + 기존 ?�정' },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -142,7 +142,7 @@ export default function ImportPage() {
                     }}
                   >
                     <div style={{ fontWeight: 500, fontSize: '13px' }}>{opt.label}</div>
-                    <div style={{ fontSize: '11px', color: '#86868b' }}>{opt.desc}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{opt.desc}</div>
                   </button>
                 ))}
               </div>
@@ -150,13 +150,13 @@ export default function ImportPage() {
           ) : (
             <div style={{ marginBottom: '16px' }}>
               <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '8px' }}>
-                재고 수정 방식
+                ?�고 ?�정 방식
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[
-                  { value: 'set', label: '덮어쓰기', desc: '입력값으로 변경' },
-                  { value: 'add', label: '추가', desc: '기존 재고에 더하기' },
-                  { value: 'subtract', label: '차감', desc: '기존 재고에서 빼기' },
+                  { value: 'set', label: '??��?�기', desc: '?�력값으�?변�? },
+                  { value: 'add', label: '추�?', desc: '기존 ?�고???�하�? },
+                  { value: 'subtract', label: '차감', desc: '기존 ?�고?�서 빼기' },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -171,14 +171,14 @@ export default function ImportPage() {
                     }}
                   >
                     <div style={{ fontWeight: 500, fontSize: '13px' }}>{opt.label}</div>
-                    <div style={{ fontSize: '11px', color: '#86868b' }}>{opt.desc}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{opt.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* 파일 업로드 */}
+          {/* ?�일 ?�로??*/}
           <div style={{ marginBottom: '16px' }}>
             <input
               ref={fileInputRef}
@@ -202,36 +202,36 @@ export default function ImportPage() {
               }}
             >
               {uploading ? (
-                <span style={{ color: '#86868b' }}>업로드 중...</span>
+                <span style={{ color: 'var(--text-tertiary)' }}>?�로??�?..</span>
               ) : (
                 <>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📄</div>
-                  <div style={{ fontWeight: 500 }}>CSV 파일을 선택하세요</div>
-                  <div style={{ fontSize: '13px', color: '#86868b', marginTop: '4px' }}>
-                    또는 여기에 파일을 드래그하세요
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>?��</div>
+                  <div style={{ fontWeight: 500 }}>CSV ?�일???�택?�세??/div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                    ?�는 ?�기???�일???�래그하?�요
                   </div>
                 </>
               )}
             </label>
           </div>
 
-          {/* 템플릿 다운로드 */}
+          {/* ?�플�??�운로드 */}
           <button
             onClick={handleDownloadTemplate}
             style={{
               width: '100%',
               padding: '10px',
               borderRadius: '8px',
-              border: '1px solid #e9ecef',
-              background: '#fff',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-primary)',
               cursor: 'pointer',
               fontSize: '14px'
             }}
           >
-            📋 템플릿 다운로드
+            ?�� ?�플�??�운로드
           </button>
 
-          {/* 결과 표시 */}
+          {/* 결과 ?�시 */}
           {results && (
             <div style={{ 
               marginTop: '16px', 
@@ -240,20 +240,20 @@ export default function ImportPage() {
               background: results.failed > 0 ? '#fef2f2' : '#d1fae5'
             }}>
               <div style={{ fontWeight: 600, marginBottom: '8px' }}>
-                {results.failed > 0 ? '⚠️ 가져오기 완료 (일부 오류)' : '✅ 가져오기 완료'}
+                {results.failed > 0 ? '?�️ 가?�오�??�료 (?��? ?�류)' : '??가?�오�??�료'}
               </div>
               <div style={{ fontSize: '14px' }}>
-                <span style={{ color: '#10b981' }}>성공: {results.success}</span>
+                <span style={{ color: '#10b981' }}>?�공: {results.success}</span>
                 {' · '}
-                <span style={{ color: '#f59e0b' }}>건너뜀: {results.skipped}</span>
+                <span style={{ color: '#f59e0b' }}>건너?�: {results.skipped}</span>
                 {' · '}
-                <span style={{ color: '#dc2626' }}>실패: {results.failed}</span>
+                <span style={{ color: '#dc2626' }}>?�패: {results.failed}</span>
               </div>
               {results.errors.length > 0 && (
                 <div style={{ 
                   marginTop: '12px', 
                   padding: '8px', 
-                  background: '#fff', 
+                  background: 'var(--bg-primary)', 
                   borderRadius: '4px',
                   maxHeight: '100px',
                   overflow: 'auto',
@@ -264,7 +264,7 @@ export default function ImportPage() {
                     <div key={i}>{err}</div>
                   ))}
                   {results.errors.length > 10 && (
-                    <div>... 외 {results.errors.length - 10}개</div>
+                    <div>... ??{results.errors.length - 10}�?/div>
                   )}
                 </div>
               )}
@@ -272,14 +272,14 @@ export default function ImportPage() {
           )}
         </div>
 
-        {/* 내보내기 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
+        {/* ?�보?�기 */}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
           <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
-            📤 내보내기 (다운로드)
+            ?�� ?�보?�기 (?�운로드)
           </h2>
 
           <p style={{ fontSize: '14px', color: '#666', marginBottom: '24px' }}>
-            현재 데이터를 CSV 파일로 내보냅니다
+            ?�재 ?�이?��? CSV ?�일�??�보?�니??
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -296,25 +296,25 @@ export default function ImportPage() {
                 fontSize: '15px'
               }}
             >
-              {activeTab === 'products' && '📦 상품 목록 다운로드'}
-              {activeTab === 'inventory' && '📊 재고 현황 다운로드'}
-              {activeTab === 'stores' && '🏪 가맹점 목록 다운로드'}
+              {activeTab === 'products' && '?�� ?�품 목록 ?�운로드'}
+              {activeTab === 'inventory' && '?�� ?�고 ?�황 ?�운로드'}
+              {activeTab === 'stores' && '?�� 가맹점 목록 ?�운로드'}
             </button>
 
-            {/* 추가 다운로드 옵션 */}
+            {/* 추�? ?�운로드 ?�션 */}
             {activeTab === 'stores' && (
               <button
                 onClick={() => window.location.href = '/api/export/stores?type=receivables'}
                 style={{
                   padding: '12px',
                   borderRadius: '8px',
-                  border: '1px solid #e9ecef',
-                  background: '#fff',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
                   cursor: 'pointer',
                   fontSize: '14px'
                 }}
               >
-                💰 미수금 현황 다운로드
+                ?�� 미수�??�황 ?�운로드
               </button>
             )}
 
@@ -324,21 +324,21 @@ export default function ImportPage() {
                 style={{
                   padding: '12px',
                   borderRadius: '8px',
-                  border: '1px solid #e9ecef',
-                  background: '#fff',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
                   cursor: 'pointer',
                   fontSize: '14px'
                 }}
               >
-                ⚠️ 재고 부족 상품만 다운로드
+                ?�️ ?�고 부�??�품�??�운로드
               </button>
             )}
           </div>
 
-          {/* 바로가기 */}
+          {/* 바로가�?*/}
           <div style={{ marginTop: '24px', padding: '16px', background: '#f9fafb', borderRadius: '8px' }}>
             <h3 style={{ fontSize: '13px', fontWeight: 600, marginBottom: '12px', color: '#666' }}>
-              다른 내보내기
+              ?�른 ?�보?�기
             </h3>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <a 
@@ -346,42 +346,42 @@ export default function ImportPage() {
                 style={{ 
                   padding: '6px 12px', 
                   borderRadius: '4px', 
-                  background: '#fff', 
-                  border: '1px solid #e9ecef',
+                  background: 'var(--bg-primary)', 
+                  border: '1px solid var(--border-color)',
                   fontSize: '13px',
                   textDecoration: 'none',
-                  color: '#1d1d1f'
+                  color: 'var(--text-primary)'
                 }}
               >
-                주문 내역
+                주문 ?�역
               </a>
               <a 
                 href="/api/export/products" 
                 style={{ 
                   padding: '6px 12px', 
                   borderRadius: '4px', 
-                  background: '#fff', 
-                  border: '1px solid #e9ecef',
+                  background: 'var(--bg-primary)', 
+                  border: '1px solid var(--border-color)',
                   fontSize: '13px',
                   textDecoration: 'none',
-                  color: '#1d1d1f'
+                  color: 'var(--text-primary)'
                 }}
               >
-                상품 기본
+                ?�품 기본
               </a>
               <a 
                 href="/api/export/products?includeOptions=true" 
                 style={{ 
                   padding: '6px 12px', 
                   borderRadius: '4px', 
-                  background: '#fff', 
-                  border: '1px solid #e9ecef',
+                  background: 'var(--bg-primary)', 
+                  border: '1px solid var(--border-color)',
                   fontSize: '13px',
                   textDecoration: 'none',
-                  color: '#1d1d1f'
+                  color: 'var(--text-primary)'
                 }}
               >
-                상품 + 옵션
+                ?�품 + ?�션
               </a>
             </div>
           </div>

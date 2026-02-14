@@ -31,9 +31,9 @@ interface ReturnData {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  requested: { label: '요청', color: '#f59e0b', bg: '#fef3c7' },
-  approved: { label: '승인', color: '#3b82f6', bg: '#dbeafe' },
-  received: { label: '입고완료', color: '#10b981', bg: '#d1fae5' },
+  requested: { label: '?�청', color: '#f59e0b', bg: '#fef3c7' },
+  approved: { label: '?�인', color: '#3b82f6', bg: '#dbeafe' },
+  received: { label: '?�고?�료', color: '#10b981', bg: '#d1fae5' },
   rejected: { label: '거절', color: '#ef4444', bg: '#fee2e2' }
 }
 
@@ -68,11 +68,11 @@ export default function ReturnsPage() {
 
   const handleAction = async (returnData: ReturnData, action: 'approve' | 'receive' | 'reject') => {
     if (action === 'reject') {
-      const memo = prompt('거절 사유를 입력해주세요.')
+      const memo = prompt('거절 ?�유�??�력?�주?�요.')
       if (!memo) return
       await processAction(returnData.id, action, memo)
     } else {
-      if (!confirm(`${action === 'approve' ? '승인' : '입고 처리'}하시겠습니까?`)) return
+      if (!confirm(`${action === 'approve' ? '?�인' : '?�고 처리'}?�시겠습?�까?`)) return
       await processAction(returnData.id, action)
     }
   }
@@ -90,28 +90,28 @@ export default function ReturnsPage() {
         setSelectedReturn(null)
       } else {
         const data = await res.json()
-        alert(data.error || '처리에 실패했습니다.')
+        alert(data.error || '처리???�패?�습?�다.')
       }
     } catch (error) {
-      alert('서버 오류가 발생했습니다.')
+      alert('?�버 ?�류가 발생?�습?�다.')
     }
   }
 
   return (
     <AdminLayout activeMenu="order">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>반품/교환 관리</h1>
-        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>반품 및 교환 요청을 처리합니다.</p>
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>반품/교환 관�?/h1>
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>반품 �?교환 ?�청??처리?�니??</p>
       </div>
 
-      {/* 통계 카드 */}
+      {/* ?�계 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
         {Object.entries(STATUS_CONFIG).map(([key, config]) => (
           <div
             key={key}
             onClick={() => setSelectedStatus(key)}
             style={{
-              background: selectedStatus === key ? config.bg : '#fff',
+              background: selectedStatus === key ? config.bg : 'var(--bg-primary)',
               borderRadius: '12px',
               padding: '20px',
               cursor: 'pointer',
@@ -126,8 +126,8 @@ export default function ReturnsPage() {
         ))}
       </div>
 
-      {/* 필터 */}
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+      {/* ?�터 */}
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
         <button
           onClick={() => setSelectedStatus('all')}
           style={{
@@ -135,12 +135,12 @@ export default function ReturnsPage() {
             borderRadius: '6px',
             border: 'none',
             background: selectedStatus === 'all' ? '#007aff' : '#f3f4f6',
-            color: selectedStatus === 'all' ? '#fff' : '#1d1d1f',
+            color: selectedStatus === 'all' ? '#fff' : 'var(--text-primary)',
             marginRight: '8px',
             cursor: 'pointer'
           }}
         >
-          전체
+          ?�체
         </button>
         {Object.entries(STATUS_CONFIG).map(([key, config]) => (
           <button
@@ -151,7 +151,7 @@ export default function ReturnsPage() {
               borderRadius: '6px',
               border: 'none',
               background: selectedStatus === key ? config.bg : '#f3f4f6',
-              color: selectedStatus === key ? config.color : '#1d1d1f',
+              color: selectedStatus === key ? config.color : 'var(--text-primary)',
               marginRight: '8px',
               cursor: 'pointer'
             }}
@@ -162,24 +162,24 @@ export default function ReturnsPage() {
       </div>
 
       {/* 반품 목록 */}
-      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
         ) : returns.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>반품 데이터가 없습니다.</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>반품 ?�이?��? ?�습?�다.</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e9ecef', background: '#f9fafb' }}>
+              <tr style={{ borderBottom: '1px solid var(--border-color)', background: '#f9fafb' }}>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>반품번호</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>원주문</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�주�?/th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>가맹점</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>유형</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>상태</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>수량</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�형</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�태</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�량</th>
                 <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>금액</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>요청일</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>관리</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>?�청??/th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>관�?/th>
               </tr>
             </thead>
             <tbody>
@@ -226,13 +226,13 @@ export default function ReturnsPage() {
                         style={{
                           padding: '6px 12px',
                           borderRadius: '6px',
-                          border: '1px solid #e9ecef',
-                          background: '#fff',
+                          border: '1px solid var(--border-color)',
+                          background: 'var(--bg-primary)',
                           fontSize: '13px',
                           cursor: 'pointer'
                         }}
                       >
-                        상세
+                        ?�세
                       </button>
                     </td>
                   </tr>
@@ -243,7 +243,7 @@ export default function ReturnsPage() {
         )}
       </div>
 
-      {/* 상세 모달 */}
+      {/* ?�세 모달 */}
       {selectedReturn && (
         <div style={{
           position: 'fixed',
@@ -254,11 +254,11 @@ export default function ReturnsPage() {
           justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '600px', maxHeight: '80vh', overflow: 'auto' }}>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '24px', width: '600px', maxHeight: '80vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
               <div>
                 <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px' }}>{selectedReturn.returnNo}</h2>
-                <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>원주문: {selectedReturn.orderNo}</p>
+                <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', margin: 0 }}>?�주�? {selectedReturn.orderNo}</p>
               </div>
               <span style={{
                 padding: '6px 12px',
@@ -277,24 +277,24 @@ export default function ReturnsPage() {
                 <strong>가맹점:</strong> {selectedReturn.storeName}
               </div>
               <div style={{ fontSize: '14px', marginBottom: '8px' }}>
-                <strong>유형:</strong> {selectedReturn.type === 'exchange' ? '교환' : '반품'}
+                <strong>?�형:</strong> {selectedReturn.type === 'exchange' ? '교환' : '반품'}
               </div>
               {selectedReturn.reason && (
                 <div style={{ fontSize: '14px', marginBottom: '8px' }}>
-                  <strong>사유:</strong> {selectedReturn.reason}
+                  <strong>?�유:</strong> {selectedReturn.reason}
                 </div>
               )}
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>품목</h3>
+              <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>?�목</h3>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e9ecef' }}>
-                    <th style={{ padding: '8px', textAlign: 'left', fontWeight: 500 }}>상품</th>
-                    <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500 }}>수량</th>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <th style={{ padding: '8px', textAlign: 'left', fontWeight: 500 }}>?�품</th>
+                    <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500 }}>?�량</th>
                     <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500 }}>금액</th>
-                    <th style={{ padding: '8px', textAlign: 'left', fontWeight: 500 }}>상태</th>
+                    <th style={{ padding: '8px', textAlign: 'left', fontWeight: 500 }}>?�태</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -302,13 +302,13 @@ export default function ReturnsPage() {
                     <tr key={item.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '8px' }}>
                         {item.productName}
-                        {item.optionName && <span style={{ color: '#86868b', marginLeft: '4px' }}>({item.optionName})</span>}
+                        {item.optionName && <span style={{ color: 'var(--text-tertiary)', marginLeft: '4px' }}>({item.optionName})</span>}
                       </td>
                       <td style={{ padding: '8px', textAlign: 'right' }}>{item.quantity}</td>
                       <td style={{ padding: '8px', textAlign: 'right' }}>{item.totalPrice.toLocaleString()}</td>
                       <td style={{ padding: '8px', fontSize: '12px', color: '#6b7280' }}>
-                        {item.condition === 'good' && '양호'}
-                        {item.condition === 'damaged' && '파손'}
+                        {item.condition === 'good' && '?�호'}
+                        {item.condition === 'damaged' && '?�손'}
                         {item.condition === 'defective' && '불량'}
                       </td>
                     </tr>
@@ -316,7 +316,7 @@ export default function ReturnsPage() {
                 </tbody>
                 <tfoot>
                   <tr style={{ fontWeight: 600 }}>
-                    <td style={{ padding: '12px 8px' }}>합계</td>
+                    <td style={{ padding: '12px 8px' }}>?�계</td>
                     <td style={{ padding: '12px 8px', textAlign: 'right' }}>{selectedReturn.totalQuantity}</td>
                     <td style={{ padding: '12px 8px', textAlign: 'right' }}>{selectedReturn.totalAmount.toLocaleString()}</td>
                     <td></td>
@@ -325,13 +325,13 @@ export default function ReturnsPage() {
               </table>
             </div>
 
-            {/* 액션 버튼 */}
+            {/* ?�션 버튼 */}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setSelectedReturn(null)}
-                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}
+                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', cursor: 'pointer' }}
               >
-                닫기
+                ?�기
               </button>
 
               {selectedReturn.status === 'requested' && (
@@ -346,7 +346,7 @@ export default function ReturnsPage() {
                     onClick={() => handleAction(selectedReturn, 'approve')}
                     style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer' }}
                   >
-                    승인
+                    ?�인
                   </button>
                 </>
               )}
@@ -356,7 +356,7 @@ export default function ReturnsPage() {
                   onClick={() => handleAction(selectedReturn, 'receive')}
                   style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', cursor: 'pointer' }}
                 >
-                  입고 처리
+                  ?�고 처리
                 </button>
               )}
             </div>

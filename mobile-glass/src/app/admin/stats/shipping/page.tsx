@@ -22,12 +22,12 @@ export default function ShippingStatsPage() {
 
   const loadData = async () => {
     try {
-      // 주문 데이터에서 출고 통계 집계
+      // 주문 ?�이?�에??출고 ?�계 집계
       const res = await fetch('/api/orders?limit=1000')
       const result = await res.json()
       const orders = result.orders || []
       
-      // 날짜별 집계
+      // ?�짜�?집계
       const byDate = new Map<string, { total: number; shipped: number; delivered: number; pending: number }>()
       
       orders.forEach((order: { orderedAt: string; status: string }) => {
@@ -49,7 +49,7 @@ export default function ShippingStatsPage() {
           shipped: stat.shipped,
           delivered: stat.delivered,
           pending: stat.pending,
-          avgTime: 1.5 // 임시 평균 배송시간
+          avgTime: 1.5 // ?�시 ?�균 배송?�간
         }))
         .sort((a, b) => b.date.localeCompare(a.date))
         .slice(0, 14)
@@ -63,12 +63,12 @@ export default function ShippingStatsPage() {
   }
 
   const columns: Column<ShippingStat>[] = [
-    { key: 'date', label: '날짜', render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
-    { key: 'totalOrders', label: '총 주문', align: 'center', render: (v) => <span>{v as number}건</span> },
-    { key: 'shipped', label: '출고', align: 'center', render: (v) => <span style={{ color: '#007aff' }}>{v as number}건</span> },
-    { key: 'delivered', label: '배송완료', align: 'center', render: (v) => <span style={{ color: '#34c759' }}>{v as number}건</span> },
-    { key: 'pending', label: '대기', align: 'center', render: (v) => <span style={{ color: '#ff9500' }}>{v as number}건</span> },
-    { key: 'avgTime', label: '평균 배송시간', align: 'center', render: (v) => <span style={{ color: '#86868b' }}>{v as number}일</span> },
+    { key: 'date', label: '?�짜', render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
+    { key: 'totalOrders', label: '�?주문', align: 'center', render: (v) => <span>{v as number}�?/span> },
+    { key: 'shipped', label: '출고', align: 'center', render: (v) => <span style={{ color: '#007aff' }}>{v as number}�?/span> },
+    { key: 'delivered', label: '배송?�료', align: 'center', render: (v) => <span style={{ color: '#34c759' }}>{v as number}�?/span> },
+    { key: 'pending', label: '?��?, align: 'center', render: (v) => <span style={{ color: '#ff9500' }}>{v as number}�?/span> },
+    { key: 'avgTime', label: '?�균 배송?�간', align: 'center', render: (v) => <span style={{ color: 'var(--text-tertiary)' }}>{v as number}??/span> },
   ]
 
   const totalOrders = data.reduce((sum, d) => sum + d.totalOrders, 0)
@@ -76,30 +76,30 @@ export default function ShippingStatsPage() {
 
   return (
     <AdminLayout activeMenu="stats">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>가맹점 출고 통계</h2>
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>가맹점 출고 ?�계</h2>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 주문</div>
-          <div style={{ fontSize: '28px', fontWeight: 600 }}>{totalOrders}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>�?주문</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{totalOrders}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>출고완료</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{totalShipped}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>출고?�료</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>{totalShipped}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>출고율</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{totalOrders ? Math.round(totalShipped / totalOrders * 100) : 0}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>%</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>출고??/div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>{totalOrders ? Math.round(totalShipped / totalOrders * 100) : 0}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>%</span></div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>평균 배송시간</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>1.5<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>일</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�균 배송?�간</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>1.5<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>??/span></div>
         </div>
       </div>
 
-      <SearchFilter placeholder="날짜 검색" />
+      <SearchFilter placeholder="?�짜 검?? />
 
-      <DataTable columns={columns} data={data} loading={loading} emptyMessage="출고 데이터가 없습니다" />
+      <DataTable columns={columns} data={data} loading={loading} emptyMessage="출고 ?�이?��? ?�습?�다" />
     </AdminLayout>
   )
 }

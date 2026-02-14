@@ -7,19 +7,19 @@ export default function MobileMorePage() {
   const { user, logout } = useAuth()
 
   const menuItems = [
-    { icon: '📊', label: '재고 현황', href: '/admin/products/inventory' },
-    { icon: '💰', label: '미수금 관리', href: '/admin/stores/receivables' },
-    { icon: '📈', label: '통계', href: '/admin/stats' },
-    { icon: '🔄', label: '반품/교환', href: '/admin/orders/returns' },
-    { icon: '🖨️', label: '명세서 출력', href: '/admin/orders' },
-    { icon: '⚙️', label: '관리자 페이지', href: '/admin' },
+    { icon: '?��', label: '?�고 ?�황', href: '/admin/products/inventory' },
+    { icon: '?��', label: '미수�?관�?, href: '/admin/stores/receivables' },
+    { icon: '?��', label: '?�계', href: '/admin/stats' },
+    { icon: '?��', label: '반품/교환', href: '/admin/orders/returns' },
+    { icon: '?���?, label: '명세??출력', href: '/admin/orders' },
+    { icon: '?�️', label: '관리자 ?�이지', href: '/admin' },
   ]
 
   return (
     <div>
-      {/* 프로필 */}
+      {/* ?�로??*/}
       <div style={{
-        background: '#fff',
+        background: 'var(--bg-primary)',
         borderRadius: '16px',
         padding: '20px',
         marginBottom: '16px',
@@ -43,17 +43,17 @@ export default function MobileMorePage() {
         </div>
         <div>
           <div style={{ fontWeight: 600, fontSize: '18px', marginBottom: '4px' }}>
-            {user?.name || '사용자'}
+            {user?.name || '?�용??}
           </div>
-          <div style={{ fontSize: '14px', color: '#86868b' }}>
-            {user?.role === 'admin' ? '관리자' : user?.role === 'manager' ? '매니저' : '사용자'}
+          <div style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>
+            {user?.role === 'admin' ? '관리자' : user?.role === 'manager' ? '매니?�' : '?�용??}
           </div>
         </div>
       </div>
 
       {/* 메뉴 */}
       <div style={{
-        background: '#fff',
+        background: 'var(--bg-primary)',
         borderRadius: '16px',
         overflow: 'hidden',
         marginBottom: '16px'
@@ -74,30 +74,30 @@ export default function MobileMorePage() {
           >
             <span style={{ fontSize: '20px' }}>{item.icon}</span>
             <span style={{ flex: 1, fontSize: '15px' }}>{item.label}</span>
-            <span style={{ color: '#c7c7cc' }}>›</span>
+            <span style={{ color: '#c7c7cc' }}>??/span>
           </Link>
         ))}
       </div>
 
-      {/* 앱 정보 */}
+      {/* ???�보 */}
       <div style={{
-        background: '#fff',
+        background: 'var(--bg-primary)',
         borderRadius: '16px',
         padding: '20px',
         marginBottom: '16px'
       }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px', color: '#86868b' }}>앱 정보</h3>
+        <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-tertiary)' }}>???�보</h3>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{ fontSize: '14px' }}>버전</span>
-          <span style={{ fontSize: '14px', color: '#86868b' }}>1.0.0</span>
+          <span style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>1.0.0</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '14px' }}>서버</span>
-          <span style={{ fontSize: '14px', color: '#86868b' }}>렌즈초이스</span>
+          <span style={{ fontSize: '14px' }}>?�버</span>
+          <span style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>?�즈초이??/span>
         </div>
       </div>
 
-      {/* 로그아웃 */}
+      {/* 로그?�웃 */}
       <button
         onClick={logout}
         style={{
@@ -105,14 +105,14 @@ export default function MobileMorePage() {
           padding: '16px',
           borderRadius: '16px',
           border: 'none',
-          background: '#fff',
+          background: 'var(--bg-primary)',
           color: '#ef4444',
           fontSize: '16px',
           fontWeight: 500,
           cursor: 'pointer'
         }}
       >
-        로그아웃
+        로그?�웃
       </button>
     </div>
   )

@@ -199,7 +199,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
     <>
       {/* 헤더 */}
       <header style={{ 
-        background: '#ffffff',
+        background: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-color)',
         padding: '12px 32px',
         display: 'flex',
@@ -229,7 +229,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
               </text>
             </svg>
           </Link>
-          <nav style={{ display: 'flex', gap: '6px', background: '#f1f3f5', padding: '6px', borderRadius: '10px' }}>
+          <nav style={{ display: 'flex', gap: '6px', background: 'var(--bg-secondary)', padding: '6px', borderRadius: '10px' }}>
             {Object.entries(menuStructure).map(([key, value]) => (
               <button
                 key={key}
@@ -237,7 +237,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
                 style={{ 
                   background: currentMenu === key ? '#5d7a5d' : 'transparent',
                   border: 'none',
-                  color: currentMenu === key ? '#fff' : '#495057',
+                  color: currentMenu === key ? '#fff' : 'var(--text-secondary)',
                   textDecoration: 'none',
                   fontWeight: currentMenu === key ? 600 : 500,
                   cursor: 'pointer',
@@ -262,7 +262,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
               padding: '8px 12px',
               borderRadius: '8px',
               border: '1px solid var(--border-color)',
-              background: '#ffffff',
+              background: 'var(--bg-primary)',
               cursor: 'pointer',
               fontSize: '18px',
               lineHeight: 1,
@@ -273,7 +273,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
           </button>
           {user && (
             <>
-              <span style={{ fontSize: '14px', color: '#495057', fontWeight: 500 }}>
+              <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>
                 <span style={{
                   display: 'inline-block',
                   padding: '4px 10px',
@@ -281,8 +281,8 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
                   fontSize: '12px',
                   fontWeight: 600,
                   marginRight: '8px',
-                  background: user.role === 'admin' ? '#ffe3e3' : user.role === 'manager' ? '#dbeafe' : '#f1f3f5',
-                  color: user.role === 'admin' ? '#e03131' : user.role === 'manager' ? '#1971c2' : '#495057'
+                  background: user.role === 'admin' ? '#ffe3e3' : user.role === 'manager' ? '#dbeafe' : 'var(--bg-secondary)',
+                  color: user.role === 'admin' ? '#e03131' : user.role === 'manager' ? '#1971c2' : 'var(--text-secondary)'
                 }}>
                   {user.role === 'admin' ? '관리자' : user.role === 'manager' ? '매니저' : '사용자'}
                 </span>
@@ -294,7 +294,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
                   padding: '8px 16px',
                   borderRadius: '8px',
                   border: '1px solid var(--border-color)',
-                  background: '#ffffff',
+                  background: 'var(--bg-primary)',
                   fontSize: '14px',
                   color: 'var(--text-secondary)',
                   fontWeight: 500,
@@ -312,7 +312,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
       {/* 사이드바 */}
       <aside style={{ 
         width: '220px', 
-        background: '#ffffff', 
+        background: 'var(--bg-primary)', 
         borderRight: '1px solid var(--border-color)',
         minHeight: 'calc(100vh - 60px)',
         padding: '24px 16px',
@@ -324,7 +324,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
         {menu.sections.map((section, idx) => (
           <div key={idx} style={{ marginBottom: '20px' }}>
             <div style={{ padding: '8px 12px', marginBottom: '4px' }}>
-              <div style={{ fontSize: '13px', color: '#adb5bd', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                 {section.title}
               </div>
             </div>
@@ -341,7 +341,7 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
                     borderRadius: '8px',
                     textAlign: 'left',
                     background: isActive ? '#eef4ee' : 'transparent',
-                    color: isActive ? '#5d7a5d' : '#495057',
+                    color: isActive ? '#5d7a5d' : 'var(--text-secondary)',
                     fontSize: '15px',
                     textDecoration: 'none',
                     fontWeight: isActive ? 600 : 500,
@@ -370,7 +370,7 @@ export function AdminLayout({
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#f8f9fa',
+      background: 'var(--bg-secondary)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <Navigation activeMenu={activeMenu} />

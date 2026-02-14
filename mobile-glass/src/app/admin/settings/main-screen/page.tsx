@@ -14,9 +14,9 @@ interface BannerItem {
 }
 
 const sampleBanners: BannerItem[] = [
-  { id: 1, title: '신상품 출시', imageUrl: '/banner1.jpg', linkUrl: '/products/new', isActive: true, sortOrder: 1 },
-  { id: 2, title: '1월 특가 이벤트', imageUrl: '/banner2.jpg', linkUrl: '/event/january', isActive: true, sortOrder: 2 },
-  { id: 3, title: '프리미엄 렌즈', imageUrl: '/banner3.jpg', linkUrl: '/products/premium', isActive: false, sortOrder: 3 },
+  { id: 1, title: '?�상??출시', imageUrl: '/banner1.jpg', linkUrl: '/products/new', isActive: true, sortOrder: 1 },
+  { id: 2, title: '1???��? ?�벤??, imageUrl: '/banner2.jpg', linkUrl: '/event/january', isActive: true, sortOrder: 2 },
+  { id: 3, title: '?�리미엄 ?�즈', imageUrl: '/banner3.jpg', linkUrl: '/products/premium', isActive: false, sortOrder: 3 },
 ]
 
 export default function MainScreenPage() {
@@ -30,25 +30,25 @@ export default function MainScreenPage() {
 
   return (
     <AdminLayout activeMenu="settings">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        메인화면 설정
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        메인?�면 ?�정
       </h2>
 
-      {/* 섹션 표시 설정 */}
-      <FormSection title="섹션 표시 설정">
+      {/* ?�션 ?�시 ?�정 */}
+      <FormSection title="?�션 ?�시 ?�정">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
           {[
-            { key: 'banner', label: '배너 슬라이더', desc: '메인 상단 이미지 배너' },
-            { key: 'newProducts', label: '신상품', desc: '최근 등록된 상품 목록' },
-            { key: 'bestSeller', label: '베스트셀러', desc: '판매량 상위 상품' },
-            { key: 'notice', label: '공지사항', desc: '최신 공지사항 미리보기' },
+            { key: 'banner', label: '배너 ?�라?�더', desc: '메인 ?�단 ?��?지 배너' },
+            { key: 'newProducts', label: '?�상??, desc: '최근 ?�록???�품 목록' },
+            { key: 'bestSeller', label: '베스?��???, desc: '?�매???�위 ?�품' },
+            { key: 'notice', label: '공�??�항', desc: '최신 공�??�항 미리보기' },
           ].map(section => (
             <label key={section.key} style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '12px', 
               padding: '16px',
-              background: '#f5f5f7',
+              background: 'var(--bg-secondary)',
               borderRadius: '12px',
               cursor: 'pointer'
             }}>
@@ -60,27 +60,27 @@ export default function MainScreenPage() {
               />
               <div>
                 <div style={{ fontSize: '14px', fontWeight: 500 }}>{section.label}</div>
-                <div style={{ fontSize: '12px', color: '#86868b' }}>{section.desc}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{section.desc}</div>
               </div>
             </label>
           ))}
         </div>
         <FormActions>
-          <SaveButton onClick={() => alert('저장되었습니다.')} />
+          <SaveButton onClick={() => alert('?�?�되?�습?�다.')} />
         </FormActions>
       </FormSection>
 
-      {/* 배너 관리 */}
+      {/* 배너 관�?*/}
       <div style={{ 
-        background: '#fff', 
+        background: 'var(--bg-primary)', 
         borderRadius: '12px', 
         padding: '24px',
         marginTop: '24px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600 }}>배너 관리</h3>
+          <h3 style={{ fontSize: '16px', fontWeight: 600 }}>배너 관�?/h3>
           <button
-            onClick={() => alert('배너 추가')}
+            onClick={() => alert('배너 추�?')}
             style={{
               padding: '6px 12px',
               borderRadius: '6px',
@@ -92,7 +92,7 @@ export default function MainScreenPage() {
               cursor: 'pointer'
             }}
           >
-            + 배너 추가
+            + 배너 추�?
           </button>
         </div>
         
@@ -115,14 +115,14 @@ export default function MainScreenPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#86868b',
+                color: 'var(--text-tertiary)',
                 fontSize: '12px'
               }}>
-                이미지
+                ?��?지
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '14px', fontWeight: 500 }}>{banner.title}</div>
-                <div style={{ fontSize: '12px', color: '#86868b', marginTop: '4px' }}>{banner.linkUrl}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>{banner.linkUrl}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ 
@@ -133,24 +133,24 @@ export default function MainScreenPage() {
                   fontSize: '11px',
                   fontWeight: 500
                 }}>
-                  {banner.isActive ? '활성' : '비활성'}
+                  {banner.isActive ? '?�성' : '비활??}
                 </span>
                 <button
-                  onClick={() => alert('수정')}
+                  onClick={() => alert('?�정')}
                   style={{
                     padding: '4px 10px',
                     borderRadius: '4px',
-                    background: '#fff',
+                    background: 'var(--bg-primary)',
                     color: '#007aff',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '12px',
                     cursor: 'pointer'
                   }}
                 >
-                  수정
+                  ?�정
                 </button>
                 <button
-                  onClick={() => alert('삭제')}
+                  onClick={() => alert('??��')}
                   style={{
                     padding: '4px 10px',
                     borderRadius: '4px',
@@ -161,7 +161,7 @@ export default function MainScreenPage() {
                     cursor: 'pointer'
                   }}
                 >
-                  삭제
+                  ??��
                 </button>
               </div>
             </div>
@@ -171,20 +171,20 @@ export default function MainScreenPage() {
 
       {/* 미리보기 */}
       <div style={{ 
-        background: '#fff', 
+        background: 'var(--bg-primary)', 
         borderRadius: '12px', 
         padding: '24px',
         marginTop: '24px'
       }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>미리보기</h3>
         <div style={{ 
-          border: '1px solid #e9ecef', 
+          border: '1px solid var(--border-color)', 
           borderRadius: '12px', 
           padding: '20px',
-          background: '#f5f5f7'
+          background: 'var(--bg-secondary)'
         }}>
-          <div style={{ textAlign: 'center', color: '#86868b' }}>
-            📱 모바일 미리보기가 여기에 표시됩니다
+          <div style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+            ?�� 모바??미리보기가 ?�기???�시?�니??
           </div>
         </div>
       </div>

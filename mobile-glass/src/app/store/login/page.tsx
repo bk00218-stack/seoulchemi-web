@@ -15,12 +15,12 @@ export default function StoreLoginPage() {
     setLoading(true)
     setError('')
 
-    // TODO: 실제 로그인 API 연동
+    // TODO: ?�제 로그??API ?�동
     setTimeout(() => {
       if (storeCode && password) {
         router.push('/store/products')
       } else {
-        setError('가맹점 코드와 비밀번호를 입력하세요')
+        setError('가맹점 코드?� 비�?번호�??�력?�세??)
         setLoading(false)
       }
     }, 500)
@@ -58,11 +58,11 @@ export default function StoreLoginPage() {
             fontWeight: 700,
             color: 'white',
           }}>L</div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             LensChoice
           </h1>
-          <p style={{ fontSize: 14, color: '#86868b', marginTop: 8 }}>
-            안경원 주문 시스템
+          <p style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 8 }}>
+            ?�경??주문 ?�스??
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export default function StoreLoginPage() {
               display: 'block',
               fontSize: 13,
               fontWeight: 600,
-              color: '#1d1d1f',
+              color: 'var(--text-primary)',
               marginBottom: 8,
             }}>
               가맹점 코드
@@ -82,7 +82,7 @@ export default function StoreLoginPage() {
               type="text"
               value={storeCode}
               onChange={(e) => setStoreCode(e.target.value)}
-              placeholder="가맹점 코드를 입력하세요"
+              placeholder="가맹점 코드�??�력?�세??
               style={{
                 width: '100%',
                 padding: '14px 16px',
@@ -101,16 +101,16 @@ export default function StoreLoginPage() {
               display: 'block',
               fontSize: 13,
               fontWeight: 600,
-              color: '#1d1d1f',
+              color: 'var(--text-primary)',
               marginBottom: 8,
             }}>
-              비밀번호
+              비�?번호
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호를 입력하세요"
+              placeholder="비�?번호�??�력?�세??
               style={{
                 width: '100%',
                 padding: '14px 16px',
@@ -153,7 +153,7 @@ export default function StoreLoginPage() {
               transition: 'transform 0.2s, box-shadow 0.2s',
             }}
           >
-            {loading ? '로그인 중...' : '로그인'}
+            {loading ? '로그??�?..' : '로그??}
           </button>
         </form>
 
@@ -162,11 +162,11 @@ export default function StoreLoginPage() {
           marginTop: 24,
           textAlign: 'center',
           fontSize: 13,
-          color: '#86868b',
+          color: 'var(--text-tertiary)',
         }}>
-          <p style={{ margin: '0 0 8px' }}>가맹점 코드를 모르시나요?</p>
+          <p style={{ margin: '0 0 8px' }}>가맹점 코드�?모르?�나??</p>
           <a href="tel:1588-0000" style={{ color: '#007aff', textDecoration: 'none' }}>
-            고객센터 1588-0000
+            고객?�터 1588-0000
           </a>
         </div>
       </div>

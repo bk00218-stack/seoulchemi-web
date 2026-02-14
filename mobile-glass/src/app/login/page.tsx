@@ -16,7 +16,7 @@ function LoginForm() {
 
   useEffect(() => {
     if (expired) {
-      setError('세션이 만료되었습니다. 다시 로그인해주세요.')
+      setError('?�션??만료?�었?�니?? ?�시 로그?�해주세??')
     }
   }, [expired])
 
@@ -36,18 +36,18 @@ function LoginForm() {
 
       if (!res.ok) {
         if (res.status === 429) {
-          setError('로그인 시도가 너무 많습니다. 1분 후 다시 시도해주세요.')
+          setError('로그???�도가 ?�무 많습?�다. 1�????�시 ?�도?�주?�요.')
         } else {
-          setError(data.error || '로그인에 실패했습니다.')
+          setError(data.error || '로그?�에 ?�패?�습?�다.')
         }
         return
       }
 
-      // 로그인 성공 - 리다이렉트
+      // 로그???�공 - 리다?�렉??
       router.push(redirect)
       router.refresh()
     } catch (err) {
-      setError('서버 연결에 실패했습니다.')
+      setError('?�버 ?�결???�패?�습?�다.')
     } finally {
       setLoading(false)
     }
@@ -67,7 +67,7 @@ function LoginForm() {
           alignItems: 'center',
           gap: '8px'
         }}>
-          <span>{expired ? '⚠️' : '❌'}</span>
+          <span>{expired ? '?�️' : '??}</span>
           {error}
         </div>
       )}
@@ -80,13 +80,13 @@ function LoginForm() {
           marginBottom: '8px',
           color: '#374151'
         }}>
-          아이디
+          ?�이??
         </label>
         <input
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="아이디 입력"
+          placeholder="?�이???�력"
           required
           autoComplete="username"
           style={{
@@ -112,13 +112,13 @@ function LoginForm() {
           marginBottom: '8px',
           color: '#374151'
         }}>
-          비밀번호
+          비�?번호
         </label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호 입력"
+          placeholder="비�?번호 ?�력"
           required
           autoComplete="current-password"
           style={{
@@ -154,7 +154,7 @@ function LoginForm() {
         onMouseOver={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
         onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
       >
-        {loading ? '로그인 중...' : '로그인'}
+        {loading ? '로그??�?..' : '로그??}
       </button>
     </form>
   )
@@ -163,7 +163,7 @@ function LoginForm() {
 function LoginFormFallback() {
   return (
     <div style={{ textAlign: 'center', padding: '40px 0' }}>
-      <div style={{ color: 'var(--text-secondary)' }}>로딩 중...</div>
+      <div style={{ color: 'var(--text-secondary)' }}>로딩 �?..</div>
     </div>
   )
 }
@@ -178,7 +178,7 @@ export default function LoginPage() {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
     }}>
       <div style={{
-        background: '#fff',
+        background: 'var(--bg-primary)',
         borderRadius: '16px',
         padding: '40px',
         width: '400px',
@@ -201,8 +201,8 @@ export default function LoginPage() {
               Lens<tspan fill="#667eea">Choice</tspan>
             </text>
           </svg>
-          <p style={{ color: '#86868b', fontSize: '14px', marginTop: '8px' }}>
-            렌즈초이스 관리 시스템
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', marginTop: '8px' }}>
+            ?�즈초이??관�??�스??
           </p>
         </div>
 
@@ -210,7 +210,7 @@ export default function LoginPage() {
           <LoginForm />
         </Suspense>
 
-        {/* 보안 안내 */}
+        {/* 보안 ?�내 */}
         <div style={{
           marginTop: '20px',
           padding: '12px',
@@ -220,12 +220,12 @@ export default function LoginPage() {
           color: 'var(--text-secondary)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <span>🔒</span>
-            <strong>보안 안내</strong>
+            <span>?��</span>
+            <strong>보안 ?�내</strong>
           </div>
           <ul style={{ margin: 0, paddingLeft: '20px', lineHeight: 1.5 }}>
-            <li>공용 PC에서는 반드시 로그아웃해주세요</li>
-            <li>비밀번호는 주기적으로 변경해주세요</li>
+            <li>공용 PC?�서??반드??로그?�웃?�주?�요</li>
+            <li>비�?번호??주기?�으�?변경해주세??/li>
           </ul>
         </div>
 

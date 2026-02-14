@@ -23,10 +23,10 @@ const statusColors: Record<string, string> = {
 }
 
 const statusLabels: Record<string, string> = {
-  pending: '대기',
-  confirmed: '확인',
+  pending: '?��?,
+  confirmed: '?�인',
   shipped: '출고',
-  delivered: '배송완료',
+  delivered: '배송?�료',
   cancelled: '취소'
 }
 
@@ -44,8 +44,8 @@ export default async function OrdersPage() {
         alignItems: 'center'
       }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '28px' }}>📦 주문 관리</h1>
-          <p style={{ margin: '5px 0 0', color: '#666' }}>모바일글라스</p>
+          <h1 style={{ margin: 0, fontSize: '28px' }}>?�� 주문 관�?/h1>
+          <p style={{ margin: '5px 0 0', color: '#666' }}>모바?��??�스</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <a href="/" style={{ 
@@ -54,7 +54,7 @@ export default async function OrdersPage() {
             color: '#333',
             textDecoration: 'none',
             borderRadius: '6px'
-          }}>← 상품목록</a>
+          }}>???�품목록</a>
           <Link href="/orders/new" style={{ 
             padding: '10px 20px',
             background: '#4caf50',
@@ -62,11 +62,11 @@ export default async function OrdersPage() {
             textDecoration: 'none',
             borderRadius: '6px',
             fontWeight: 'bold'
-          }}>➕ 새 주문</Link>
+          }}>????주문</Link>
         </div>
       </header>
 
-      {/* 통계 */}
+      {/* ?�계 */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(4, 1fr)', 
@@ -77,13 +77,13 @@ export default async function OrdersPage() {
           <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff9800' }}>
             {orders.filter(o => o.status === 'pending').length}
           </div>
-          <div style={{ color: '#666' }}>대기</div>
+          <div style={{ color: '#666' }}>?��?/div>
         </div>
         <div style={{ padding: '20px', background: '#eef4ee', borderRadius: '8px', textAlign: 'center' }}>
           <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2196f3' }}>
             {orders.filter(o => o.status === 'confirmed').length}
           </div>
-          <div style={{ color: '#666' }}>확인</div>
+          <div style={{ color: '#666' }}>?�인</div>
         </div>
         <div style={{ padding: '20px', background: '#f3e5f5', borderRadius: '8px', textAlign: 'center' }}>
           <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#9c27b0' }}>
@@ -95,7 +95,7 @@ export default async function OrdersPage() {
           <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#4caf50' }}>
             {orders.filter(o => o.status === 'delivered').length}
           </div>
-          <div style={{ color: '#666' }}>배송완료</div>
+          <div style={{ color: '#666' }}>배송?�료</div>
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export default async function OrdersPage() {
               key={order.id}
               style={{
                 padding: '20px',
-                background: '#fff',
+                background: 'var(--bg-primary)',
                 border: '1px solid #eee',
                 borderRadius: '8px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
@@ -137,7 +137,7 @@ export default async function OrdersPage() {
                 </span>
               </div>
               
-              {/* 주문 상품 */}
+              {/* 주문 ?�품 */}
               <div style={{ 
                 background: '#f9f9f9', 
                 padding: '12px', 
@@ -152,7 +152,7 @@ export default async function OrdersPage() {
                     fontSize: '14px'
                   }}>
                     <span>{item.product.name} x {item.quantity}</span>
-                    <span>{item.totalPrice.toLocaleString()}원</span>
+                    <span>{item.totalPrice.toLocaleString()}??/span>
                   </div>
                 ))}
               </div>
@@ -168,7 +168,7 @@ export default async function OrdersPage() {
                   {new Date(order.orderedAt).toLocaleString('ko-KR')}
                 </span>
                 <strong style={{ fontSize: '18px', color: '#333' }}>
-                  {order.totalAmount.toLocaleString()}원
+                  {order.totalAmount.toLocaleString()}??
                 </strong>
               </div>
               
@@ -180,7 +180,7 @@ export default async function OrdersPage() {
                   borderRadius: '4px',
                   fontSize: '13px'
                 }}>
-                  📝 {order.memo}
+                  ?�� {order.memo}
                 </div>
               )}
             </div>
@@ -193,7 +193,7 @@ export default async function OrdersPage() {
           background: '#f9f9f9',
           borderRadius: '8px'
         }}>
-          <p style={{ color: 'var(--text-tertiary)', fontSize: '18px' }}>주문 내역이 없습니다.</p>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '18px' }}>주문 ?�역???�습?�다.</p>
           <Link href="/orders/new" style={{
             display: 'inline-block',
             marginTop: '20px',
@@ -203,7 +203,7 @@ export default async function OrdersPage() {
             textDecoration: 'none',
             borderRadius: '6px'
           }}>
-            첫 주문 생성하기
+            �?주문 ?�성?�기
           </Link>
         </div>
       )}
@@ -215,7 +215,7 @@ export default async function OrdersPage() {
         color: 'var(--text-tertiary)',
         fontSize: '12px'
       }}>
-        MobileGlass Admin v0.1 | 서울케미렌즈
+        MobileGlass Admin v0.1 | ?�울케미렌�?
       </footer>
     </div>
   )

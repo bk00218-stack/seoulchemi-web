@@ -19,10 +19,10 @@ export default function OfflinePage() {
         padding: '40px',
         backdropFilter: 'blur(10px)'
       }}>
-        <div style={{ fontSize: '64px', marginBottom: '20px' }}>📡</div>
-        <h1 style={{ fontSize: '24px', marginBottom: '12px' }}>오프라인 상태</h1>
+        <div style={{ fontSize: '64px', marginBottom: '20px' }}>?��</div>
+        <h1 style={{ fontSize: '24px', marginBottom: '12px' }}>?�프?�인 ?�태</h1>
         <p style={{ fontSize: '16px', opacity: 0.9, marginBottom: '24px' }}>
-          인터넷 연결을 확인해주세요
+          ?�터???�결???�인?�주?�요
         </p>
         <button
           onClick={() => window.location.reload()}
@@ -30,14 +30,14 @@ export default function OfflinePage() {
             padding: '12px 32px',
             borderRadius: '8px',
             border: 'none',
-            background: '#fff',
+            background: 'var(--bg-primary)',
             color: '#667eea',
             fontSize: '16px',
             fontWeight: 600,
             cursor: 'pointer'
           }}
         >
-          다시 시도
+          ?�시 ?�도
         </button>
       </div>
     </div>

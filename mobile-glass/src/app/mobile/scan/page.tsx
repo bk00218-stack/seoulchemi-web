@@ -41,14 +41,14 @@ export default function MobileScanPage() {
 
           setMessage({
             type: 'success',
-            text: `${product.name} - 재고: ${option?.stock || 0}개`
+            text: `${product.name} - ?�고: ${option?.stock || 0}�?
           })
         } else {
-          setMessage({ type: 'error', text: `바코드를 찾을 수 없습니다.` })
+          setMessage({ type: 'error', text: `바코?��? 찾을 ???�습?�다.` })
         }
       }
     } catch (error) {
-      setMessage({ type: 'error', text: '조회 중 오류가 발생했습니다.' })
+      setMessage({ type: 'error', text: '조회 �??�류가 발생?�습?�다.' })
     }
 
     setTimeout(() => setMessage(null), 3000)
@@ -73,12 +73,12 @@ export default function MobileScanPage() {
         </div>
       )}
 
-      {/* 바코드 입력 */}
+      {/* 바코???�력 */}
       <form onSubmit={handleScan} style={{ marginBottom: '16px' }}>
         <div style={{
           display: 'flex',
           gap: '8px',
-          background: '#fff',
+          background: 'var(--bg-primary)',
           borderRadius: '12px',
           padding: '12px'
         }}>
@@ -87,7 +87,7 @@ export default function MobileScanPage() {
             type="text"
             value={barcode}
             onChange={e => setBarcode(e.target.value)}
-            placeholder="바코드 스캔..."
+            placeholder="바코???�캔..."
             autoFocus
             style={{
               flex: 1,
@@ -111,20 +111,20 @@ export default function MobileScanPage() {
               cursor: 'pointer'
             }}
           >
-            확인
+            ?�인
           </button>
         </div>
       </form>
 
-      {/* 스캔 이력 */}
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px' }}>
+      {/* ?�캔 ?�력 */}
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px' }}>
         <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
-          스캔 이력 ({scannedItems.length})
+          ?�캔 ?�력 ({scannedItems.length})
         </h2>
 
         {scannedItems.length === 0 ? (
-          <div style={{ padding: '30px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>
-            바코드를 스캔하세요
+          <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '14px' }}>
+            바코?��? ?�캔?�세??
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -144,7 +144,7 @@ export default function MobileScanPage() {
                   <div style={{ fontWeight: 500, marginBottom: '2px' }}>
                     {item.brandName} {item.productName}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#86868b' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
                     {item.barcode}
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export default function MobileScanPage() {
                   fontWeight: 600,
                   fontSize: '14px'
                 }}>
-                  {item.stock}개
+                  {item.stock}�?
                 </div>
               </div>
             ))}

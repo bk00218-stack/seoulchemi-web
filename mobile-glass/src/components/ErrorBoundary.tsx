@@ -23,13 +23,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // 에러 로깅
+    // ?�러 로깅
     console.error('Error caught by boundary:', error)
     console.error('Component stack:', errorInfo.componentStack)
 
-    // 프로덕션에서 에러 리포팅
+    // ?�로?�션?�서 ?�러 리포??
     if (process.env.NODE_ENV === 'production') {
-      // 에러 리포팅 API 호출
+      // ?�러 리포??API ?�출
       fetch('/api/errors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -43,7 +43,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
           timestamp: new Date().toISOString()
         })
       }).catch(() => {
-        // 에러 리포팅 실패 무시
+        // ?�러 리포???�패 무시
       })
     }
   }
@@ -64,12 +64,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
           padding: '40px',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>😵</div>
-          <h2 style={{ fontSize: '20px', marginBottom: '8px', color: '#1d1d1f' }}>
-            문제가 발생했습니다
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>?��</div>
+          <h2 style={{ fontSize: '20px', marginBottom: '8px', color: 'var(--text-primary)' }}>
+            문제가 발생?�습?�다
           </h2>
-          <p style={{ color: '#86868b', marginBottom: '24px' }}>
-            페이지를 새로고침하거나 잠시 후 다시 시도해주세요.
+          <p style={{ color: 'var(--text-tertiary)', marginBottom: '24px' }}>
+            ?�이지�??�로고침?�거???�시 ???�시 ?�도?�주?�요.
           </p>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button
@@ -85,7 +85,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 fontWeight: 500
               }}
             >
-              새로고침
+              ?�로고침
             </button>
             <button
               onClick={() => window.history.back()}
@@ -93,14 +93,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 padding: '10px 24px',
                 borderRadius: '8px',
                 border: '1px solid #d1d5db',
-                background: '#fff',
+                background: 'var(--bg-primary)',
                 color: '#374151',
                 cursor: 'pointer',
                 fontSize: '14px',
                 fontWeight: 500
               }}
             >
-              뒤로가기
+              ?�로가�?
             </button>
           </div>
           {process.env.NODE_ENV !== 'production' && this.state.error && (
@@ -111,7 +111,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               width: '100%'
             }}>
               <summary style={{ cursor: 'pointer', color: '#dc2626' }}>
-                에러 상세 (개발 모드)
+                ?�러 ?�세 (개발 모드)
               </summary>
               <pre style={{
                 marginTop: '12px',

@@ -45,12 +45,12 @@ export default function MobileHomePage() {
   }
 
   if (loading) {
-    return <div style={{ padding: '20px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
+    return <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
   }
 
   return (
     <div>
-      {/* 오늘 현황 */}
+      {/* ?�늘 ?�황 */}
       <div style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         borderRadius: '16px',
@@ -58,16 +58,16 @@ export default function MobileHomePage() {
         color: '#fff',
         marginBottom: '16px'
       }}>
-        <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '4px' }}>오늘 주문</div>
+        <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '4px' }}>?�늘 주문</div>
         <div style={{ fontSize: '36px', fontWeight: 700, marginBottom: '4px' }}>
-          {data?.summary.today.orders || 0}건
+          {data?.summary.today.orders || 0}�?
         </div>
         <div style={{ fontSize: '16px', opacity: 0.8 }}>
-          {(data?.summary.today.amount || 0).toLocaleString()}원
+          {(data?.summary.today.amount || 0).toLocaleString()}??
         </div>
       </div>
 
-      {/* 주문 상태 */}
+      {/* 주문 ?�태 */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
@@ -75,7 +75,7 @@ export default function MobileHomePage() {
         marginBottom: '16px'
       }}>
         <Link href="/mobile/orders?status=pending" style={{
-          background: '#fff',
+          background: 'var(--bg-primary)',
           borderRadius: '12px',
           padding: '16px',
           textAlign: 'center',
@@ -85,10 +85,10 @@ export default function MobileHomePage() {
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#f59e0b' }}>
             {data?.status.pending || 0}
           </div>
-          <div style={{ fontSize: '12px', color: '#86868b' }}>대기</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>?��?/div>
         </Link>
         <Link href="/mobile/orders?status=confirmed" style={{
-          background: '#fff',
+          background: 'var(--bg-primary)',
           borderRadius: '12px',
           padding: '16px',
           textAlign: 'center',
@@ -98,10 +98,10 @@ export default function MobileHomePage() {
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#3b82f6' }}>
             {data?.status.confirmed || 0}
           </div>
-          <div style={{ fontSize: '12px', color: '#86868b' }}>확인</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>?�인</div>
         </Link>
         <Link href="/mobile/orders?status=shipped" style={{
-          background: '#fff',
+          background: 'var(--bg-primary)',
           borderRadius: '12px',
           padding: '16px',
           textAlign: 'center',
@@ -111,7 +111,7 @@ export default function MobileHomePage() {
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#10b981' }}>
             {data?.status.shipped || 0}
           </div>
-          <div style={{ fontSize: '12px', color: '#86868b' }}>출고</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>출고</div>
         </Link>
       </div>
 
@@ -123,7 +123,7 @@ export default function MobileHomePage() {
         marginBottom: '16px'
       }}>
         <Link href="/mobile/order" style={{
-          background: '#fff',
+          background: 'var(--bg-primary)',
           borderRadius: '12px',
           padding: '20px',
           textDecoration: 'none',
@@ -132,14 +132,14 @@ export default function MobileHomePage() {
           alignItems: 'center',
           gap: '12px'
         }}>
-          <span style={{ fontSize: '28px' }}>📝</span>
+          <span style={{ fontSize: '28px' }}>?��</span>
           <div>
-            <div style={{ fontWeight: 600 }}>주문 등록</div>
-            <div style={{ fontSize: '12px', color: '#86868b' }}>새 주문 입력</div>
+            <div style={{ fontWeight: 600 }}>주문 ?�록</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>??주문 ?�력</div>
           </div>
         </Link>
         <Link href="/mobile/scan" style={{
-          background: '#fff',
+          background: 'var(--bg-primary)',
           borderRadius: '12px',
           padding: '20px',
           textDecoration: 'none',
@@ -148,31 +148,31 @@ export default function MobileHomePage() {
           alignItems: 'center',
           gap: '12px'
         }}>
-          <span style={{ fontSize: '28px' }}>📷</span>
+          <span style={{ fontSize: '28px' }}>?��</span>
           <div>
-            <div style={{ fontWeight: 600 }}>바코드 스캔</div>
-            <div style={{ fontSize: '12px', color: '#86868b' }}>재고/출고 확인</div>
+            <div style={{ fontWeight: 600 }}>바코???�캔</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>?�고/출고 ?�인</div>
           </div>
         </Link>
       </div>
 
-      {/* 대기 주문 */}
-      <div style={{ background: '#fff', borderRadius: '16px', padding: '16px' }}>
+      {/* ?��?주문 */}
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '16px', padding: '16px' }}>
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: '12px'
         }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>대기 중인 주문</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>?��?중인 주문</h2>
           <Link href="/mobile/orders?status=pending" style={{ fontSize: '14px', color: '#007aff', textDecoration: 'none' }}>
-            전체보기
+            ?�체보기
           </Link>
         </div>
 
         {!data?.pendingOrders?.length ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>
-            대기 주문이 없습니다 ✨
+          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '14px' }}>
+            ?��?주문???�습?�다 ??
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -193,10 +193,10 @@ export default function MobileHomePage() {
               >
                 <div>
                   <div style={{ fontWeight: 500, marginBottom: '2px' }}>{order.storeName}</div>
-                  <div style={{ fontSize: '12px', color: '#86868b' }}>{order.orderNo}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{order.orderNo}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 600 }}>{order.totalAmount.toLocaleString()}원</div>
+                  <div style={{ fontWeight: 600 }}>{order.totalAmount.toLocaleString()}??/div>
                 </div>
               </Link>
             ))}

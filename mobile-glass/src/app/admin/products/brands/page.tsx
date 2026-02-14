@@ -26,7 +26,7 @@ export default function BrandsPage() {
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
   const [search, setSearch] = useState('')
   
-  // 폼 상태
+  // ???�태
   const [formData, setFormData] = useState({
     name: '',
     stockManage: '',
@@ -68,15 +68,15 @@ export default function BrandsPage() {
         loadBrands()
       } else {
         const error = await res.json()
-        alert(error.error || '저장에 실패했습니다.')
+        alert(error.error || '?�?�에 ?�패?�습?�다.')
       }
     } catch (error) {
-      alert('저장에 실패했습니다.')
+      alert('?�?�에 ?�패?�습?�다.')
     }
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('이 브랜드를 삭제하시겠습니까?')) return
+    if (!confirm('??브랜?��? ??��?�시겠습?�까?')) return
     
     try {
       const res = await fetch(`/api/brands/${id}`, { method: 'DELETE' })
@@ -84,10 +84,10 @@ export default function BrandsPage() {
         loadBrands()
       } else {
         const error = await res.json()
-        alert(error.error || '삭제에 실패했습니다.')
+        alert(error.error || '??��???�패?�습?�다.')
       }
     } catch (error) {
-      alert('삭제에 실패했습니다.')
+      alert('??��???�패?�습?�다.')
     }
   }
 
@@ -117,13 +117,13 @@ export default function BrandsPage() {
   }
 
   const columns: Column<Brand>[] = [
-    { key: 'displayOrder', label: '순서', width: '60px', align: 'center', render: (v) => (
-      <span style={{ color: '#86868b', fontSize: '12px' }}>{v as number}</span>
+    { key: 'displayOrder', label: '?�서', width: '60px', align: 'center', render: (v) => (
+      <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{v as number}</span>
     )},
-    { key: 'name', label: '브랜드명', render: (v) => (
+    { key: 'name', label: '브랜?�명', render: (v) => (
       <span style={{ fontWeight: 600 }}>{v as string}</span>
     )},
-    { key: 'stockManage', label: '출고관리', render: (v) => (
+    { key: 'stockManage', label: '출고관�?, render: (v) => (
       <span style={{ color: '#666', fontSize: '13px' }}>{v as string || '-'}</span>
     )},
     { key: 'canExchange', label: '교환', align: 'center', render: (v) => (
@@ -132,7 +132,7 @@ export default function BrandsPage() {
     { key: 'canReturn', label: '반품', align: 'center', render: (v) => (
       <span style={{ color: v ? '#34c759' : '#86868b' }}>{v ? 'O' : 'X'}</span>
     )},
-    { key: 'productCount', label: '상품 수', align: 'center', render: (v) => (
+    { key: 'productCount', label: '?�품 ??, align: 'center', render: (v) => (
       <span style={{ 
         background: '#eef4ee', 
         color: '#007aff', 
@@ -141,27 +141,27 @@ export default function BrandsPage() {
         fontSize: '13px',
         fontWeight: 500
       }}>
-        {v as number}개
+        {v as number}�?
       </span>
     )},
-    { key: 'isActive', label: '상태', render: (v) => (
+    { key: 'isActive', label: '?�태', render: (v) => (
       <StatusBadge status={v ? 'active' : 'inactive'} />
     )},
-    { key: 'id', label: '관리', align: 'center', render: (_, row) => (
+    { key: 'id', label: '관�?, align: 'center', render: (_, row) => (
       <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
         <button
           onClick={() => openEditModal(row)}
           style={{
             padding: '4px 10px',
             borderRadius: '4px',
-            background: '#f5f5f7',
+            background: 'var(--bg-secondary)',
             color: '#007aff',
             border: 'none',
             fontSize: '12px',
             cursor: 'pointer'
           }}
         >
-          수정
+          ?�정
         </button>
         <button
           onClick={() => handleDelete(row.id)}
@@ -175,7 +175,7 @@ export default function BrandsPage() {
             cursor: 'pointer'
           }}
         >
-          삭제
+          ??��
         </button>
       </div>
     )},
@@ -191,8 +191,8 @@ export default function BrandsPage() {
 
   return (
     <AdminLayout activeMenu="products">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        브랜드 관리
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        브랜??관�?
       </h2>
 
       <div style={{ 
@@ -201,38 +201,38 @@ export default function BrandsPage() {
         gap: '16px', 
         marginBottom: '24px' 
       }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 브랜드</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#1d1d1f' }}>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>�?브랜??/div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)' }}>
             {brands.length}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>개</span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>활성</div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�성</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#34c759' }}>
             {activeBrands}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>개</span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>비활성</div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>비활??/div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>
             {inactiveBrands}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>개</span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>총 상품</div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>�??�품</div>
           <div style={{ fontSize: '28px', fontWeight: 600, color: '#007aff' }}>
             {totalProducts}
-            <span style={{ fontSize: '14px', fontWeight: 400, color: '#86868b', marginLeft: '4px' }}>개</span>
+            <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span>
           </div>
         </div>
       </div>
 
       <SearchFilter
-        placeholder="브랜드명 검색"
+        placeholder="브랜?�명 검??
         value={search}
         onChange={setSearch}
         actions={
@@ -249,7 +249,7 @@ export default function BrandsPage() {
               cursor: 'pointer'
             }}
           >
-            + 브랜드 등록
+            + 브랜???�록
           </button>
         }
       />
@@ -258,10 +258,10 @@ export default function BrandsPage() {
         columns={columns}
         data={filteredBrands}
         loading={loading}
-        emptyMessage="등록된 브랜드가 없습니다"
+        emptyMessage="?�록??브랜?��? ?�습?�다"
       />
 
-      {/* 등록/수정 모달 */}
+      {/* ?�록/?�정 모달 */}
       {showModal && (
         <div style={{
           position: 'fixed',
@@ -276,45 +276,45 @@ export default function BrandsPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
+            background: 'var(--bg-primary)',
             borderRadius: '16px',
             padding: '24px',
             width: '440px'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editingBrand ? '브랜드 수정' : '브랜드 등록'}
+              {editingBrand ? '브랜???�정' : '브랜???�록'}
             </h3>
             
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>브랜드명 *</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>브랜?�명 *</label>
               <input 
                 type="text" 
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }} 
               />
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>출고관리</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>출고관�?/label>
                 <select 
                   value={formData.stockManage}
                   onChange={(e) => setFormData({ ...formData, stockManage: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }}
                 >
-                  <option value="">미사용</option>
-                  <option value="barcode">바코드</option>
-                  <option value="manual">수동</option>
+                  <option value="">미사??/option>
+                  <option value="barcode">바코??/option>
+                  <option value="manual">?�동</option>
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>순서</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�서</label>
                 <input 
                   type="number" 
                   value={formData.displayOrder}
                   onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }} 
                 />
               </div>
             </div>
@@ -326,7 +326,7 @@ export default function BrandsPage() {
                   checked={formData.canExchange}
                   onChange={(e) => setFormData({ ...formData, canExchange: e.target.checked })}
                 />
-                <span style={{ fontSize: '13px' }}>교환 가능</span>
+                <span style={{ fontSize: '13px' }}>교환 가??/span>
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
@@ -334,7 +334,7 @@ export default function BrandsPage() {
                   checked={formData.canReturn}
                   onChange={(e) => setFormData({ ...formData, canReturn: e.target.checked })}
                 />
-                <span style={{ fontSize: '13px' }}>반품 가능</span>
+                <span style={{ fontSize: '13px' }}>반품 가??/span>
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
@@ -342,14 +342,14 @@ export default function BrandsPage() {
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 />
-                <span style={{ fontSize: '13px' }}>활성</span>
+                <span style={{ fontSize: '13px' }}>?�성</span>
               </label>
             </div>
             
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button 
                 onClick={() => setShowModal(false)} 
-                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}
+                style={{ padding: '10px 20px', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: 'none', fontSize: '14px', cursor: 'pointer' }}
               >
                 취소
               </button>
@@ -357,7 +357,7 @@ export default function BrandsPage() {
                 onClick={handleSave} 
                 style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
               >
-                저장
+                ?�??
               </button>
             </div>
           </div>

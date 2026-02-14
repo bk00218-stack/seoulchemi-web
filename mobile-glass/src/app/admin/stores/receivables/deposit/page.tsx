@@ -21,7 +21,7 @@ export default function DepositPage() {
   const [saving, setSaving] = useState(false)
   const [recentDeposits, setRecentDeposits] = useState<any[]>([])
 
-  // 미수금 있는 가맹점 조회
+  // 미수�??�는 가맹점 조회
   useEffect(() => {
     fetch('/api/receivables?filter=hasDebt&limit=1000')
       .then(res => res.json())
@@ -38,7 +38,7 @@ export default function DepositPage() {
       .catch(console.error)
   }, [])
 
-  // 최근 입금 내역 조회
+  // 최근 ?�금 ?�역 조회
   useEffect(() => {
     fetch('/api/receivables/transactions?type=deposit&limit=10')
       .then(res => res.json())
@@ -61,13 +61,13 @@ export default function DepositPage() {
 
   const handleDeposit = async () => {
     if (!selectedStore || !depositAmount) {
-      alert('가맹점과 입금액을 입력해주세요.')
+      alert('가맹점�??�금?�을 ?�력?�주?�요.')
       return
     }
 
     const amount = parseInt(depositAmount.replace(/,/g, ''))
     if (isNaN(amount) || amount <= 0) {
-      alert('유효한 금액을 입력해주세요.')
+      alert('?�효??금액???�력?�주?�요.')
       return
     }
 
@@ -92,15 +92,15 @@ export default function DepositPage() {
         return
       }
 
-      alert(`${formatCurrency(amount)}원 입금 처리되었습니다.\n잔액: ${formatCurrency(json.transaction.newBalance)}원`)
+      alert(`${formatCurrency(amount)}???�금 처리?�었?�니??\n?�액: ${formatCurrency(json.transaction.newBalance)}??)
       
-      // 폼 리셋
+      // ??리셋
       setSelectedStore(null)
       setDepositAmount('')
       setDepositor('')
       setMemo('')
       
-      // 목록 새로고침
+      // 목록 ?�로고침
       const storesRes = await fetch('/api/receivables?filter=hasDebt&limit=1000')
       const storesJson = await storesRes.json()
       if (storesJson.stores) {
@@ -112,33 +112,33 @@ export default function DepositPage() {
         })))
       }
 
-      // 최근 내역 새로고침
+      // 최근 ?�역 ?�로고침
       const txRes = await fetch('/api/receivables/transactions?type=deposit&limit=10')
       const txJson = await txRes.json()
       if (txJson.transactions) {
         setRecentDeposits(txJson.transactions)
       }
     } catch (error) {
-      alert('입금 처리에 실패했습니다.')
+      alert('?�금 처리???�패?�습?�다.')
     }
     setSaving(false)
   }
 
   return (
     <AdminLayout activeMenu="stores">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        입금 처리
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        ?�금 처리
       </h2>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        {/* 입금 폼 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>입금 등록</h3>
+        {/* ?�금 ??*/}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>?�금 ?�록</h3>
 
-          {/* 가맹점 선택 */}
+          {/* 가맹점 ?�택 */}
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '8px' }}>
-              가맹점 선택 <span style={{ color: '#ff3b30' }}>*</span>
+              가맹점 ?�택 <span style={{ color: '#ff3b30' }}>*</span>
             </label>
             
             {selectedStore ? (
@@ -147,17 +147,17 @@ export default function DepositPage() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '16px',
-                background: '#f5f5f7',
+                background: 'var(--bg-secondary)',
                 borderRadius: '8px'
               }}>
                 <div>
                   <div style={{ fontWeight: 600 }}>{selectedStore.name}</div>
-                  <div style={{ fontSize: '12px', color: '#86868b' }}>{selectedStore.code}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{selectedStore.code}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '12px', color: '#86868b' }}>미수금</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>미수�?/div>
                   <div style={{ fontWeight: 600, color: '#ff3b30' }}>
-                    {formatCurrency(selectedStore.outstandingAmount)}원
+                    {formatCurrency(selectedStore.outstandingAmount)}??
                   </div>
                 </div>
                 <button
@@ -165,27 +165,27 @@ export default function DepositPage() {
                   style={{
                     padding: '6px 12px',
                     borderRadius: '6px',
-                    background: '#fff',
-                    border: '1px solid #e9ecef',
+                    background: 'var(--bg-primary)',
+                    border: '1px solid var(--border-color)',
                     fontSize: '12px',
                     cursor: 'pointer'
                   }}
                 >
-                  변경
+                  변�?
                 </button>
               </div>
             ) : (
               <div>
                 <input
                   type="text"
-                  placeholder="가맹점명 또는 코드 검색..."
+                  placeholder="가맹점�??�는 코드 검??.."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px',
                     marginBottom: '8px'
                   }}
@@ -193,7 +193,7 @@ export default function DepositPage() {
                 <div style={{
                   maxHeight: '200px',
                   overflow: 'auto',
-                  border: '1px solid #e9ecef',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '8px'
                 }}>
                   {filteredStores.slice(0, 20).map(store => (
@@ -212,16 +212,16 @@ export default function DepositPage() {
                     >
                       <div>
                         <span style={{ fontWeight: 500 }}>{store.name}</span>
-                        <span style={{ fontSize: '12px', color: '#86868b', marginLeft: '8px' }}>{store.code}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginLeft: '8px' }}>{store.code}</span>
                       </div>
                       <span style={{ color: '#ff3b30', fontWeight: 500 }}>
-                        {formatCurrency(store.outstandingAmount)}원
+                        {formatCurrency(store.outstandingAmount)}??
                       </span>
                     </div>
                   ))}
                   {filteredStores.length === 0 && (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#86868b' }}>
-                      미수금이 있는 가맹점이 없습니다
+                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                      미수금이 ?�는 가맹점???�습?�다
                     </div>
                   )}
                 </div>
@@ -229,10 +229,10 @@ export default function DepositPage() {
             )}
           </div>
 
-          {/* 입금액 */}
+          {/* ?�금??*/}
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              입금액 <span style={{ color: '#ff3b30' }}>*</span>
+              ?�금??<span style={{ color: '#ff3b30' }}>*</span>
             </label>
             <input
               type="text"
@@ -246,7 +246,7 @@ export default function DepositPage() {
                 width: '100%',
                 padding: '14px',
                 borderRadius: '8px',
-                border: '1px solid #e9ecef',
+                border: '1px solid var(--border-color)',
                 fontSize: '20px',
                 fontWeight: 600,
                 textAlign: 'right'
@@ -254,17 +254,17 @@ export default function DepositPage() {
             />
           </div>
 
-          {/* 입금 방법 */}
+          {/* ?�금 방법 */}
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              입금 방법
+              ?�금 방법
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
               {[
-                { value: 'transfer', label: '계좌이체' },
-                { value: 'cash', label: '현금' },
+                { value: 'transfer', label: '계좌?�체' },
+                { value: 'cash', label: '?�금' },
                 { value: 'card', label: '카드' },
-                { value: 'check', label: '어음' },
+                { value: 'check', label: '?�음' },
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -286,21 +286,21 @@ export default function DepositPage() {
             </div>
           </div>
 
-          {/* 입금자명 */}
+          {/* ?�금?�명 */}
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              입금자명
+              ?�금?�명
             </label>
             <input
               type="text"
               value={depositor}
               onChange={(e) => setDepositor(e.target.value)}
-              placeholder="입금자명"
+              placeholder="?�금?�명"
               style={{
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: '8px',
-                border: '1px solid #e9ecef',
+                border: '1px solid var(--border-color)',
                 fontSize: '14px'
               }}
             />
@@ -315,12 +315,12 @@ export default function DepositPage() {
               type="text"
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
-              placeholder="참고사항"
+              placeholder="참고?�항"
               style={{
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: '8px',
-                border: '1px solid #e9ecef',
+                border: '1px solid var(--border-color)',
                 fontSize: '14px'
               }}
             />
@@ -341,13 +341,13 @@ export default function DepositPage() {
               cursor: saving || !selectedStore || !depositAmount ? 'default' : 'pointer'
             }}
           >
-            {saving ? '처리 중...' : '입금 처리'}
+            {saving ? '처리 �?..' : '?�금 처리'}
           </button>
         </div>
 
-        {/* 최근 입금 내역 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>최근 입금 내역</h3>
+        {/* 최근 ?�금 ?�역 */}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>최근 ?�금 ?�역</h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {recentDeposits.map(tx => (
@@ -358,13 +358,13 @@ export default function DepositPage() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '12px',
-                  background: '#f5f5f7',
+                  background: 'var(--bg-secondary)',
                   borderRadius: '8px'
                 }}
               >
                 <div>
                   <div style={{ fontWeight: 500, marginBottom: '2px' }}>{tx.storeName}</div>
-                  <div style={{ fontSize: '12px', color: '#86868b' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
                     {new Date(tx.processedAt).toLocaleString('ko-KR', {
                       month: 'short',
                       day: 'numeric',
@@ -376,18 +376,18 @@ export default function DepositPage() {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontWeight: 600, color: '#34c759' }}>
-                    +{formatCurrency(tx.amount)}원
+                    +{formatCurrency(tx.amount)}??
                   </div>
-                  <div style={{ fontSize: '11px', color: '#86868b' }}>
-                    잔액 {formatCurrency(tx.balanceAfter)}원
+                  <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
+                    ?�액 {formatCurrency(tx.balanceAfter)}??
                   </div>
                 </div>
               </div>
             ))}
             
             {recentDeposits.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>
-                최근 입금 내역이 없습니다
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
+                최근 ?�금 ?�역???�습?�다
               </div>
             )}
           </div>
@@ -399,14 +399,14 @@ export default function DepositPage() {
               marginTop: '16px',
               padding: '10px',
               borderRadius: '6px',
-              background: '#f5f5f7',
+              background: 'var(--bg-secondary)',
               color: '#007aff',
               border: 'none',
               fontSize: '13px',
               cursor: 'pointer'
             }}
           >
-            전체 내역 보기
+            ?�체 ?�역 보기
           </button>
         </div>
       </div>

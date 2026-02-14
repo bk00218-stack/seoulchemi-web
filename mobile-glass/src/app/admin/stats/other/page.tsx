@@ -8,23 +8,23 @@ import StatCard, { StatCardGrid } from '../../../components/StatCard'
 export default function OtherStatsPage() {
   return (
     <AdminLayout activeMenu="stats">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        기타 통계
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        기�? ?�계
       </h2>
 
-      {/* 요약 카드 */}
+      {/* ?�약 카드 */}
       <StatCardGrid>
-        <StatCard label="신규 가맹점 (이번 달)" value={5} unit="개" icon="🆕" trend={{ value: 25, isPositive: true }} />
-        <StatCard label="반품/교환" value={12} unit="건" icon="🔄" />
-        <StatCard label="평균 배송일" value={1.2} unit="일" icon="🚚" />
-        <StatCard label="CS 문의" value={34} unit="건" icon="📞" />
+        <StatCard label="?�규 가맹점 (?�번 ??" value={5} unit="�? icon="?��" trend={{ value: 25, isPositive: true }} />
+        <StatCard label="반품/교환" value={12} unit="�? icon="?��" />
+        <StatCard label="?�균 배송?? value={1.2} unit="?? icon="?��" />
+        <StatCard label="CS 문의" value={34} unit="�? icon="?��" />
       </StatCardGrid>
 
-      {/* 통계 섹션들 */}
+      {/* ?�계 ?�션??*/}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-        {/* 신규 가맹점 추이 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>월별 신규 가맹점</h3>
+        {/* ?�규 가맹점 추이 */}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>?�별 ?�규 가맹점</h3>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '120px' }}>
             {[3, 4, 2, 5, 6, 5].map((count, idx) => (
               <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -36,36 +36,36 @@ export default function OtherStatsPage() {
                     height: `${count * 15}px`,
                   }}
                 />
-                <div style={{ marginTop: '8px', fontSize: '11px', color: '#86868b' }}>
-                  {idx + 1}월
+                <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-tertiary)' }}>
+                  {idx + 1}??
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 반품/교환 사유 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>반품/교환 사유</h3>
+        {/* 반품/교환 ?�유 */}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>반품/교환 ?�유</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {[
-              { label: '도수 오류', count: 5, color: '#ff3b30' },
-              { label: '배송 파손', count: 3, color: '#ff9500' },
-              { label: '고객 변심', count: 3, color: '#007aff' },
+              { label: '?�수 ?�류', count: 5, color: '#ff3b30' },
+              { label: '배송 ?�손', count: 3, color: '#ff9500' },
+              { label: '고객 변??, count: 3, color: '#007aff' },
               { label: '불량', count: 1, color: '#af52de' },
             ].map((item, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: item.color }} />
                 <span style={{ flex: 1, fontSize: '14px' }}>{item.label}</span>
-                <span style={{ fontWeight: 500 }}>{item.count}건</span>
+                <span style={{ fontWeight: 500 }}>{item.count}�?/span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 시간대별 주문 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>시간대별 주문 분포</h3>
+        {/* ?�간?��?주문 */}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>?�간?��?주문 분포</h3>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100px' }}>
             {[2, 1, 1, 0, 0, 0, 3, 8, 15, 22, 25, 28, 24, 20, 18, 15, 12, 10, 8, 6, 5, 4, 3, 2].map((count, idx) => (
               <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -81,22 +81,22 @@ export default function OtherStatsPage() {
             ))}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-            <span style={{ fontSize: '10px', color: '#86868b' }}>0시</span>
-            <span style={{ fontSize: '10px', color: '#86868b' }}>12시</span>
-            <span style={{ fontSize: '10px', color: '#86868b' }}>24시</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>0??/span>
+            <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>12??/span>
+            <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>24??/span>
           </div>
         </div>
 
-        {/* 인기 검색어 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>인기 검색어 TOP 5</h3>
+        {/* ?�기 검?�어 */}
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>?�기 검?�어 TOP 5</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {[
-              { rank: 1, keyword: '크리잘 사파이어', count: 156 },
-              { rank: 2, keyword: '블루컨트롤', count: 134 },
-              { rank: 3, keyword: '바리락스', count: 98 },
+              { rank: 1, keyword: '?�리???�파?�어', count: 156 },
+              { rank: 2, keyword: '블루컨트�?, count: 134 },
+              { rank: 3, keyword: '바리?�스', count: 98 },
               { rank: 4, keyword: '1.60', count: 87 },
-              { rank: 5, keyword: '드라이브세이프', count: 65 },
+              { rank: 5, keyword: '?�라?�브?�이??, count: 65 },
             ].map((item) => (
               <div key={item.rank} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ 
@@ -114,32 +114,32 @@ export default function OtherStatsPage() {
                   {item.rank}
                 </span>
                 <span style={{ flex: 1, fontSize: '14px' }}>{item.keyword}</span>
-                <span style={{ color: '#86868b', fontSize: '13px' }}>{item.count}회</span>
+                <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>{item.count}??/span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* 추가 통계 요약 */}
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>이번 달 요약</h3>
+      {/* 추�? ?�계 ?�약 */}
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '24px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>?�번 ???�약</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
           <div>
-            <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>일 평균 주문</div>
-            <div style={{ fontSize: '24px', fontWeight: 600 }}>42.5<span style={{ fontSize: '14px', color: '#86868b' }}>건</span></div>
+            <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>???�균 주문</div>
+            <div style={{ fontSize: '24px', fontWeight: 600 }}>42.5<span style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>�?/span></div>
           </div>
           <div>
-            <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>재주문율</div>
-            <div style={{ fontSize: '24px', fontWeight: 600, color: '#34c759' }}>78.3<span style={{ fontSize: '14px', color: '#86868b' }}>%</span></div>
+            <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�주문율</div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: '#34c759' }}>78.3<span style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>%</span></div>
           </div>
           <div>
-            <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>주문 취소율</div>
-            <div style={{ fontSize: '24px', fontWeight: 600, color: '#ff9500' }}>2.1<span style={{ fontSize: '14px', color: '#86868b' }}>%</span></div>
+            <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>주문 취소??/div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: '#ff9500' }}>2.1<span style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>%</span></div>
           </div>
           <div>
-            <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>고객 만족도</div>
-            <div style={{ fontSize: '24px', fontWeight: 600, color: '#007aff' }}>4.7<span style={{ fontSize: '14px', color: '#86868b' }}>/5.0</span></div>
+            <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>고객 만족??/div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: '#007aff' }}>4.7<span style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>/5.0</span></div>
           </div>
         </div>
       </div>

@@ -25,10 +25,10 @@ function formatLegacy(value: number): string {
   return String(Math.round(Math.abs(value) * 100)).padStart(3, '0')
 }
 
-// OlwsPro 스타일 - 하나의 표, 가운데 기준
-// 세로(행) = SPH: 0.00 ~ 15.00
-// 가로(열) = CYL: 가운데 000에서 시작, 양쪽으로 400까지
-// 왼쪽 = -Sph (근시), 오른쪽 = +Sph (원시)
+// OlwsPro ?��???- ?�나???? 가?�데 기�?
+// ?�로(?? = SPH: 0.00 ~ 15.00
+// 가�??? = CYL: 가?�데 000?�서 ?�작, ?�쪽?�로 400까�?
+// ?�쪽 = -Sph (근시), ?�른�?= +Sph (?�시)
 
 function generateSphRows(): number[] {
   const values: number[] = []
@@ -36,7 +36,7 @@ function generateSphRows(): number[] {
   return values
 }
 
-// CYL 열: 왼쪽은 400→000, 오른쪽은 000→400
+// CYL ?? ?�쪽?� 400??00, ?�른쪽�? 000??00
 function generateCylColsLeft(): number[] {
   const values: number[] = []
   for (let i = -4; i <= 0; i += 0.25) values.push(Math.round(i * 100) / 100)
@@ -67,11 +67,11 @@ export default function NewOrderPage() {
   const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
-  const [orderType, setOrderType] = useState<'여벌' | '착색' | 'RX' | '기타'>('여벌')
+  const [orderType, setOrderType] = useState<'?�벌' | '착색' | 'RX' | '기�?'>('?�벌')
   const [productFocusIndex, setProductFocusIndex] = useState<number>(-1)
   const [storeFocusIndex, setStoreFocusIndex] = useState<number>(-1)
   
-  // 그리드: colIndex = 전체 열 인덱스 (0 = 맨 왼쪽 CYL 400, 중앙 = CYL 000, 맨 오른쪽 = CYL 400)
+  // 그리?? colIndex = ?�체 ???�덱??(0 = �??�쪽 CYL 400, 중앙 = CYL 000, �??�른�?= CYL 400)
   const [gridFocus, setGridFocus] = useState<{sphIndex: number, colIndex: number} | null>(null)
   const [cellInputValue, setCellInputValue] = useState('')
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
@@ -79,12 +79,12 @@ export default function NewOrderPage() {
   const [loading, setLoading] = useState(false)
   const [storeSearchText, setStoreSearchText] = useState('')
   
-  // 컨텍스트 메뉴 상태
+  // 컨텍?�트 메뉴 ?�태
   const [contextMenu, setContextMenu] = useState<{x: number, y: number, item: OrderItem} | null>(null)
   const [editModal, setEditModal] = useState<{type: 'quantity' | 'price', item: OrderItem} | null>(null)
   const [editValue, setEditValue] = useState('')
   
-  // 수량 입력 액션 팝업 (추가/수정/취소)
+  // ?�량 ?�력 ?�션 ?�업 (추�?/?�정/취소)
   const [quantityActionModal, setQuantityActionModal] = useState<{
     existingQty: number
     newQty: number
@@ -93,32 +93,32 @@ export default function NewOrderPage() {
     sphStr: string
     cylStr: string
   } | null>(null)
-  const [quantityActionSelection, setQuantityActionSelection] = useState<0 | 1 | 2>(0) // 0=추가, 1=수정, 2=취소
+  const [quantityActionSelection, setQuantityActionSelection] = useState<0 | 1 | 2>(0) // 0=추�?, 1=?�정, 2=취소
   
-  // 재고 그리드 데이터 (SPH/CYL 조합별 재고)
+  // ?�고 그리???�이??(SPH/CYL 조합�??�고)
   const [stockGrid, setStockGrid] = useState<Record<string, Record<string, number>>>({})
 
   const selectedProduct = products.find(p => p.id === selectedProductId)
   const filteredProducts = selectedBrandId ? products.filter(p => p.brandId === selectedBrandId) : []
 
   const sphRows = generateSphRows()
-  const cylColsLeft = generateCylColsLeft()   // -4.00 → 0.00 (왼쪽, -Sph용)
-  const cylColsRight = generateCylColsRight() // 0.00 → -4.00 (오른쪽, +Sph용)
+  const cylColsLeft = generateCylColsLeft()   // -4.00 ??0.00 (?�쪽, -Sph??
+  const cylColsRight = generateCylColsRight() // 0.00 ??-4.00 (?�른�? +Sph??
   
-  // 전체 열: 왼쪽 CYL + 가운데 구분 + 오른쪽 CYL
-  const centerIndex = cylColsLeft.length // 가운데 열 인덱스
+  // ?�체 ?? ?�쪽 CYL + 가?�데 구분 + ?�른�?CYL
+  const centerIndex = cylColsLeft.length // 가?�데 ???�덱??
   const totalCols = cylColsLeft.length + 1 + cylColsRight.length
 
   useEffect(() => {
     fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
-    // 거래처 전체 로드 (백그라운드)
+    // 거래�??�체 로드 (백그?�운??
     fetch('/api/stores?limit=10000').then(r => r.json()).then(data => { 
       setAllStores(data.stores || [])
       setStoresLoaded(true)
     })
   }, [])
 
-  // 상호 검색 - 클라이언트 필터링 (즉시)
+  // ?�호 검??- ?�라?�언???�터�?(즉시)
   const storeSearchResults = storeSearchText && storesLoaded
     ? allStores.filter(s => {
         const q = storeSearchText.toLowerCase().replace(/-/g, '')
@@ -128,24 +128,24 @@ export default function NewOrderPage() {
       }).slice(0, 30)
     : []
 
-  // 그리드 포커스 시 가운데로 스크롤
+  // 그리???�커????가?�데�??�크�?
   useEffect(() => {
     if (gridContainerRef.current && !gridFocus) {
-      // 초기에 가운데로 스크롤
+      // 초기??가?�데�??�크�?
       const container = gridContainerRef.current
       const scrollLeft = (centerIndex * 34) - (container.clientWidth / 2) + 50
       container.scrollLeft = Math.max(0, scrollLeft)
     }
   }, [selectedProductId])
 
-  // 상품 선택 시 재고 정보 로드
+  // ?�품 ?�택 ???�고 ?�보 로드
   useEffect(() => {
     if (selectedProductId) {
       fetch(`/api/products/diopter-grid?productId=${selectedProductId}`)
         .then(r => r.json())
         .then(data => {
           if (data.grid) {
-            // grid 데이터를 stock 수량만 추출하여 저장
+            // grid ?�이?��? stock ?�량�?추출?�여 ?�??
             const stockData: Record<string, Record<string, number>> = {}
             Object.entries(data.grid).forEach(([sph, cylData]) => {
               stockData[sph] = {}
@@ -164,21 +164,21 @@ export default function NewOrderPage() {
     }
   }, [selectedProductId])
 
-  // 상호 검색 결과 키보드 이동 시 스크롤
+  // ?�호 검??결과 ?�보???�동 ???�크�?
   useEffect(() => {
     if (storeFocusIndex >= 0 && storeResultRefs.current[storeFocusIndex]) {
       storeResultRefs.current[storeFocusIndex]?.scrollIntoView({ block: 'nearest' })
     }
   }, [storeFocusIndex])
 
-  // 상품 목록 키보드 이동 시 스크롤
+  // ?�품 목록 ?�보???�동 ???�크�?
   useEffect(() => {
     if (productFocusIndex >= 0 && productItemRefs.current[productFocusIndex]) {
       productItemRefs.current[productFocusIndex]?.scrollIntoView({ block: 'nearest' })
     }
   }, [productFocusIndex])
 
-  // 도수표 포커스 이동 시 스크롤
+  // ?�수???�커???�동 ???�크�?
   useEffect(() => {
     if (gridFocus && gridContainerRef.current) {
       const container = gridContainerRef.current
@@ -186,11 +186,11 @@ export default function NewOrderPage() {
       const cellHeight = 24
       const headerHeight = 28
       
-      // 가로 스크롤 (colIndex 기준)
+      // 가�??�크�?(colIndex 기�?)
       const targetScrollLeft = gridFocus.colIndex * cellWidth - container.clientWidth / 2 + cellWidth / 2 + 40
       container.scrollLeft = Math.max(0, targetScrollLeft)
       
-      // 세로 스크롤 (sphIndex 기준)
+      // ?�로 ?�크�?(sphIndex 기�?)
       const targetScrollTop = gridFocus.sphIndex * cellHeight + headerHeight - container.clientHeight / 2 + cellHeight / 2
       container.scrollTop = Math.max(0, targetScrollTop)
     }
@@ -202,16 +202,16 @@ export default function NewOrderPage() {
         e.preventDefault()
         setGridFocus(null)
         setCellInputValue('')
-        setSelectedBrandId(null)  // 품목 초기화
-        setSelectedProductId(null)  // 상품 초기화
+        setSelectedBrandId(null)  // ?�목 초기??
+        setSelectedProductId(null)  // ?�품 초기??
         setProductFocusIndex(-1)
         setTimeout(() => {
           brandSelectRef.current?.focus()
-          // 드롭다운 열기
+          // ?�롭?�운 ?�기
           try {
             (brandSelectRef.current as any)?.showPicker?.()
           } catch {
-            // showPicker 미지원 브라우저
+            // showPicker 미�???브라?��?
           }
         }, 0)
       }
@@ -219,28 +219,28 @@ export default function NewOrderPage() {
         e.preventDefault()
         setGridFocus(null)
         setCellInputValue('')
-        setSelectedProductId(null)  // 상품 초기화
+        setSelectedProductId(null)  // ?�품 초기??
         if (filteredProducts.length > 0) { 
           setProductFocusIndex(0)
           setTimeout(() => productListRef.current?.focus(), 0)
         } else {
-          // 품목이 선택 안 됐으면 품목 선택으로
+          // ?�목???�택 ???�으�??�목 ?�택?�로
           setTimeout(() => brandSelectRef.current?.focus(), 0)
         }
       }
-      else if (e.key === 'F7') { e.preventDefault(); setOrderType('여벌') }
+      else if (e.key === 'F7') { e.preventDefault(); setOrderType('?�벌') }
       else if (e.key === 'F8') { e.preventDefault(); setOrderType('착색') }
       else if (e.key === 'F9') { e.preventDefault(); setOrderType('RX') }
-      else if (e.key === 'F10') { e.preventDefault(); setOrderType('기타') }
+      else if (e.key === 'F10') { e.preventDefault(); setOrderType('기�?') }
       else if (e.key === 'F2') { e.preventDefault(); if (selectedStore && orderItems.length > 0) handleSubmit() }
       else if (e.key === 'Escape') {
         e.preventDefault()
         if (gridFocus) { setGridFocus(null); setCellInputValue('') }
         else { 
-          // 전체 초기화 (주문목록 포함)
+          // ?�체 초기??(주문목록 ?�함)
           setSelectedStore(null); setStoreSearchText(''); setStoreFocusIndex(-1); 
           setSelectedBrandId(null); setSelectedProductId(null); setProductFocusIndex(-1); 
-          setOrderItems([]); setMemo(''); // 주문목록 & 메모 초기화
+          setOrderItems([]); setMemo(''); // 주문목록 & 메모 초기??
           storeInputRef.current?.focus() 
         }
       }
@@ -257,23 +257,23 @@ export default function NewOrderPage() {
       e.preventDefault()
       if (productFocusIndex >= 0 && productFocusIndex < filteredProducts.length) {
         setSelectedProductId(filteredProducts[productFocusIndex].id)
-        setGridFocus({ sphIndex: 0, colIndex: cylColsLeft.length - 1 }) // 왼쪽 끝(CYL 000)에서 시작
+        setGridFocus({ sphIndex: 0, colIndex: cylColsLeft.length - 1 }) // ?�쪽 ??CYL 000)?�서 ?�작
         setCellInputValue('')
         gridRef.current?.focus()
       }
     }
   }
 
-  // 열 인덱스로 SPH 부호와 CYL 값 계산
+  // ???�덱?�로 SPH 부?��? CYL �?계산
   const getColInfo = (colIndex: number): { isPlus: boolean, cyl: number } | null => {
     if (colIndex < cylColsLeft.length) {
-      // 왼쪽 영역 (-Sph)
+      // ?�쪽 ?�역 (-Sph)
       return { isPlus: false, cyl: cylColsLeft[colIndex] }
     } else if (colIndex === centerIndex) {
-      // 가운데 (경계) - 입력 불가 영역
+      // 가?�데 (경계) - ?�력 불�? ?�역
       return null
     } else {
-      // 오른쪽 영역 (+Sph)
+      // ?�른�??�역 (+Sph)
       const rightIndex = colIndex - centerIndex - 1
       if (rightIndex >= 0 && rightIndex < cylColsRight.length) {
         return { isPlus: true, cyl: cylColsRight[rightIndex] }
@@ -283,8 +283,8 @@ export default function NewOrderPage() {
   }
 
   const handleGridCellInput = useCallback((sphIndex: number, colIndex: number, quantity: number, forceMode?: 'add' | 'replace') => {
-    // 0.5 단위로 올림 (안경렌즈: 0.5 = 한쪽, 1 = 양쪽)
-    const roundedQty = Math.ceil(quantity * 2) / 2 // 0.5 단위로 올림
+    // 0.5 ?�위�??�림 (?�경?�즈: 0.5 = ?�쪽, 1 = ?�쪽)
+    const roundedQty = Math.ceil(quantity * 2) / 2 // 0.5 ?�위�??�림
     if (!selectedProduct || !selectedStore || roundedQty <= 0) return
     quantity = roundedQty
     const sph = sphRows[sphIndex]
@@ -297,13 +297,13 @@ export default function NewOrderPage() {
     
     const exists = orderItems.find(item => item.product.id === selectedProduct.id && item.sph === sphStr && item.cyl === cylStr)
     if (exists) {
-      // 기존 수량이 있고 forceMode가 없으면 팝업 띄우기
+      // 기존 ?�량???�고 forceMode가 ?�으�??�업 ?�우�?
       if (!forceMode) {
-        setQuantityActionSelection(0) // 기본값: 추가 버튼 선택
+        setQuantityActionSelection(0) // 기본�? 추�? 버튼 ?�택
         setQuantityActionModal({ existingQty: exists.quantity, newQty: quantity, sphIndex, colIndex, sphStr, cylStr })
         return
       }
-      // forceMode에 따라 처리
+      // forceMode???�라 처리
       if (forceMode === 'add') {
         setOrderItems(items => items.map(item => item.id === exists.id ? { ...item, quantity: item.quantity + quantity } : item))
       } else {
@@ -323,7 +323,7 @@ export default function NewOrderPage() {
     return { sph: actualSph, cyl: colInfo.cyl, isPlus: colInfo.isPlus }
   }, [gridFocus, sphRows])
 
-  // 입력값 확정 처리 (이동 전 또는 Enter)
+  // ?�력�??�정 처리 (?�동 ???�는 Enter)
   const commitCellInput = useCallback(() => {
     if (gridFocus && cellInputValue) {
       const qty = parseFloat(cellInputValue)
@@ -340,7 +340,7 @@ export default function NewOrderPage() {
 
     if (/^[0-9.]$/.test(e.key)) {
       e.preventDefault()
-      // 소수점 중복 방지
+      // ?�수??중복 방�?
       if (e.key === '.' && cellInputValue.includes('.')) return
       const newValue = cellInputValue + e.key
       setCellInputValue(newValue)
@@ -371,10 +371,10 @@ export default function NewOrderPage() {
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: centerIndex }
         const newSphIndex = Math.max(prev.sphIndex - 1, 0)
-        // 오른쪽 원시 영역에서 SPH 000으로 올라가려 하면 막기
+        // ?�른�??�시 ?�역?�서 SPH 000?�로 ?�라가???�면 막기
         const colInfo = getColInfo(prev.colIndex)
         if (newSphIndex === 0 && colInfo && colInfo.isPlus) {
-          return prev // 이동하지 않음
+          return prev // ?�동?��? ?�음
         }
         return { ...prev, sphIndex: newSphIndex }
       })
@@ -385,10 +385,10 @@ export default function NewOrderPage() {
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex + 1
-        if (newCol === centerIndex) newCol++ // 가운데 열 건너뛰기
-        // SPH 000 행에서는 오른쪽 원시 영역 진입 불가
+        if (newCol === centerIndex) newCol++ // 가?�데 ??건너?�기
+        // SPH 000 ?�에?�는 ?�른�??�시 ?�역 진입 불�?
         if (prev.sphIndex === 0 && newCol > centerIndex) {
-          return prev // 이동하지 않음
+          return prev // ?�동?��? ?�음
         }
         return { ...prev, colIndex: Math.min(newCol, maxColIndex) }
       })
@@ -399,7 +399,7 @@ export default function NewOrderPage() {
       setGridFocus(prev => {
         if (!prev) return { sphIndex: 0, colIndex: 0 }
         let newCol = prev.colIndex - 1
-        if (newCol === centerIndex) newCol-- // 가운데 열 건너뛰기
+        if (newCol === centerIndex) newCol-- // 가?�데 ??건너?�기
         return { ...prev, colIndex: Math.max(newCol, 0) }
       })
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -417,7 +417,7 @@ export default function NewOrderPage() {
   }, [selectedProduct, selectedStore, sphRows, totalCols, cellInputValue, gridFocus, getFocusedInfo, handleGridCellInput, centerIndex, commitCellInput])
 
   const handleGridClick = useCallback((sphIndex: number, colIndex: number) => {
-    if (!selectedProduct || !selectedStore) { alert('가맹점과 상품을 먼저 선택해주세요.'); return }
+    if (!selectedProduct || !selectedStore) { alert('가맹점�??�품??먼�? ?�택?�주?�요.'); return }
     setGridFocus({ sphIndex, colIndex })
     setCellInputValue('')
     gridRef.current?.focus()
@@ -425,7 +425,7 @@ export default function NewOrderPage() {
 
   const removeItem = (id: string) => setOrderItems(items => items.filter(item => item.id !== id))
   
-  // 컨텍스트 메뉴 핸들러
+  // 컨텍?�트 메뉴 ?�들??
   const handleContextMenu = (e: React.MouseEvent, item: OrderItem) => {
     e.preventDefault()
     setContextMenu({ x: e.clientX, y: e.clientY, item })
@@ -468,19 +468,19 @@ export default function NewOrderPage() {
   const [completedOrder, setCompletedOrder] = useState<{ orderNumber: string; storeName: string; itemCount: number; totalAmount: number } | null>(null)
 
   const handleSubmit = async () => {
-    if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
+    if (!selectedStore || orderItems.length === 0) { alert('가맹점�??�품???�택?�주?�요.'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
       if (res.ok) {
         const data = await res.json()
-        // 자동 출력
+        // ?�동 출력
         if (data.order?.id) {
           try {
             await fetch('/api/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.order.id, type: 'shipping' }) })
-          } catch (e) { console.error('출력 실패:', e) }
+          } catch (e) { console.error('출력 ?�패:', e) }
         }
-        // 접수 완료 팝업 표시
+        // ?�수 ?�료 ?�업 ?�시
         setCompletedOrder({
           orderNumber: data.order?.orderNo || '',
           storeName: selectedStore.name,
@@ -488,15 +488,15 @@ export default function NewOrderPage() {
           totalAmount: totalAmount
         })
         setShowCompleteModal(true)
-      } else alert('주문 생성 실패')
-    } catch { alert('오류가 발생했습니다.') }
+      } else alert('주문 ?�성 ?�패')
+    } catch { alert('?�류가 발생?�습?�다.') }
     setLoading(false)
   }
 
   const handleCompleteClose = () => {
     setShowCompleteModal(false)
     setCompletedOrder(null)
-    // 폼 초기화
+    // ??초기??
     setSelectedStore(null)
     setStoreSearchText('')
     setSelectedBrandId(null)
@@ -504,14 +504,14 @@ export default function NewOrderPage() {
     setOrderItems([])
     setMemo('')
     setGridFocus(null)
-    // 전체 주문내역 페이지로 이동
+    // ?�체 주문?�역 ?�이지�??�동
     router.push('/orders/all')
   }
 
-  // 오른쪽 원시 SPH 000 행 비활성화 여부 체크
+  // ?�른�??�시 SPH 000 ??비활?�화 ?��? 체크
   const isDisabledCell = (sphIndex: number, colIndex: number): boolean => {
     const colInfo = getColInfo(colIndex)
-    // 오른쪽(+Sph) 영역의 SPH 0.00 행은 비활성화
+    // ?�른�?+Sph) ?�역??SPH 0.00 ?��? 비활?�화
     return colInfo !== null && colInfo.isPlus && sphIndex === 0
   }
 
@@ -520,7 +520,7 @@ export default function NewOrderPage() {
     const colInfo = getColInfo(colIndex)
     if (!colInfo) return null
     
-    // 오른쪽 원시 SPH 000 행 비활성화 처리
+    // ?�른�??�시 SPH 000 ??비활?�화 처리
     const isDisabled = isDisabledCell(sphIndex, colIndex)
     
     const actualSph = colInfo.isPlus ? sph : -sph
@@ -533,9 +533,9 @@ export default function NewOrderPage() {
     const isCurrentCol = gridFocus?.colIndex === colIndex
     
     let bg = sphIndex % 2 === 0 ? '#f5f8f5' : '#eaf2ea'
-    if (isDisabled) bg = '#d1d5db' // 비활성화: 회색
-    else if (isCurrentRow || isCurrentCol) bg = '#c5dbc5' // 세이지 행/열
-    if (!isDisabled && isCurrentRow && isCurrentCol) bg = '#a8c8a8' // 교차점 더 진하게
+    if (isDisabled) bg = '#d1d5db' // 비활?�화: ?�색
+    else if (isCurrentRow || isCurrentCol) bg = '#c5dbc5' // ?�이지 ????
+    if (!isDisabled && isCurrentRow && isCurrentCol) bg = '#a8c8a8' // 교차????진하�?
     if (!isDisabled && isFocused) bg = '#5d7a5d'
     if (!isDisabled && item) bg = '#6b8e6b'
     
@@ -561,18 +561,18 @@ export default function NewOrderPage() {
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 8, borderBottom: '2px solid #5d7a5d' }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#212529' }}>판매전표 입력</h1>
-        <span style={{ fontSize: 12, color: '#6c757d' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
+        <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>?�매?�표 ?�력</h1>
+        <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 280px', gap: 4, height: 'calc(100vh - 110px)' }}>
-        {/* 왼쪽 패널 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f8f9fa', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
+        {/* ?�쪽 ?�널 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: 'var(--bg-secondary)', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <section>
             <label style={{ fontWeight: 700, color: '#5d7a5d', display: 'flex', alignItems: 'center', gap: 4 }}>
-              🏪 상호 <span style={{ fontSize: 10, color: '#868e96', fontWeight: 400 }}>[Esc]</span>
+              ?�� ?�호 <span style={{ fontSize: 10, color: 'var(--text-tertiary)', fontWeight: 400 }}>[Esc]</span>
             </label>
-            <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
+            <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, ?�화번호�?검??.." value={storeSearchText}
               onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1); if (selectedStore) setSelectedStore(null) }}
               style={{ 
@@ -582,8 +582,8 @@ export default function NewOrderPage() {
                 borderRadius: 8, 
                 fontSize: 15, 
                 marginTop: 6,
-                background: '#fff',
-                color: '#212529',
+                background: 'var(--bg-primary)',
+                color: 'var(--text-primary)',
                 boxShadow: '0 2px 8px rgba(93, 122, 93, 0.15)',
                 outline: 'none',
                 transition: 'all 0.2s'
@@ -592,13 +592,13 @@ export default function NewOrderPage() {
               <div style={{ marginTop: 6, padding: 10, background: 'linear-gradient(135deg, #eef4ee 0%, #d4e8d4 100%)', borderRadius: 8, fontSize: 12, lineHeight: 1.6, border: '1px solid #a8c8a8' }}>
                 <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: '#4a6b4a' }}>{selectedStore.name}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 10px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>📞 <span style={{ color: '#333' }}>{selectedStore.phone || '-'}</span></span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>📱 <span style={{ color: '#333' }}>{selectedStore.deliveryPhone || '-'}</span></span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>👤 <span style={{ color: '#333' }}>{selectedStore.salesRepName || '-'}</span></span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>🚚 <span style={{ color: '#333' }}>{selectedStore.deliveryContact || '-'}</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>?�� <span style={{ color: '#333' }}>{selectedStore.phone || '-'}</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>?�� <span style={{ color: '#333' }}>{selectedStore.deliveryPhone || '-'}</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>?�� <span style={{ color: '#333' }}>{selectedStore.salesRepName || '-'}</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>?�� <span style={{ color: '#333' }}>{selectedStore.deliveryContact || '-'}</span></span>
                 </div>
                 {selectedStore.address && (
-                  <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>📍 <span style={{ color: '#555' }}>{selectedStore.address}</span></div>
+                  <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>?�� <span style={{ color: '#555' }}>{selectedStore.address}</span></div>
                 )}
                 <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(0,0,0,0.1)', display: 'flex', gap: 12, alignItems: 'center' }}>
                   <span style={{ 
@@ -612,7 +612,7 @@ export default function NewOrderPage() {
                     fontWeight: 700,
                     fontSize: 13
                   }}>
-                    💰 {(selectedStore.outstandingAmount || 0).toLocaleString()}원
+                    ?�� {(selectedStore.outstandingAmount || 0).toLocaleString()}??
                   </span>
                   {selectedStore.paymentTermDays && (
                     <span style={{ 
@@ -626,7 +626,7 @@ export default function NewOrderPage() {
                       fontWeight: 600,
                       fontSize: 12
                     }}>
-                      📅 {selectedStore.paymentTermDays}일
+                      ?�� {selectedStore.paymentTermDays}??
                     </span>
                   )}
                 </div>
@@ -634,11 +634,11 @@ export default function NewOrderPage() {
             )}
             {storeSearchText && !selectedStore && !storesLoaded && (
               <div style={{ marginTop: 4, padding: 12, background: '#eef4ee', borderRadius: 8, textAlign: 'center', color: '#5d7a5d', fontSize: 13 }}>
-                로딩 중...
+                로딩 �?..
               </div>
             )}
             {storeSearchText && !selectedStore && storesLoaded && storeSearchResults.length > 0 && (
-              <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #5d7a5d', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+              <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #5d7a5d', borderRadius: 8, background: 'var(--bg-primary)', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                 {storeSearchResults.map((s, i) => (
                   <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
                     style={{ 
@@ -664,18 +664,18 @@ export default function NewOrderPage() {
             )}
             {storeSearchText && !selectedStore && storesLoaded && storeSearchResults.length === 0 && (
               <div style={{ marginTop: 4, padding: 12, background: '#fff3e0', borderRadius: 8, textAlign: 'center', color: '#e65100', fontSize: 13 }}>
-                검색 결과가 없습니다
+                검??결과가 ?�습?�다
               </div>
             )}
           </section>
           <section>
-            <label style={{ fontWeight: 600, color: '#212529' }}>주문 구분</label>
+            <label style={{ fontWeight: 600, color: 'var(--text-primary)' }}>주문 구분</label>
             <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
               {([
-                { label: '여벌', key: 'F7' },
+                { label: '?�벌', key: 'F7' },
                 { label: '착색', key: 'F8' },
                 { label: 'RX', key: 'F9' },
-                { label: '기타', key: 'F10' }
+                { label: '기�?', key: 'F10' }
               ] as const).map(({ label: t, key }) => (
                 <label key={t} style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                   <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />
@@ -686,17 +686,17 @@ export default function NewOrderPage() {
             </div>
           </section>
           <section>
-            <label style={{ fontWeight: 600, color: '#212529' }}>품목 [F5]</label>
+            <label style={{ fontWeight: 600, color: 'var(--text-primary)' }}>?�목 [F5]</label>
             <select ref={brandSelectRef} value={selectedBrandId || ''} onChange={e => { const bid = e.target.value ? parseInt(e.target.value) : null; setSelectedBrandId(bid); setSelectedProductId(null); if (bid) setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
-              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: '#fff', color: '#212529' }}>
-              <option value="">브랜드...</option>
+              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+              <option value="">브랜??..</option>
               {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </section>
           <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <label style={{ fontWeight: 600, color: '#212529' }}>상품 [F6]</label>
-            <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 1, border: '1px solid #ccc', borderRadius: 2, background: '#fff', flex: 1, overflow: 'auto', outline: 'none' }}>
-              {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#868e96' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
+            <label style={{ fontWeight: 600, color: 'var(--text-primary)' }}>?�품 [F6]</label>
+            <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 1, border: '1px solid #ccc', borderRadius: 2, background: 'var(--bg-primary)', flex: 1, overflow: 'auto', outline: 'none' }}>
+              {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: 'var(--text-tertiary)' }}>{selectedBrandId ? '?�음' : '?�택'}</div> : (
                 filteredProducts.map((p, i) => (
                   <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
                     style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#eef4ee' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
@@ -709,37 +709,37 @@ export default function NewOrderPage() {
           </section>
         </div>
 
-        {/* 중앙: 하나의 도수표 (가운데 기준) */}
+        {/* 중앙: ?�나???�수??(가?�데 기�?) */}
         <div ref={gridRef} tabIndex={0} onKeyDown={handleGridKeyDown}
-          style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: gridFocus ? '2px solid #5d7a5d' : '1px solid #c5dbc5', borderRadius: 8, overflow: 'hidden', outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)', border: gridFocus ? '2px solid #5d7a5d' : '1px solid #c5dbc5', borderRadius: 8, overflow: 'hidden', outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
           <div style={{ padding: '8px 12px', background: 'linear-gradient(135deg, #6b8e6b 0%, #4a6b4a 100%)', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}>{selectedProduct ? `${selectedProduct.brand} - ${selectedProduct.name}` : '상품 선택'}</span>
-            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>←→ CYL | ↑↓ SPH{focusedInfo ? <> | <strong style={{ color: '#fffacd' }}>재고: {stockGrid[focusedInfo.sph.toFixed(2)]?.[focusedInfo.cyl.toFixed(2)] ?? '-'}</strong></> : ''}</span>
+            <span style={{ fontWeight: 700, color: '#fff', letterSpacing: '0.3px' }}>{selectedProduct ? `${selectedProduct.brand} - ${selectedProduct.name}` : '?�품 ?�택'}</span>
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>?�→ CYL | ?�↓ SPH{focusedInfo ? <> | <strong style={{ color: '#fffacd' }}>?�고: {stockGrid[focusedInfo.sph.toFixed(2)]?.[focusedInfo.cyl.toFixed(2)] ?? '-'}</strong></> : ''}</span>
           </div>
           
           <div ref={gridContainerRef} style={{ flex: 1, overflow: 'auto' }}>
             <table style={{ borderCollapse: 'collapse', fontSize: 13, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
               <thead>
                 <tr style={{ background: '#e8f0e8' }}>
-                  {/* 왼쪽 SPH 헤더 */}
+                  {/* ?�쪽 SPH ?�더 */}
                   <th style={{ border: '1px solid #a8c4a8', padding: '4px 10px', fontWeight: 700, minWidth: 46, position: 'sticky', left: 0, background: '#5d7a5d', color: '#fff', zIndex: 10, fontSize: 13, whiteSpace: 'nowrap' }}>-SPH</th>
                   
-                  {/* 왼쪽 CYL 열들 (400 → 000) */}
+                  {/* ?�쪽 CYL ?�들 (400 ??000) */}
                   {cylColsLeft.map((cyl, i) => {
                     const isFirst = i === 0
                     return <th key={`L${i}`} style={{ border: '1px solid #a8c4a8', padding: '4px 4px', minWidth: 40, fontWeight: isFirst ? 700 : 600, background: gridFocus?.colIndex === i ? '#7d9d7d' : isFirst ? '#4a6b4a' : '#e8f0e8', color: gridFocus?.colIndex === i ? '#fff' : isFirst ? '#fff' : '#3d5c3d', fontSize: 13 }}>-{formatLegacy(cyl)}</th>
                   })}
                   
-                  {/* 가운데 구분 열 -Sph+ */}
+                  {/* 가?�데 구분 ??-Sph+ */}
                   <th style={{ border: '1px solid #4a6b4a', borderLeft: '2px solid #4a6b4a', borderRight: '2px solid #4a6b4a', padding: '4px 10px', minWidth: 60, fontWeight: 700, background: '#4a6b4a', color: '#fff', fontSize: 11, whiteSpace: 'nowrap' }}>-SPH+</th>
                   
-                  {/* 오른쪽 CYL 열들 (000 → 400) */}
+                  {/* ?�른�?CYL ?�들 (000 ??400) */}
                   {cylColsRight.map((cyl, i) => {
                     const isLast = i === cylColsRight.length - 1
                     return <th key={`R${i}`} style={{ border: '1px solid #a8c4a8', padding: '4px 4px', minWidth: 40, fontWeight: isLast ? 700 : 600, background: gridFocus?.colIndex === cylColsLeft.length + 1 + i ? '#7d9d7d' : isLast ? '#4a6b4a' : '#e8f0e8', color: gridFocus?.colIndex === cylColsLeft.length + 1 + i ? '#fff' : isLast ? '#fff' : '#3d5c3d', fontSize: 13 }}>-{formatLegacy(cyl)}</th>
                   })}
                   
-                  {/* 오른쪽 SPH 헤더 */}
+                  {/* ?�른�?SPH ?�더 */}
                   <th style={{ border: '1px solid #a8c4a8', padding: '4px 10px', fontWeight: 700, minWidth: 46, position: 'sticky', right: 0, background: '#5d7a5d', color: '#fff', zIndex: 10, fontSize: 13, whiteSpace: 'nowrap' }}>+SPH</th>
                 </tr>
               </thead>
@@ -748,19 +748,19 @@ export default function NewOrderPage() {
                   const isCurrentRow = gridFocus?.sphIndex === sphIndex
                   return (
                     <tr key={sphIndex}>
-                      {/* 왼쪽 SPH 값 */}
+                      {/* ?�쪽 SPH �?*/}
                       <td style={{ border: '1px solid #a8c4a8', padding: '5px 8px', fontWeight: 700, textAlign: 'center', position: 'sticky', left: 0, background: isCurrentRow ? '#7d9d7d' : '#e8f0e8', color: isCurrentRow ? '#fff' : '#3d5c3d', zIndex: 5, fontSize: 13 }}>{formatLegacy(sph)}</td>
                       
-                      {/* 왼쪽 CYL 셀들 */}
+                      {/* ?�쪽 CYL ?�??*/}
                       {cylColsLeft.map((_, i) => renderCell(sphIndex, i))}
                       
-                      {/* 가운데 구분 셀: -000+ 형식 */}
+                      {/* 가?�데 구분 ?�: -000+ ?�식 */}
                       <td style={{ border: '1px solid #4a6b4a', borderLeft: '2px solid #4a6b4a', borderRight: '2px solid #4a6b4a', padding: '5px 8px', fontWeight: 700, textAlign: 'center', background: isCurrentRow ? '#6b8e6b' : '#4a6b4a', color: '#fff', fontSize: 13, whiteSpace: 'nowrap' }}>-{formatLegacy(sph)}+</td>
                       
-                      {/* 오른쪽 CYL 셀들 */}
+                      {/* ?�른�?CYL ?�??*/}
                       {cylColsRight.map((_, i) => renderCell(sphIndex, cylColsLeft.length + 1 + i))}
                       
-                      {/* 오른쪽 SPH 값 */}
+                      {/* ?�른�?SPH �?*/}
                       <td style={{ border: '1px solid #a8c4a8', padding: '5px 8px', fontWeight: 700, textAlign: 'center', position: 'sticky', right: 0, background: isCurrentRow ? '#7d9d7d' : '#e8f0e8', color: isCurrentRow ? '#fff' : '#3d5c3d', zIndex: 5, fontSize: 13 }}>{formatLegacy(sph)}</td>
                     </tr>
                   )
@@ -771,7 +771,7 @@ export default function NewOrderPage() {
           
           <div style={{ padding: '10px 14px', background: 'linear-gradient(135deg, #6b8e6b 0%, #4a6b4a 100%)', fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ color: 'rgba(255,255,255,0.9)' }}>{focusedInfo ? (() => {
-              // CYL 플러스 환산: newSPH = SPH + CYL, newCYL = -CYL
+              // CYL ?�러???�산: newSPH = SPH + CYL, newCYL = -CYL
               const convertedSph = focusedInfo.sph + focusedInfo.cyl
               const convertedCyl = -focusedInfo.cyl
               return <>
@@ -782,33 +782,33 @@ export default function NewOrderPage() {
                 <strong style={{ color: '#fff', fontSize: 14 }}>
                   {focusedInfo.cyl >= 0 ? '+' : ''}{focusedInfo.cyl.toFixed(2)}
                 </strong>
-                <span style={{ margin: '0 12px', color: 'rgba(255,255,255,0.5)' }}>→</span>
+                <span style={{ margin: '0 12px', color: 'rgba(255,255,255,0.5)' }}>??/span>
                 <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 4, fontSize: 15 }}>
                   <strong style={{ color: '#fffacd' }}>{convertedSph >= 0 ? '+' : '-'}{String(Math.round(Math.abs(convertedSph) * 100)).padStart(3, '0')}</strong>
                   <span style={{ margin: '0 6px', color: 'rgba(255,255,255,0.6)' }}>/</span>
                   <strong style={{ color: '#fffacd' }}>+{String(Math.round(Math.abs(convertedCyl) * 100)).padStart(3, '0')}</strong>
                 </span>
               </>
-            })() : <span style={{ color: 'rgba(255,255,255,0.7)' }}>셀 선택</span>}</span>
-            <span style={{ color: focusedInfo?.isPlus ? '#ffcccb' : '#c5dbc5', fontWeight: 700, fontSize: 13 }}>{focusedInfo ? (focusedInfo.isPlus ? '원시(+)' : '근시(-)') : ''}</span>
+            })() : <span style={{ color: 'rgba(255,255,255,0.7)' }}>?� ?�택</span>}</span>
+            <span style={{ color: focusedInfo?.isPlus ? '#ffcccb' : '#c5dbc5', fontWeight: 700, fontSize: 13 }}>{focusedInfo ? (focusedInfo.isPlus ? '?�시(+)' : '근시(-)') : ''}</span>
           </div>
         </div>
 
-        {/* 오른쪽: 주문 목록 */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#f8f9fa', borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
+        {/* ?�른�? 주문 목록 */}
+        <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <div style={{ padding: '8px 10px', background: '#5d7a5d', color: '#fff', fontWeight: 600, fontSize: 13, display: 'flex', justifyContent: 'space-between', borderRadius: '3px 3px 0 0' }}>
-            <span>주문 목록</span><span>{orderItems.length}건</span>
+            <span>주문 목록</span><span>{orderItems.length}�?/span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '4px 6px', background: '#e0e0e0', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
-            <span>품목</span>
-            <span>상품</span>
+            <span>?�목</span>
+            <span>?�품</span>
             <span style={{ textAlign: 'center' }}>SPH</span>
             <span style={{ textAlign: 'center' }}>CYL</span>
-            <span style={{ textAlign: 'center' }}>수량</span>
+            <span style={{ textAlign: 'center' }}>?�량</span>
             <span style={{ textAlign: 'right' }}>금액</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
-            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#868e96' }}>도수표에서 수량 입력</div> : (
+            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: 'var(--text-tertiary)' }}>?�수?�에???�량 ?�력</div> : (
               orderItems.map((item, i) => (
                 <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#666' }}>{item.product.brand}</div>
@@ -825,44 +825,44 @@ export default function NewOrderPage() {
             <input type="text" placeholder="메모..." value={memo} onChange={e => setMemo(e.target.value)} style={{ width: '100%', padding: 6, border: '1px solid #ccc', borderRadius: 2, fontSize: 12 }} />
           </div>
           <div style={{ padding: '10px 12px', background: '#5d7a5d', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
-            <span>총 <strong>{totalQuantity}</strong>개</span>
-            <span style={{ fontSize: 16, fontWeight: 700 }}>{totalAmount.toLocaleString()}원</span>
+            <span>�?<strong>{totalQuantity}</strong>�?/span>
+            <span style={{ fontSize: 16, fontWeight: 700 }}>{totalAmount.toLocaleString()}??/span>
           </div>
           <div style={{ padding: 6, display: 'flex', gap: 4 }}>
-            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 8, background: '#f8f9fa', border: '1px solid #ccc', borderRadius: 3, cursor: 'pointer', fontSize: 12 }}>초기화</button>
-            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 8, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>전송 [F2]</button>
+            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 8, background: 'var(--bg-secondary)', border: '1px solid #ccc', borderRadius: 3, cursor: 'pointer', fontSize: 12 }}>초기??/button>
+            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 8, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>?�송 [F2]</button>
           </div>
         </div>
       </div>
 
-      {/* 접수 완료 팝업 */}
+      {/* ?�수 ?�료 ?�업 */}
       {showCompleteModal && completedOrder && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 32, width: 400, textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 40 }}>✓</div>
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#212529', marginBottom: 8 }}>접수 완료</h2>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>주문이 정상적으로 접수되었습니다.</p>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: 16, padding: 32, width: 400, textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 40 }}>??/div>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>?�수 ?�료</h2>
+            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>주문???�상?�으�??�수?�었?�니??</p>
             
             <div style={{ background: '#f9fafb', borderRadius: 12, padding: 20, marginBottom: 24, textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#6b7280' }}>주문번호</span>
-                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.orderNumber}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{completedOrder.orderNumber}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#6b7280' }}>가맹점</span>
-                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.storeName}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{completedOrder.storeName}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
-                <span style={{ color: '#6b7280' }}>주문유형</span>
+                <span style={{ color: '#6b7280' }}>주문?�형</span>
                 <span style={{ fontWeight: 600, color: '#3b82f6' }}>{orderType}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
-                <span style={{ color: '#6b7280' }}>상품수</span>
-                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.itemCount}건</span>
+                <span style={{ color: '#6b7280' }}>?�품??/span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{completedOrder.itemCount}�?/span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
-                <span style={{ color: '#6b7280' }}>총 금액</span>
-                <span style={{ fontWeight: 700, color: '#10b981', fontSize: 18 }}>{completedOrder.totalAmount.toLocaleString()}원</span>
+                <span style={{ color: '#6b7280' }}>�?금액</span>
+                <span style={{ fontWeight: 700, color: '#10b981', fontSize: 18 }}>{completedOrder.totalAmount.toLocaleString()}??/span>
               </div>
             </div>
 
@@ -870,28 +870,28 @@ export default function NewOrderPage() {
               onClick={handleCompleteClose}
               style={{ width: '100%', padding: '14px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
             >
-              전체 주문내역 보기
+              ?�체 주문?�역 보기
             </button>
           </div>
         </div>
       )}
 
-      {/* 컨텍스트 메뉴 */}
+      {/* 컨텍?�트 메뉴 */}
       {contextMenu && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }} onClick={() => setContextMenu(null)}>
-          <div style={{ position: 'absolute', top: contextMenu.y, left: contextMenu.x, background: '#fff', border: '1px solid #ccc', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.12)', overflow: 'hidden', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
-            <div onClick={() => handleEditQuantity(contextMenu.item)} style={{ padding: '4px 8px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 11, whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>📝 수량</div>
-            <div onClick={() => handleEditPrice(contextMenu.item)} style={{ padding: '4px 8px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 11, whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>💰 금액</div>
-            <div onClick={() => { removeItem(contextMenu.item.id); setContextMenu(null) }} style={{ padding: '4px 8px', cursor: 'pointer', fontSize: 11, color: '#e53935', whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#ffebee'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>🗑️ 삭제</div>
+          <div style={{ position: 'absolute', top: contextMenu.y, left: contextMenu.x, background: 'var(--bg-primary)', border: '1px solid #ccc', borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.12)', overflow: 'hidden', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
+            <div onClick={() => handleEditQuantity(contextMenu.item)} style={{ padding: '4px 8px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 11, whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>?�� ?�량</div>
+            <div onClick={() => handleEditPrice(contextMenu.item)} style={{ padding: '4px 8px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: 11, whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#f5f5f5'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>?�� 금액</div>
+            <div onClick={() => { removeItem(contextMenu.item.id); setContextMenu(null) }} style={{ padding: '4px 8px', cursor: 'pointer', fontSize: 11, color: '#e53935', whiteSpace: 'nowrap' }} onMouseEnter={e => (e.target as HTMLElement).style.background = '#ffebee'} onMouseLeave={e => (e.target as HTMLElement).style.background = '#fff'}>?���???��</div>
           </div>
         </div>
       )}
 
-      {/* 수정 모달 */}
+      {/* ?�정 모달 */}
       {editModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 24, width: 320, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 600 }}>{editModal.type === 'quantity' ? '수량 변경' : '금액 변경'}</h3>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: 12, padding: 24, width: 320, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 600 }}>{editModal.type === 'quantity' ? '?�량 변�? : '금액 변�?}</h3>
             <div style={{ marginBottom: 12, fontSize: 13, color: '#666' }}>
               {editModal.item.product.name} ({(() => { const v = parseFloat(editModal.item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()})
             </div>
@@ -901,14 +901,14 @@ export default function NewOrderPage() {
               style={{ width: '100%', padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 16, marginBottom: 16, boxSizing: 'border-box' }}
               onKeyDown={e => { if (e.key === 'Enter') handleEditConfirm(); if (e.key === 'Escape') { setEditModal(null); setEditValue('') } }} />
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => { setEditModal(null); setEditValue('') }} style={{ flex: 1, padding: '10px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>취소</button>
-              <button onClick={handleEditConfirm} style={{ flex: 1, padding: '10px', background: '#5d7a5d', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>확인</button>
+              <button onClick={() => { setEditModal(null); setEditValue('') }} style={{ flex: 1, padding: '10px', background: 'var(--bg-secondary)', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>취소</button>
+              <button onClick={handleEditConfirm} style={{ flex: 1, padding: '10px', background: '#5d7a5d', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>?�인</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 수량 입력 액션 팝업 */}
+      {/* ?�량 ?�력 ?�션 ?�업 */}
       {quantityActionModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
           tabIndex={0}
@@ -935,11 +935,11 @@ export default function NewOrderPage() {
             }
           }}
           onClick={() => { setQuantityActionModal(null); setCellInputValue(''); setQuantityActionSelection(0); setTimeout(() => gridRef.current?.focus(), 0) }}>
-          <div style={{ background: '#fff', borderRadius: 6, padding: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.15)', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: 6, padding: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.15)', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
             <div style={{ marginBottom: 8, fontSize: 11, textAlign: 'center', color: '#333' }}>
               <span style={{ fontWeight: 600 }}>{quantityActionModal.sphStr}/{quantityActionModal.cylStr}</span>
-              <span style={{ margin: '0 6px', color: '#868e96' }}>|</span>
-              <span>{quantityActionModal.existingQty} → {quantityActionModal.newQty}</span>
+              <span style={{ margin: '0 6px', color: 'var(--text-tertiary)' }}>|</span>
+              <span>{quantityActionModal.existingQty} ??{quantityActionModal.newQty}</span>
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
               <button onClick={() => {
@@ -949,7 +949,7 @@ export default function NewOrderPage() {
                 setQuantityActionSelection(0)
                 setTimeout(() => gridRef.current?.focus(), 0)
               }} style={{ padding: '5px 8px', background: quantityActionSelection === 0 ? '#2e7d32' : '#4caf50', color: '#fff', border: quantityActionSelection === 0 ? '2px solid #fff' : 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600, outline: quantityActionSelection === 0 ? '2px solid #2e7d32' : 'none' }}>
-                ➕{quantityActionModal.existingQty + quantityActionModal.newQty}
+                ??quantityActionModal.existingQty + quantityActionModal.newQty}
               </button>
               <button onClick={() => {
                 handleGridCellInput(quantityActionModal.sphIndex, quantityActionModal.colIndex, quantityActionModal.newQty, 'replace')
@@ -958,11 +958,11 @@ export default function NewOrderPage() {
                 setQuantityActionSelection(0)
                 setTimeout(() => gridRef.current?.focus(), 0)
               }} style={{ padding: '5px 8px', background: quantityActionSelection === 1 ? '#4a6b4a' : '#2196f3', color: '#fff', border: quantityActionSelection === 1 ? '2px solid #fff' : 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600, outline: quantityActionSelection === 1 ? '2px solid #4a6b4a' : 'none' }}>
-                ✏️{quantityActionModal.newQty}
+                ?�️{quantityActionModal.newQty}
               </button>
               <button onClick={() => { setQuantityActionModal(null); setCellInputValue(''); setQuantityActionSelection(0); setTimeout(() => gridRef.current?.focus(), 0) }}
                 style={{ padding: '5px 8px', background: quantityActionSelection === 2 ? '#616161' : '#9e9e9e', color: '#fff', border: quantityActionSelection === 2 ? '2px solid #fff' : 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600, outline: quantityActionSelection === 2 ? '2px solid #616161' : 'none' }}>
-                ❌
+                ??
               </button>
             </div>
           </div>

@@ -40,7 +40,7 @@ export default function OutstandingPage() {
       const res = await fetch('/api/purchase/suppliers')
       if (res.ok) {
         const data = await res.json()
-        // 미납금 있는 업체만 필터링
+        // 미납�??�는 ?�체�??�터�?
         const withOutstanding = data.suppliers.filter((s: Supplier) => s.outstandingAmount > 0)
         setSuppliers(withOutstanding)
         setTotalOutstanding(data.stats.totalOutstanding)
@@ -80,11 +80,11 @@ export default function OutstandingPage() {
         fetchSuppliers()
       } else {
         const error = await res.json()
-        alert(error.error || '결제 처리에 실패했습니다')
+        alert(error.error || '결제 처리???�패?�습?�다')
       }
     } catch (error) {
       console.error('Failed to process payment:', error)
-      alert('결제 처리에 실패했습니다')
+      alert('결제 처리???�패?�습?�다')
     } finally {
       setSubmitting(false)
     }
@@ -93,13 +93,13 @@ export default function OutstandingPage() {
   return (
     <AdminLayout activeMenu="purchase">
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>매입처 미납금 관리</h1>
-        <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>
-          미납금이 있는 업체: {suppliers.length}개
+        <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>매입�?미납�?관�?/h1>
+        <p style={{ color: 'var(--text-tertiary)', fontSize: '14px', margin: 0 }}>
+          미납금이 ?�는 ?�체: {suppliers.length}�?
         </p>
       </div>
 
-      {/* 요약 카드 */}
+      {/* ?�약 카드 */}
       <div style={{ 
         background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
         borderRadius: '16px',
@@ -107,20 +107,20 @@ export default function OutstandingPage() {
         color: '#fff',
         marginBottom: '24px'
       }}>
-        <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>총 미납금</div>
-        <div style={{ fontSize: '36px', fontWeight: 700 }}>{totalOutstanding.toLocaleString()}원</div>
+        <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>�?미납�?/div>
+        <div style={{ fontSize: '36px', fontWeight: 700 }}>{totalOutstanding.toLocaleString()}??/div>
       </div>
 
       {/* 목록 */}
-      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e9ecef' }}>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>매입처</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>연락처</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>계좌정보</th>
-              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>미납금</th>
-              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>신용한도</th>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid var(--border-color)' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>매입�?/th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>?�락�?/th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>계좌?�보</th>
+              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>미납�?/th>
+              <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500 }}>?�용?�도</th>
               <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>최근결제</th>
               <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>처리</th>
             </tr>
@@ -128,14 +128,14 @@ export default function OutstandingPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
-                  로딩 중...
+                <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                  로딩 �?..
                 </td>
               </tr>
             ) : suppliers.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
-                  미납금이 있는 매입처가 없습니다 👍
+                <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                  미납금이 ?�는 매입처�? ?�습?�다 ?��
                 </td>
               </tr>
             ) : (
@@ -145,7 +145,7 @@ export default function OutstandingPage() {
                   <tr key={supplier.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ fontWeight: 500, fontSize: '14px' }}>{supplier.name}</div>
-                      <div style={{ fontSize: '12px', color: '#86868b' }}>{supplier.code}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{supplier.code}</div>
                     </td>
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#666' }}>
                       {supplier.phone || '-'}
@@ -160,13 +160,13 @@ export default function OutstandingPage() {
                       fontSize: '14px',
                       color: '#dc2626'
                     }}>
-                      {supplier.outstandingAmount.toLocaleString()}원
+                      {supplier.outstandingAmount.toLocaleString()}??
                       {overLimit && (
-                        <div style={{ fontSize: '11px', color: '#dc2626' }}>⚠️ 한도초과</div>
+                        <div style={{ fontSize: '11px', color: '#dc2626' }}>?�️ ?�도초과</div>
                       )}
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '14px', color: '#666' }}>
-                      {supplier.creditLimit > 0 ? `${supplier.creditLimit.toLocaleString()}원` : '-'}
+                      {supplier.creditLimit > 0 ? `${supplier.creditLimit.toLocaleString()}?? : '-'}
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', color: '#666' }}>
                       {supplier.lastPaymentAt 
@@ -214,7 +214,7 @@ export default function OutstandingPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
+            background: 'var(--bg-primary)',
             borderRadius: '16px',
             padding: '24px',
             width: '400px'
@@ -229,8 +229,8 @@ export default function OutstandingPage() {
             }}>
               <div style={{ fontWeight: 500, marginBottom: '4px' }}>{selectedSupplier.name}</div>
               <div style={{ fontSize: '13px', color: '#666' }}>
-                미납금: <span style={{ color: '#dc2626', fontWeight: 600 }}>
-                  {selectedSupplier.outstandingAmount.toLocaleString()}원
+                미납�? <span style={{ color: '#dc2626', fontWeight: 600 }}>
+                  {selectedSupplier.outstandingAmount.toLocaleString()}??
                 </span>
               </div>
               {selectedSupplier.bankInfo && (
@@ -253,7 +253,7 @@ export default function OutstandingPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px'
                   }}
                 />
@@ -264,13 +264,13 @@ export default function OutstandingPage() {
                     style={{
                       padding: '4px 8px',
                       borderRadius: '4px',
-                      border: '1px solid #e9ecef',
-                      background: '#fff',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-primary)',
                       fontSize: '12px',
                       cursor: 'pointer'
                     }}
                   >
-                    전액
+                    ?�액
                   </button>
                   <button
                     type="button"
@@ -278,8 +278,8 @@ export default function OutstandingPage() {
                     style={{
                       padding: '4px 8px',
                       borderRadius: '4px',
-                      border: '1px solid #e9ecef',
-                      background: '#fff',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-primary)',
                       fontSize: '12px',
                       cursor: 'pointer'
                     }}
@@ -300,14 +300,14 @@ export default function OutstandingPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px'
                   }}
                 >
-                  <option value="transfer">계좌이체</option>
-                  <option value="cash">현금</option>
+                  <option value="transfer">계좌?�체</option>
+                  <option value="cash">?�금</option>
                   <option value="card">카드</option>
-                  <option value="check">어음</option>
+                  <option value="check">?�음</option>
                 </select>
               </div>
 
@@ -319,12 +319,12 @@ export default function OutstandingPage() {
                   type="text"
                   value={paymentForm.memo}
                   onChange={(e) => setPaymentForm({ ...paymentForm, memo: e.target.value })}
-                  placeholder="예: 2월 매입대금 결제"
+                  placeholder="?? 2??매입?��?결제"
                   style={{
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e9ecef',
+                    border: '1px solid var(--border-color)',
                     fontSize: '14px'
                   }}
                 />
@@ -337,8 +337,8 @@ export default function OutstandingPage() {
                 style={{
                   padding: '10px 20px',
                   borderRadius: '8px',
-                  border: '1px solid #e9ecef',
-                  background: '#fff',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
                   cursor: 'pointer'
                 }}
               >
@@ -357,7 +357,7 @@ export default function OutstandingPage() {
                   cursor: submitting || paymentForm.amount <= 0 ? 'not-allowed' : 'pointer'
                 }}
               >
-                {submitting ? '처리 중...' : '결제 완료'}
+                {submitting ? '처리 �?..' : '결제 ?�료'}
               </button>
             </div>
           </div>

@@ -5,17 +5,17 @@ import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle 
 
 const SIDEBAR = [
   {
-    title: '매입관리',
+    title: '매입관�?,
     items: [
-      { label: '매입내역', href: '/purchase' },
-      { label: '매입등록', href: '/purchase/new' },
+      { label: '매입?�역', href: '/purchase' },
+      { label: '매입?�록', href: '/purchase/new' },
     ]
   },
   {
-    title: '매입처 관리',
+    title: '매입�?관�?,
     items: [
-      { label: '매입처 관리', href: '/purchase/vendors' },
-      { label: '매입처 미납금 관리', href: '/purchase/vendors/unpaid' },
+      { label: '매입�?관�?, href: '/purchase/vendors' },
+      { label: '매입�?미납�?관�?, href: '/purchase/vendors/unpaid' },
     ]
   }
 ]
@@ -29,18 +29,18 @@ export default function PurchasePage() {
       {/* Page Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>매입내역 조회</h1>
-          <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>매입 내역을 조회하고 관리합니다</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>매입?�역 조회</h1>
+          <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>매입 ?�역??조회?�고 관리합?�다</p>
         </div>
         <button style={{ ...btnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}>
-          + 매입등록
+          + 매입?�록
         </button>
       </div>
 
       {/* Filters */}
       <div style={{ ...cardStyle, padding: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <select style={selectStyle}><option>매입처 전체</option></select>
-        <select style={selectStyle}><option>브랜드 전체</option></select>
+        <select style={selectStyle}><option>매입�??�체</option></select>
+        <select style={selectStyle}><option>브랜???�체</option></select>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 13, color: 'var(--gray-600)' }}>기간:</span>
           <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={inputStyle} />
@@ -48,26 +48,26 @@ export default function PurchasePage() {
           <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={inputStyle} />
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
-          {['어제', '오늘', '이번주', '이번달'].map(label => (
+          {['?�제', '?�늘', '?�번�?, '?�번??].map(label => (
             <button key={label} style={{ 
               padding: '6px 12px', borderRadius: 20, 
-              border: '1px solid var(--gray-200)', background: '#fff', 
+              border: '1px solid var(--gray-200)', background: 'var(--bg-primary)', 
               fontSize: 12, color: 'var(--gray-600)', cursor: 'pointer' 
             }}>{label}</button>
           ))}
         </div>
-        <button style={{ ...btnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}>검색</button>
+        <button style={{ ...btnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}>검??/button>
         <div style={{ flex: 1 }} />
-        <button style={{ ...btnStyle, background: 'var(--success)', color: '#fff', border: 'none' }}>📥 엑셀다운</button>
+        <button style={{ ...btnStyle, background: 'var(--success)', color: '#fff', border: 'none' }}>?�� ?��??�운</button>
       </div>
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         {[
-          { label: '총 매입건수', value: '0건', color: 'var(--gray-700)' },
-          { label: '총 매입금액', value: '0원', color: 'var(--primary)' },
-          { label: '미정산', value: '0원', color: 'var(--danger)' },
-          { label: '정산완료', value: '0원', color: 'var(--success)' },
+          { label: '�?매입건수', value: '0�?, color: 'var(--gray-700)' },
+          { label: '�?매입금액', value: '0??, color: 'var(--primary)' },
+          { label: '미정??, value: '0??, color: 'var(--danger)' },
+          { label: '?�산?�료', value: '0??, color: 'var(--success)' },
         ].map((stat, i) => (
           <div key={i} style={{ ...cardStyle, padding: 16, textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: 'var(--gray-500)', marginBottom: 4 }}>{stat.label}</div>
@@ -86,21 +86,21 @@ export default function PurchasePage() {
                   <input type="checkbox" style={{ accentColor: 'var(--primary)' }} />
                 </th>
                 <th style={thStyle}>#</th>
-                <th style={thStyle}>매입일자</th>
-                <th style={thStyle}>매입처</th>
-                <th style={thStyle}>브랜드</th>
-                <th style={thStyle}>상품명</th>
-                <th style={thStyle}>수량</th>
-                <th style={thStyle}>단가</th>
+                <th style={thStyle}>매입?�자</th>
+                <th style={thStyle}>매입�?/th>
+                <th style={thStyle}>브랜??/th>
+                <th style={thStyle}>?�품�?/th>
+                <th style={thStyle}>?�량</th>
+                <th style={thStyle}>?��?</th>
                 <th style={thStyle}>매입금액</th>
-                <th style={thStyle}>정산상태</th>
+                <th style={thStyle}>?�산?�태</th>
                 <th style={thStyle}>비고</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td colSpan={11} style={{ padding: 60, textAlign: 'center', color: 'var(--gray-400)' }}>
-                  매입 내역이 없습니다
+                  매입 ?�역???�습?�다
                 </td>
               </tr>
             </tbody>

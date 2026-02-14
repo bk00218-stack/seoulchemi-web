@@ -74,10 +74,10 @@ export default function RxOrdersPage() {
   const handleExcelDownload = () => {
     const excelColumns: ExcelColumn[] = [
       { key: 'orderNo', label: '주문번호' },
-      { key: 'orderedAt', label: '주문일시' },
+      { key: 'orderedAt', label: '주문?�시' },
       { key: 'store', label: '가맹점' },
-      { key: 'brand', label: '브랜드' },
-      { key: 'product', label: '상품명' },
+      { key: 'brand', label: '브랜?? },
+      { key: 'product', label: '?�품�? },
       { key: 'rightSph', label: 'R SPH' },
       { key: 'rightCyl', label: 'R CYL' },
       { key: 'rightAxis', label: 'R AXIS' },
@@ -87,7 +87,7 @@ export default function RxOrdersPage() {
       { key: 'pd', label: 'PD' },
       { key: 'add', label: 'ADD' },
       { key: 'amount', label: '금액', format: (v) => v.toLocaleString() },
-      { key: 'status', label: '상태', format: (v) => ({ pending: '대기', confirmed: '제작중', shipped: '출고', delivered: '완료' }[v] || v) },
+      { key: 'status', label: '?�태', format: (v) => ({ pending: '?��?, confirmed: '?�작�?, shipped: '출고', delivered: '?�료' }[v] || v) },
     ]
     
     const exportData = selectedIds.size > 0 
@@ -95,23 +95,23 @@ export default function RxOrdersPage() {
       : data
     
     downloadExcel(exportData, excelColumns, `RX주문_${new Date().toISOString().split('T')[0]}`)
-    alert(`${exportData.length}건이 다운로드되었습니다.`)
+    alert(`${exportData.length}건이 ?�운로드?�었?�니??`)
   }
 
   const handleStatusChange = async (newStatus: string) => {
     if (selectedIds.size === 0) {
-      alert('주문을 선택해주세요.')
+      alert('주문???�택?�주?�요.')
       return
     }
     
     const labels: Record<string, string> = {
-      pending: '대기',
-      confirmed: '제작중',
+      pending: '?��?,
+      confirmed: '?�작�?,
       shipped: '출고',
-      delivered: '완료'
+      delivered: '?�료'
     }
     
-    if (!confirm(`${selectedIds.size}건을 '${labels[newStatus] || newStatus}'(으)로 변경하시겠습니까?`)) {
+    if (!confirm(`${selectedIds.size}건을 '${labels[newStatus] || newStatus}'(??�?변경하?�겠?�니�?`)) {
       return
     }
 
@@ -123,31 +123,31 @@ export default function RxOrdersPage() {
       })
       
       if (res.ok) {
-        alert(`${selectedIds.size}건의 상태가 변경되었습니다.`)
+        alert(`${selectedIds.size}건의 ?�태가 변경되?�습?�다.`)
         setSelectedIds(new Set())
         fetchData()
       }
     } catch (error) {
-      alert('상태 변경에 실패했습니다.')
+      alert('?�태 변경에 ?�패?�습?�다.')
     }
   }
 
   const columns: Column<RxOrder>[] = [
     { key: 'orderNo', label: '주문번호', render: (v) => <span style={{ fontWeight: 500, color: '#af52de' }}>{v as string}</span> },
     { key: 'store', label: '가맹점' },
-    { key: 'brand', label: '브랜드', render: (v) => (
+    { key: 'brand', label: '브랜??, render: (v) => (
       <span style={{ background: '#f3e5f5', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#af52de' }}>
         {v as string}
       </span>
     )},
-    { key: 'product', label: '상품명', render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
+    { key: 'product', label: '?�품�?, render: (v) => <span style={{ fontWeight: 500 }}>{v as string}</span> },
     { key: 'rightSph', label: 'R (SPH/CYL/AXIS)', width: '140px', render: (_, row) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#1d1d1f' }}>
+      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-primary)' }}>
         {row.rightSph}/{row.rightCyl}/{row.rightAxis}°
       </span>
     )},
     { key: 'leftSph', label: 'L (SPH/CYL/AXIS)', width: '140px', render: (_, row) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#1d1d1f' }}>
+      <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-primary)' }}>
         {row.leftSph}/{row.leftCyl}/{row.leftAxis}°
       </span>
     )},
@@ -156,48 +156,48 @@ export default function RxOrdersPage() {
       <span style={{ color: '#007aff', fontWeight: 500 }}>{v as string}</span>
     )},
     { key: 'amount', label: '금액', align: 'right', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{(v as number).toLocaleString()}원</span>
+      <span style={{ fontWeight: 500 }}>{(v as number).toLocaleString()}??/span>
     )},
-    { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} /> },
+    { key: 'status', label: '?�태', render: (v) => <StatusBadge status={v as string} /> },
   ]
 
   const filteredData = filter === 'all' ? data : data.filter(o => o.status === filter)
 
   return (
     <AdminLayout activeMenu="order">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        RX 주문내역
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        RX 주문?�역
       </h2>
 
       <StatCardGrid>
-        <StatCard label="이번 달 RX 주문" value={stats.monthlyOrders} unit="건" icon="👓" />
-        <StatCard label="제작 대기" value={stats.pending} unit="건" highlight />
-        <StatCard label="총 주문금액" value={stats.totalAmount.toLocaleString()} unit="원" />
-        <StatCard label="평균 단가" value={stats.avgAmount.toLocaleString()} unit="원" />
+        <StatCard label="?�번 ??RX 주문" value={stats.monthlyOrders} unit="�? icon="?��" />
+        <StatCard label="?�작 ?��? value={stats.pending} unit="�? highlight />
+        <StatCard label="�?주문금액" value={stats.totalAmount.toLocaleString()} unit="?? />
+        <StatCard label="?�균 ?��?" value={stats.avgAmount.toLocaleString()} unit="?? />
       </StatCardGrid>
 
       <SearchFilter
-        placeholder="주문번호, 가맹점명 검색"
+        placeholder="주문번호, 가맹점�?검??
         value={search}
         onChange={setSearch}
         onSearch={handleSearch}
         dateRange
         actions={
           <>
-            <OutlineButton onClick={() => window.print()}>🖨️ 출력</OutlineButton>
-            <OutlineButton onClick={handleExcelDownload}>📥 엑셀</OutlineButton>
+            <OutlineButton onClick={() => window.print()}>?���?출력</OutlineButton>
+            <OutlineButton onClick={handleExcelDownload}>?�� ?��?</OutlineButton>
           </>
         }
       />
 
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
         <FilterButtonGroup
           options={[
-            { label: '전체', value: 'all' },
-            { label: '대기', value: 'pending' },
-            { label: '제작중', value: 'confirmed' },
+            { label: '?�체', value: 'all' },
+            { label: '?��?, value: 'pending' },
+            { label: '?�작�?, value: 'confirmed' },
             { label: '출고', value: 'shipped' },
-            { label: '완료', value: 'delivered' },
+            { label: '?�료', value: 'delivered' },
           ]}
           value={filter}
           onChange={setFilter}
@@ -205,7 +205,7 @@ export default function RxOrdersPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>로딩 중...</div>
+        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
       ) : (
         <DataTable
           columns={columns}
@@ -213,11 +213,11 @@ export default function RxOrdersPage() {
           selectable
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
-          emptyMessage="RX 주문 내역이 없습니다"
+          emptyMessage="RX 주문 ?�역???�습?�다"
         />
       )}
 
-      {/* RX 상세 정보 안내 */}
+      {/* RX ?�세 ?�보 ?�내 */}
       <div style={{ 
         marginTop: '16px', 
         padding: '16px 20px', 
@@ -226,11 +226,11 @@ export default function RxOrdersPage() {
         border: '1px solid #007aff20'
       }}>
         <div style={{ fontSize: '13px', color: '#007aff', fontWeight: 500, marginBottom: '8px' }}>
-          💡 RX 주문 안내
+          ?�� RX 주문 ?�내
         </div>
         <div style={{ fontSize: '12px', color: '#666' }}>
-          RX 주문은 개인 맞춤 제작 상품으로, 주문 확인 후 제작이 시작됩니다. 
-          제작 기간은 브랜드 및 렌즈 타입에 따라 3~7일 소요됩니다.
+          RX 주문?� 개인 맞춤 ?�작 ?�품?�로, 주문 ?�인 ???�작???�작?�니?? 
+          ?�작 기간?� 브랜??�??�즈 ?�?�에 ?�라 3~7???�요?�니??
         </div>
       </div>
 
@@ -241,7 +241,7 @@ export default function RxOrdersPage() {
           left: '50%',
           transform: 'translateX(-50%)',
           padding: '16px 24px', 
-          background: '#fff', 
+          background: 'var(--bg-primary)', 
           borderRadius: '12px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
           display: 'flex',
@@ -249,11 +249,11 @@ export default function RxOrdersPage() {
           gap: '16px',
           zIndex: 100,
         }}>
-          <span style={{ color: '#af52de', fontWeight: 500 }}>{selectedIds.size}건 선택됨</span>
+          <span style={{ color: '#af52de', fontWeight: 500 }}>{selectedIds.size}�??�택??/span>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => handleStatusChange('pending')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#ff9500', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>대기처리</button>
-            <button onClick={() => handleStatusChange('confirmed')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#af52de', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>제작시작</button>
-            <button onClick={() => handleStatusChange('shipped')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#34c759', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>발송완료</button>
+            <button onClick={() => handleStatusChange('pending')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#ff9500', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>?�기처�?/button>
+            <button onClick={() => handleStatusChange('confirmed')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#af52de', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>?�작?�작</button>
+            <button onClick={() => handleStatusChange('shipped')} style={{ padding: '8px 16px', borderRadius: '6px', background: '#34c759', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>발송?�료</button>
           </div>
         </div>
       )}

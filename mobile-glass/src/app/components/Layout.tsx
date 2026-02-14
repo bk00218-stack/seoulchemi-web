@@ -232,7 +232,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         >
           <div 
             style={{
-              background: '#fff',
+              background: 'var(--bg-primary)',
               borderRadius: 12,
               width: '100%',
               maxWidth: 600,
@@ -388,7 +388,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
       {/* Header */}
       <header style={{
-        background: '#ffffff',
+        background: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-color)',
         height: 60,
         display: 'flex',
@@ -455,7 +455,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
               padding: '10px 16px',
               borderRadius: 10,
               border: '1px solid var(--border-color)',
-              background: '#ffffff',
+              background: 'var(--bg-primary)',
               color: 'var(--text-secondary)',
               fontSize: 14,
               cursor: 'pointer',
@@ -465,10 +465,10 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           >
             <span style={{ opacity: 0.7 }}>🔍</span>
             <span>검색...</span>
-            <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)', background: '#f1f3f5', padding: '3px 8px', borderRadius: 5, fontWeight: 500 }}>Ctrl+K</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)', background: 'var(--bg-secondary)', padding: '3px 8px', borderRadius: 5, fontWeight: 500 }}>Ctrl+K</span>
           </button>
 
-          <nav className="desktop-nav desktop-nav-links" style={{ display: 'flex', gap: 6, background: '#f1f3f5', padding: '6px', borderRadius: 10 }} role="navigation" aria-label="메인 메뉴">
+          <nav className="desktop-nav desktop-nav-links" style={{ display: 'flex', gap: 6, background: 'var(--bg-secondary)', padding: '6px', borderRadius: 10 }} role="navigation" aria-label="메인 메뉴">
             {NAV_ITEMS.map((item, index) => {
               const isActive = item.label === activeNav
               return (
@@ -484,7 +484,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     borderRadius: 8,
                     fontSize: 15,
                     fontWeight: isActive ? 600 : 500,
-                    color: isActive ? '#fff' : '#495057',
+                    color: isActive ? '#fff' : 'var(--text-secondary)',
                     background: isActive ? '#5d7a5d' : 'transparent',
                     boxShadow: isActive ? '0 2px 8px rgba(93, 122, 93, 0.3)' : 'none',
                     transition: 'all 0.2s',
@@ -499,8 +499,8 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 14 }}>
-          <span className="header-right-info" style={{ fontWeight: 600, color: '#495057' }}>서울케미</span>
-          <span className="header-right-info" style={{ color: '#dee2e6' }}>|</span>
+          <span className="header-right-info" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>서울케미</span>
+          <span className="header-right-info" style={{ color: 'var(--gray-300)' }}>|</span>
           <span className="header-right-info" style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{timeStr}</span>
           {/* 알림 버튼 */}
           <NotificationBell />
@@ -541,7 +541,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             left: 0,
             width: 280,
             height: '100vh',
-            background: '#fff',
+            background: 'var(--bg-primary)',
             zIndex: 999,
             transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
             transition: 'transform 0.3s ease',
@@ -600,7 +600,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           style={{
             width: 'fit-content',
             minWidth: 140,
-            background: '#ffffff',
+            background: 'var(--bg-primary)',
             borderRight: '1px solid var(--border-color)',
             padding: '20px 12px',
             position: 'sticky',
@@ -618,7 +618,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                 fontSize: 13,
                 fontWeight: 700,
                 letterSpacing: '0.5px',
-                color: '#adb5bd',
+                color: 'var(--text-tertiary)',
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap'
               }}>{menu.title}</div>
@@ -639,9 +639,9 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                       margin: '2px 0',
                       borderRadius: 8,
                       fontSize: 15,
-                      color: isActive ? '#5d7a5d' : '#495057',
+                      color: isActive ? '#5d7a5d' : 'var(--text-secondary)',
                       background: isActive ? '#eef4ee' : 
-                                  sidebarFocusIndex === currentIndex ? '#f1f3f5' : 'transparent',
+                                  sidebarFocusIndex === currentIndex ? 'var(--bg-secondary)' : 'transparent',
                       fontWeight: isActive ? 600 : 500,
                       transition: 'all 0.15s',
                       outline: sidebarFocusIndex === currentIndex ? '2px solid var(--primary)' : 'none',
@@ -669,7 +669,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             gap: 24,
             overflowY: 'auto',
             height: 'calc(100vh - 60px)',
-            background: '#f8f9fa',
+            background: 'var(--bg-secondary)',
             outline: 'none'
           }}
         >
@@ -685,7 +685,7 @@ export const btnStyle: React.CSSProperties = {
   padding: '10px 18px',
   borderRadius: 6,
   border: '1px solid var(--gray-200)',
-  background: '#fff',
+  background: 'var(--bg-primary)',
   fontSize: 14,
   fontWeight: 500,
   cursor: 'pointer',
@@ -697,7 +697,7 @@ export const selectStyle: React.CSSProperties = {
   borderRadius: 6,
   border: '1px solid var(--gray-200)',
   fontSize: 15,
-  background: '#fff',
+  background: 'var(--bg-primary)',
   minWidth: 130
 }
 
@@ -728,7 +728,7 @@ export const tdStyle: React.CSSProperties = {
 }
 
 export const cardStyle: React.CSSProperties = {
-  background: '#fff',
+  background: 'var(--bg-primary)',
   borderRadius: 12,
   boxShadow: 'var(--shadow-sm)',
   border: '1px solid var(--gray-100)'

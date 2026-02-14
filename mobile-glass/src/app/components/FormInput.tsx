@@ -39,11 +39,11 @@ export default function FormInput({
     width: '100%',
     padding: '10px 12px',
     borderRadius: '8px',
-    border: error ? '1px solid #ff3b30' : '1px solid #e5e5e5',
+    border: error ? '1px solid #ff3b30' : '1px solid var(--border-color)',
     fontSize: '14px',
     outline: 'none',
-    background: disabled ? '#f5f5f7' : '#fff',
-    color: disabled ? '#86868b' : '#1d1d1f',
+    background: disabled ? 'var(--bg-secondary)' : 'var(--bg-primary)',
+    color: disabled ? 'var(--text-tertiary)' : 'var(--text-primary)',
     transition: 'border-color 0.2s'
   }
 
@@ -107,7 +107,7 @@ export default function FormInput({
                 left: '12px',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                color: '#86868b',
+                color: 'var(--text-tertiary)',
                 fontSize: '14px'
               }}
             >
@@ -122,7 +122,7 @@ export default function FormInput({
                 right: '12px',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                color: '#86868b',
+                color: 'var(--text-tertiary)',
                 fontSize: '14px'
               }}
             >
@@ -144,7 +144,7 @@ export default function FormInput({
           marginBottom: '6px',
           fontSize: '13px',
           fontWeight: 500,
-          color: '#1d1d1f'
+          color: 'var(--text-primary)'
         }}
       >
         {label}
@@ -155,7 +155,7 @@ export default function FormInput({
         <div style={{ marginTop: '4px', fontSize: '12px', color: '#ff3b30' }}>{error}</div>
       )}
       {hint && !error && (
-        <div style={{ marginTop: '4px', fontSize: '12px', color: '#86868b' }}>{hint}</div>
+        <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-tertiary)' }}>{hint}</div>
       )}
     </div>
   )
@@ -166,7 +166,7 @@ export function FormSection({ title, children }: { title?: string; children: Rea
   return (
     <div
       style={{
-        background: '#fff',
+        background: 'var(--bg-primary)',
         borderRadius: '12px',
         padding: '24px',
         marginBottom: '16px'
@@ -177,7 +177,7 @@ export function FormSection({ title, children }: { title?: string; children: Rea
           style={{
             fontSize: '16px',
             fontWeight: 600,
-            color: '#1d1d1f',
+            color: 'var(--text-primary)',
             marginBottom: '20px',
             paddingBottom: '12px',
             borderBottom: '1px solid var(--border-color)'
@@ -215,7 +215,7 @@ export function FormActions({ children }: { children: React.ReactNode }) {
         gap: '12px',
         justifyContent: 'flex-end',
         paddingTop: '16px',
-        borderTop: '1px solid #e5e5e5',
+        borderTop: '1px solid var(--border-color)',
         marginTop: '8px'
       }}
     >
@@ -232,8 +232,8 @@ export function CancelButton({ onClick }: { onClick: () => void }) {
       style={{
         padding: '10px 20px',
         borderRadius: '8px',
-        background: '#f5f5f7',
-        color: '#1d1d1f',
+        background: 'var(--bg-secondary)',
+        color: 'var(--text-primary)',
         border: 'none',
         fontSize: '14px',
         fontWeight: 500,
@@ -262,8 +262,8 @@ export function SaveButton({
       style={{
         padding: '10px 24px',
         borderRadius: '8px',
-        background: disabled ? '#e5e5e5' : '#007aff',
-        color: disabled ? '#86868b' : '#fff',
+        background: disabled ? 'var(--gray-300)' : '#007aff',
+        color: disabled ? 'var(--text-tertiary)' : '#fff',
         border: 'none',
         fontSize: '14px',
         fontWeight: 500,

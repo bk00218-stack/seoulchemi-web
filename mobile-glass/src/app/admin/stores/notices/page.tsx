@@ -106,18 +106,18 @@ export default function NoticesPage() {
         loadData()
       }
     } catch (error) {
-      alert('저장에 실패했습니다.')
+      alert('?�?�에 ?�패?�습?�다.')
     }
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('이 공지사항을 삭제하시겠습니까?')) return
+    if (!confirm('??공�??�항????��?�시겠습?�까?')) return
     
     try {
       const res = await fetch(`/api/notices/${id}`, { method: 'DELETE' })
       if (res.ok) loadData()
     } catch (error) {
-      alert('삭제에 실패했습니다.')
+      alert('??��???�패?�습?�다.')
     }
   }
 
@@ -136,12 +136,12 @@ export default function NoticesPage() {
 
   const columns: Column<Notice>[] = [
     { key: 'isPinned', label: '', width: '40px', render: (v) => (
-      v ? <span title="고정됨">📌</span> : null
+      v ? <span title="고정??>?��</span> : null
     )},
     { key: 'type', label: '구분', width: '80px', render: (v) => {
       const types: Record<string, { bg: string; color: string; label: string }> = {
-        notice: { bg: '#eef4ee', color: '#4a6b4a', label: '공지' },
-        event: { bg: '#e8f5e9', color: '#2e7d32', label: '이벤트' },
+        notice: { bg: '#eef4ee', color: '#4a6b4a', label: '공�?' },
+        event: { bg: '#e8f5e9', color: '#2e7d32', label: '?�벤?? },
         urgent: { bg: '#ffebee', color: '#c62828', label: '긴급' }
       }
       const style = types[v as string] || types.notice
@@ -158,24 +158,24 @@ export default function NoticesPage() {
         </span>
       )
     }},
-    { key: 'title', label: '제목', render: (v, row) => (
+    { key: 'title', label: '?�목', render: (v, row) => (
       <div>
-        {row.isImportant && <span style={{ color: '#ff3b30', marginRight: '4px' }}>⚠️</span>}
+        {row.isImportant && <span style={{ color: '#ff3b30', marginRight: '4px' }}>?�️</span>}
         <span style={{ fontWeight: 500 }}>{v as string}</span>
       </div>
     )},
     { key: 'viewCount', label: '조회', width: '60px', align: 'center', render: (v) => (
-      <span style={{ color: '#86868b', fontSize: '12px' }}>{v as number}</span>
+      <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>{v as number}</span>
     )},
-    { key: 'createdAt', label: '등록일', width: '100px', render: (v) => (
-      <span style={{ color: '#86868b', fontSize: '12px' }}>
+    { key: 'createdAt', label: '?�록??, width: '100px', render: (v) => (
+      <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>
         {new Date(v as string).toLocaleDateString('ko-KR')}
       </span>
     )},
-    { key: 'isActive', label: '상태', width: '70px', render: (v) => (
+    { key: 'isActive', label: '?�태', width: '70px', render: (v) => (
       <StatusBadge status={v ? 'active' : 'inactive'} />
     )},
-    { key: 'id', label: '관리', width: '140px', align: 'center', render: (_, row) => (
+    { key: 'id', label: '관�?, width: '140px', align: 'center', render: (_, row) => (
       <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
         <button
           onClick={() => togglePin(row)}
@@ -189,21 +189,21 @@ export default function NoticesPage() {
             cursor: 'pointer'
           }}
         >
-          {row.isPinned ? '고정해제' : '고정'}
+          {row.isPinned ? '고정?�제' : '고정'}
         </button>
         <button
           onClick={() => openEditModal(row)}
           style={{
             padding: '4px 8px',
             borderRadius: '4px',
-            background: '#f5f5f7',
+            background: 'var(--bg-secondary)',
             color: '#007aff',
             border: 'none',
             fontSize: '11px',
             cursor: 'pointer'
           }}
         >
-          수정
+          ?�정
         </button>
         <button
           onClick={() => handleDelete(row.id)}
@@ -217,7 +217,7 @@ export default function NoticesPage() {
             cursor: 'pointer'
           }}
         >
-          삭제
+          ??��
         </button>
       </div>
     )},
@@ -225,8 +225,8 @@ export default function NoticesPage() {
 
   return (
     <AdminLayout activeMenu="stores">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        가맹점 공지사항
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        가맹점 공�??�항
       </h2>
 
       <div style={{ 
@@ -235,30 +235,30 @@ export default function NoticesPage() {
         gap: '16px', 
         marginBottom: '24px' 
       }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>전체</div>
-          <div style={{ fontSize: '28px', fontWeight: 600 }}>{stats.total}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�체</div>
+          <div style={{ fontSize: '28px', fontWeight: 600 }}>{stats.total}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>공지</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#4a6b4a' }}>{stats.notice}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>공�?</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#4a6b4a' }}>{stats.notice}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>이벤트</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#2e7d32' }}>{stats.event}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>?�벤??/div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#2e7d32' }}>{stats.event}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>긴급</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#c62828' }}>{stats.urgent}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>긴급</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#c62828' }}>{stats.urgent}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>고정</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>{stats.pinned}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+        <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '20px' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '12px', marginBottom: '4px' }}>고정</div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#ff9500' }}>{stats.pinned}<span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>�?/span></div>
         </div>
       </div>
 
       <SearchFilter
-        placeholder="제목, 내용 검색"
+        placeholder="?�목, ?�용 검??
         value={search}
         onChange={setSearch}
         onSearch={() => { setLoading(true); loadData(); }}
@@ -267,9 +267,9 @@ export default function NoticesPage() {
             key: 'type',
             label: '구분',
             options: [
-              { label: '전체', value: '' },
-              { label: '공지', value: 'notice' },
-              { label: '이벤트', value: 'event' },
+              { label: '?�체', value: '' },
+              { label: '공�?', value: 'notice' },
+              { label: '?�벤??, value: 'event' },
               { label: '긴급', value: 'urgent' }
             ],
             value: typeFilter,
@@ -290,7 +290,7 @@ export default function NoticesPage() {
               cursor: 'pointer'
             }}
           >
-            + 공지 등록
+            + 공�? ?�록
           </button>
         }
       />
@@ -299,10 +299,10 @@ export default function NoticesPage() {
         columns={columns}
         data={notices}
         loading={loading}
-        emptyMessage="등록된 공지사항이 없습니다"
+        emptyMessage="?�록??공�??�항???�습?�다"
       />
 
-      {/* 등록/수정 모달 */}
+      {/* ?�록/?�정 모달 */}
       {showModal && (
         <div style={{
           position: 'fixed',
@@ -317,7 +317,7 @@ export default function NoticesPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
+            background: 'var(--bg-primary)',
             borderRadius: '16px',
             padding: '24px',
             width: '560px',
@@ -325,16 +325,16 @@ export default function NoticesPage() {
             overflow: 'auto'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editingNotice ? '공지사항 수정' : '공지사항 등록'}
+              {editingNotice ? '공�??�항 ?�정' : '공�??�항 ?�록'}
             </h3>
             
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>제목 *</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�목 *</label>
               <input 
                 type="text" 
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }} 
               />
             </div>
 
@@ -344,10 +344,10 @@ export default function NoticesPage() {
                 <select 
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }}
                 >
-                  <option value="notice">공지</option>
-                  <option value="event">이벤트</option>
+                  <option value="notice">공�?</option>
+                  <option value="event">?�벤??/option>
                   <option value="urgent">긴급</option>
                 </select>
               </div>
@@ -366,7 +366,7 @@ export default function NoticesPage() {
                     checked={formData.isPinned}
                     onChange={(e) => setFormData({ ...formData, isPinned: e.target.checked })}
                   />
-                  <span style={{ fontSize: '13px' }}>상단 고정</span>
+                  <span style={{ fontSize: '13px' }}>?�단 고정</span>
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                   <input 
@@ -374,25 +374,25 @@ export default function NoticesPage() {
                     checked={formData.isActive}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   />
-                  <span style={{ fontSize: '13px' }}>활성</span>
+                  <span style={{ fontSize: '13px' }}>?�성</span>
                 </label>
               </div>
             </div>
             
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>내용 *</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�용 *</label>
               <textarea 
                 value={formData.content}
                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 rows={8}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px', resize: 'vertical' }} 
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px', resize: 'vertical' }} 
               />
             </div>
             
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button 
                 onClick={() => setShowModal(false)} 
-                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}
+                style={{ padding: '10px 20px', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: 'none', fontSize: '14px', cursor: 'pointer' }}
               >
                 취소
               </button>
@@ -400,7 +400,7 @@ export default function NoticesPage() {
                 onClick={handleSave} 
                 style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
               >
-                저장
+                ?�??
               </button>
             </div>
           </div>

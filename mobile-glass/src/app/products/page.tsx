@@ -5,25 +5,25 @@ import Layout from '../components/Layout'
 
 const SIDEBAR = [
   {
-    title: '상품관리',
+    title: '?�품관�?,
     items: [
-      { label: '상품 관리', href: '/products' },
-      { label: '여벌 일괄등록', href: '/products/bulk-spare' },
-      { label: 'RX상품 관리', href: '/products/rx' },
-      { label: '묶음상품 설정', href: '/products/bundles' },
-      { label: '상품 단축코드 설정', href: '/products/shortcuts' },
+      { label: '?�품 관�?, href: '/products' },
+      { label: '?�벌 ?�괄?�록', href: '/products/bulk-spare' },
+      { label: 'RX?�품 관�?, href: '/products/rx' },
+      { label: '묶음?�품 ?�정', href: '/products/bundles' },
+      { label: '?�품 ?�축코드 ?�정', href: '/products/shortcuts' },
     ]
   },
   {
-    title: '재고관리',
+    title: '?�고관�?,
     items: [
-      { label: '일괄재고수정', href: '/products/stock/bulk' },
-      { label: '적정재고 설정', href: '/products/stock/optimal' },
+      { label: '?�괄?�고?�정', href: '/products/stock/bulk' },
+      { label: '?�정?�고 ?�정', href: '/products/stock/optimal' },
     ]
   }
 ]
 
-// 대분류
+// ?�분류
 interface MainCategory {
   id: number
   code: string
@@ -32,7 +32,7 @@ interface MainCategory {
   _count?: { brands: number }
 }
 
-// 브랜드
+// 브랜??
 interface Brand {
   id: number
   categoryId: number | null
@@ -43,7 +43,7 @@ interface Brand {
   productLines?: ProductLine[]
 }
 
-// 품목
+// ?�목
 interface ProductLine {
   id: number
   brandId: number
@@ -82,7 +82,7 @@ interface ProductOption {
   priceAdjustment: number
 }
 
-// 모달 스타일
+// 모달 ?��???
 const modalOverlayStyle: React.CSSProperties = {
   position: 'fixed',
   top: 0,
@@ -97,7 +97,7 @@ const modalOverlayStyle: React.CSSProperties = {
 }
 
 const modalStyle: React.CSSProperties = {
-  background: '#fff',
+  background: 'var(--bg-primary)',
   borderRadius: 16,
   padding: 24,
   width: 500,
@@ -119,10 +119,10 @@ const labelStyle: React.CSSProperties = {
   fontSize: 13,
   fontWeight: 500,
   marginBottom: 6,
-  color: '#1d1d1f',
+  color: 'var(--text-primary)',
 }
 
-// 매트릭스 도수 생성/수정 모달 컴포넌트
+// 매트�?�� ?�수 ?�성/?�정 모달 컴포?�트
 function GenerateOptionsModal({
   productName,
   existingOptions,
@@ -138,34 +138,34 @@ function GenerateOptionsModal({
   onUpdate?: (updates: { id: number; priceAdjustment: number }[]) => void
   mode?: 'create' | 'edit'
 }) {
-  // 탭: 근난시(-/-), 원난시(+/-)
+  // ?? 근난??-/-), ?�난??+/-)
   const [activeTab, setActiveTab] = useState<'minus' | 'plus'>('minus')
   
-  // 선택된 셀들과 가격 조정 (Map으로 관리, "sph,cyl" -> priceAdjustment)
-  // 수정 모드에서는 기존 옵션도 포함
+  // ?�택???�?�과 가�?조정 (Map?�로 관�? "sph,cyl" -> priceAdjustment)
+  // ?�정 모드?�서??기존 ?�션???�함
   const [selectedCells, setSelectedCells] = useState<Map<string, number>>(() => {
     if (mode === 'edit') {
-      // 수정 모드: 기존 옵션들을 선택된 상태로 초기화
+      // ?�정 모드: 기존 ?�션?�을 ?�택???�태�?초기??
       return new Map(existingOptions.map(o => [`${o.sph},${o.cyl}`, o.priceAdjustment || 0]))
     }
     return new Map()
   })
   
-  // 드래그 선택
+  // ?�래�??�택
   const [isDragging, setIsDragging] = useState(false)
   const [dragMode, setDragMode] = useState<'select' | 'deselect'>('select')
   
-  // 가격 조정 규칙 (CYL 기준)
+  // 가�?조정 규칙 (CYL 기�?)
   const [priceRules, setPriceRules] = useState([
     { cylFrom: -2.00, cylTo: -4.00, adjustment: 5000 },
   ])
   const [showRulePanel, setShowRulePanel] = useState(false)
   const [bulkPrice, setBulkPrice] = useState(0)
 
-  // 기존 옵션들을 Map으로 (id와 가격조정 포함)
+  // 기존 ?�션?�을 Map?�로 (id?� 가격조???�함)
   const existingMap = new Map(existingOptions.map(o => [`${o.sph},${o.cyl}`, { id: o.id, priceAdjustment: o.priceAdjustment || 0 }]))
 
-  // SPH/CYL 값 생성
+  // SPH/CYL �??�성
   const formatValue = (v: number) => {
     const rounded = Math.round(v * 100) / 100
     if (rounded === 0) return '0.00'
@@ -176,27 +176,27 @@ function GenerateOptionsModal({
     return parseFloat(s.replace('+', ''))
   }
 
-  // CYL은 항상 마이너스 (0.00 ~ -4.00)
+  // CYL?� ??�� 마이?�스 (0.00 ~ -4.00)
   const cylValues: number[] = []
   for (let c = 0; c >= -4; c -= 0.25) {
     cylValues.push(c)
   }
 
-  // SPH는 탭에 따라 다름
+  // SPH????�� ?�라 ?�름
   const sphValues: number[] = []
   if (activeTab === 'minus') {
-    // 근난시: 0.00 ~ -8.00
+    // 근난?? 0.00 ~ -8.00
     for (let s = 0; s >= -8; s -= 0.25) {
       sphValues.push(s)
     }
   } else {
-    // 원난시: +0.25 ~ +6.00
+    // ?�난?? +0.25 ~ +6.00
     for (let s = 0.25; s <= 6; s += 0.25) {
       sphValues.push(s)
     }
   }
   
-  // 가격 규칙에 따른 조정값 계산 (CYL 기준)
+  // 가�?규칙???�른 조정�?계산 (CYL 기�?)
   const getPriceByRules = (cyl: number): number => {
     for (const rule of priceRules) {
       if (cyl <= rule.cylFrom && cyl >= rule.cylTo) {
@@ -210,13 +210,13 @@ function GenerateOptionsModal({
     const key = `${formatValue(sph)},${formatValue(cyl)}`
     const isExisting = existingMap.has(key)
     
-    // 생성 모드에서는 기존 옵션 선택 불가
+    // ?�성 모드?�서??기존 ?�션 ?�택 불�?
     if (mode === 'create' && isExisting) return
     
     setSelectedCells(prev => {
       const newMap = new Map(prev)
       if (newMap.has(key)) {
-        // 수정 모드에서 기존 옵션은 선택 해제 불가 (삭제 방지)
+        // ?�정 모드?�서 기존 ?�션?� ?�택 ?�제 불�? (??�� 방�?)
         if (mode === 'edit' && isExisting) return prev
         newMap.delete(key)
       } else {
@@ -230,7 +230,7 @@ function GenerateOptionsModal({
     const key = `${formatValue(sph)},${formatValue(cyl)}`
     const isExisting = existingMap.has(key)
     
-    // 생성 모드에서는 기존 옵션 드래그 불가
+    // ?�성 모드?�서??기존 ?�션 ?�래�?불�?
     if (mode === 'create' && isExisting) return
     
     setIsDragging(true)
@@ -243,7 +243,7 @@ function GenerateOptionsModal({
     const key = `${formatValue(sph)},${formatValue(cyl)}`
     const isExisting = existingMap.has(key)
     
-    // 생성 모드에서는 기존 옵션 드래그 불가
+    // ?�성 모드?�서??기존 ?�션 ?�래�?불�?
     if (mode === 'create' && isExisting) return
     
     setSelectedCells(prev => {
@@ -251,7 +251,7 @@ function GenerateOptionsModal({
       if (dragMode === 'select') {
         newMap.set(key, getPriceByRules(cyl))
       } else {
-        // 수정 모드에서 기존 옵션은 드래그 해제 불가
+        // ?�정 모드?�서 기존 ?�션?� ?�래�??�제 불�?
         if (mode === 'edit' && isExisting) return prev
         newMap.delete(key)
       }
@@ -277,7 +277,7 @@ function GenerateOptionsModal({
   }
 
   const handleClearAll = () => {
-    // 현재 탭의 선택만 해제
+    // ?�재 ??�� ?�택�??�제
     const newMap = new Map(selectedCells)
     sphValues.forEach(sph => {
       cylValues.forEach(cyl => {
@@ -288,7 +288,7 @@ function GenerateOptionsModal({
     setSelectedCells(newMap)
   }
   
-  // 선택된 셀들에 일괄 가격 적용
+  // ?�택???�?�에 ?�괄 가�??�용
   const handleApplyBulkPrice = () => {
     const newMap = new Map(selectedCells)
     for (const key of newMap.keys()) {
@@ -297,7 +297,7 @@ function GenerateOptionsModal({
     setSelectedCells(newMap)
   }
   
-  // 규칙 재적용 (선택된 셀에만 적용)
+  // 규칙 ?�적??(?�택???�?�만 ?�용)
   const handleApplyRules = () => {
     const newMap = new Map(selectedCells)
     for (const key of newMap.keys()) {
@@ -310,7 +310,7 @@ function GenerateOptionsModal({
 
   const handleGenerate = () => {
     if (mode === 'edit' && onUpdate) {
-      // 수정 모드: 기존 옵션의 가격 변경 사항만 전송
+      // ?�정 모드: 기존 ?�션??가�?변�??�항�??�송
       const updates: { id: number; priceAdjustment: number }[] = []
       selectedCells.forEach((newPrice, key) => {
         const existing = existingMap.get(key)
@@ -319,7 +319,7 @@ function GenerateOptionsModal({
         }
       })
       
-      // 새로 추가된 옵션들
+      // ?�로 추�????�션??
       const newOptions: { sph: string; cyl: string; priceAdjustment: number }[] = []
       selectedCells.forEach((priceAdjustment, key) => {
         if (!existingMap.has(key)) {
@@ -335,10 +335,10 @@ function GenerateOptionsModal({
         onGenerate(newOptions)
       }
       if (updates.length === 0 && newOptions.length === 0) {
-        alert('변경된 내용이 없습니다.')
+        alert('변경된 ?�용???�습?�다.')
       }
     } else {
-      // 생성 모드: 새로운 옵션만 생성
+      // ?�성 모드: ?�로???�션�??�성
       const options = Array.from(selectedCells.entries()).map(([key, priceAdjustment]) => {
         const [sph, cyl] = key.split(',')
         return { sph, cyl, priceAdjustment }
@@ -370,7 +370,7 @@ function GenerateOptionsModal({
     let cursor = 'pointer'
     
     if (mode === 'create') {
-      // 생성 모드: 기존 옵션은 회색, 선택불가
+      // ?�성 모드: 기존 ?�션?� ?�색, ?�택불�?
       if (isExisting) {
         background = 'var(--gray-300)'
         cursor = 'not-allowed'
@@ -378,16 +378,16 @@ function GenerateOptionsModal({
         background = priceAdj > 0 ? '#ff6b6b' : 'var(--primary)'
       }
     } else {
-      // 수정 모드: 기존 옵션도 선택 가능
+      // ?�정 모드: 기존 ?�션???�택 가??
       if (isSelected) {
         if (isModified) {
-          background = '#ffeb3b'  // 수정됨: 노란색
+          background = '#ffeb3b'  // ?�정?? ?��???
         } else if (priceAdj > 0) {
-          background = '#ff6b6b'  // 추가금 있음
+          background = '#ff6b6b'  // 추�?�??�음
         } else if (isExisting) {
-          background = '#81c784'  // 기존 옵션 (기본가)
+          background = '#81c784'  // 기존 ?�션 (기본가)
         } else {
-          background = 'var(--primary)'  // 새로 추가
+          background = 'var(--primary)'  // ?�로 추�?
         }
       }
     }
@@ -403,7 +403,7 @@ function GenerateOptionsModal({
     }
   }
   
-  // 선택된 셀들의 가격 조정 요약
+  // ?�택???�?�의 가�?조정 ?�약
   const priceSummary = () => {
     const summary = new Map<number, number>()
     for (const price of selectedCells.values()) {
@@ -431,7 +431,7 @@ function GenerateOptionsModal({
     >
       <div 
         style={{
-          background: '#fff',
+          background: 'var(--bg-primary)',
           borderRadius: 16,
           width: 'auto',
           maxWidth: '95vw',
@@ -442,11 +442,11 @@ function GenerateOptionsModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 헤더 */}
+        {/* ?�더 */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--gray-200)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
-              {mode === 'edit' ? '도수표 수정' : '도수 생성 및 가격 설정'}
+              {mode === 'edit' ? '?�수???�정' : '?�수 ?�성 �?가�??�정'}
             </h3>
             <button 
               onClick={onClose}
@@ -456,18 +456,18 @@ function GenerateOptionsModal({
             </button>
           </div>
           <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>
-            {productName} {mode === 'edit' && `(${existingOptions.length}개 도수)`}
+            {productName} {mode === 'edit' && `(${existingOptions.length}�??�수)`}
           </div>
         </div>
 
-        {/* 탭 + 가격설정 */}
+        {/* ??+ 가격설??*/}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-200)', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex' }}>
             <button style={tabStyle(activeTab === 'minus')} onClick={() => setActiveTab('minus')}>
-              근난시 (-/-)
+              근난??(-/-)
             </button>
             <button style={tabStyle(activeTab === 'plus')} onClick={() => setActiveTab('plus')}>
-              원난시 (+/-)
+              ?�난??(+/-)
             </button>
           </div>
           <div style={{ padding: '8px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -483,16 +483,16 @@ function GenerateOptionsModal({
                 cursor: 'pointer',
               }}
             >
-              ⚙️ 가격 규칙
+              ?�️ 가�?규칙
             </button>
           </div>
         </div>
         
-        {/* 가격 규칙 패널 */}
+        {/* 가�?규칙 ?�널 */}
         {showRulePanel && (
           <div style={{ padding: 16, background: 'var(--gray-50)', borderBottom: '1px solid var(--gray-200)' }}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--gray-700)' }}>
-              📌 가격 조정 규칙 (CYL 난시 고도수 추가금)
+              ?�� 가�?조정 규칙 (CYL ?�시 고도??추�?�?
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
               {priceRules.map((rule, idx) => (
@@ -521,7 +521,7 @@ function GenerateOptionsModal({
                     }}
                     style={{ width: 70, padding: '4px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
                   />
-                  <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>→ +</span>
+                  <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>??+</span>
                   <input
                     type="number"
                     step="1000"
@@ -533,7 +533,7 @@ function GenerateOptionsModal({
                     }}
                     style={{ width: 80, padding: '4px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
                   />
-                  <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>원</span>
+                  <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>??/span>
                   <button
                     onClick={() => setPriceRules(priceRules.filter((_, i) => i !== idx))}
                     style={{ padding: '2px 6px', border: 'none', background: 'none', color: 'var(--error)', cursor: 'pointer' }}
@@ -549,12 +549,12 @@ function GenerateOptionsModal({
                   fontSize: 11, 
                   border: '1px dashed var(--gray-300)', 
                   borderRadius: 4, 
-                  background: '#fff',
+                  background: 'var(--bg-primary)',
                   cursor: 'pointer',
                   alignSelf: 'flex-start',
                 }}
               >
-                + 규칙 추가
+                + 규칙 추�?
               </button>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -571,15 +571,15 @@ function GenerateOptionsModal({
                   cursor: selectedCells.size > 0 ? 'pointer' : 'not-allowed',
                 }}
               >
-                선택된 {selectedCells.size}개에 규칙 적용
+                ?�택??{selectedCells.size}개에 규칙 ?�용
               </button>
               <span style={{ fontSize: 11, color: 'var(--gray-500)' }}>
-                (CYL 범위에 해당하는 셀만 추가금 적용)
+                (CYL 범위???�당?�는 ?��?추�?�??�용)
               </span>
             </div>
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--gray-200)' }}>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: 'var(--gray-700)' }}>
-                💰 일괄 가격 설정
+                ?�� ?�괄 가�??�정
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input
@@ -587,10 +587,10 @@ function GenerateOptionsModal({
                   step="1000"
                   value={bulkPrice}
                   onChange={(e) => setBulkPrice(parseInt(e.target.value) || 0)}
-                  placeholder="가격 조정액"
+                  placeholder="가�?조정??
                   style={{ width: 100, padding: '6px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
                 />
-                <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>원</span>
+                <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>??/span>
                 <button
                   onClick={handleApplyBulkPrice}
                   disabled={selectedCells.size === 0}
@@ -604,14 +604,14 @@ function GenerateOptionsModal({
                     cursor: selectedCells.size > 0 ? 'pointer' : 'not-allowed',
                   }}
                 >
-                  선택된 {selectedCells.size}개에 적용
+                  ?�택??{selectedCells.size}개에 ?�용
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* 매트릭스 */}
+        {/* 매트�?�� */}
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
           <div style={{ marginBottom: 8, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
             {mode === 'edit' ? (
@@ -622,15 +622,15 @@ function GenerateOptionsModal({
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 16, height: 16, background: '#ff6b6b', borderRadius: 2 }} />
-                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>기존 (추가금)</span>
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>기존 (추�?�?</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 16, height: 16, background: '#ffeb3b', borderRadius: 2 }} />
-                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>수정됨</span>
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>?�정??/span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 16, height: 16, background: 'var(--primary)', borderRadius: 2 }} />
-                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>새로 추가</span>
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>?�로 추�?</span>
                 </div>
               </>
             ) : (
@@ -641,11 +641,11 @@ function GenerateOptionsModal({
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 16, height: 16, background: '#ff6b6b', borderRadius: 2 }} />
-                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>추가금 있음</span>
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>추�?�??�음</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 16, height: 16, background: 'var(--gray-300)', borderRadius: 2 }} />
-                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>기존 옵션</span>
+                  <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>기존 ?�션</span>
                 </div>
               </>
             )}
@@ -661,7 +661,7 @@ function GenerateOptionsModal({
                   position: 'sticky',
                   top: 0,
                   left: 0,
-                  background: '#fff',
+                  background: 'var(--bg-primary)',
                   zIndex: 2,
                 }}>
                   SPH\CYL
@@ -674,7 +674,7 @@ function GenerateOptionsModal({
                     color: 'var(--gray-600)',
                     position: 'sticky',
                     top: 0,
-                    background: '#fff',
+                    background: 'var(--bg-primary)',
                     zIndex: 1,
                   }}>
                     {formatValue(cyl)}
@@ -692,7 +692,7 @@ function GenerateOptionsModal({
                     color: 'var(--gray-600)',
                     position: 'sticky',
                     left: 0,
-                    background: '#fff',
+                    background: 'var(--bg-primary)',
                     zIndex: 1,
                   }}>
                     {formatValue(sph)}
@@ -704,7 +704,7 @@ function GenerateOptionsModal({
                       onMouseDown={() => handleMouseDown(sph, cyl)}
                       onMouseEnter={() => handleMouseEnter(sph, cyl)}
                       title={selectedCells.has(`${formatValue(sph)},${formatValue(cyl)}`) 
-                        ? `+${selectedCells.get(`${formatValue(sph)},${formatValue(cyl)}`)?.toLocaleString()}원` 
+                        ? `+${selectedCells.get(`${formatValue(sph)},${formatValue(cyl)}`)?.toLocaleString()}?? 
                         : ''}
                     />
                   ))}
@@ -714,7 +714,7 @@ function GenerateOptionsModal({
           </table>
         </div>
 
-        {/* 푸터 */}
+        {/* ?�터 */}
         <div style={{ 
           padding: '12px 24px', 
           borderTop: '1px solid var(--gray-200)',
@@ -731,11 +731,11 @@ function GenerateOptionsModal({
                 fontSize: 12, 
                 border: '1px solid var(--gray-300)', 
                 borderRadius: 6, 
-                background: '#fff',
+                background: 'var(--bg-primary)',
                 cursor: 'pointer',
               }}
             >
-              전체선택
+              ?�체?�택
             </button>
             <button 
               onClick={handleClearAll}
@@ -744,27 +744,27 @@ function GenerateOptionsModal({
                 fontSize: 12, 
                 border: '1px solid var(--gray-300)', 
                 borderRadius: 6, 
-                background: '#fff',
+                background: 'var(--bg-primary)',
                 cursor: 'pointer',
               }}
             >
-              선택해제
+              ?�택?�제
             </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ fontSize: 12, color: 'var(--gray-600)' }}>
               {priceSummary().map(([price, count], idx) => (
                 <span key={price} style={{ marginRight: 8 }}>
-                  {price > 0 ? `+${price.toLocaleString()}원` : '기본가'}: {count}개
+                  {price > 0 ? `+${price.toLocaleString()}?? : '기본가'}: {count}�?
                   {idx < priceSummary().length - 1 && ' | '}
                 </span>
               ))}
             </div>
             <span style={{ fontSize: 14, color: 'var(--gray-600)' }}>
               {mode === 'edit' ? (
-                <>기존 <strong style={{ color: '#81c784' }}>{existingOptions.length}</strong>개</>
+                <>기존 <strong style={{ color: '#81c784' }}>{existingOptions.length}</strong>�?/>
               ) : (
-                <>총 <strong style={{ color: 'var(--primary)' }}>{selectedCells.size}</strong>개 선택</>
+                <>�?<strong style={{ color: 'var(--primary)' }}>{selectedCells.size}</strong>�??�택</>
               )}
             </span>
             <button
@@ -781,7 +781,7 @@ function GenerateOptionsModal({
                 cursor: (mode === 'edit' || selectedCells.size > 0) ? 'pointer' : 'not-allowed',
               }}
             >
-              {mode === 'edit' ? '저장하기' : '생성하기'}
+              {mode === 'edit' ? '?�?�하�? : '?�성?�기'}
             </button>
           </div>
         </div>
@@ -790,7 +790,7 @@ function GenerateOptionsModal({
   )
 }
 
-// 도수 가격 수정 모달 컴포넌트
+// ?�수 가�??�정 모달 컴포?�트
 function EditPriceModal({
   productName,
   options,
@@ -802,14 +802,14 @@ function EditPriceModal({
   onClose: () => void
   onSave: (updates: { id: number; priceAdjustment: number }[]) => void
 }) {
-  // 옵션별 가격 조정 상태
+  // ?�션�?가�?조정 ?�태
   const [priceMap, setPriceMap] = useState<Map<number, number>>(
     new Map(options.map(o => [o.id, o.priceAdjustment || 0]))
   )
   const [bulkPrice, setBulkPrice] = useState(0)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
-  // 도수표 데이터 구성 - 원본 문자열 기반
+  // ?�수???�이??구성 - ?�본 문자??기반
   const sphSet = new Set<string>()
   const cylSet = new Set<string>()
   const optionMap = new Map<string, ProductOption>()
@@ -822,12 +822,12 @@ function EditPriceModal({
     optionMap.set(`${sph},${cyl}`, o)
   })
   
-  // 숫자로 정렬
+  // ?�자�??�렬
   const parseNum = (s: string) => parseFloat(s.replace('+', ''))
   const sphValues = Array.from(sphSet).sort((a, b) => parseNum(b) - parseNum(a))
   const cylValues = Array.from(cylSet).sort((a, b) => parseNum(b) - parseNum(a))
 
-  // 이미 포맷된 문자열 사용
+  // ?��? ?�맷??문자???�용
 
   const toggleSelect = (id: number) => {
     setSelectedIds(prev => {
@@ -866,7 +866,7 @@ function EditPriceModal({
       .map(([id, priceAdjustment]) => ({ id, priceAdjustment }))
     
     if (updates.length === 0) {
-      alert('변경된 내용이 없습니다.')
+      alert('변경된 ?�용???�습?�다.')
       return
     }
     onSave(updates)
@@ -886,7 +886,7 @@ function EditPriceModal({
         ? 'var(--primary-light)' 
         : price > 0 
           ? '#ffebee' 
-          : '#eef4ee',  // 파란색 배경으로 도수 있음 표시
+          : '#eef4ee',  // ?��???배경?�로 ?�수 ?�음 ?�시
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -914,7 +914,7 @@ function EditPriceModal({
     >
       <div 
         style={{
-          background: '#fff',
+          background: 'var(--bg-primary)',
           borderRadius: 16,
           width: 'auto',
           maxWidth: '95vw',
@@ -925,10 +925,10 @@ function EditPriceModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 헤더 */}
+        {/* ?�더 */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--gray-200)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>도수별 가격 수정</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>?�수�?가�??�정</h3>
             <button 
               onClick={onClose}
               style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--gray-400)' }}
@@ -936,20 +936,20 @@ function EditPriceModal({
               ×
             </button>
           </div>
-          <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>{productName} ({options.length}개 도수)</div>
+          <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>{productName} ({options.length}�??�수)</div>
         </div>
 
-        {/* 가격 일괄 설정 */}
+        {/* 가�??�괄 ?�정 */}
         <div style={{ padding: 16, background: 'var(--gray-50)', borderBottom: '1px solid var(--gray-200)' }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button onClick={selectAll} style={{ padding: '6px 12px', fontSize: 12, border: '1px solid var(--gray-300)', borderRadius: 6, background: '#fff', cursor: 'pointer' }}>
-              전체선택
+            <button onClick={selectAll} style={{ padding: '6px 12px', fontSize: 12, border: '1px solid var(--gray-300)', borderRadius: 6, background: 'var(--bg-primary)', cursor: 'pointer' }}>
+              ?�체?�택
             </button>
-            <button onClick={clearSelection} style={{ padding: '6px 12px', fontSize: 12, border: '1px solid var(--gray-300)', borderRadius: 6, background: '#fff', cursor: 'pointer' }}>
-              선택해제
+            <button onClick={clearSelection} style={{ padding: '6px 12px', fontSize: 12, border: '1px solid var(--gray-300)', borderRadius: 6, background: 'var(--bg-primary)', cursor: 'pointer' }}>
+              ?�택?�제
             </button>
             <span style={{ color: 'var(--gray-400)' }}>|</span>
-            <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>선택된 {selectedIds.size}개에</span>
+            <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>?�택??{selectedIds.size}개에</span>
             <input
               type="number"
               step="1000"
@@ -957,7 +957,7 @@ function EditPriceModal({
               onChange={(e) => setBulkPrice(parseInt(e.target.value) || 0)}
               style={{ width: 80, padding: '6px 8px', borderRadius: 4, border: '1px solid var(--gray-300)', fontSize: 12 }}
             />
-            <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>원</span>
+            <span style={{ fontSize: 12, color: 'var(--gray-600)' }}>??/span>
             <button
               onClick={applyBulkPrice}
               disabled={selectedIds.size === 0}
@@ -971,40 +971,40 @@ function EditPriceModal({
                 cursor: selectedIds.size > 0 ? 'pointer' : 'not-allowed',
               }}
             >
-              적용
+              ?�용
             </button>
           </div>
         </div>
 
-        {/* 도수표 */}
+        {/* ?�수??*/}
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-          {/* 범례 */}
+          {/* 범�? */}
           <div style={{ marginBottom: 12, display: 'flex', gap: 16, alignItems: 'center', fontSize: 11 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 20, height: 20, background: '#eef4ee', border: '1px solid var(--gray-200)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#5d7a5d' }}>✓</div>
-              <span style={{ color: 'var(--gray-600)' }}>도수 있음 (기본가)</span>
+              <div style={{ width: 20, height: 20, background: '#eef4ee', border: '1px solid var(--gray-200)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#5d7a5d' }}>??/div>
+              <span style={{ color: 'var(--gray-600)' }}>?�수 ?�음 (기본가)</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 20, height: 20, background: '#ffebee', border: '1px solid var(--gray-200)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#c62828', fontWeight: 600 }}>+5k</div>
-              <span style={{ color: 'var(--gray-600)' }}>추가금 있음</span>
+              <span style={{ color: 'var(--gray-600)' }}>추�?�??�음</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 20, height: 20, background: 'var(--primary-light)', border: '2px solid var(--primary)', borderRadius: 2 }}></div>
-              <span style={{ color: 'var(--gray-600)' }}>선택됨</span>
+              <span style={{ color: 'var(--gray-600)' }}>?�택??/span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 20, height: 20, background: 'var(--gray-100)', border: '1px solid var(--gray-200)', borderRadius: 2 }}></div>
-              <span style={{ color: 'var(--gray-600)' }}>도수 없음</span>
+              <span style={{ color: 'var(--gray-600)' }}>?�수 ?�음</span>
             </div>
           </div>
           <table style={{ borderCollapse: 'collapse', userSelect: 'none' }}>
             <thead>
               <tr>
-                <th style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600, color: 'var(--gray-500)', position: 'sticky', top: 0, left: 0, background: '#fff', zIndex: 2 }}>
+                <th style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600, color: 'var(--gray-500)', position: 'sticky', top: 0, left: 0, background: 'var(--bg-primary)', zIndex: 2 }}>
                   SPH\CYL
                 </th>
                 {cylValues.map(cyl => (
-                  <th key={cyl} style={{ padding: '4px', fontSize: 10, fontWeight: 500, color: 'var(--gray-600)', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+                  <th key={cyl} style={{ padding: '4px', fontSize: 10, fontWeight: 500, color: 'var(--gray-600)', position: 'sticky', top: 0, background: 'var(--bg-primary)', zIndex: 1 }}>
                     {cyl}
                   </th>
                 ))}
@@ -1013,7 +1013,7 @@ function EditPriceModal({
             <tbody>
               {sphValues.map(sph => (
                 <tr key={sph}>
-                  <td style={{ padding: '2px 8px', fontSize: 11, fontWeight: 500, color: 'var(--gray-600)', position: 'sticky', left: 0, background: '#fff', zIndex: 1 }}>
+                  <td style={{ padding: '2px 8px', fontSize: 11, fontWeight: 500, color: 'var(--gray-600)', position: 'sticky', left: 0, background: 'var(--bg-primary)', zIndex: 1 }}>
                     {sph}
                   </td>
                   {cylValues.map(cyl => {
@@ -1023,12 +1023,12 @@ function EditPriceModal({
                         key={cyl}
                         style={cellStyle(sph, cyl)}
                         onClick={() => option && toggleSelect(option.id)}
-                        title={option ? `SPH: ${option.sph}, CYL: ${option.cyl}\n가격조정: ${priceMap.get(option.id)?.toLocaleString() || 0}원` : '옵션 없음'}
+                        title={option ? `SPH: ${option.sph}, CYL: ${option.cyl}\n가격조?? ${priceMap.get(option.id)?.toLocaleString() || 0}?? : '?�션 ?�음'}
                       >
                         {option 
                           ? (priceMap.get(option.id) || 0) > 0 
                             ? `+${((priceMap.get(option.id) || 0) / 1000).toFixed(0)}k` 
-                            : '✓'  // 도수 있으면 체크마크
+                            : '??  // ?�수 ?�으�?체크마크
                           : ''
                         }
                       </td>
@@ -1040,7 +1040,7 @@ function EditPriceModal({
           </table>
         </div>
 
-        {/* 푸터 */}
+        {/* ?�터 */}
         <div style={{ 
           padding: '12px 24px', 
           borderTop: '1px solid var(--gray-200)',
@@ -1050,10 +1050,10 @@ function EditPriceModal({
           background: 'var(--gray-50)',
         }}>
           <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>
-            셀 클릭으로 선택, 일괄 가격 적용 가능
+            ?� ?�릭?�로 ?�택, ?�괄 가�??�용 가??
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={onClose} style={{ padding: '8px 16px', fontSize: 14, border: '1px solid var(--gray-300)', borderRadius: 8, background: '#fff', cursor: 'pointer' }}>
+            <button onClick={onClose} style={{ padding: '8px 16px', fontSize: 14, border: '1px solid var(--gray-300)', borderRadius: 8, background: 'var(--bg-primary)', cursor: 'pointer' }}>
               취소
             </button>
             <button
@@ -1069,7 +1069,7 @@ function EditPriceModal({
                 cursor: 'pointer',
               }}
             >
-              저장
+              ?�??
             </button>
           </div>
         </div>
@@ -1094,7 +1094,7 @@ export default function ProductsPage() {
   const [productLoading, setProductLoading] = useState(false)
   const [optionLoading, setOptionLoading] = useState(false)
   
-  // 필터
+  // ?�터
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [brandSearch, setBrandSearch] = useState('')
   const [productSearch, setProductSearch] = useState('')
@@ -1102,7 +1102,7 @@ export default function ProductsPage() {
   const [barcodeSearch, setBarcodeSearch] = useState('')
   const [showBarcodeModal, setShowBarcodeModal] = useState(false)
 
-  // 모달 상태
+  // 모달 ?�태
   const [showProductModal, setShowProductModal] = useState(false)
   const [showOptionModal, setShowOptionModal] = useState(false)
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
@@ -1113,18 +1113,18 @@ export default function ProductsPage() {
   const [editingOption, setEditingOption] = useState<ProductOption | null>(null)
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
   
-  // 도수 옵션 함께 생성 (신규 등록시)
+  // ?�수 ?�션 ?�께 ?�성 (?�규 ?�록??
   const [generateWithProduct, setGenerateWithProduct] = useState(false)
   const [diopterRange, setDiopterRange] = useState({
     sphMin: -6, sphMax: 4, sphStep: 0.25,
     cylMin: -2, cylMax: 0, cylStep: 0.25
   })
 
-  // 순서 변경 추적
+  // ?�서 변�?추적
   const [orderChanged, setOrderChanged] = useState(false)
   const [productOrders, setProductOrders] = useState<{[key: number]: number}>({})
 
-  // 일괄 선택
+  // ?�괄 ?�택
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set())
   const [selectedOptionIds, setSelectedOptionIds] = useState<Set<number>>(new Set())
 
@@ -1132,7 +1132,7 @@ export default function ProductsPage() {
     fetchCategories()
   }, [])
 
-  // 대분류 조회
+  // ?�분류 조회
   async function fetchCategories() {
     try {
       const res = await fetch('/api/categories')
@@ -1148,7 +1148,7 @@ export default function ProductsPage() {
     }
   }
 
-  // 대분류 선택 → 브랜드 로드
+  // ?�분류 ?�택 ??브랜??로드
   const handleSelectCategory = useCallback(async (category: MainCategory) => {
     setSelectedCategory(category)
     setSelectedBrand(null)
@@ -1175,7 +1175,7 @@ export default function ProductsPage() {
     }
   }, [])
 
-  // 브랜드 선택 → 품목 로드
+  // 브랜???�택 ???�목 로드
   const handleSelectBrand = useCallback(async (brand: Brand) => {
     console.log('Selecting brand:', brand.id, brand.name)
     setSelectedBrand(brand)
@@ -1203,7 +1203,7 @@ export default function ProductsPage() {
     }
   }, [])
 
-  // 품목 선택 → 상품 로드
+  // ?�목 ?�택 ???�품 로드
   const handleSelectProductLine = useCallback(async (productLine: ProductLine) => {
     console.log('Selecting product line:', productLine.id, productLine.name)
     setSelectedProductLine(productLine)
@@ -1246,37 +1246,37 @@ export default function ProductsPage() {
     }
   }, [])
 
-  // 바코드 검색
+  // 바코??검??
   async function handleBarcodeSearch() {
     if (!barcodeSearch.trim()) return
     try {
       const res = await fetch(`/api/products/search?barcode=${encodeURIComponent(barcodeSearch)}`)
       const data = await res.json()
       if (data.product && data.option) {
-        // 브랜드 찾기
+        // 브랜??찾기
         const brand = brands.find(b => b.id === data.product.brandId)
         if (brand) {
           await handleSelectBrand(brand)
           setSelectedProduct(data.product)
-          // 옵션 목록 로드 후 해당 옵션 하이라이트
+          // ?�션 목록 로드 ???�당 ?�션 ?�이?�이??
           const optRes = await fetch(`/api/products/${data.product.id}/options`)
           const optData = await optRes.json()
           setOptions(optData.options || [])
         }
         setShowBarcodeModal(false)
         setBarcodeSearch('')
-        alert(`찾았습니다: ${data.product.name} - SPH: ${data.option.sph}, CYL: ${data.option.cyl}`)
+        alert(`찾았?�니?? ${data.product.name} - SPH: ${data.option.sph}, CYL: ${data.option.cyl}`)
       } else {
-        alert('해당 바코드를 찾을 수 없습니다.')
+        alert('?�당 바코?��? 찾을 ???�습?�다.')
       }
     } catch (e) {
       console.error(e)
-      alert('검색 중 오류가 발생했습니다.')
+      alert('검??�??�류가 발생?�습?�다.')
     }
   }
 
-  // 상품 저장
-  // 브랜드 저장
+  // ?�품 ?�??
+  // 브랜???�??
   async function handleSaveBrand(formData: FormData) {
     const data = {
       name: formData.get('name'),
@@ -1296,14 +1296,14 @@ export default function ProductsPage() {
         setShowBrandModal(false)
         setEditingBrand(null)
         if (selectedCategory) handleSelectCategory(selectedCategory)
-        alert(editingBrand ? '브랜드가 수정되었습니다.' : '브랜드가 추가되었습니다.')
+        alert(editingBrand ? '브랜?��? ?�정?�었?�니??' : '브랜?��? 추�??�었?�니??')
       } else {
         const err = await res.json()
-        alert(err.error || '저장 실패')
+        alert(err.error || '?�???�패')
       }
     } catch (e) {
       console.error(e)
-      alert('저장 중 오류 발생')
+      alert('?�??�??�류 발생')
     }
   }
 
@@ -1333,7 +1333,7 @@ export default function ProductsPage() {
       if (res.ok) {
         const savedProduct = await res.json()
         
-        // 신규 등록 + 도수 옵션 함께 생성
+        // ?�규 ?�록 + ?�수 ?�션 ?�께 ?�성
         if (!editingProduct && generateWithProduct) {
           const formatValue = (v: number) => {
             const rounded = Math.round(v * 100) / 100
@@ -1341,7 +1341,7 @@ export default function ProductsPage() {
             return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2)
           }
           
-          // 도수 옵션 생성
+          // ?�수 ?�션 ?�성
           const optionsToCreate: { sph: string; cyl: string; priceAdjustment: number }[] = []
           for (let sph = diopterRange.sphMin; sph <= diopterRange.sphMax; sph += diopterRange.sphStep) {
             for (let cyl = diopterRange.cylMin; cyl <= diopterRange.cylMax; cyl += diopterRange.cylStep) {
@@ -1362,17 +1362,17 @@ export default function ProductsPage() {
             
             if (optRes.ok) {
               const optData = await optRes.json()
-              alert(`상품이 등록되었습니다.\n도수 옵션 ${optData.created || optionsToCreate.length}개가 함께 생성되었습니다.`)
+              alert(`?�품???�록?�었?�니??\n?�수 ?�션 ${optData.created || optionsToCreate.length}개�? ?�께 ?�성?�었?�니??`)
             } else {
-              alert('상품은 등록되었으나, 도수 옵션 생성에 실패했습니다.')
+              alert('?�품?� ?�록?�었?�나, ?�수 ?�션 ?�성???�패?�습?�다.')
             }
           }
           
           setGenerateWithProduct(false)
         } else {
-          // 일반 저장
+          // ?�반 ?�??
           if (!editingProduct) {
-            alert('상품이 등록되었습니다.')
+            alert('?�품???�록?�었?�니??')
           }
         }
         
@@ -1380,15 +1380,15 @@ export default function ProductsPage() {
         setEditingProduct(null)
         if (selectedProductLine) handleSelectProductLine(selectedProductLine)
       } else {
-        alert('저장 실패')
+        alert('?�???�패')
       }
     } catch (e) {
       console.error(e)
-      alert('저장 중 오류 발생')
+      alert('?�??�??�류 발생')
     }
   }
 
-  // 옵션 저장
+  // ?�션 ?�??
   async function handleSaveOption(formData: FormData) {
     const data = {
       sph: formData.get('sph'),
@@ -1416,15 +1416,15 @@ export default function ProductsPage() {
         setEditingOption(null)
         if (selectedProduct) handleSelectProduct(selectedProduct)
       } else {
-        alert('저장 실패')
+        alert('?�???�패')
       }
     } catch (e) {
       console.error(e)
-      alert('저장 중 오류 발생')
+      alert('?�??�??�류 발생')
     }
   }
 
-  // 순서 저장
+  // ?�서 ?�??
   async function handleSaveOrder() {
     try {
       const res = await fetch('/api/products/order', {
@@ -1434,15 +1434,15 @@ export default function ProductsPage() {
       })
       if (res.ok) {
         setOrderChanged(false)
-        alert('순서가 저장되었습니다.')
+        alert('?�서가 ?�?�되?�습?�다.')
       }
     } catch (e) {
       console.error(e)
-      alert('순서 저장 실패')
+      alert('?�서 ?�???�패')
     }
   }
 
-  // 일괄 수정
+  // ?�괄 ?�정
   async function handleBulkEdit(formData: FormData) {
     const data = {
       ids: Array.from(selectedProductIds),
@@ -1460,21 +1460,21 @@ export default function ProductsPage() {
         setShowBulkEditModal(false)
         setSelectedProductIds(new Set())
         if (selectedBrand) handleSelectBrand(selectedBrand)
-        alert('일괄 수정 완료')
+        alert('?�괄 ?�정 ?�료')
       }
     } catch (e) {
       console.error(e)
-      alert('일괄 수정 실패')
+      alert('?�괄 ?�정 ?�패')
     }
   }
 
-  // 순서 변경
+  // ?�서 변�?
   function handleOrderChange(productId: number, newOrder: number) {
     setProductOrders(prev => ({ ...prev, [productId]: newOrder }))
     setOrderChanged(true)
   }
 
-  // 필터링
+  // ?�터�?
   const filteredBrands = brands.filter(b => {
     if (brandSearch && !b.name.toLowerCase().includes(brandSearch.toLowerCase())) return false
     return true
@@ -1496,9 +1496,9 @@ export default function ProductsPage() {
 
   const optionTypes = [...new Set(products.map(p => p.optionType))]
 
-  // 스타일
+  // ?��???
   const panelStyle: React.CSSProperties = {
-    background: '#fff',
+    background: 'var(--bg-primary)',
     borderRadius: 12,
     border: '1px solid var(--gray-200)',
     display: 'flex',
@@ -1550,7 +1550,7 @@ export default function ProductsPage() {
     padding: '4px 10px',
     borderRadius: 6,
     border: '1px solid var(--gray-200)',
-    background: '#fff',
+    background: 'var(--bg-primary)',
     fontSize: 12,
     cursor: 'pointer',
     color: 'var(--gray-700)',
@@ -1564,29 +1564,29 @@ export default function ProductsPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="상품">
+    <Layout sidebarMenus={SIDEBAR} activeNav="?�품">
       {/* Page Header */}
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>상품 관리</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>?�품 관�?/h1>
           <p style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 2 }}>
-            대분류 → 브랜드 → 품목 → 상품 → 도수옵션
+            ?�분류 ??브랜?????�목 ???�품 ???�수?�션
           </p>
         </div>
         <button 
           onClick={() => setShowBarcodeModal(true)}
           style={{ ...actionBtnStyle, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
         >
-          🔍 바코드 검색
+          ?�� 바코??검??
         </button>
       </div>
 
-      {/* 4-Panel Layout: 대분류+브랜드 | 품목 | 상품 | 도수옵션 */}
+      {/* 4-Panel Layout: ?�분류+브랜??| ?�목 | ?�품 | ?�수?�션 */}
       <div style={{ display: 'grid', gridTemplateColumns: '220px 200px 1fr 300px', gap: 12, height: 'calc(100vh - 180px)' }}>
         
-        {/* Panel 1: 대분류 + 브랜드 */}
+        {/* Panel 1: ?�분류 + 브랜??*/}
         <div style={panelStyle}>
-          {/* 대분류 탭 */}
+          {/* ?�분류 ??*/}
           <div style={{ 
             display: 'flex', 
             flexWrap: 'wrap',
@@ -1617,11 +1617,11 @@ export default function ProductsPage() {
           </div>
           <div style={panelHeaderStyle}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--gray-800)' }}>
-              브랜드 {brands.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({brands.length})</span>}
+              브랜??{brands.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({brands.length})</span>}
             </div>
             <input
               type="text"
-              placeholder="브랜드 검색..."
+              placeholder="브랜??검??.."
               value={brandSearch}
               onChange={(e) => setBrandSearch(e.target.value)}
               style={{ ...searchInputStyle, fontSize: 12, padding: '6px 10px' }}
@@ -1629,9 +1629,9 @@ export default function ProductsPage() {
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {loading || brandLoading ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 중...</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 �?..</div>
             ) : filteredBrands.length === 0 ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>브랜드 없음</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>브랜???�음</div>
             ) : (
               filteredBrands.map(brand => (
                 <div
@@ -1659,25 +1659,25 @@ export default function ProductsPage() {
               onClick={() => { setEditingBrand(null); setShowBrandModal(true) }}
               style={{ ...primaryBtnStyle, width: '100%', fontSize: 12, padding: '6px 12px' }}
             >
-              + 브랜드
+              + 브랜??
             </button>
           </div>
         </div>
 
-        {/* Panel 2: 품목 목록 */}
+        {/* Panel 2: ?�목 목록 */}
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--gray-800)' }}>
-              품목 {productLines.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({productLines.length})</span>}
+              ?�목 {productLines.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({productLines.length})</span>}
             </div>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {productLineLoading ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 중...</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 �?..</div>
             ) : !selectedBrand ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>브랜드를 선택하세요</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>브랜?��? ?�택?�세??/div>
             ) : productLines.length === 0 ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>품목 없음</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>?�목 ?�음</div>
             ) : (
               productLines.map(line => (
                 <div
@@ -1703,8 +1703,8 @@ export default function ProductsPage() {
           <div style={{ padding: 8, borderTop: '1px solid var(--gray-200)' }}>
             <button 
               onClick={() => {
-                if (!selectedBrand) { alert('브랜드를 먼저 선택하세요'); return }
-                const name = prompt('품목명을 입력하세요')
+                if (!selectedBrand) { alert('브랜?��? 먼�? ?�택?�세??); return }
+                const name = prompt('?�목명을 ?�력?�세??)
                 if (name) {
                   fetch('/api/product-lines', {
                     method: 'POST',
@@ -1716,17 +1716,17 @@ export default function ProductsPage() {
               disabled={!selectedBrand}
               style={{ ...primaryBtnStyle, width: '100%', fontSize: 12, padding: '6px 12px', opacity: selectedBrand ? 1 : 0.5 }}
             >
-              + 품목
+              + ?�목
             </button>
           </div>
         </div>
 
-        {/* Panel 3: 상품 목록 */}
+        {/* Panel 3: ?�품 목록 */}
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-800)' }}>
-                상품 {filteredProducts.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({filteredProducts.length})</span>}
+                ?�품 {filteredProducts.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({filteredProducts.length})</span>}
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
                 <button 
@@ -1734,13 +1734,13 @@ export default function ProductsPage() {
                   disabled={!selectedProductLine}
                   style={{ ...primaryBtnStyle, fontSize: 11, padding: '4px 10px', opacity: selectedProductLine ? 1 : 0.5 }}
                 >
-                  + 상품
+                  + ?�품
                 </button>
               </div>
             </div>
             <input
               type="text"
-              placeholder="상품명 검색..."
+              placeholder="?�품�?검??.."
               value={productSearch}
               onChange={(e) => setProductSearch(e.target.value)}
               style={{ ...searchInputStyle, fontSize: 12, padding: '6px 10px' }}
@@ -1748,11 +1748,11 @@ export default function ProductsPage() {
           </div>
           <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto' }}>
             {productLoading ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 중...</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 �?..</div>
             ) : !selectedProductLine ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>품목을 선택하세요</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>?�목???�택?�세??/div>
             ) : filteredProducts.length === 0 ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>상품 없음</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>?�품 ?�음</div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
                 <thead>
@@ -1770,15 +1770,15 @@ export default function ProductsPage() {
                         }}
                       />
                     </th>
-                    <th style={gridHeaderStyle}>수정</th>
-                    <th style={gridHeaderStyle}>옵션타입</th>
-                    <th style={gridHeaderStyle}>상품명</th>
-                    <th style={gridHeaderStyle}>묶음상품</th>
-                    <th style={gridHeaderStyle}>굴절률</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>판매가</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'center', width: 50 }}>도수</th>
-                    <th style={gridHeaderStyle}>상태</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'center', width: 60 }}>순서</th>
+                    <th style={gridHeaderStyle}>?�정</th>
+                    <th style={gridHeaderStyle}>?�션?�??/th>
+                    <th style={gridHeaderStyle}>?�품�?/th>
+                    <th style={gridHeaderStyle}>묶음?�품</th>
+                    <th style={gridHeaderStyle}>굴절�?/th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>?�매가</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', width: 50 }}>?�수</th>
+                    <th style={gridHeaderStyle}>?�태</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', width: 60 }}>?�서</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1811,7 +1811,7 @@ export default function ProductsPage() {
                           onClick={() => { setEditingProduct(product); setShowProductModal(true) }}
                           style={{ ...actionBtnStyle, padding: '2px 8px' }}
                         >
-                          수정
+                          ?�정
                         </button>
                       </td>
                       <td style={gridCellStyle}>
@@ -1833,7 +1833,7 @@ export default function ProductsPage() {
                         ) : '-'}
                       </td>
                       <td style={{ ...gridCellStyle, textAlign: 'right', fontWeight: 500 }}>
-                        {product.sellingPrice.toLocaleString()}원
+                        {product.sellingPrice.toLocaleString()}??
                       </td>
                       <td style={{ ...gridCellStyle, textAlign: 'center' }}>
                         {product._count?.options ? (
@@ -1859,7 +1859,7 @@ export default function ProductsPage() {
                           background: product.isActive ? 'var(--success-light)' : 'var(--gray-100)',
                           color: product.isActive ? 'var(--success)' : 'var(--gray-500)',
                         }}>
-                          {product.isActive ? '사용' : '미사용'}
+                          {product.isActive ? '?�용' : '미사??}
                         </span>
                       </td>
                       <td style={{ ...gridCellStyle, textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
@@ -1878,13 +1878,13 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Panel 4: 옵션 목록 (도수/재고) */}
+        {/* Panel 4: ?�션 목록 (?�수/?�고) */}
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-800)' }}>
-                도수옵션 {options.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({options.length})</span>}
-                {selectedProduct && <span style={{ fontWeight: 400, color: 'var(--gray-500)', marginLeft: 8 }}>({filteredOptions.length}개)</span>}
+                ?�수?�션 {options.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({options.length})</span>}
+                {selectedProduct && <span style={{ fontWeight: 400, color: 'var(--gray-500)', marginLeft: 8 }}>({filteredOptions.length}�?</span>}
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
                 <button 
@@ -1892,14 +1892,14 @@ export default function ProductsPage() {
                   disabled={!selectedProduct}
                   style={{ ...actionBtnStyle, opacity: selectedProduct ? 1 : 0.5 }}
                 >
-                  생성
+                  ?�성
                 </button>
                 <button 
                   onClick={() => setShowEditPriceModal(true)}
                   disabled={!selectedProduct || options.length === 0}
                   style={{ ...actionBtnStyle, opacity: selectedProduct && options.length > 0 ? 1 : 0.5 }}
                 >
-                  수정
+                  ?�정
                 </button>
                 <button 
                   onClick={() => { setEditingOption(null); setShowOptionModal(true) }}
@@ -1912,7 +1912,7 @@ export default function ProductsPage() {
             </div>
             <input
               type="text"
-              placeholder="SPH, CYL, 바코드 검색..."
+              placeholder="SPH, CYL, 바코??검??.."
               value={optionSearch}
               onChange={(e) => setOptionSearch(e.target.value)}
               style={searchInputStyle}
@@ -1920,18 +1920,18 @@ export default function ProductsPage() {
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {optionLoading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>로딩 중...</div>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>로딩 �?..</div>
             ) : !selectedProduct ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>상품을 선택하세요</div>
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>?�품???�택?�세??/div>
             ) : filteredOptions.length === 0 ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>
-                옵션 없음
+                ?�션 ?�음
                 <br />
                 <button 
                   onClick={() => setShowGenerateModal(true)}
                   style={{ ...primaryBtnStyle, marginTop: 12 }}
                 >
-                  도수 자동생성
+                  ?�수 ?�동?�성
                 </button>
               </div>
             ) : (
@@ -1940,10 +1940,10 @@ export default function ProductsPage() {
                   <tr>
                     <th style={gridHeaderStyle}>SPH</th>
                     <th style={gridHeaderStyle}>CYL</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>가격조정</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'center' }}>재고</th>
-                    <th style={gridHeaderStyle}>상태</th>
-                    <th style={gridHeaderStyle}>수정</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>가격조??/th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center' }}>?�고</th>
+                    <th style={gridHeaderStyle}>?�태</th>
+                    <th style={gridHeaderStyle}>?�정</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1972,8 +1972,8 @@ export default function ProductsPage() {
                           fontSize: 11,
                           padding: '2px 8px',
                           borderRadius: 10,
-                          background: option.status === '주문가능' ? 'var(--success-light)' : 'var(--gray-100)',
-                          color: option.status === '주문가능' ? 'var(--success)' : 'var(--gray-500)',
+                          background: option.status === '주문가?? ? 'var(--success-light)' : 'var(--gray-100)',
+                          color: option.status === '주문가?? ? 'var(--success)' : 'var(--gray-500)',
                         }}>
                           {option.status}
                         </span>
@@ -1983,7 +1983,7 @@ export default function ProductsPage() {
                           onClick={() => { setEditingOption(option); setShowOptionModal(true) }}
                           style={{ ...actionBtnStyle, padding: '2px 8px' }}
                         >
-                          수정
+                          ?�정
                         </button>
                       </td>
                     </tr>
@@ -1995,78 +1995,78 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* 바코드 검색 모달 */}
+      {/* 바코??검??모달 */}
       {showBarcodeModal && (
         <div style={modalOverlayStyle} onClick={() => setShowBarcodeModal(false)}>
           <div style={{ ...modalStyle, width: 400 }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>바코드 검색</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>바코??검??/h3>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
                 type="text"
-                placeholder="바코드를 입력하세요"
+                placeholder="바코?��? ?�력?�세??
                 value={barcodeSearch}
                 onChange={(e) => setBarcodeSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleBarcodeSearch()}
                 style={inputStyle}
                 autoFocus
               />
-              <button onClick={handleBarcodeSearch} style={primaryBtnStyle}>검색</button>
+              <button onClick={handleBarcodeSearch} style={primaryBtnStyle}>검??/button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 상품 추가/수정 모달 */}
+      {/* ?�품 추�?/?�정 모달 */}
       {showProductModal && (
         <div style={modalOverlayStyle} onClick={() => setShowProductModal(false)}>
           <div style={{ ...modalStyle, width: 560 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
-                {editingProduct ? '상품 수정' : '상품 추가'}
+                {editingProduct ? '?�품 ?�정' : '?�품 추�?'}
               </h3>
               {editingProduct && (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     type="button"
                     onClick={() => {
-                      if (confirm('이 상품을 복사하시겠습니까?')) {
+                      if (confirm('???�품??복사?�시겠습?�까?')) {
                         setEditingProduct({ ...editingProduct, id: 0, name: editingProduct.name + ' (복사)' } as Product)
                       }
                     }}
                     style={{ ...actionBtnStyle, fontSize: 12 }}
                   >
-                    📋 복사
+                    ?�� 복사
                   </button>
                   <button
                     type="button"
                     onClick={async () => {
-                      if (confirm('정말 이 상품을 삭제하시겠습니까?\n연결된 옵션(도수)도 함께 삭제됩니다.')) {
+                      if (confirm('?�말 ???�품????��?�시겠습?�까?\n?�결???�션(?�수)???�께 ??��?�니??')) {
                         try {
                           const res = await fetch(`/api/products/${editingProduct.id}`, { method: 'DELETE' })
                           if (res.ok) {
                             setShowProductModal(false)
                             setEditingProduct(null)
                             if (selectedBrand) handleSelectBrand(selectedBrand)
-                            alert('삭제되었습니다.')
+                            alert('??��?�었?�니??')
                           } else {
-                            alert('삭제 실패')
+                            alert('??�� ?�패')
                           }
                         } catch (e) {
                           console.error(e)
-                          alert('삭제 중 오류 발생')
+                          alert('??�� �??�류 발생')
                         }
                       }
                     }}
                     style={{ ...actionBtnStyle, fontSize: 12, color: 'var(--error)', borderColor: 'var(--error)' }}
                   >
-                    🗑️ 삭제
+                    ?���???��
                   </button>
                 </div>
               )}
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleSaveProduct(new FormData(e.currentTarget)) }}>
               <div style={{ display: 'grid', gap: 16 }}>
-                {/* 상품 코드 (수정시에만 표시) */}
+                {/* ?�품 코드 (?�정?�에�??�시) */}
                 {editingProduct && (
                   <div style={{ 
                     padding: '10px 14px', 
@@ -2076,12 +2076,12 @@ export default function ProductsPage() {
                     alignItems: 'center',
                     gap: 12
                   }}>
-                    <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>상품코드</span>
+                    <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>?�품코드</span>
                     <code style={{ 
                       fontSize: 13, 
                       fontFamily: 'monospace', 
                       color: 'var(--gray-700)',
-                      background: '#fff',
+                      background: 'var(--bg-primary)',
                       padding: '2px 8px',
                       borderRadius: 4
                     }}>
@@ -2091,67 +2091,67 @@ export default function ProductsPage() {
                 )}
                 
                 <div>
-                  <label style={labelStyle}>상품명 *</label>
+                  <label style={labelStyle}>?�품�?*</label>
                   <input 
                     name="name" 
                     defaultValue={editingProduct?.name} 
                     required 
                     style={inputStyle}
-                    placeholder="예: 블루라이트 차단 렌즈 1.60"
+                    placeholder="?? 블루?�이??차단 ?�즈 1.60"
                   />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={labelStyle}>옵션타입 *</label>
-                    <select name="optionType" defaultValue={editingProduct?.optionType || '안경렌즈 RX'} required style={inputStyle}>
-                      <option value="안경렌즈 RX">안경렌즈 RX</option>
-                      <option value="안경렌즈 여벌">안경렌즈 여벌</option>
-                      <option value="콘택트렌즈">콘택트렌즈</option>
-                      <option value="안경테">안경테</option>
-                      <option value="선글라스">선글라스</option>
-                      <option value="소모품">소모품</option>
-                      <option value="액세서리">액세서리</option>
-                      <option value="기타">기타</option>
+                    <label style={labelStyle}>?�션?�??*</label>
+                    <select name="optionType" defaultValue={editingProduct?.optionType || '?�경?�즈 RX'} required style={inputStyle}>
+                      <option value="?�경?�즈 RX">?�경?�즈 RX</option>
+                      <option value="?�경?�즈 ?�벌">?�경?�즈 ?�벌</option>
+                      <option value="콘택?�렌�?>콘택?�렌�?/option>
+                      <option value="?�경??>?�경??/option>
+                      <option value="?��??�스">?��??�스</option>
+                      <option value="?�모??>?�모??/option>
+                      <option value="?�세?�리">?�세?�리</option>
+                      <option value="기�?">기�?</option>
                     </select>
                   </div>
                   <div>
-                    <label style={labelStyle}>상품분류</label>
+                    <label style={labelStyle}>?�품분류</label>
                     <select name="productType" defaultValue={editingProduct?.productType || ''} style={inputStyle}>
-                      <option value="">선택 안함</option>
-                      <option value="단초점">단초점</option>
-                      <option value="다초점">다초점</option>
-                      <option value="누진다초점">누진다초점</option>
-                      <option value="실내용">실내용</option>
-                      <option value="스포츠">스포츠</option>
+                      <option value="">?�택 ?�함</option>
+                      <option value="?�초??>?�초??/option>
+                      <option value="?�초??>?�초??/option>
+                      <option value="?�진?�초??>?�진?�초??/option>
+                      <option value="?�내??>?�내??/option>
+                      <option value="?�포�?>?�포�?/option>
                     </select>
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={labelStyle}>굴절률</label>
+                    <label style={labelStyle}>굴절�?/label>
                     <select name="refractiveIndex" defaultValue={editingProduct?.refractiveIndex || ''} style={inputStyle}>
-                      <option value="">선택</option>
-                      <option value="1.50">1.50 (표준)</option>
+                      <option value="">?�택</option>
+                      <option value="1.50">1.50 (?��?)</option>
                       <option value="1.56">1.56</option>
-                      <option value="1.60">1.60 (중도수)</option>
-                      <option value="1.67">1.67 (고도수)</option>
-                      <option value="1.74">1.74 (초고도수)</option>
+                      <option value="1.60">1.60 (중도??</option>
+                      <option value="1.67">1.67 (고도??</option>
+                      <option value="1.74">1.74 (초고?�수)</option>
                     </select>
                   </div>
                   <div>
-                    <label style={labelStyle}>묶음상품명</label>
+                    <label style={labelStyle}>묶음?�품�?/label>
                     <input 
                       name="bundleName" 
                       defaultValue={editingProduct?.bundleName || ''} 
                       style={inputStyle}
-                      placeholder="묶음 표시명"
+                      placeholder="묶음 ?�시�?
                     />
                   </div>
                 </div>
 
-                {/* 가격 섹션 */}
+                {/* 가�??�션 */}
                 <div style={{ 
                   padding: 14, 
                   background: 'var(--gray-50)', 
@@ -2159,11 +2159,11 @@ export default function ProductsPage() {
                   border: '1px solid var(--gray-200)'
                 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--gray-700)' }}>
-                    💰 가격 설정
+                    ?�� 가�??�정
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                     <div>
-                      <label style={{ ...labelStyle, fontSize: 12 }}>판매가</label>
+                      <label style={{ ...labelStyle, fontSize: 12 }}>?�매가</label>
                       <div style={{ position: 'relative' }}>
                         <input 
                           name="sellingPrice" 
@@ -2171,7 +2171,7 @@ export default function ProductsPage() {
                           defaultValue={editingProduct?.sellingPrice || 0} 
                           style={{ ...inputStyle, paddingRight: 30 }}
                         />
-                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>원</span>
+                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>??/span>
                       </div>
                     </div>
                     <div>
@@ -2183,14 +2183,14 @@ export default function ProductsPage() {
                           defaultValue={editingProduct?.purchasePrice || 0} 
                           style={{ ...inputStyle, paddingRight: 30 }}
                         />
-                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>원</span>
+                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>??/span>
                       </div>
                     </div>
                     <div>
-                      <label style={{ ...labelStyle, fontSize: 12 }}>마진율</label>
+                      <label style={{ ...labelStyle, fontSize: 12 }}>마진??/label>
                       <div style={{ 
                         padding: '10px 12px', 
-                        background: '#fff', 
+                        background: 'var(--bg-primary)', 
                         borderRadius: 8, 
                         border: '1px solid var(--gray-200)',
                         fontSize: 14,
@@ -2208,25 +2208,25 @@ export default function ProductsPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={labelStyle}>상태</label>
+                    <label style={labelStyle}>?�태</label>
                     <select name="isActive" defaultValue={editingProduct?.isActive !== false ? 'true' : 'false'} style={inputStyle}>
-                      <option value="true">✅ 사용</option>
-                      <option value="false">⛔ 미사용</option>
+                      <option value="true">???�용</option>
+                      <option value="false">??미사??/option>
                     </select>
                   </div>
                   <div>
-                    <label style={labelStyle}>표시 순서</label>
+                    <label style={labelStyle}>?�시 ?�서</label>
                     <input 
                       name="displayOrder" 
                       type="number" 
                       defaultValue={editingProduct?.displayOrder || 0} 
                       style={inputStyle}
-                      placeholder="숫자가 작을수록 먼저 표시"
+                      placeholder="?�자가 ?�을?�록 먼�? ?�시"
                     />
                   </div>
                 </div>
 
-                {/* 도수 옵션 함께 생성 (신규 등록시에만) */}
+                {/* ?�수 ?�션 ?�께 ?�성 (?�규 ?�록?�에�? */}
                 {!editingProduct && (
                   <div style={{ 
                     padding: 14, 
@@ -2242,7 +2242,7 @@ export default function ProductsPage() {
                         style={{ width: 18, height: 18 }}
                       />
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
-                        📋 도수 옵션 함께 생성 (여벌용)
+                        ?�� ?�수 ?�션 ?�께 ?�성 (?�벌??
                       </span>
                     </label>
                     
@@ -2258,7 +2258,7 @@ export default function ProductsPage() {
                             />
                           </div>
                           <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 최대</label>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 최�?</label>
                             <input 
                               type="number" step="0.25" value={diopterRange.sphMax}
                               onChange={(e) => setDiopterRange(prev => ({ ...prev, sphMax: parseFloat(e.target.value) }))}
@@ -2266,7 +2266,7 @@ export default function ProductsPage() {
                             />
                           </div>
                           <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 단위</label>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH ?�위</label>
                             <select 
                               value={diopterRange.sphStep}
                               onChange={(e) => setDiopterRange(prev => ({ ...prev, sphStep: parseFloat(e.target.value) }))}
@@ -2287,7 +2287,7 @@ export default function ProductsPage() {
                             />
                           </div>
                           <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 최대</label>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 최�?</label>
                             <input 
                               type="number" step="0.25" value={diopterRange.cylMax}
                               onChange={(e) => setDiopterRange(prev => ({ ...prev, cylMax: parseFloat(e.target.value) }))}
@@ -2295,7 +2295,7 @@ export default function ProductsPage() {
                             />
                           </div>
                           <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 단위</label>
+                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL ?�위</label>
                             <select 
                               value={diopterRange.cylStep}
                               onChange={(e) => setDiopterRange(prev => ({ ...prev, cylStep: parseFloat(e.target.value) }))}
@@ -2306,8 +2306,8 @@ export default function ProductsPage() {
                             </select>
                           </div>
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--gray-600)', background: '#fff', padding: 8, borderRadius: 6 }}>
-                          📊 생성될 옵션: 약 {Math.ceil((diopterRange.sphMax - diopterRange.sphMin) / diopterRange.sphStep + 1) * Math.ceil((diopterRange.cylMax - diopterRange.cylMin) / diopterRange.cylStep + 1)}개
+                        <div style={{ fontSize: 11, color: 'var(--gray-600)', background: 'var(--bg-primary)', padding: 8, borderRadius: 6 }}>
+                          ?�� ?�성???�션: ??{Math.ceil((diopterRange.sphMax - diopterRange.sphMin) / diopterRange.sphStep + 1) * Math.ceil((diopterRange.cylMax - diopterRange.cylMin) / diopterRange.cylStep + 1)}�?
                           <br />
                           SPH: {diopterRange.sphMin} ~ {diopterRange.sphMax > 0 ? '+' : ''}{diopterRange.sphMax} | CYL: {diopterRange.cylMin} ~ {diopterRange.cylMax}
                         </div>
@@ -2316,7 +2316,7 @@ export default function ProductsPage() {
                   </div>
                 )}
 
-                {/* 도수 옵션 요약 (수정시에만) */}
+                {/* ?�수 ?�션 ?�약 (?�정?�에�? */}
                 {editingProduct && options.length > 0 && (
                   <div style={{ 
                     padding: 14, 
@@ -2327,7 +2327,7 @@ export default function ProductsPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
-                          📋 등록된 도수: {options.length}개
+                          ?�� ?�록???�수: {options.length}�?
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>
                           SPH: {options.length > 0 ? `${Math.min(...options.map(o => parseFloat(o.sph.replace('+', ''))))} ~ ${Math.max(...options.map(o => parseFloat(o.sph.replace('+', ''))))}` : '-'}
@@ -2340,7 +2340,7 @@ export default function ProductsPage() {
                         onClick={() => { setShowProductModal(false); setShowGenerateModal(true) }}
                         style={{ ...actionBtnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}
                       >
-                        도수 관리 →
+                        ?�수 관�???
                       </button>
                     </div>
                   </div>
@@ -2350,7 +2350,7 @@ export default function ProductsPage() {
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--gray-200)' }}>
                 <button type="button" onClick={() => setShowProductModal(false)} style={actionBtnStyle}>취소</button>
                 <button type="submit" style={{ ...primaryBtnStyle, padding: '10px 24px' }}>
-                  {editingProduct ? '저장' : '등록'}
+                  {editingProduct ? '?�?? : '?�록'}
                 </button>
               </div>
             </form>
@@ -2358,12 +2358,12 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* 옵션 추가/수정 모달 */}
+      {/* ?�션 추�?/?�정 모달 */}
       {showOptionModal && (
         <div style={modalOverlayStyle} onClick={() => setShowOptionModal(false)}>
           <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
-              {editingOption ? '옵션 수정' : '옵션 추가'}
+              {editingOption ? '?�션 ?�정' : '?�션 추�?'}
             </h3>
             <form onSubmit={(e) => { e.preventDefault(); handleSaveOption(new FormData(e.currentTarget)) }}>
               <div style={{ display: 'grid', gap: 16 }}>
@@ -2378,81 +2378,81 @@ export default function ProductsPage() {
                   </div>
                 </div>
                 <div>
-                  <label style={labelStyle}>바코드</label>
+                  <label style={labelStyle}>바코??/label>
                   <input name="barcode" defaultValue={editingOption?.barcode || ''} style={inputStyle} />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={labelStyle}>재고</label>
+                    <label style={labelStyle}>?�고</label>
                     <input name="stock" type="number" defaultValue={editingOption?.stock || 0} style={inputStyle} />
                   </div>
                   <div>
-                    <label style={labelStyle}>재고 위치</label>
+                    <label style={labelStyle}>?�고 ?�치</label>
                     <input name="location" defaultValue={editingOption?.stockLocation || ''} style={inputStyle} />
                   </div>
                 </div>
                 <div>
-                  <label style={labelStyle}>가격 조정 (추가금)</label>
-                  <input name="priceAdjustment" type="number" defaultValue={editingOption?.priceAdjustment || 0} style={inputStyle} placeholder="예: 고도수 +5000" />
+                  <label style={labelStyle}>가�?조정 (추�?�?</label>
+                  <input name="priceAdjustment" type="number" defaultValue={editingOption?.priceAdjustment || 0} style={inputStyle} placeholder="?? 고도??+5000" />
                 </div>
                 <div>
                   <label style={labelStyle}>메모</label>
                   <input name="memo" defaultValue={editingOption?.memo || ''} style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>상태</label>
-                  <select name="isActive" defaultValue={editingOption?.status === '주문가능' ? 'true' : 'false'} style={inputStyle}>
-                    <option value="true">주문가능</option>
-                    <option value="false">품절</option>
+                  <label style={labelStyle}>?�태</label>
+                  <select name="isActive" defaultValue={editingOption?.status === '주문가?? ? 'true' : 'false'} style={inputStyle}>
+                    <option value="true">주문가??/option>
+                    <option value="false">?�절</option>
                   </select>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24 }}>
                 <button type="button" onClick={() => setShowOptionModal(false)} style={actionBtnStyle}>취소</button>
-                <button type="submit" style={primaryBtnStyle}>저장</button>
+                <button type="submit" style={primaryBtnStyle}>?�??/button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 일괄 수정 모달 */}
+      {/* ?�괄 ?�정 모달 */}
       {showBulkEditModal && (
         <div style={modalOverlayStyle} onClick={() => setShowBulkEditModal(false)}>
           <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
-              일괄 수정 ({selectedProductIds.size}개 선택)
+              ?�괄 ?�정 ({selectedProductIds.size}�??�택)
             </h3>
             <form onSubmit={(e) => { e.preventDefault(); handleBulkEdit(new FormData(e.currentTarget)) }}>
               <div style={{ display: 'grid', gap: 16 }}>
                 <div>
-                  <label style={labelStyle}>상태 변경</label>
+                  <label style={labelStyle}>?�태 변�?/label>
                   <select name="isActive" defaultValue="" style={inputStyle}>
-                    <option value="">변경 안함</option>
-                    <option value="true">사용</option>
-                    <option value="false">미사용</option>
+                    <option value="">변�??�함</option>
+                    <option value="true">?�용</option>
+                    <option value="false">미사??/option>
                   </select>
                 </div>
                 <div>
-                  <label style={labelStyle}>옵션타입 변경</label>
+                  <label style={labelStyle}>?�션?�??변�?/label>
                   <select name="optionType" defaultValue="" style={inputStyle}>
-                    <option value="">변경 안함</option>
-                    <option value="안경렌즈 RX">안경렌즈 RX</option>
-                    <option value="안경렌즈 여벌">안경렌즈 여벌</option>
-                    <option value="콘택트렌즈">콘택트렌즈</option>
+                    <option value="">변�??�함</option>
+                    <option value="?�경?�즈 RX">?�경?�즈 RX</option>
+                    <option value="?�경?�즈 ?�벌">?�경?�즈 ?�벌</option>
+                    <option value="콘택?�렌�?>콘택?�렌�?/option>
                   </select>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24 }}>
                 <button type="button" onClick={() => setShowBulkEditModal(false)} style={actionBtnStyle}>취소</button>
-                <button type="submit" style={primaryBtnStyle}>적용</button>
+                <button type="submit" style={primaryBtnStyle}>?�용</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 도수 생성 모달 (매트릭스 스타일) */}
+      {/* ?�수 ?�성 모달 (매트�?�� ?��??? */}
       {showGenerateModal && (
         <GenerateOptionsModal
           productName={selectedProduct?.name || ''}
@@ -2469,17 +2469,17 @@ export default function ProductsPage() {
                 const data = await res.json()
                 setShowGenerateModal(false)
                 if (selectedProduct) handleSelectProduct(selectedProduct)
-                alert(`${data.created}개의 옵션이 생성되었습니다.`)
+                alert(`${data.created}개의 ?�션???�성?�었?�니??`)
               }
             } catch (e) {
               console.error(e)
-              alert('도수 생성 실패')
+              alert('?�수 ?�성 ?�패')
             }
           }}
         />
       )}
 
-      {/* 도수 수정 모달 (매트릭스 스타일) */}
+      {/* ?�수 ?�정 모달 (매트�?�� ?��??? */}
       {showEditPriceModal && (
         <GenerateOptionsModal
           productName={selectedProduct?.name || ''}
@@ -2487,7 +2487,7 @@ export default function ProductsPage() {
           mode="edit"
           onClose={() => setShowEditPriceModal(false)}
           onGenerate={async (newOptions) => {
-            // 새로 추가된 옵션들 생성
+            // ?�로 추�????�션???�성
             if (newOptions.length > 0) {
               try {
                 const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk`, {
@@ -2498,17 +2498,17 @@ export default function ProductsPage() {
                 if (res.ok) {
                   const data = await res.json()
                   if (selectedProduct) handleSelectProduct(selectedProduct)
-                  alert(`${data.created}개의 옵션이 추가되었습니다.`)
+                  alert(`${data.created}개의 ?�션??추�??�었?�니??`)
                 }
               } catch (e) {
                 console.error(e)
-                alert('옵션 추가 실패')
+                alert('?�션 추�? ?�패')
               }
             }
             setShowEditPriceModal(false)
           }}
           onUpdate={async (updates) => {
-            // 기존 옵션 가격 수정
+            // 기존 ?�션 가�??�정
             try {
               const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk-update`, {
                 method: 'PUT',
@@ -2518,33 +2518,33 @@ export default function ProductsPage() {
               if (res.ok) {
                 const data = await res.json()
                 if (selectedProduct) handleSelectProduct(selectedProduct)
-                alert(`${data.updated}개의 옵션이 수정되었습니다.`)
+                alert(`${data.updated}개의 ?�션???�정?�었?�니??`)
               }
             } catch (e) {
               console.error(e)
-              alert('가격 수정 실패')
+              alert('가�??�정 ?�패')
             }
           }}
         />
       )}
 
-      {/* 브랜드 추가/수정 모달 */}
+      {/* 브랜??추�?/?�정 모달 */}
       {showBrandModal && (
         <div style={modalOverlayStyle} onClick={() => setShowBrandModal(false)}>
           <div style={{ ...modalStyle, width: 420 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
-                {editingBrand ? '브랜드 수정' : '브랜드 추가'}
+                {editingBrand ? '브랜???�정' : '브랜??추�?'}
               </h3>
               {editingBrand && (
                 <button
                   type="button"
                   onClick={async () => {
                     if (editingBrand._count?.products && editingBrand._count.products > 0) {
-                      alert(`이 브랜드에 ${editingBrand._count.products}개의 상품이 있어 삭제할 수 없습니다.\n먼저 상품을 이동하거나 삭제해주세요.`)
+                      alert(`??브랜?�에 ${editingBrand._count.products}개의 ?�품???�어 ??��?????�습?�다.\n먼�? ?�품???�동?�거????��?�주?�요.`)
                       return
                     }
-                    if (confirm('정말 이 브랜드를 삭제하시겠습니까?')) {
+                    if (confirm('?�말 ??브랜?��? ??��?�시겠습?�까?')) {
                       try {
                         const res = await fetch(`/api/brands/${editingBrand.id}`, { method: 'DELETE' })
                         if (res.ok) {
@@ -2552,14 +2552,14 @@ export default function ProductsPage() {
                           setEditingBrand(null)
                           setSelectedBrand(null)
                           if (selectedCategory) handleSelectCategory(selectedCategory)
-                          alert('브랜드가 삭제되었습니다.')
+                          alert('브랜?��? ??��?�었?�니??')
                         } else {
                           const err = await res.json()
-                          alert(err.error || '삭제 실패')
+                          alert(err.error || '??�� ?�패')
                         }
                       } catch (e) {
                         console.error(e)
-                        alert('삭제 중 오류 발생')
+                        alert('??�� �??�류 발생')
                       }
                     }
                   }}
@@ -2573,39 +2573,39 @@ export default function ProductsPage() {
                     cursor: 'pointer' 
                   }}
                 >
-                  🗑️ 삭제
+                  ?���???��
                 </button>
               )}
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleSaveBrand(new FormData(e.currentTarget)) }}>
               <div style={{ display: 'grid', gap: 16 }}>
                 <div>
-                  <label style={labelStyle}>브랜드명 *</label>
+                  <label style={labelStyle}>브랜?�명 *</label>
                   <input 
                     name="name" 
                     defaultValue={editingBrand?.name} 
                     required 
                     style={inputStyle}
-                    placeholder="예: HOYA, ZEISS, 니콘"
+                    placeholder="?? HOYA, ZEISS, ?�콘"
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label style={labelStyle}>재고관리 방식</label>
+                  <label style={labelStyle}>?�고관�?방식</label>
                   <select name="stockManage" defaultValue={editingBrand?.stockManage || ''} style={inputStyle}>
-                    <option value="">기본 (개별 관리)</option>
-                    <option value="shared">공유 재고</option>
-                    <option value="none">재고 관리 안함</option>
+                    <option value="">기본 (개별 관�?</option>
+                    <option value="shared">공유 ?�고</option>
+                    <option value="none">?�고 관�??�함</option>
                   </select>
                   <p style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>
-                    공유 재고: 같은 도수의 상품들이 재고를 공유합니다
+                    공유 ?�고: 같�? ?�수???�품?�이 ?�고�?공유?�니??
                   </p>
                 </div>
                 <div>
-                  <label style={labelStyle}>상태</label>
+                  <label style={labelStyle}>?�태</label>
                   <select name="isActive" defaultValue={editingBrand?.isActive !== false ? 'true' : 'false'} style={inputStyle}>
-                    <option value="true">✅ 활성</option>
-                    <option value="false">⛔ 비활성 (목록에서 숨김)</option>
+                    <option value="true">???�성</option>
+                    <option value="false">??비활??(목록?�서 ?��?)</option>
                   </select>
                 </div>
                 {editingBrand && (
@@ -2616,14 +2616,14 @@ export default function ProductsPage() {
                     fontSize: 12,
                     color: 'var(--gray-600)'
                   }}>
-                    <div>📦 등록된 상품: <strong>{editingBrand._count?.products || 0}</strong>개</div>
+                    <div>?�� ?�록???�품: <strong>{editingBrand._count?.products || 0}</strong>�?/div>
                   </div>
                 )}
               </div>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--gray-200)' }}>
                 <button type="button" onClick={() => setShowBrandModal(false)} style={actionBtnStyle}>취소</button>
                 <button type="submit" style={{ ...primaryBtnStyle, padding: '10px 24px' }}>
-                  {editingBrand ? '저장' : '추가'}
+                  {editingBrand ? '?�?? : '추�?'}
                 </button>
               </div>
             </form>

@@ -16,10 +16,10 @@ interface Order {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  pending: { label: '대기', color: '#f59e0b', bg: '#fef3c7' },
-  confirmed: { label: '확인', color: '#3b82f6', bg: '#dbeafe' },
+  pending: { label: '?��?, color: '#f59e0b', bg: '#fef3c7' },
+  confirmed: { label: '?�인', color: '#3b82f6', bg: '#dbeafe' },
   shipped: { label: '출고', color: '#8b5cf6', bg: '#ede9fe' },
-  delivered: { label: '완료', color: '#10b981', bg: '#d1fae5' },
+  delivered: { label: '?�료', color: '#10b981', bg: '#d1fae5' },
 }
 
 export default function MobileOrdersPage() {
@@ -54,7 +54,7 @@ export default function MobileOrdersPage() {
 
   return (
     <div>
-      {/* 상태 필터 */}
+      {/* ?�태 ?�터 */}
       <div style={{
         display: 'flex',
         gap: '8px',
@@ -63,7 +63,7 @@ export default function MobileOrdersPage() {
         paddingBottom: '4px'
       }}>
         {[
-          { value: 'all', label: '전체' },
+          { value: 'all', label: '?�체' },
           ...Object.entries(STATUS_CONFIG).map(([value, config]) => ({ value, label: config.label }))
         ].map(opt => (
           <button
@@ -88,16 +88,16 @@ export default function MobileOrdersPage() {
 
       {/* 주문 목록 */}
       {loading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</div>
       ) : orders.length === 0 ? (
         <div style={{
           padding: '40px',
           textAlign: 'center',
-          color: '#86868b',
-          background: '#fff',
+          color: 'var(--text-tertiary)',
+          background: 'var(--bg-primary)',
           borderRadius: '12px'
         }}>
-          주문이 없습니다.
+          주문???�습?�다.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -108,7 +108,7 @@ export default function MobileOrdersPage() {
                 key={order.id}
                 href={`/mobile/orders/${order.id}`}
                 style={{
-                  background: '#fff',
+                  background: 'var(--bg-primary)',
                   borderRadius: '12px',
                   padding: '16px',
                   textDecoration: 'none',
@@ -123,7 +123,7 @@ export default function MobileOrdersPage() {
                 }}>
                   <div>
                     <div style={{ fontWeight: 600, marginBottom: '2px' }}>{order.storeName}</div>
-                    <div style={{ fontSize: '12px', color: '#86868b' }}>{order.orderNo}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{order.orderNo}</div>
                   </div>
                   <span style={{
                     padding: '4px 10px',
@@ -143,10 +143,10 @@ export default function MobileOrdersPage() {
                   paddingTop: '8px',
                   borderTop: '1px solid #f3f4f6'
                 }}>
-                  <div style={{ fontSize: '13px', color: '#86868b' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
                     {new Date(order.orderedAt).toLocaleDateString('ko-KR')}
                   </div>
-                  <div style={{ fontWeight: 600 }}>{order.totalAmount.toLocaleString()}원</div>
+                  <div style={{ fontWeight: 600 }}>{order.totalAmount.toLocaleString()}??/div>
                 </div>
               </Link>
             )

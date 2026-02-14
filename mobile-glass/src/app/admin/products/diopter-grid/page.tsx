@@ -13,7 +13,7 @@ interface GridCell {
   stock: number
   optionId: number
   barcode?: string
-  waiting?: number // 대기 수량
+  waiting?: number // ?��??�량
 }
 
 interface GridData {
@@ -25,7 +25,7 @@ interface GridData {
   brandName?: string
 }
 
-// 숫자를 레거시 형식으로 변환 (0.25 → "025", -1.00 → "-100")
+// ?�자�??�거???�식?�로 변??(0.25 ??"025", -1.00 ??"-100")
 const formatLegacy = (value: string): string => {
   const num = parseFloat(value)
   const abs = Math.abs(num)
@@ -33,7 +33,7 @@ const formatLegacy = (value: string): string => {
   return num < 0 ? `-${formatted}` : formatted
 }
 
-// 레거시 형식을 숫자로 변환
+// ?�거???�식???�자�?변??
 const parseLegacy = (value: string): number => {
   const isNegative = value.startsWith('-')
   const abs = parseInt(value.replace('-', ''), 10)
@@ -48,10 +48,10 @@ export default function DiopterGridPage() {
   const [loading, setLoading] = useState(true)
   const [gridLoading, setGridLoading] = useState(false)
 
-  // 선택된 셀
+  // ?�택???�
   const [selectedCell, setSelectedCell] = useState<{ sph: string; cyl: string } | null>(null)
   
-  // 옵션 생성 모달
+  // ?�션 ?�성 모달
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState({
     sphMin: -8,
@@ -64,7 +64,7 @@ export default function DiopterGridPage() {
   })
   const [creating, setCreating] = useState(false)
 
-  // 셀 편집 모달
+  // ?� ?�집 모달
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingCell, setEditingCell] = useState<{
     sph: string
@@ -165,11 +165,11 @@ export default function DiopterGridPage() {
         fetchGrid()
       } else {
         const error = await res.json()
-        alert(error.error || '저장에 실패했습니다')
+        alert(error.error || '?�?�에 ?�패?�습?�다')
       }
     } catch (error) {
       console.error('Failed to save:', error)
-      alert('저장에 실패했습니다')
+      alert('?�?�에 ?�패?�습?�다')
     } finally {
       setSaving(false)
     }
@@ -198,17 +198,17 @@ export default function DiopterGridPage() {
         fetchGrid()
       } else {
         const error = await res.json()
-        alert(error.error || '생성에 실패했습니다')
+        alert(error.error || '?�성???�패?�습?�다')
       }
     } catch (error) {
       console.error('Failed to create options:', error)
-      alert('생성에 실패했습니다')
+      alert('?�성???�패?�습?�다')
     } finally {
       setCreating(false)
     }
   }
 
-  // SPH 범위를 마이너스/플러스로 분리
+  // SPH 범위�?마이?�스/?�러?�로 분리
   const splitSphRange = useCallback(() => {
     if (!gridData) return { minus: [], plus: [] }
     
@@ -224,9 +224,9 @@ export default function DiopterGridPage() {
       }
     })
     
-    // 마이너스는 절대값 큰 순서로 (왼쪽에서 오른쪽으로 0에 가까워짐)
+    // 마이?�스???��?�????�서�?(?�쪽?�서 ?�른쪽으�?0??가까워�?
     minus.sort((a, b) => parseFloat(a) - parseFloat(b))
-    // 플러스는 작은 순서로
+    // ?�러?�는 ?��? ?�서�?
     plus.sort((a, b) => parseFloat(a) - parseFloat(b))
     
     return { minus, plus }
@@ -236,10 +236,10 @@ export default function DiopterGridPage() {
 
   const selectedBrandData = brands.find(b => b.id === selectedBrand)
   
-  // 현재 선택된 셀 정보
+  // ?�재 ?�택???� ?�보
   const currentCell = selectedCell && gridData?.grid[selectedCell.sph]?.[selectedCell.cyl]
 
-  // 그리드 렌더링 함수
+  // 그리???�더�??�수
   const renderGrid = (sphRange: string[], side: 'minus' | 'plus') => {
     if (!gridData || sphRange.length === 0) return null
     
@@ -304,7 +304,7 @@ export default function DiopterGridPage() {
           <tbody>
             {gridData.cylRange.map((cyl, rowIdx) => {
               const cylNum = parseFloat(cyl)
-              // 고도수 영역 표시 (CYL -1.00 이하)
+              // 고도???�역 ?�시 (CYL -1.00 ?�하)
               const isHighPower = cylNum <= -1
               const rowBg = isHighPower ? '#ffe4e4' : (rowIdx % 2 === 0 ? '#fffef0' : '#fff')
               
@@ -369,7 +369,7 @@ export default function DiopterGridPage() {
 
   return (
     <AdminLayout activeMenu="products">
-      {/* 상단 툴바 - 레거시 스타일 */}
+      {/* ?�단 ?�바 - ?�거???��???*/}
       <div style={{ 
         background: '#f0f0f0', 
         border: '1px solid #999',
@@ -381,7 +381,7 @@ export default function DiopterGridPage() {
         flexWrap: 'wrap'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 500 }}>품목[F5]</label>
+          <label style={{ fontSize: '13px', fontWeight: 500 }}>?�목[F5]</label>
           <select
             value={selectedBrand || ''}
             onChange={(e) => {
@@ -397,7 +397,7 @@ export default function DiopterGridPage() {
               minWidth: '120px'
             }}
           >
-            <option value="">선택</option>
+            <option value="">?�택</option>
             {brands.map(brand => (
               <option key={brand.id} value={brand.id}>{brand.name}</option>
             ))}
@@ -405,7 +405,7 @@ export default function DiopterGridPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 500 }}>품명[F6]</label>
+          <label style={{ fontSize: '13px', fontWeight: 500 }}>?�명[F6]</label>
           <select
             value={selectedProduct || ''}
             onChange={(e) => {
@@ -421,7 +421,7 @@ export default function DiopterGridPage() {
               background: !selectedBrand ? '#eee' : '#fff'
             }}
           >
-            <option value="">선택</option>
+            <option value="">?�택</option>
             {selectedBrandData?.products.map(product => (
               <option key={product.id} value={product.id}>
                 {product.name} {product.refractiveIndex && `(${product.refractiveIndex})`}
@@ -443,7 +443,7 @@ export default function DiopterGridPage() {
               cursor: 'pointer'
             }}
           >
-            옵션 일괄생성
+            ?�션 ?�괄?�성
           </button>
         )}
 
@@ -458,34 +458,34 @@ export default function DiopterGridPage() {
             cursor: selectedProduct ? 'pointer' : 'not-allowed'
           }}
         >
-          새로고침
+          ?�로고침
         </button>
       </div>
 
-      {/* 그리드 영역 */}
+      {/* 그리???�역 */}
       {gridLoading ? (
         <div style={{ 
           padding: '60px', 
           textAlign: 'center', 
           color: '#666',
-          background: '#fff',
+          background: 'var(--bg-primary)',
           border: '1px solid #999'
         }}>
-          로딩 중...
+          로딩 �?..
         </div>
       ) : gridData && gridData.sphRange.length > 0 ? (
         <div style={{ 
           display: 'flex', 
           gap: '4px',
-          background: '#fff',
+          background: 'var(--bg-primary)',
           border: '1px solid #999',
           height: 'calc(100vh - 280px)',
           overflow: 'hidden'
         }}>
-          {/* 마이너스 SPH 그리드 */}
+          {/* 마이?�스 SPH 그리??*/}
           {minusSph.length > 0 && renderGrid(minusSph, 'minus')}
           
-          {/* 구분선 */}
+          {/* 구분??*/}
           {minusSph.length > 0 && plusSph.length > 0 && (
             <div style={{ 
               width: '2px', 
@@ -494,17 +494,17 @@ export default function DiopterGridPage() {
             }} />
           )}
           
-          {/* 플러스 SPH 그리드 */}
+          {/* ?�러??SPH 그리??*/}
           {plusSph.length > 0 && renderGrid(plusSph, 'plus')}
         </div>
       ) : selectedProduct ? (
         <div style={{ 
-          background: '#fff', 
+          background: 'var(--bg-primary)', 
           border: '1px solid #999',
           padding: '60px', 
           textAlign: 'center' 
         }}>
-          <div style={{ marginBottom: '16px', color: '#666' }}>등록된 도수 옵션이 없습니다</div>
+          <div style={{ marginBottom: '16px', color: '#666' }}>?�록???�수 ?�션???�습?�다</div>
           <button
             onClick={() => setShowCreateModal(true)}
             style={{
@@ -515,22 +515,22 @@ export default function DiopterGridPage() {
               cursor: 'pointer'
             }}
           >
-            옵션 일괄 생성
+            ?�션 ?�괄 ?�성
           </button>
         </div>
       ) : (
         <div style={{ 
-          background: '#fff', 
+          background: 'var(--bg-primary)', 
           border: '1px solid #999',
           padding: '60px', 
           textAlign: 'center',
           color: '#666'
         }}>
-          품목과 품명을 선택하세요
+          ?�목�??�명???�택?�세??
         </div>
       )}
 
-      {/* 상태바 - 레거시 스타일 */}
+      {/* ?�태�?- ?�거???��???*/}
       <div style={{
         background: '#f0f0f0',
         border: '1px solid #999',
@@ -544,25 +544,25 @@ export default function DiopterGridPage() {
           <>
             <span>SPH: {formatLegacy(selectedCell.sph)}</span>
             <span>CYL: {formatLegacy(selectedCell.cyl)}</span>
-            <span>[현재고: {currentCell.stock}]</span>
-            {currentCell.waiting !== undefined && <span>[대기: {currentCell.waiting}]</span>}
+            <span>[?�재�? {currentCell.stock}]</span>
+            {currentCell.waiting !== undefined && <span>[?��? {currentCell.waiting}]</span>}
           </>
         ) : (
-          <span>셀을 선택하세요</span>
+          <span>?�???�택?�세??/span>
         )}
         
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '16px' }}>
           {gridData && (
             <>
-              <span>총 옵션: {gridData.stats.totalOptions}</span>
-              <span>총 재고: {gridData.stats.totalStock.toLocaleString()}</span>
-              <span style={{ color: '#c00' }}>품절: {gridData.stats.outOfStock}</span>
+              <span>�??�션: {gridData.stats.totalOptions}</span>
+              <span>�??�고: {gridData.stats.totalStock.toLocaleString()}</span>
+              <span style={{ color: '#c00' }}>?�절: {gridData.stats.outOfStock}</span>
             </>
           )}
         </div>
       </div>
 
-      {/* 옵션 생성 모달 */}
+      {/* ?�션 ?�성 모달 */}
       {showCreateModal && (
         <div style={{
           position: 'fixed',
@@ -590,7 +590,7 @@ export default function DiopterGridPage() {
               fontWeight: 'bold',
               fontSize: '14px'
             }}>
-              도수 옵션 일괄 생성
+              ?�수 ?�션 ?�괄 ?�성
             </div>
 
             <div style={{ display: 'grid', gap: '12px' }}>
@@ -609,7 +609,7 @@ export default function DiopterGridPage() {
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '12px', display: 'block' }}>최대</label>
+                    <label style={{ fontSize: '12px', display: 'block' }}>최�?</label>
                     <input
                       type="number"
                       step="0.25"
@@ -647,7 +647,7 @@ export default function DiopterGridPage() {
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '12px', display: 'block' }}>최대</label>
+                    <label style={{ fontSize: '12px', display: 'block' }}>최�?</label>
                     <input
                       type="number"
                       step="0.25"
@@ -670,9 +670,9 @@ export default function DiopterGridPage() {
                 </div>
               </fieldset>
 
-              {/* 기본 재고 */}
+              {/* 기본 ?�고 */}
               <div>
-                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>기본 재고</label>
+                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>기본 ?�고</label>
                 <input
                   type="number"
                   value={createForm.defaultStock}
@@ -684,16 +684,16 @@ export default function DiopterGridPage() {
               {/* 미리보기 */}
               <div style={{ 
                 padding: '8px', 
-                background: '#fff', 
+                background: 'var(--bg-primary)', 
                 border: '1px solid #999',
                 fontSize: '13px'
               }}>
-                예상 생성: {' '}
+                ?�상 ?�성: {' '}
                 <strong>
                   {Math.floor((createForm.sphMax - createForm.sphMin) / createForm.sphStep + 1) *
-                   Math.floor((createForm.cylMax - createForm.cylMin) / createForm.cylStep + 1)}개
+                   Math.floor((createForm.cylMax - createForm.cylMin) / createForm.cylStep + 1)}�?
                 </strong>
-                <span style={{ marginLeft: '8px', color: '#666' }}>(기존 옵션 건너뜀)</span>
+                <span style={{ marginLeft: '8px', color: '#666' }}>(기존 ?�션 건너?�)</span>
               </div>
             </div>
 
@@ -719,14 +719,14 @@ export default function DiopterGridPage() {
                   cursor: creating ? 'not-allowed' : 'pointer'
                 }}
               >
-                {creating ? '생성 중...' : '생성'}
+                {creating ? '?�성 �?..' : '?�성'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 셀 편집 모달 */}
+      {/* ?� ?�집 모달 */}
       {showEditModal && editingCell && (
         <div style={{
           position: 'fixed',
@@ -754,22 +754,22 @@ export default function DiopterGridPage() {
               fontWeight: 'bold',
               fontSize: '14px'
             }}>
-              재고 수정 - SPH: {formatLegacy(editingCell.sph)} / CYL: {formatLegacy(editingCell.cyl)}
+              ?�고 ?�정 - SPH: {formatLegacy(editingCell.sph)} / CYL: {formatLegacy(editingCell.cyl)}
             </div>
 
             <div style={{ display: 'grid', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>재고</label>
+                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>?�고</label>
                 <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                   <button
                     onClick={() => setEditForm({ ...editForm, stock: Math.max(0, editForm.stock - 10) })}
-                    style={{ padding: '4px 8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}
+                    style={{ padding: '4px 8px', border: '1px solid #999', background: 'var(--bg-primary)', cursor: 'pointer' }}
                   >
                     -10
                   </button>
                   <button
                     onClick={() => setEditForm({ ...editForm, stock: Math.max(0, editForm.stock - 1) })}
-                    style={{ padding: '4px 8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}
+                    style={{ padding: '4px 8px', border: '1px solid #999', background: 'var(--bg-primary)', cursor: 'pointer' }}
                   >
                     -1
                   </button>
@@ -788,13 +788,13 @@ export default function DiopterGridPage() {
                   />
                   <button
                     onClick={() => setEditForm({ ...editForm, stock: editForm.stock + 1 })}
-                    style={{ padding: '4px 8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}
+                    style={{ padding: '4px 8px', border: '1px solid #999', background: 'var(--bg-primary)', cursor: 'pointer' }}
                   >
                     +1
                   </button>
                   <button
                     onClick={() => setEditForm({ ...editForm, stock: editForm.stock + 10 })}
-                    style={{ padding: '4px 8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}
+                    style={{ padding: '4px 8px', border: '1px solid #999', background: 'var(--bg-primary)', cursor: 'pointer' }}
                   >
                     +10
                   </button>
@@ -805,7 +805,7 @@ export default function DiopterGridPage() {
                     fontSize: '12px', 
                     color: editForm.stock > editingCell.stock ? '#080' : '#c00' 
                   }}>
-                    변경: {editingCell.stock} → {editForm.stock} 
+                    변�? {editingCell.stock} ??{editForm.stock} 
                     ({editForm.stock > editingCell.stock ? '+' : ''}{editForm.stock - editingCell.stock})
                   </div>
                 )}
@@ -813,7 +813,7 @@ export default function DiopterGridPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div>
-                  <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>바코드</label>
+                  <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>바코??/label>
                   <input
                     type="text"
                     value={editForm.barcode}
@@ -822,19 +822,19 @@ export default function DiopterGridPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>위치</label>
+                  <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>?�치</label>
                   <input
                     type="text"
                     value={editForm.location}
                     onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                    placeholder="예: A-1-3"
+                    placeholder="?? A-1-3"
                     style={{ width: '100%', padding: '4px', border: '1px solid #999' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>가격 조정</label>
+                <label style={{ fontSize: '13px', display: 'block', marginBottom: '4px' }}>가�?조정</label>
                 <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                   <input
                     type="number"
@@ -842,7 +842,7 @@ export default function DiopterGridPage() {
                     onChange={(e) => setEditForm({ ...editForm, priceAdjustment: parseInt(e.target.value) || 0 })}
                     style={{ flex: 1, padding: '4px', border: '1px solid #999' }}
                   />
-                  <span style={{ fontSize: '13px' }}>원</span>
+                  <span style={{ fontSize: '13px' }}>??/span>
                 </div>
               </div>
             </div>
@@ -869,7 +869,7 @@ export default function DiopterGridPage() {
                   cursor: saving ? 'not-allowed' : 'pointer'
                 }}
               >
-                {saving ? '저장 중...' : '저장'}
+                {saving ? '?�??�?..' : '?�??}
               </button>
             </div>
           </div>

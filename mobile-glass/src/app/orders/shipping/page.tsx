@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Layout, { cardStyle } from '../../components/Layout'
 import { ORDER_SIDEBAR } from '../../constants/sidebar'
 
-type OrderType = '전체' | '여벌' | '착색' | 'RX'
+type OrderType = '?�체' | '?�벌' | '착색' | 'RX'
 
 interface Supplier {
   id: number
@@ -32,56 +32,53 @@ interface ShippingOrder {
 }
 
 export default function ShippingPage() {
-  const [activeTab, setActiveTab] = useState<OrderType>('전체')
+  const [activeTab, setActiveTab] = useState<OrderType>('?�체')
   const [selectedSupplier, setSelectedSupplier] = useState<number | null>(null)
   const [orders, setOrders] = useState<ShippingOrder[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedOrders, setSelectedOrders] = useState<Set<number>>(new Set())
 
-  // 데이터 로드 (데모 데이터)
+  // ?�이??로드 (?�모 ?�이??
   useEffect(() => {
-    // 매입처 데모 데이터
-    const demoSuppliers: Supplier[] = [
-      { id: 1, name: '케미렌즈', pendingCount: 45, pendingAmount: 2350000 },
-      { id: 2, name: '한국호야', pendingCount: 23, pendingAmount: 1850000 },
-      { id: 3, name: '에실로코리아', pendingCount: 18, pendingAmount: 2100000 },
-      { id: 4, name: '니콘렌즈', pendingCount: 12, pendingAmount: 980000 },
-      { id: 5, name: '자이스', pendingCount: 8, pendingAmount: 1200000 },
+    // 매입�??�모 ?�이??    const demoSuppliers: Supplier[] = [
+      { id: 1, name: '케미렌�?, pendingCount: 45, pendingAmount: 2350000 },
+      { id: 2, name: '?�국?�야', pendingCount: 23, pendingAmount: 1850000 },
+      { id: 3, name: '?�실로코리아', pendingCount: 18, pendingAmount: 2100000 },
+      { id: 4, name: '?�콘?�즈', pendingCount: 12, pendingAmount: 980000 },
+      { id: 5, name: '?�이??, pendingCount: 8, pendingAmount: 1200000 },
     ]
     setSuppliers(demoSuppliers)
 
-    // 출고 대기 주문 데모 데이터
-    const demoOrders: ShippingOrder[] = [
-      { id: 1, orderNumber: 'O-2026-0001', storeName: '글라스 망우점', storeCode: '8107', productName: '[케미 일반] 중', brandName: '케미', sph: '-2.00', cyl: '-0.50', quantity: 2, amount: 3500, orderType: '여벌', supplierName: '케미렌즈', supplierId: 1, orderedAt: '2026-02-09 09:00', status: '출고대기' },
-      { id: 2, orderNumber: 'O-2026-0002', storeName: '글라스스토리 미사점', storeCode: '8128', productName: '[케미 퍼펙트] 고비', brandName: '케미', sph: '-3.50', cyl: '-1.00', quantity: 1, amount: 5500, orderType: '여벌', supplierName: '케미렌즈', supplierId: 1, orderedAt: '2026-02-09 09:15', status: '출고대기' },
-      { id: 3, orderNumber: 'O-2026-0003', storeName: '눈편한안경원', storeCode: '7753', productName: '착색 1.60 브라운', brandName: '진명', sph: '-4.00', cyl: '-0.75', quantity: 1, amount: 12000, orderType: '착색', supplierName: '에실로코리아', supplierId: 3, orderedAt: '2026-02-09 09:30', status: '출고대기' },
-      { id: 4, orderNumber: 'O-2026-0004', storeName: '그랑프리 성수점', storeCode: '4143', productName: 'RX 누진 1.67', brandName: '호야', sph: '-2.25', cyl: '-0.25', quantity: 1, amount: 85000, orderType: 'RX', supplierName: '한국호야', supplierId: 2, orderedAt: '2026-02-09 09:45', status: '출고대기' },
-      { id: 5, orderNumber: 'O-2026-0005', storeName: '더밝은안경 구리', storeCode: '9697', productName: '[케미 초발수] 중비', brandName: '케미', sph: '-1.50', cyl: '0.00', quantity: 2, amount: 6930, orderType: '여벌', supplierName: '케미렌즈', supplierId: 1, orderedAt: '2026-02-09 10:00', status: '출고대기' },
-      { id: 6, orderNumber: 'O-2026-0006', storeName: '로이스 성신여대', storeCode: '9701', productName: '착색 1.56 그레이', brandName: '진명', sph: '-5.00', cyl: '-1.50', quantity: 1, amount: 8500, orderType: '착색', supplierName: '에실로코리아', supplierId: 3, orderedAt: '2026-02-09 10:15', status: '출고대기' },
-      { id: 7, orderNumber: 'O-2026-0007', storeName: '눈이야기', storeCode: '11485', productName: 'RX 양면비구면 1.74', brandName: '니콘', sph: '-6.00', cyl: '-2.00', quantity: 1, amount: 120000, orderType: 'RX', supplierName: '니콘렌즈', supplierId: 4, orderedAt: '2026-02-09 10:30', status: '출고대기' },
-      { id: 8, orderNumber: 'O-2026-0008', storeName: '글라스타 잠실점', storeCode: '7899', productName: '[케미 변색] GEN 8(B)', brandName: '케미', sph: '-2.75', cyl: '-0.50', quantity: 1, amount: 42500, orderType: '여벌', supplierName: '케미렌즈', supplierId: 1, orderedAt: '2026-02-09 10:45', status: '출고대기' },
+    // 출고 ?��?주문 ?�모 ?�이??    const demoOrders: ShippingOrder[] = [
+      { id: 1, orderNumber: 'O-2026-0001', storeName: '글?�스 망우??, storeCode: '8107', productName: '[케�??�반] �?, brandName: '케�?, sph: '-2.00', cyl: '-0.50', quantity: 2, amount: 3500, orderType: '?�벌', supplierName: '케미렌�?, supplierId: 1, orderedAt: '2026-02-09 09:00', status: '출고?��? },
+      { id: 2, orderNumber: 'O-2026-0002', storeName: '글?�스?�토�?미사??, storeCode: '8128', productName: '[케�??�펙?? 고비', brandName: '케�?, sph: '-3.50', cyl: '-1.00', quantity: 1, amount: 5500, orderType: '?�벌', supplierName: '케미렌�?, supplierId: 1, orderedAt: '2026-02-09 09:15', status: '출고?��? },
+      { id: 3, orderNumber: 'O-2026-0003', storeName: '?�편?�안경원', storeCode: '7753', productName: '착색 1.60 브라??, brandName: '진명', sph: '-4.00', cyl: '-0.75', quantity: 1, amount: 12000, orderType: '착색', supplierName: '?�실로코리아', supplierId: 3, orderedAt: '2026-02-09 09:30', status: '출고?��? },
+      { id: 4, orderNumber: 'O-2026-0004', storeName: '그랑?�리 ?�수??, storeCode: '4143', productName: 'RX ?�진 1.67', brandName: '?�야', sph: '-2.25', cyl: '-0.25', quantity: 1, amount: 85000, orderType: 'RX', supplierName: '?�국?�야', supplierId: 2, orderedAt: '2026-02-09 09:45', status: '출고?��? },
+      { id: 5, orderNumber: 'O-2026-0005', storeName: '?�밝?�?�경 구리', storeCode: '9697', productName: '[케�?초발?? 중비', brandName: '케�?, sph: '-1.50', cyl: '0.00', quantity: 2, amount: 6930, orderType: '?�벌', supplierName: '케미렌�?, supplierId: 1, orderedAt: '2026-02-09 10:00', status: '출고?��? },
+      { id: 6, orderNumber: 'O-2026-0006', storeName: '로이???�신?��?', storeCode: '9701', productName: '착색 1.56 그레??, brandName: '진명', sph: '-5.00', cyl: '-1.50', quantity: 1, amount: 8500, orderType: '착색', supplierName: '?�실로코리아', supplierId: 3, orderedAt: '2026-02-09 10:15', status: '출고?��? },
+      { id: 7, orderNumber: 'O-2026-0007', storeName: '?�이?�기', storeCode: '11485', productName: 'RX ?�면비구�?1.74', brandName: '?�콘', sph: '-6.00', cyl: '-2.00', quantity: 1, amount: 120000, orderType: 'RX', supplierName: '?�콘?�즈', supplierId: 4, orderedAt: '2026-02-09 10:30', status: '출고?��? },
+      { id: 8, orderNumber: 'O-2026-0008', storeName: '글?�스?� ?�실??, storeCode: '7899', productName: '[케�?변?? GEN 8(B)', brandName: '케�?, sph: '-2.75', cyl: '-0.50', quantity: 1, amount: 42500, orderType: '?�벌', supplierName: '케미렌�?, supplierId: 1, orderedAt: '2026-02-09 10:45', status: '출고?��? },
     ]
     setOrders(demoOrders)
     setLoading(false)
   }, [])
 
-  // 필터링된 주문
+  // ?�터링된 주문
   const filteredOrders = orders.filter(order => {
-    const matchesTab = activeTab === '전체' || order.orderType === activeTab
+    const matchesTab = activeTab === '?�체' || order.orderType === activeTab
     const matchesSupplier = selectedSupplier === null || order.supplierId === selectedSupplier
     return matchesTab && matchesSupplier
   })
 
-  // 탭별 카운트
-  const tabCounts = {
-    '전체': orders.length,
-    '여벌': orders.filter(o => o.orderType === '여벌').length,
+  // ??�� 카운??  const tabCounts = {
+    '?�체': orders.length,
+    '?�벌': orders.filter(o => o.orderType === '?�벌').length,
     '착색': orders.filter(o => o.orderType === '착색').length,
     'RX': orders.filter(o => o.orderType === 'RX').length,
   }
 
-  // 전체 선택/해제
+  // ?�체 ?�택/?�제
   const toggleSelectAll = () => {
     if (selectedOrders.size === filteredOrders.length) {
       setSelectedOrders(new Set())
@@ -90,7 +87,7 @@ export default function ShippingPage() {
     }
   }
 
-  // 개별 선택
+  // 개별 ?�택
   const toggleSelect = (id: number) => {
     const newSet = new Set(selectedOrders)
     if (newSet.has(id)) {
@@ -104,21 +101,21 @@ export default function ShippingPage() {
   // 출고 처리
   const handleShipping = () => {
     if (selectedOrders.size === 0) {
-      alert('출고할 주문을 선택해주세요.')
+      alert('출고??주문???�택?�주?�요.')
       return
     }
-    alert(`${selectedOrders.size}건의 주문이 출고 처리되었습니다.`)
+    alert(`${selectedOrders.size}건의 주문??출고 처리?�었?�니??`)
     setSelectedOrders(new Set())
   }
 
-  // 선택된 주문 합계
+  // ?�택??주문 ?�계
   const selectedTotal = filteredOrders
     .filter(o => selectedOrders.has(o.id))
     .reduce((sum, o) => sum + o.amount * o.quantity, 0)
 
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
-      {/* 헤더 */}
+      {/* ?�더 */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -128,10 +125,9 @@ export default function ShippingPage() {
         borderBottom: '2px solid #5d7a5d'
       }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>전표발행 (출고 확인)</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>?�표발행 (출고 ?�인)</h1>
           <p style={{ fontSize: 12, color: '#666', margin: '4px 0 0' }}>
-            OlwsPro 스타일 출고 관리
-          </p>
+            OlwsPro ?��???출고 관�?          </p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <span style={{ fontSize: 13, color: '#666' }}>
@@ -147,9 +143,9 @@ export default function ShippingPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 15, height: 'calc(100vh - 180px)' }}>
         
-        {/* 왼쪽: 매입처별 대기량 */}
+        {/* ?�쪽: 매입처별 ?�기량 */}
         <div style={{ 
-          background: '#f8f9fa',
+          background: 'var(--bg-secondary)',
           borderRadius: 8,
           overflow: 'hidden',
           display: 'flex',
@@ -162,10 +158,9 @@ export default function ShippingPage() {
             fontSize: 13,
             fontWeight: 600
           }}>
-            매입처별 출고 대기
-          </div>
+            매입처별 출고 ?��?          </div>
           
-          {/* 전체 보기 */}
+          {/* ?�체 보기 */}
           <div
             onClick={() => setSelectedSupplier(null)}
             style={{
@@ -179,21 +174,19 @@ export default function ShippingPage() {
             }}
           >
             <div>
-              <div style={{ fontWeight: 600, fontSize: 13 }}>전체</div>
+              <div style={{ fontWeight: 600, fontSize: 13 }}>?�체</div>
               <div style={{ fontSize: 11, color: '#666' }}>
-                {suppliers.reduce((sum, s) => sum + s.pendingCount, 0)}건 대기
-              </div>
+                {suppliers.reduce((sum, s) => sum + s.pendingCount, 0)}�??��?              </div>
             </div>
             <div style={{ 
               fontSize: 12, 
               fontWeight: 600, 
               color: '#5d7a5d' 
             }}>
-              {suppliers.reduce((sum, s) => sum + s.pendingAmount, 0).toLocaleString()}원
-            </div>
+              {suppliers.reduce((sum, s) => sum + s.pendingAmount, 0).toLocaleString()}??            </div>
           </div>
           
-          {/* 매입처 목록 */}
+          {/* 매입�?목록 */}
           <div style={{ flex: 1, overflow: 'auto' }}>
             {suppliers.map(supplier => (
               <div
@@ -212,37 +205,35 @@ export default function ShippingPage() {
                 <div>
                   <div style={{ fontWeight: 500, fontSize: 13 }}>{supplier.name}</div>
                   <div style={{ fontSize: 11, color: '#666' }}>
-                    {supplier.pendingCount}건 대기
-                  </div>
+                    {supplier.pendingCount}�??��?                  </div>
                 </div>
                 <div style={{ 
                   fontSize: 12, 
                   fontWeight: 500, 
                   color: supplier.pendingCount > 30 ? '#f44336' : '#333'
                 }}>
-                  {supplier.pendingAmount.toLocaleString()}원
-                </div>
+                  {supplier.pendingAmount.toLocaleString()}??                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 오른쪽: 출고 대기 목록 */}
+        {/* ?�른�? 출고 ?��?목록 */}
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column',
-          background: '#fff',
+          background: 'var(--bg-primary)',
           border: '1px solid #ccc',
           borderRadius: 8,
           overflow: 'hidden'
         }}>
-          {/* 탭 */}
+          {/* ??*/}
           <div style={{
             display: 'flex',
             borderBottom: '2px solid #5d7a5d',
-            background: '#f8f9fa'
+            background: 'var(--bg-secondary)'
           }}>
-            {(['전체', '여벌', '착색', 'RX'] as OrderType[]).map(tab => (
+            {(['?�체', '?�벌', '착색', 'RX'] as OrderType[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -274,7 +265,7 @@ export default function ShippingPage() {
             ))}
           </div>
 
-          {/* 테이블 헤더 */}
+          {/* ?�이�??�더 */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: '40px 1fr 120px 80px 80px 70px 80px 100px',
@@ -293,24 +284,24 @@ export default function ShippingPage() {
               />
             </div>
             <div>가맹점</div>
-            <div>상품명</div>
+            <div>?�품�?/div>
             <div style={{ textAlign: 'center' }}>SPH</div>
             <div style={{ textAlign: 'center' }}>CYL</div>
-            <div style={{ textAlign: 'center' }}>수량</div>
+            <div style={{ textAlign: 'center' }}>?�량</div>
             <div style={{ textAlign: 'right' }}>금액</div>
-            <div style={{ textAlign: 'center' }}>매입처</div>
+            <div style={{ textAlign: 'center' }}>매입�?/div>
           </div>
 
           {/* 주문 목록 */}
           <div style={{ flex: 1, overflow: 'auto' }}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
-                로딩 중...
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                로딩 �?..
               </div>
             ) : filteredOrders.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>📦</div>
-                출고 대기 주문이 없습니다
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>?��</div>
+                출고 ?��?주문???�습?�다
               </div>
             ) : (
               filteredOrders.map((order, index) => (
@@ -338,7 +329,7 @@ export default function ShippingPage() {
                   </div>
                   <div>
                     <div style={{ fontWeight: 500 }}>{order.storeName}</div>
-                    <div style={{ fontSize: 10, color: '#868e96' }}>{order.storeCode} · {order.orderedAt}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{order.storeCode} · {order.orderedAt}</div>
                   </div>
                   <div>
                     <div style={{ fontWeight: 500, fontSize: 11 }}>{order.productName}</div>
@@ -365,20 +356,19 @@ export default function ShippingPage() {
             )}
           </div>
 
-          {/* 하단 액션 바 */}
+          {/* ?�단 ?�션 �?*/}
           <div style={{
             padding: '12px 15px',
             borderTop: '1px solid #ccc',
-            background: '#f8f9fa',
+            background: 'var(--bg-secondary)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
             <div style={{ fontSize: 13 }}>
-              선택: <strong>{selectedOrders.size}</strong>건 
+              ?�택: <strong>{selectedOrders.size}</strong>�?
               <span style={{ marginLeft: 15, color: '#5d7a5d', fontWeight: 600 }}>
-                {selectedTotal.toLocaleString()}원
-              </span>
+                {selectedTotal.toLocaleString()}??              </span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
@@ -386,13 +376,13 @@ export default function ShippingPage() {
                 style={{
                   padding: '8px 16px',
                   border: '1px solid #ccc',
-                  background: '#fff',
+                  background: 'var(--bg-primary)',
                   borderRadius: 4,
                   cursor: 'pointer',
                   fontSize: 12
                 }}
               >
-                선택 해제
+                ?�택 ?�제
               </button>
               <button
                 onClick={handleShipping}
@@ -408,7 +398,7 @@ export default function ShippingPage() {
                   fontWeight: 600
                 }}
               >
-                출고 처리 ({selectedOrders.size}건)
+                출고 처리 ({selectedOrders.size}�?
               </button>
             </div>
           </div>

@@ -63,7 +63,7 @@ export default function ProductsPage() {
     fetchProducts()
   }, [])
 
-  // 상품 수정시 옵션(도수표) 불러오기
+  // ?�품 ?�정???�션(?�수?? 불러?�기
   useEffect(() => {
     if (editingProduct) {
       fetchProductOptions(editingProduct.id)
@@ -112,56 +112,56 @@ export default function ProductsPage() {
         <div style={{ 
           width: '40px', 
           height: '40px', 
-          background: '#f5f5f7', 
+          background: 'var(--bg-secondary)', 
           borderRadius: '6px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '16px',
-          color: '#86868b'
-        }}>📷</div>
+          color: 'var(--text-tertiary)'
+        }}>?��</div>
       )
     )},
     { key: 'code', label: '코드', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
+      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-tertiary)' }}>{v as string}</span>
     )},
-    { key: 'brand', label: '브랜드', render: (v) => (
+    { key: 'brand', label: '브랜??, render: (v) => (
       <span style={{ background: '#eef4ee', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#007aff' }}>
         {v as string}
       </span>
     )},
-    { key: 'name', label: '상품명', render: (v) => (
+    { key: 'name', label: '?�품�?, render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
-    { key: 'optionType', label: '옵션타입', render: (v) => (
+    { key: 'optionType', label: '?�션?�??, render: (v) => (
       <span style={{ fontSize: '12px', color: '#666' }}>{v as string}</span>
     )},
-    { key: 'refractiveIndex', label: '굴절률', render: (v) => (
+    { key: 'refractiveIndex', label: '굴절�?, render: (v) => (
       <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{v as string || '-'}</span>
     )},
-    { key: 'sellingPrice', label: '판매가', align: 'right', render: (v) => (
-      <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{(v as number).toLocaleString()}원</span>
+    { key: 'sellingPrice', label: '?�매가', align: 'right', render: (v) => (
+      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{(v as number).toLocaleString()}??/span>
     )},
-    { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} /> },
-    { key: 'id', label: '관리', align: 'center', render: (_, row) => (
+    { key: 'status', label: '?�태', render: (v) => <StatusBadge status={v as string} /> },
+    { key: 'id', label: '관�?, align: 'center', render: (_, row) => (
       <button
         onClick={() => { setEditingProduct(row); setShowModal(true); }}
         style={{
           padding: '4px 10px',
           borderRadius: '4px',
-          background: '#f5f5f7',
+          background: 'var(--bg-secondary)',
           color: '#007aff',
           border: 'none',
           fontSize: '12px',
           cursor: 'pointer'
         }}
       >
-        수정
+        ?�정
       </button>
     )},
   ]
 
-  // 필터링
+  // ?�터�?
   let filteredProducts = products
   if (filter !== 'all') {
     filteredProducts = filteredProducts.filter(p => p.status === filter)
@@ -181,10 +181,10 @@ export default function ProductsPage() {
     )
   }
 
-  // 옵션타입 목록 추출
+  // ?�션?�??목록 추출
   const optionTypes = [...new Set(products.map(p => p.optionType))]
 
-  // 이미지 업로드 핸들러
+  // ?��?지 ?�로???�들??
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     if (!editingProduct || !e.target.files?.[0]) return
     
@@ -200,14 +200,14 @@ export default function ProductsPage() {
       const data = await res.json()
       if (data.imageUrl) {
         setEditingProduct({ ...editingProduct, imageUrl: data.imageUrl })
-        // 목록도 업데이트
+        // 목록???�데?�트
         setProducts(products.map(p => 
           p.id === editingProduct.id ? { ...p, imageUrl: data.imageUrl } : p
         ))
       }
     } catch (error) {
       console.error('Failed to upload image:', error)
-      alert('이미지 업로드 실패')
+      alert('?��?지 ?�로???�패')
     } finally {
       setImageUploading(false)
     }
@@ -230,8 +230,8 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <AdminLayout activeMenu="products">
-        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
-          로딩 중...
+        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-tertiary)' }}>
+          로딩 �?..
         </div>
       </AdminLayout>
     )
@@ -239,29 +239,29 @@ export default function ProductsPage() {
 
   return (
     <AdminLayout activeMenu="products">
-      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: '#1d1d1f' }}>
-        판매상품 관리
+      <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-primary)' }}>
+        ?�매?�품 관�?
       </h2>
 
       <StatCardGrid>
-        <StatCard label="총 상품" value={stats.total} unit="개" icon="📦" />
-        <StatCard label="활성 상품" value={stats.active} unit="개" />
-        <StatCard label="비활성 상품" value={stats.inactive} unit="개" />
-        <StatCard label="브랜드" value={brands.length} unit="개" />
+        <StatCard label="�??�품" value={stats.total} unit="�? icon="?��" />
+        <StatCard label="?�성 ?�품" value={stats.active} unit="�? />
+        <StatCard label="비활???�품" value={stats.inactive} unit="�? />
+        <StatCard label="브랜?? value={brands.length} unit="�? />
       </StatCardGrid>
 
       <SearchFilter
-        placeholder="상품코드, 상품명 검색"
+        placeholder="?�품코드, ?�품�?검??
         onSearch={setSearchQuery}
         filters={[
           { 
-            label: '브랜드', 
+            label: '브랜??, 
             key: 'brand', 
             options: brands.map(b => ({ label: b.name, value: b.name })),
             onChange: setBrandFilter
           },
           { 
-            label: '옵션타입', 
+            label: '?�션?�??, 
             key: 'optionType', 
             options: optionTypes.map(t => ({ label: t, value: t })),
             onChange: setOptionFilter
@@ -269,7 +269,7 @@ export default function ProductsPage() {
         ]}
         actions={
           <>
-            <OutlineButton onClick={() => alert('엑셀 다운로드')}>📥 엑셀</OutlineButton>
+            <OutlineButton onClick={() => alert('?��? ?�운로드')}>?�� ?��?</OutlineButton>
             <button
               onClick={() => { setEditingProduct(null); setShowModal(true); }}
               style={{
@@ -283,18 +283,18 @@ export default function ProductsPage() {
                 cursor: 'pointer'
               }}
             >
-              + 상품 등록
+              + ?�품 ?�록
             </button>
           </>
         }
       />
 
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
         <FilterButtonGroup
           options={[
-            { label: '전체', value: 'all' },
-            { label: '활성', value: 'active' },
-            { label: '비활성', value: 'inactive' },
+            { label: '?�체', value: 'all' },
+            { label: '?�성', value: 'active' },
+            { label: '비활??, value: 'inactive' },
           ]}
           value={filter}
           onChange={setFilter}
@@ -307,24 +307,24 @@ export default function ProductsPage() {
         selectable
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
-        emptyMessage="등록된 상품이 없습니다"
+        emptyMessage="?�록???�품???�습?�다"
       />
 
       <div style={{ 
         marginTop: '16px', 
         padding: '16px 20px', 
-        background: '#fff', 
+        background: 'var(--bg-primary)', 
         borderRadius: '12px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <span style={{ fontSize: '13px', color: '#86868b' }}>
-          총 {filteredProducts.length}개 상품
+        <span style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
+          �?{filteredProducts.length}�??�품
         </span>
       </div>
 
-      {/* 등록/수정 모달 */}
+      {/* ?�록/?�정 모달 */}
       {showModal && (
         <div style={{
           position: 'fixed',
@@ -339,7 +339,7 @@ export default function ProductsPage() {
           zIndex: 1000
         }}>
           <div style={{
-            background: '#fff',
+            background: 'var(--bg-primary)',
             borderRadius: '16px',
             padding: '24px',
             width: editingProduct ? '600px' : '500px',
@@ -347,11 +347,11 @@ export default function ProductsPage() {
             overflowY: 'auto'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editingProduct ? '상품 수정' : '상품 등록'}
+              {editingProduct ? '?�품 ?�정' : '?�품 ?�록'}
             </h3>
             
             <div style={{ display: 'grid', gap: '16px' }}>
-              {/* 이미지 섹션 */}
+              {/* ?��?지 ?�션 */}
               {editingProduct && (
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
                   <div style={{
@@ -359,7 +359,7 @@ export default function ProductsPage() {
                     height: '120px',
                     borderRadius: '12px',
                     overflow: 'hidden',
-                    background: '#f5f5f7',
+                    background: 'var(--bg-secondary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -372,12 +372,12 @@ export default function ProductsPage() {
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     ) : (
-                      <span style={{ fontSize: '32px', color: '#86868b' }}>📷</span>
+                      <span style={{ fontSize: '32px', color: 'var(--text-tertiary)' }}>?��</span>
                     )}
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '8px' }}>
-                      상품 이미지
+                      ?�품 ?��?지
                     </label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <label style={{
@@ -389,7 +389,7 @@ export default function ProductsPage() {
                         cursor: imageUploading ? 'wait' : 'pointer',
                         opacity: imageUploading ? 0.6 : 1
                       }}>
-                        {imageUploading ? '업로드 중...' : '이미지 선택'}
+                        {imageUploading ? '?�로??�?..' : '?��?지 ?�택'}
                         <input 
                           type="file" 
                           accept="image/*" 
@@ -404,31 +404,31 @@ export default function ProductsPage() {
                           style={{
                             padding: '8px 12px',
                             borderRadius: '6px',
-                            background: '#fff',
+                            background: 'var(--bg-primary)',
                             color: '#ff3b30',
                             border: '1px solid #ff3b30',
                             fontSize: '13px',
                             cursor: 'pointer'
                           }}
                         >
-                          삭제
+                          ??��
                         </button>
                       )}
                     </div>
-                    <p style={{ fontSize: '11px', color: '#86868b', marginTop: '8px' }}>
-                      JPG, PNG 형식 (최대 5MB)
+                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
+                      JPG, PNG ?�식 (최�? 5MB)
                     </p>
                   </div>
                 </div>
               )}
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>브랜드 *</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>브랜??*</label>
                 <select 
                   defaultValue={editingProduct?.brandId || ''} 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }}
                 >
-                  <option value="">선택</option>
+                  <option value="">?�택</option>
                   {brands.map(b => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
@@ -436,34 +436,34 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상품명 *</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�품�?*</label>
                 <input 
                   type="text" 
                   defaultValue={editingProduct?.name} 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }} 
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>옵션타입</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�션?�??/label>
                   <select 
                     defaultValue={editingProduct?.optionType || ''} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }}
                   >
-                    <option value="">선택</option>
-                    <option value="안경렌즈 RX">안경렌즈 RX</option>
-                    <option value="안경렌즈 여벌">안경렌즈 여벌</option>
-                    <option value="콘택트렌즈">콘택트렌즈</option>
+                    <option value="">?�택</option>
+                    <option value="?�경?�즈 RX">?�경?�즈 RX</option>
+                    <option value="?�경?�즈 ?�벌">?�경?�즈 ?�벌</option>
+                    <option value="콘택?�렌�?>콘택?�렌�?/option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>굴절률</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>굴절�?/label>
                   <select 
                     defaultValue={editingProduct?.refractiveIndex || ''} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }}
                   >
-                    <option value="">선택</option>
+                    <option value="">?�택</option>
                     <option value="1.50">1.50</option>
                     <option value="1.56">1.56</option>
                     <option value="1.60">1.60</option>
@@ -475,11 +475,11 @@ export default function ProductsPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>묶음상품명</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>묶음?�품�?/label>
                   <input 
                     type="text" 
                     defaultValue={editingProduct?.bundleName || ''} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }} 
                   />
                 </div>
                 <div>
@@ -487,19 +487,19 @@ export default function ProductsPage() {
                   <input 
                     type="text" 
                     defaultValue={editingProduct?.erpCode || ''} 
-                    placeholder="레티나 상품코드"
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
+                    placeholder="?�티???�품코드"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }} 
                   />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>판매가</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�매가</label>
                   <input 
                     type="number" 
                     defaultValue={editingProduct?.sellingPrice || 0} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }} 
                   />
                 </div>
                 <div>
@@ -507,31 +507,31 @@ export default function ProductsPage() {
                   <input 
                     type="number" 
                     defaultValue={editingProduct?.purchasePrice || 0} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }} 
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상태</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>?�태</label>
                 <select 
                   defaultValue={editingProduct?.isActive ? 'active' : 'inactive'} 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px' }}
                 >
-                  <option value="active">활성</option>
-                  <option value="inactive">비활성</option>
+                  <option value="active">?�성</option>
+                  <option value="inactive">비활??/option>
                 </select>
               </div>
 
-              {/* 도수표 섹션 */}
+              {/* ?�수???�션 */}
               {editingProduct && (
                 <div style={{ marginTop: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#1d1d1f' }}>
-                      📋 도수표 ({productOptions.length}개)
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      ?�� ?�수??({productOptions.length}�?
                     </label>
                     <button
-                      onClick={() => alert('도수 추가 기능 준비중')}
+                      onClick={() => alert('?�수 추�? 기능 준비중')}
                       style={{
                         padding: '4px 12px',
                         borderRadius: '6px',
@@ -542,40 +542,40 @@ export default function ProductsPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      + 도수 추가
+                      + ?�수 추�?
                     </button>
                   </div>
                   
                   {optionsLoading ? (
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#86868b', fontSize: '13px' }}>
-                      로딩 중...
+                    <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-tertiary)', fontSize: '13px' }}>
+                      로딩 �?..
                     </div>
                   ) : productOptions.length === 0 ? (
                     <div style={{ 
                       textAlign: 'center', 
                       padding: '24px', 
-                      background: '#f5f5f7', 
+                      background: 'var(--bg-secondary)', 
                       borderRadius: '8px',
-                      color: '#86868b',
+                      color: 'var(--text-tertiary)',
                       fontSize: '13px'
                     }}>
-                      등록된 도수가 없습니다
+                      ?�록???�수가 ?�습?�다
                     </div>
                   ) : (
                     <div style={{ 
                       maxHeight: '250px', 
                       overflowY: 'auto', 
-                      border: '1px solid #e9ecef', 
+                      border: '1px solid var(--border-color)', 
                       borderRadius: '8px'
                     }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                         <thead>
-                          <tr style={{ background: '#f5f5f7', position: 'sticky', top: 0 }}>
-                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>SPH</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>CYL</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>재고</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>상태</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>관리</th>
+                          <tr style={{ background: 'var(--bg-secondary)', position: 'sticky', top: 0 }}>
+                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid var(--border-color)' }}>SPH</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid var(--border-color)' }}>CYL</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid var(--border-color)' }}>?�고</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid var(--border-color)' }}>?�태</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid var(--border-color)' }}>관�?/th>
                           </tr>
                         </thead>
                         <tbody>
@@ -589,15 +589,15 @@ export default function ProductsPage() {
                                   padding: '2px 8px',
                                   borderRadius: '4px',
                                   fontSize: '11px',
-                                  background: opt.status === '주문가능' ? '#e8f5e9' : '#ffebee',
-                                  color: opt.status === '주문가능' ? '#2e7d32' : '#c62828'
+                                  background: opt.status === '주문가?? ? '#e8f5e9' : '#ffebee',
+                                  color: opt.status === '주문가?? ? '#2e7d32' : '#c62828'
                                 }}>
                                   {opt.status}
                                 </span>
                               </td>
                               <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                                 <button
-                                  onClick={() => alert(`도수 수정: SPH ${opt.sph}, CYL ${opt.cyl}`)}
+                                  onClick={() => alert(`?�수 ?�정: SPH ${opt.sph}, CYL ${opt.cyl}`)}
                                   style={{
                                     padding: '2px 8px',
                                     borderRadius: '4px',
@@ -608,7 +608,7 @@ export default function ProductsPage() {
                                     cursor: 'pointer'
                                   }}
                                 >
-                                  수정
+                                  ?�정
                                 </button>
                               </td>
                             </tr>
@@ -624,15 +624,15 @@ export default function ProductsPage() {
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button 
                 onClick={() => setShowModal(false)} 
-                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}
+                style={{ padding: '10px 20px', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: 'none', fontSize: '14px', cursor: 'pointer' }}
               >
                 취소
               </button>
               <button 
-                onClick={() => { alert('저장되었습니다.'); setShowModal(false); }} 
+                onClick={() => { alert('?�?�되?�습?�다.'); setShowModal(false); }} 
                 style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
               >
-                저장
+                ?�??
               </button>
             </div>
           </div>

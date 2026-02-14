@@ -5,24 +5,24 @@ import Layout, { btnStyle, cardStyle, selectStyle, inputStyle } from '../../comp
 
 const SIDEBAR = [
   {
-    title: '관리',
+    title: '관�?,
     items: [
-      { label: '가맹점 관리', href: '/stores' },
-      { label: '담당자 관리', href: '/stores/delivery-staff' },
-      { label: '가맹점 공지사항', href: '/stores/notices' },
+      { label: '가맹점 관�?, href: '/stores' },
+      { label: '?�당??관�?, href: '/stores/delivery-staff' },
+      { label: '가맹점 공�??�항', href: '/stores/notices' },
     ]
   },
   {
-    title: '그룹관리',
+    title: '그룹관�?,
     items: [
-      { label: '그룹별 가맹점 연결', href: '/stores/groups' },
-      { label: '그룹별 할인율 설정', href: '/stores/groups/discounts' },
-      { label: '그룹별 타입 설정', href: '/stores/groups/types' },
+      { label: '그룹�?가맹점 ?�결', href: '/stores/groups' },
+      { label: '그룹�??�인???�정', href: '/stores/groups/discounts' },
+      { label: '그룹�??�???�정', href: '/stores/groups/types' },
     ]
   }
 ]
 
-const AREA_CODES = ['서울', '경기', '인천', '강원', '충북', '충남', '대전', '세종', '전북', '전남', '광주', '경북', '경남', '대구', '울산', '부산', '제주']
+const AREA_CODES = ['?�울', '경기', '?�천', '강원', '충북', '충남', '?�??, '?�종', '?�북', '?�남', '광주', '경북', '경남', '?��?, '?�산', '부??, '?�주']
 
 type TabType = 'group' | 'delivery' | 'sales'
 
@@ -50,25 +50,25 @@ interface Staff {
 export default function StaffManagementPage() {
   const [activeTab, setActiveTab] = useState<TabType>('group')
   
-  // 그룹 상태
+  // 그룹 ?�태
   const [groups, setGroups] = useState<StoreGroup[]>([])
   const [groupsLoading, setGroupsLoading] = useState(true)
   
-  // 배송담당 상태
+  // 배송?�당 ?�태
   const [deliveryStaff, setDeliveryStaff] = useState<Staff[]>([])
   const [deliveryLoading, setDeliveryLoading] = useState(true)
   
-  // 영업담당 상태
+  // ?�업?�당 ?�태
   const [salesStaff, setSalesStaff] = useState<Staff[]>([])
   const [salesLoading, setSalesLoading] = useState(true)
   
-  // 모달 상태
+  // 모달 ?�태
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   
-  // 폼 상태 (탭별로 다름)
+  // ???�태 (??���??�름)
   const [staffForm, setStaffForm] = useState({ name: '', phone: '', areaCode: '' })
   const [groupForm, setGroupForm] = useState({ name: '', description: '', discountRate: 0, storeType: 'normal' })
 
@@ -124,11 +124,11 @@ export default function StaffManagementPage() {
   function validateForm() {
     const newErrors: Record<string, string> = {}
     if (activeTab === 'group') {
-      if (!groupForm.name.trim()) newErrors.name = '그룹명은 필수입니다.'
+      if (!groupForm.name.trim()) newErrors.name = '그룹명�? ?�수?�니??'
     } else {
-      if (!staffForm.name.trim()) newErrors.name = '담당자명은 필수입니다.'
+      if (!staffForm.name.trim()) newErrors.name = '?�당?�명?� ?�수?�니??'
       if (staffForm.phone && !/^[\d-]+$/.test(staffForm.phone)) {
-        newErrors.phone = '올바른 전화번호 형식이 아닙니다.'
+        newErrors.phone = '?�바�??�화번호 ?�식???�닙?�다.'
       }
     }
     setErrors(newErrors)
@@ -167,11 +167,11 @@ export default function StaffManagementPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        alert(data.error || '저장에 실패했습니다.')
+        alert(data.error || '?�?�에 ?�패?�습?�다.')
         return
       }
 
-      alert(editingId ? '수정되었습니다.' : '등록되었습니다.')
+      alert(editingId ? '?�정?�었?�니??' : '?�록?�었?�니??')
       setShowModal(false)
       resetForm()
       
@@ -180,7 +180,7 @@ export default function StaffManagementPage() {
       else fetchSalesStaff()
     } catch (e) {
       console.error(e)
-      alert('저장에 실패했습니다.')
+      alert('?�?�에 ?�패?�습?�다.')
     } finally {
       setSaving(false)
     }
@@ -208,8 +208,8 @@ export default function StaffManagementPage() {
   }
 
   async function handleDelete(id: number) {
-    const label = activeTab === 'group' ? '그룹' : activeTab === 'delivery' ? '배송담당자' : '영업담당자'
-    if (!confirm(`이 ${label}을(를) 비활성화하시겠습니까?`)) return
+    const label = activeTab === 'group' ? '그룹' : activeTab === 'delivery' ? '배송?�당?? : '?�업?�당??
+    if (!confirm(`??${label}??�? 비활?�화?�시겠습?�까?`)) return
 
     try {
       const endpoint = activeTab === 'group' ? 'store-groups' : activeTab === 'delivery' ? 'delivery-staff' : 'sales-staff'
@@ -217,17 +217,17 @@ export default function StaffManagementPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        alert(data.error || '비활성화에 실패했습니다.')
+        alert(data.error || '비활?�화???�패?�습?�다.')
         return
       }
 
-      alert('비활성화되었습니다.')
+      alert('비활?�화?�었?�니??')
       if (activeTab === 'group') fetchGroups()
       else if (activeTab === 'delivery') fetchDeliveryStaff()
       else fetchSalesStaff()
     } catch (e) {
       console.error(e)
-      alert('비활성화에 실패했습니다.')
+      alert('비활?�화???�패?�습?�다.')
     }
   }
 
@@ -264,22 +264,22 @@ export default function StaffManagementPage() {
   const getTabTitle = () => {
     switch (activeTab) {
       case 'group': return '그룹'
-      case 'delivery': return '배송담당자'
-      case 'sales': return '영업담당자'
+      case 'delivery': return '배송?�당??
+      case 'sales': return '?�업?�당??
     }
   }
 
   const getTabIcon = () => {
     switch (activeTab) {
-      case 'group': return '📁'
-      case 'delivery': return '🚚'
-      case 'sales': return '👔'
+      case 'group': return '?��'
+      case 'delivery': return '?��'
+      case 'sales': return '?��'
     }
   }
 
   return (
     <Layout sidebarMenus={SIDEBAR} activeNav="가맹점">
-      {/* 헤더 */}
+      {/* ?�더 */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -289,9 +289,9 @@ export default function StaffManagementPage() {
         borderBottom: '2px solid #5d7a5d'
       }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>담당자/그룹 관리</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>?�당??그룹 관�?/h1>
           <p style={{ fontSize: 12, color: '#666', margin: '4px 0 0' }}>
-            그룹, 배송담당, 영업담당 관리
+            그룹, 배송?�당, ?�업?�당 관�?
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
@@ -299,42 +299,42 @@ export default function StaffManagementPage() {
             style={{ ...btnStyle, background: '#ff9800', color: '#fff', border: 'none' }}
             onClick={() => { resetForm(); setShowModal(true); }}
           >
-            + {getTabTitle()} 추가
+            + {getTabTitle()} 추�?
           </button>
         </div>
       </div>
 
-      {/* 탭 */}
+      {/* ??*/}
       <div style={{ 
         display: 'flex', 
         borderBottom: '1px solid #e0e0e0',
         marginBottom: 15,
-        background: '#fff'
+        background: 'var(--bg-primary)'
       }}>
         <button style={tabStyle(activeTab === 'group')} onClick={() => setActiveTab('group')}>
-          📁 그룹 ({groups.length})
+          ?�� 그룹 ({groups.length})
         </button>
         <button style={tabStyle(activeTab === 'delivery')} onClick={() => setActiveTab('delivery')}>
-          🚚 배송담당 ({deliveryStaff.length})
+          ?�� 배송?�당 ({deliveryStaff.length})
         </button>
         <button style={tabStyle(activeTab === 'sales')} onClick={() => setActiveTab('sales')}>
-          👔 영업담당 ({salesStaff.length})
+          ?�� ?�업?�당 ({salesStaff.length})
         </button>
       </div>
 
-      {/* 요약 카드 */}
+      {/* ?�약 카드 */}
       {activeTab === 'group' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 15 }}>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>전체 그룹</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>{groups.length}개</div>
+          <div style={{ background: 'var(--bg-primary)', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
+            <div style={{ fontSize: 12, color: '#666' }}>?�체 그룹</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>{groups.length}�?/div>
           </div>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #4caf50' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>연결된 거래처</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#4caf50' }}>{groups.reduce((sum, g) => sum + (g.storeCount || 0), 0)}개</div>
+          <div style={{ background: 'var(--bg-primary)', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #4caf50' }}>
+            <div style={{ fontSize: 12, color: '#666' }}>?�결??거래�?/div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#4caf50' }}>{groups.reduce((sum, g) => sum + (g.storeCount || 0), 0)}�?/div>
           </div>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #ff9800' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>평균 할인율</div>
+          <div style={{ background: 'var(--bg-primary)', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #ff9800' }}>
+            <div style={{ fontSize: 12, color: '#666' }}>?�균 ?�인??/div>
             <div style={{ fontSize: 24, fontWeight: 700, color: '#ff9800' }}>
               {groups.length > 0 ? (groups.reduce((sum, g) => sum + g.discountRate, 0) / groups.length).toFixed(1) : 0}%
             </div>
@@ -344,52 +344,52 @@ export default function StaffManagementPage() {
       
       {(activeTab === 'delivery' || activeTab === 'sales') && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 15 }}>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>전체 담당자</div>
+          <div style={{ background: 'var(--bg-primary)', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
+            <div style={{ fontSize: 12, color: '#666' }}>?�체 ?�당??/div>
             <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>
-              {(activeTab === 'delivery' ? deliveryStaff : salesStaff).length}명
+              {(activeTab === 'delivery' ? deliveryStaff : salesStaff).length}�?
             </div>
           </div>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #4caf50' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>담당 거래처</div>
+          <div style={{ background: 'var(--bg-primary)', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #4caf50' }}>
+            <div style={{ fontSize: 12, color: '#666' }}>?�당 거래�?/div>
             <div style={{ fontSize: 24, fontWeight: 700, color: '#4caf50' }}>
-              {(activeTab === 'delivery' ? deliveryStaff : salesStaff).reduce((sum, s) => sum + s.storeCount, 0)}개
+              {(activeTab === 'delivery' ? deliveryStaff : salesStaff).reduce((sum, s) => sum + s.storeCount, 0)}�?
             </div>
           </div>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #ff9800' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>평균 담당</div>
+          <div style={{ background: 'var(--bg-primary)', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #ff9800' }}>
+            <div style={{ fontSize: 12, color: '#666' }}>?�균 ?�당</div>
             <div style={{ fontSize: 24, fontWeight: 700, color: '#ff9800' }}>
               {(() => {
                 const list = activeTab === 'delivery' ? deliveryStaff : salesStaff
                 return list.length > 0 ? Math.round(list.reduce((sum, s) => sum + s.storeCount, 0) / list.length) : 0
-              })()}개
+              })()}�?
             </div>
           </div>
         </div>
       )}
 
-      {/* 테이블 */}
+      {/* ?�이�?*/}
       <div style={{ ...cardStyle, flex: 1, overflow: 'hidden' }}>
         <div style={{ overflow: 'auto', height: '100%' }}>
           {activeTab === 'group' ? (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
+              <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-secondary)' }}>
                 <tr>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>그룹명</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>설명</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>할인율</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>타입</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>그룹�?/th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�명</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�인??/th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�??/th>
                   <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>거래처수</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>액션</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�션</th>
                 </tr>
               </thead>
               <tbody>
                 {groupsLoading ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>로딩 중...</td></tr>
+                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</td></tr>
                 ) : groups.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
-                    <div style={{ fontSize: 36, marginBottom: 10 }}>📁</div>
-                    등록된 그룹이 없습니다
+                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                    <div style={{ fontSize: 36, marginBottom: 10 }}>?��</div>
+                    ?�록??그룹???�습?�다
                   </td></tr>
                 ) : groups.map((group, index) => (
                   <tr key={group.id} style={{ background: index % 2 === 0 ? '#fff' : '#fafafa' }}>
@@ -403,12 +403,12 @@ export default function StaffManagementPage() {
                     <td style={{ padding: '12px', textAlign: 'center', fontSize: 12 }}>{group.storeType}</td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, background: group.storeCount > 0 ? '#e8f5e9' : '#f5f5f5', color: group.storeCount > 0 ? '#4caf50' : '#999' }}>
-                        {group.storeCount}개
+                        {group.storeCount}�?
                       </span>
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, marginRight: 6 }} onClick={() => handleEditGroup(group)}>수정</button>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: '#f8f9fa', color: '#868e96' }} onClick={() => handleDelete(group.id)}>비활성화</button>
+                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, marginRight: 6 }} onClick={() => handleEditGroup(group)}>?�정</button>
+                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: 'var(--bg-secondary)', color: 'var(--text-tertiary)' }} onClick={() => handleDelete(group.id)}>비활?�화</button>
                     </td>
                   </tr>
                 ))}
@@ -416,23 +416,23 @@ export default function StaffManagementPage() {
             </table>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
+              <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-secondary)' }}>
                 <tr>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>담당자명</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>연락처</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>담당지역</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>담당 거래처</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>상태</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>액션</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�당?�명</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�락�?/th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�당지??/th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�당 거래�?/th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�태</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>?�션</th>
                 </tr>
               </thead>
               <tbody>
                 {(activeTab === 'delivery' ? deliveryLoading : salesLoading) ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>로딩 중...</td></tr>
+                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>로딩 �?..</td></tr>
                 ) : (activeTab === 'delivery' ? deliveryStaff : salesStaff).length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
+                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
                     <div style={{ fontSize: 36, marginBottom: 10 }}>{getTabIcon()}</div>
-                    등록된 {getTabTitle()}가 없습니다
+                    ?�록??{getTabTitle()}가 ?�습?�다
                   </td></tr>
                 ) : (activeTab === 'delivery' ? deliveryStaff : salesStaff).map((staff, index) => (
                   <tr key={staff.id} style={{ background: index % 2 === 0 ? '#fff' : '#fafafa' }}>
@@ -445,17 +445,17 @@ export default function StaffManagementPage() {
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: staff.storeCount > 0 ? '#e8f5e9' : '#f5f5f5', color: staff.storeCount > 0 ? '#4caf50' : '#999' }}>
-                        {staff.storeCount}개
+                        {staff.storeCount}�?
                       </span>
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, background: staff.isActive ? '#e8f5e9' : '#f5f5f5', color: staff.isActive ? '#4caf50' : '#999' }}>
-                        {staff.isActive ? '활성' : '비활성'}
+                        {staff.isActive ? '?�성' : '비활??}
                       </span>
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, marginRight: 6 }} onClick={() => handleEditStaff(staff)}>수정</button>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: '#f8f9fa', color: '#868e96' }} onClick={() => handleDelete(staff.id)}>비활성화</button>
+                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, marginRight: 6 }} onClick={() => handleEditStaff(staff)}>?�정</button>
+                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: 'var(--bg-secondary)', color: 'var(--text-tertiary)' }} onClick={() => handleDelete(staff.id)}>비활?�화</button>
                     </td>
                   </tr>
                 ))}
@@ -471,13 +471,13 @@ export default function StaffManagementPage() {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }} onClick={() => setShowModal(false)}>
-          <div style={{ background: '#fff', borderRadius: 12, width: '90%', maxWidth: 450, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
-            {/* 모달 헤더 */}
+          <div style={{ background: 'var(--bg-primary)', borderRadius: 12, width: '90%', maxWidth: 450, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            {/* 모달 ?�더 */}
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
-                {getTabIcon()} {editingId ? `${getTabTitle()} 수정` : `${getTabTitle()} 추가`}
+                {getTabIcon()} {editingId ? `${getTabTitle()} ?�정` : `${getTabTitle()} 추�?`}
               </h2>
-              <button style={{ border: 'none', background: 'none', fontSize: 24, cursor: 'pointer', color: '#868e96', padding: 4 }} onClick={() => setShowModal(false)}>×</button>
+              <button style={{ border: 'none', background: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--text-tertiary)', padding: 4 }} onClick={() => setShowModal(false)}>×</button>
             </div>
             
             {/* 모달 바디 */}
@@ -485,29 +485,29 @@ export default function StaffManagementPage() {
               {activeTab === 'group' ? (
                 <>
                   <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>그룹명 *</label>
+                    <label style={labelStyle}>그룹�?*</label>
                     <input type="text" style={{ ...inputStyle, width: '100%', borderColor: errors.name ? '#f44336' : undefined }}
                       value={groupForm.name} onChange={e => setGroupForm({ ...groupForm, name: e.target.value })} placeholder="VIP 그룹" />
                     {errors.name && <div style={errorStyle}>{errors.name}</div>}
                   </div>
                   <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>설명</label>
+                    <label style={labelStyle}>?�명</label>
                     <input type="text" style={{ ...inputStyle, width: '100%' }}
-                      value={groupForm.description} onChange={e => setGroupForm({ ...groupForm, description: e.target.value })} placeholder="그룹 설명" />
+                      value={groupForm.description} onChange={e => setGroupForm({ ...groupForm, description: e.target.value })} placeholder="그룹 ?�명" />
                   </div>
                   <div style={{ display: 'flex', gap: 12 }}>
                     <div style={{ ...fieldGroupStyle, flex: 1 }}>
-                      <label style={labelStyle}>할인율 (%)</label>
+                      <label style={labelStyle}>?�인??(%)</label>
                       <input type="number" style={{ ...inputStyle, width: '100%' }}
                         value={groupForm.discountRate} onChange={e => setGroupForm({ ...groupForm, discountRate: parseFloat(e.target.value) || 0 })} />
                     </div>
                     <div style={{ ...fieldGroupStyle, flex: 1 }}>
-                      <label style={labelStyle}>타입</label>
+                      <label style={labelStyle}>?�??/label>
                       <select style={{ ...selectStyle, width: '100%' }}
                         value={groupForm.storeType} onChange={e => setGroupForm({ ...groupForm, storeType: e.target.value })}>
-                        <option value="normal">일반</option>
+                        <option value="normal">?�반</option>
                         <option value="vip">VIP</option>
-                        <option value="wholesale">도매</option>
+                        <option value="wholesale">?�매</option>
                       </select>
                     </div>
                   </div>
@@ -515,22 +515,22 @@ export default function StaffManagementPage() {
               ) : (
                 <>
                   <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>담당자명 *</label>
+                    <label style={labelStyle}>?�당?�명 *</label>
                     <input type="text" style={{ ...inputStyle, width: '100%', borderColor: errors.name ? '#f44336' : undefined }}
-                      value={staffForm.name} onChange={e => setStaffForm({ ...staffForm, name: e.target.value })} placeholder="홍길동" />
+                      value={staffForm.name} onChange={e => setStaffForm({ ...staffForm, name: e.target.value })} placeholder="?�길?? />
                     {errors.name && <div style={errorStyle}>{errors.name}</div>}
                   </div>
                   <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>연락처</label>
+                    <label style={labelStyle}>?�락�?/label>
                     <input type="text" style={{ ...inputStyle, width: '100%', borderColor: errors.phone ? '#f44336' : undefined }}
                       value={staffForm.phone} onChange={e => setStaffForm({ ...staffForm, phone: e.target.value })} placeholder="010-1234-5678" />
                     {errors.phone && <div style={errorStyle}>{errors.phone}</div>}
                   </div>
                   <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>담당지역</label>
+                    <label style={labelStyle}>?�당지??/label>
                     <select style={{ ...selectStyle, width: '100%' }}
                       value={staffForm.areaCode} onChange={e => setStaffForm({ ...staffForm, areaCode: e.target.value })}>
-                      <option value="">선택</option>
+                      <option value="">?�택</option>
                       {AREA_CODES.map(area => <option key={area} value={area}>{area}</option>)}
                     </select>
                   </div>
@@ -538,11 +538,11 @@ export default function StaffManagementPage() {
               )}
             </div>
             
-            {/* 모달 푸터 */}
+            {/* 모달 ?�터 */}
             <div style={{ padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button style={{ ...btnStyle, minWidth: 80 }} onClick={() => setShowModal(false)}>취소</button>
               <button style={{ ...btnStyle, background: '#5d7a5d', border: 'none', color: '#fff', minWidth: 100 }} onClick={handleSubmit} disabled={saving}>
-                {saving ? '저장 중...' : editingId ? '수정' : '등록'}
+                {saving ? '?�??�?..' : editingId ? '?�정' : '?�록'}
               </button>
             </div>
           </div>
