@@ -699,7 +699,7 @@ export default function NewOrderPage() {
               {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#868e96' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
                 filteredProducts.map((p, i) => (
                   <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
-                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#eef4ee' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#eef4ee' : productFocusIndex === i ? '#fff3e0' : '#fff', color: '#212529', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                     <span style={{ color: '#5d7a5d', fontWeight: 600 }}>{(p.sellingPrice/1000).toFixed(0)}k</span>
                   </div>
@@ -799,7 +799,7 @@ export default function NewOrderPage() {
           <div style={{ padding: '8px 10px', background: '#5d7a5d', color: '#fff', fontWeight: 600, fontSize: 13, display: 'flex', justifyContent: 'space-between', borderRadius: '3px 3px 0 0' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '4px 6px', background: '#e0e0e0', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '4px 6px', background: '#e0e0e0', color: '#333', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
             <span>품목</span>
             <span>상품</span>
             <span style={{ textAlign: 'center' }}>SPH</span>
@@ -810,7 +810,7 @@ export default function NewOrderPage() {
           <div style={{ flex: 1, overflow: 'auto' }}>
             {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#868e96' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
+                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', color: '#212529', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#666' }}>{item.product.brand}</div>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{(() => { const v = parseFloat(item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()}</div>
