@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     cookieStore.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict', // lax에서 strict로 강화
+      sameSite: 'lax', // strict에서 lax로 변경 (네비게이션 호환성)
       maxAge: 60 * 60 * 24, // 24시간
       path: '/'
     })
