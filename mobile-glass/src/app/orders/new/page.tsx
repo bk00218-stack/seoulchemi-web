@@ -567,7 +567,7 @@ export default function NewOrderPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 280px', gap: 4, height: 'calc(100vh - 110px)' }}>
         {/* 왼쪽 패널 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f8f9fa', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f8f9fa', color: '#212529', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <section>
             <label style={{ fontWeight: 700, color: '#5d7a5d', display: 'flex', alignItems: 'center', gap: 4 }}>
               🏪 상호 <span style={{ fontSize: 10, color: '#868e96', fontWeight: 400 }}>[Esc]</span>
@@ -795,7 +795,7 @@ export default function NewOrderPage() {
         </div>
 
         {/* 오른쪽: 주문 목록 */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#f8f9fa', borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#f8f9fa', color: '#212529', borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <div style={{ padding: '8px 10px', background: '#5d7a5d', color: '#fff', fontWeight: 600, fontSize: 13, display: 'flex', justifyContent: 'space-between', borderRadius: '3px 3px 0 0' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>

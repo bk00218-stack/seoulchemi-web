@@ -1,7 +1,7 @@
 # USER.md - About Your Human
 
 - **Name:** Zeus
-- **What to call them:** Zeus
+- **What to call them:** 오빠
 - **Pronouns:** *(optional)*
 - **Timezone:** Asia/Seoul (KST)
 - **Discord:** zeus_chao
