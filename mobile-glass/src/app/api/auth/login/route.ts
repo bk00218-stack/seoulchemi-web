@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateUser } from '@/lib/auth'
+import { authenticateUser, AuthUser } from '@/lib/auth'
 import { cookies } from 'next/headers'
 import { SignJWT } from 'jose'
 
@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = result
+    // 타입이 AuthUser로 좁혀짐 (locked 케이스는 위에서 처리됨)
+    const user = result as AuthUser
 
     // JWT 토큰 생성
     const token = await new SignJWT({
