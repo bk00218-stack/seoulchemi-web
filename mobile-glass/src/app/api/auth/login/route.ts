@@ -3,8 +3,14 @@ import { authenticateUser } from '@/lib/auth'
 import { cookies } from 'next/headers'
 import { SignJWT } from 'jose'
 
+// JWT_SECRET 필수 체크
+const JWT_SECRET_RAW = process.env.JWT_SECRET
+if (!JWT_SECRET_RAW && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET 환경변수가 설정되지 않았습니다. 프로덕션 환경에서는 필수입니다!')
+}
+
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'lens-choice-secret-key-change-in-production'
+  JWT_SECRET_RAW || 'dev-only-secret-do-not-use-in-production'
 )
 
 export async function POST(request: NextRequest) {
@@ -19,14 +25,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = await authenticateUser(username, password)
+    // IP 주소 가져오기 (로깅용)
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+               request.headers.get('x-real-ip') || 
+               'unknown'
 
-    if (!user) {
+    const result = await authenticateUser(username, password)
+
+    // 계정 잠금된 경우
+    if (result && typeof result === 'object' && 'locked' in result) {
+      return NextResponse.json(
+        { 
+          error: `계정이 일시적으로 잠겼습니다. ${result.remainingMin}분 후에 다시 시도해주세요.`,
+          locked: true,
+          remainingMin: result.remainingMin
+        },
+        { status: 423 } // Locked
+      )
+    }
+
+    if (!result) {
       return NextResponse.json(
         { error: '아이디 또는 비밀번호가 올바르지 않습니다.' },
         { status: 401 }
       )
     }
+
+    const user = result
 
     // JWT 토큰 생성
     const token = await new SignJWT({
@@ -47,7 +72,7 @@ export async function POST(request: NextRequest) {
     cookieStore.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict', // lax에서 strict로 강화
       maxAge: 60 * 60 * 24, // 24시간
       path: '/'
     })

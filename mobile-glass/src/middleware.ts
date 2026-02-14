@@ -2,8 +2,14 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 
+// JWT_SECRET 필수 체크
+const JWT_SECRET_RAW = process.env.JWT_SECRET
+if (!JWT_SECRET_RAW && process.env.NODE_ENV === 'production') {
+  console.error('⚠️ JWT_SECRET 환경변수가 설정되지 않았습니다!')
+}
+
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'lens-choice-secret-key-change-in-production'
+  JWT_SECRET_RAW || 'dev-only-secret-do-not-use-in-production'
 )
 
 // 인증 불필요한 경로
