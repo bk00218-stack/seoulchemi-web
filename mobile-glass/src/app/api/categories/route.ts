@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 // 대분류 목록 조회
 export async function GET() {
   try {
-    const categories = await prisma.mainCategory.findMany({
+    const categories = await prisma.category.findMany({
       where: { isActive: true },
       include: {
         _count: {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { code, name, description, displayOrder } = body
 
-    const category = await prisma.mainCategory.create({
+    const category = await prisma.category.create({
       data: {
         code,
         name,
