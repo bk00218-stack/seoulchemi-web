@@ -7,10 +7,8 @@ const SIDEBAR = [
   {
     title: '상품관리',
     items: [
-      { label: '브랜드 관리', href: '/products' },
-      { label: '판매상품 관리', href: '/products/items' },
+      { label: '상품 관리', href: '/products' },
       { label: '묶음상품 설정', href: '/products/bundles' },
-      { label: 'RX상품 관리', href: '/products/rx' },
       { label: '상품 단축코드 설정', href: '/products/shortcuts' },
     ]
   },
@@ -23,10 +21,31 @@ const SIDEBAR = [
   }
 ]
 
+// 대분류
+interface MainCategory {
+  id: number
+  code: string
+  name: string
+  isActive: boolean
+  _count?: { brands: number }
+}
+
+// 브랜드
 interface Brand {
   id: number
+  categoryId: number | null
   name: string
   stockManage: string | null
+  isActive: boolean
+  _count?: { products: number; productLines: number }
+  productLines?: ProductLine[]
+}
+
+// 품목
+interface ProductLine {
+  id: number
+  brandId: number
+  name: string
   isActive: boolean
   _count?: { products: number }
 }
@@ -35,6 +54,9 @@ interface Product {
   id: number
   code: string
   name: string
+  brandId: number
+  productLineId: number | null
+  productLine?: { id: number; name: string } | null
   optionType: string
   productType: string
   bundleName: string | null
@@ -1055,12 +1077,18 @@ function EditPriceModal({
 }
 
 export default function ProductsPage() {
+  const [categories, setCategories] = useState<MainCategory[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
+  const [productLines, setProductLines] = useState<ProductLine[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [options, setOptions] = useState<ProductOption[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<MainCategory | null>(null)
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
+  const [selectedProductLine, setSelectedProductLine] = useState<ProductLine | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
+  const [brandLoading, setBrandLoading] = useState(false)
+  const [productLineLoading, setProductLineLoading] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [optionLoading, setOptionLoading] = useState(false)
   
@@ -1092,16 +1120,17 @@ export default function ProductsPage() {
   const [selectedOptionIds, setSelectedOptionIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
-    fetchBrands()
+    fetchCategories()
   }, [])
 
-  async function fetchBrands() {
+  // 대분류 조회
+  async function fetchCategories() {
     try {
-      const res = await fetch('/api/brands')
+      const res = await fetch('/api/categories')
       const data = await res.json()
-      setBrands(data.brands || [])
-      if (data.brands?.length > 0) {
-        handleSelectBrand(data.brands[0])
+      setCategories(data.categories || [])
+      if (data.categories?.length > 0) {
+        handleSelectCategory(data.categories[0])
       }
     } catch (e) {
       console.error(e)
@@ -1110,19 +1139,72 @@ export default function ProductsPage() {
     }
   }
 
+  // 대분류 선택 → 브랜드 로드
+  const handleSelectCategory = useCallback(async (category: MainCategory) => {
+    setSelectedCategory(category)
+    setSelectedBrand(null)
+    setSelectedProductLine(null)
+    setSelectedProduct(null)
+    setProducts([])
+    setOptions([])
+    setBrandLoading(true)
+    try {
+      const res = await fetch(`/api/brands?categoryId=${category.id}`)
+      const data = await res.json()
+      setBrands(data.brands || [])
+      if (data.brands?.length > 0) {
+        handleSelectBrand(data.brands[0])
+      } else {
+        setBrands([])
+        setProductLines([])
+      }
+    } catch (e) {
+      console.error(e)
+      setBrands([])
+    } finally {
+      setBrandLoading(false)
+    }
+  }, [])
+
+  // 브랜드 선택 → 품목 로드
   const handleSelectBrand = useCallback(async (brand: Brand) => {
     console.log('Selecting brand:', brand.id, brand.name)
     setSelectedBrand(brand)
+    setSelectedProductLine(null)
+    setSelectedProduct(null)
+    setProducts([])
+    setOptions([])
+    setProductLineLoading(true)
+    setSelectedProductIds(new Set())
+    try {
+      const res = await fetch(`/api/product-lines?brandId=${brand.id}`)
+      const data = await res.json()
+      setProductLines(data.productLines || [])
+      if (data.productLines?.length > 0) {
+        handleSelectProductLine(data.productLines[0])
+      } else {
+        setProductLines([])
+        setProducts([])
+      }
+    } catch (e) {
+      console.error(e)
+      setProductLines([])
+    } finally {
+      setProductLineLoading(false)
+    }
+  }, [])
+
+  // 품목 선택 → 상품 로드
+  const handleSelectProductLine = useCallback(async (productLine: ProductLine) => {
+    console.log('Selecting product line:', productLine.id, productLine.name)
+    setSelectedProductLine(productLine)
     setSelectedProduct(null)
     setOptions([])
     setProductLoading(true)
     setSelectedProductIds(new Set())
     try {
-      const url = `/api/products?brandId=${brand.id}`
-      console.log('Fetching:', url)
-      const res = await fetch(url)
+      const res = await fetch(`/api/products?productLineId=${productLine.id}`)
       const data = await res.json()
-      console.log('Products response:', data.products?.length, 'products')
       setProducts(data.products || [])
       const orders: {[key: number]: number} = {}
       data.products?.forEach((p: Product) => { orders[p.id] = p.displayOrder })
@@ -1204,7 +1286,7 @@ export default function ProductsPage() {
       if (res.ok) {
         setShowBrandModal(false)
         setEditingBrand(null)
-        fetchBrands()
+        if (selectedCategory) handleSelectCategory(selectedCategory)
         alert(editingBrand ? '브랜드가 수정되었습니다.' : '브랜드가 추가되었습니다.')
       } else {
         const err = await res.json()
@@ -1428,165 +1510,193 @@ export default function ProductsPage() {
   return (
     <Layout sidebarMenus={SIDEBAR} activeNav="상품">
       {/* Page Header */}
-      <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--gray-900)' }}>상품 관리</h1>
-          <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>브랜드별 상품 및 옵션을 관리합니다</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>상품 관리</h1>
+          <p style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 2 }}>
+            대분류 → 브랜드 → 품목 → 상품 → 도수옵션
+          </p>
         </div>
         <button 
           onClick={() => setShowBarcodeModal(true)}
-          style={{ ...actionBtnStyle, display: 'flex', alignItems: 'center', gap: 6 }}
+          style={{ ...actionBtnStyle, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
         >
           🔍 바코드 검색
         </button>
       </div>
 
-      {/* 3-Panel Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 320px', gap: 16, height: 'calc(100vh - 180px)' }}>
+      {/* 4-Panel Layout: 대분류+브랜드 | 품목 | 상품 | 도수옵션 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '220px 200px 1fr 300px', gap: 12, height: 'calc(100vh - 180px)' }}>
         
-        {/* Panel 1: 브랜드 목록 */}
+        {/* Panel 1: 대분류 + 브랜드 */}
         <div style={panelStyle}>
+          {/* 대분류 탭 */}
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap',
+            gap: 4, 
+            padding: '8px 12px', 
+            borderBottom: '1px solid var(--gray-200)',
+            background: 'var(--gray-50)'
+          }}>
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => handleSelectCategory(cat)}
+                style={{
+                  padding: '4px 10px',
+                  fontSize: 11,
+                  fontWeight: selectedCategory?.id === cat.id ? 600 : 400,
+                  background: selectedCategory?.id === cat.id ? 'var(--primary)' : '#fff',
+                  color: selectedCategory?.id === cat.id ? '#fff' : 'var(--gray-600)',
+                  border: '1px solid',
+                  borderColor: selectedCategory?.id === cat.id ? 'var(--primary)' : 'var(--gray-200)',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                }}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
           <div style={panelHeaderStyle}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: 'var(--gray-800)' }}>브랜드 목록</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--gray-800)' }}>
+              브랜드 {brands.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({brands.length})</span>}
+            </div>
             <input
               type="text"
               placeholder="브랜드 검색..."
               value={brandSearch}
               onChange={(e) => setBrandSearch(e.target.value)}
-              style={searchInputStyle}
+              style={{ ...searchInputStyle, fontSize: 12, padding: '6px 10px' }}
             />
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {loading ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)' }}>로딩 중...</div>
+            {loading || brandLoading ? (
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 중...</div>
             ) : filteredBrands.length === 0 ? (
-              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)' }}>브랜드 없음</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>브랜드 없음</div>
             ) : (
               filteredBrands.map(brand => (
                 <div
                   key={brand.id}
                   onClick={() => handleSelectBrand(brand)}
-                  onDoubleClick={(e) => { e.stopPropagation(); setEditingBrand(brand); setShowBrandModal(true) }}
                   style={{
                     ...listItemStyle(selectedBrand?.id === brand.id),
-                    position: 'relative',
+                    padding: '8px 12px',
                   }}
-                  title="더블클릭으로 수정"
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {!brand.isActive && (
-                        <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>⛔</span>
-                      )}
-                      <span style={{ fontWeight: selectedBrand?.id === brand.id ? 600 : 400, fontSize: 14 }}>
-                        {brand.name}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ 
-                        fontSize: 11, 
-                        color: 'var(--gray-500)',
-                        background: 'var(--gray-100)',
-                        padding: '2px 6px',
-                        borderRadius: 4,
-                      }}>
-                        {brand._count?.products || 0}
-                      </span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setEditingBrand(brand); setShowBrandModal(true) }}
-                        style={{
-                          padding: '2px 6px',
-                          border: 'none',
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          fontSize: 12,
-                          color: 'var(--gray-400)',
-                          borderRadius: 4,
-                        }}
-                        title="브랜드 수정"
-                      >
-                        ✏️
-                      </button>
-                    </div>
+                    <span style={{ fontWeight: selectedBrand?.id === brand.id ? 600 : 400, fontSize: 13 }}>
+                      {brand.name}
+                    </span>
+                    <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
+                      {brand._count?.productLines || 0}
+                    </span>
                   </div>
                 </div>
               ))
             )}
           </div>
-          <div style={{ padding: 12, borderTop: '1px solid var(--gray-200)' }}>
+          <div style={{ padding: 8, borderTop: '1px solid var(--gray-200)' }}>
             <button 
               onClick={() => { setEditingBrand(null); setShowBrandModal(true) }}
-              style={{ ...primaryBtnStyle, width: '100%' }}
+              style={{ ...primaryBtnStyle, width: '100%', fontSize: 12, padding: '6px 12px' }}
             >
-              + 브랜드 추가
+              + 브랜드
             </button>
           </div>
         </div>
 
-        {/* Panel 2: 상품 목록 */}
+        {/* Panel 2: 품목 목록 */}
+        <div style={panelStyle}>
+          <div style={panelHeaderStyle}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--gray-800)' }}>
+              품목 {productLines.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({productLines.length})</span>}
+            </div>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {productLineLoading ? (
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 중...</div>
+            ) : !selectedBrand ? (
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>브랜드를 선택하세요</div>
+            ) : productLines.length === 0 ? (
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>품목 없음</div>
+            ) : (
+              productLines.map(line => (
+                <div
+                  key={line.id}
+                  onClick={() => handleSelectProductLine(line)}
+                  style={{
+                    ...listItemStyle(selectedProductLine?.id === line.id),
+                    padding: '8px 12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: selectedProductLine?.id === line.id ? 600 : 400, fontSize: 13 }}>
+                      {line.name}
+                    </span>
+                    <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
+                      {line._count?.products || 0}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div style={{ padding: 8, borderTop: '1px solid var(--gray-200)' }}>
+            <button 
+              onClick={() => {
+                if (!selectedBrand) { alert('브랜드를 먼저 선택하세요'); return }
+                const name = prompt('품목명을 입력하세요')
+                if (name) {
+                  fetch('/api/product-lines', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ brandId: selectedBrand.id, name })
+                  }).then(() => handleSelectBrand(selectedBrand))
+                }
+              }}
+              disabled={!selectedBrand}
+              style={{ ...primaryBtnStyle, width: '100%', fontSize: 12, padding: '6px 12px', opacity: selectedBrand ? 1 : 0.5 }}
+            >
+              + 품목
+            </button>
+          </div>
+        </div>
+
+        {/* Panel 3: 상품 목록 */}
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gray-800)' }}>
-                {selectedBrand ? selectedBrand.name : '상품 목록'}
-                {selectedBrand && <span style={{ fontWeight: 400, color: 'var(--gray-500)', marginLeft: 8 }}>({filteredProducts.length}개)</span>}
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-800)' }}>
+                상품 {filteredProducts.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({filteredProducts.length})</span>}
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button 
-                  onClick={handleSaveOrder}
-                  disabled={!orderChanged}
-                  style={{ 
-                    ...actionBtnStyle, 
-                    opacity: orderChanged ? 1 : 0.5,
-                    background: orderChanged ? 'var(--success)' : undefined,
-                    color: orderChanged ? '#fff' : undefined,
-                    border: orderChanged ? 'none' : undefined,
-                  }}
-                >
-                  순서저장
-                </button>
-                <button 
-                  onClick={() => setShowBulkEditModal(true)}
-                  disabled={selectedProductIds.size === 0}
-                  style={{ ...actionBtnStyle, opacity: selectedProductIds.size > 0 ? 1 : 0.5 }}
-                >
-                  일괄수정 ({selectedProductIds.size})
-                </button>
+              <div style={{ display: 'flex', gap: 4 }}>
                 <button 
                   onClick={() => { setEditingProduct(null); setShowProductModal(true) }}
-                  style={primaryBtnStyle}
+                  disabled={!selectedProductLine}
+                  style={{ ...primaryBtnStyle, fontSize: 11, padding: '4px 10px', opacity: selectedProductLine ? 1 : 0.5 }}
                 >
                   + 상품
                 </button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                style={{ ...searchInputStyle, width: 'auto', flex: '0 0 140px' }}
-              >
-                <option value="all">전체</option>
-                {optionTypes.map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                placeholder="상품명 검색..."
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                style={searchInputStyle}
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="상품명 검색..."
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              style={{ ...searchInputStyle, fontSize: 12, padding: '6px 10px' }}
+            />
           </div>
           <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto' }}>
             {productLoading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>로딩 중...</div>
-            ) : !selectedBrand ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>브랜드를 선택하세요</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>로딩 중...</div>
+            ) : !selectedProductLine ? (
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>품목을 선택하세요</div>
             ) : filteredProducts.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>상품 없음</div>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>상품 없음</div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
                 <thead>
@@ -1712,12 +1822,12 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Panel 3: 옵션 목록 (도수/재고) */}
+        {/* Panel 4: 옵션 목록 (도수/재고) */}
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gray-800)' }}>
-                {selectedProduct ? selectedProduct.name : '옵션 목록'}
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-800)' }}>
+                도수옵션 {options.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({options.length})</span>}
                 {selectedProduct && <span style={{ fontWeight: 400, color: 'var(--gray-500)', marginLeft: 8 }}>({filteredOptions.length}개)</span>}
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
@@ -2295,7 +2405,7 @@ export default function ProductsPage() {
                           setShowBrandModal(false)
                           setEditingBrand(null)
                           setSelectedBrand(null)
-                          fetchBrands()
+                          if (selectedCategory) handleSelectCategory(selectedCategory)
                           alert('브랜드가 삭제되었습니다.')
                         } else {
                           const err = await res.json()
