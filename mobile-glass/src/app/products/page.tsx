@@ -2,26 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Layout from '../components/Layout'
-
-const SIDEBAR = [
-  {
-    title: '상품관리',
-    items: [
-      { label: '상품 관리', href: '/products' },
-      { label: '여벌 일괄등록', href: '/products/bulk-spare' },
-      { label: 'RX상품 관리', href: '/products/rx' },
-      { label: '묶음상품 설정', href: '/products/bundles' },
-      { label: '상품 단축코드 설정', href: '/products/shortcuts' },
-    ]
-  },
-  {
-    title: '재고관리',
-    items: [
-      { label: '일괄재고수정', href: '/products/stock/bulk' },
-      { label: '적정재고 설정', href: '/products/stock/optimal' },
-    ]
-  }
-]
+import { PRODUCTS_SIDEBAR } from 'constants/sidebar'
 
 // 대분류
 interface MainCategory {
@@ -1564,7 +1545,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="상품">
+    <Layout sidebarMenus={PRODUCTS_SIDEBAR} activeNav="상품">
       {/* Page Header */}
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>

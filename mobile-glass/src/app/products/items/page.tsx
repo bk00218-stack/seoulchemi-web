@@ -3,20 +3,6 @@
 import { useEffect, useState } from 'react'
 import Layout, { cardStyle, btnStyle } from '../../components/Layout'
 
-const SIDEBAR = [
-  { title: '상품관리', items: [
-    { label: '브랜드 관리', href: '/products' },
-    { label: '판매상품 관리', href: '/products/items' },
-    { label: '묶음상품 설정', href: '/products/bundles' },
-    { label: 'RX상품 관리', href: '/products/rx' },
-    { label: '상품 단축코드 설정', href: '/products/shortcuts' },
-  ]},
-  { title: '재고관리', items: [
-    { label: '일괄재고수정', href: '/products/stock/bulk' },
-    { label: '적정재고 설정', href: '/products/stock/optimal' },
-  ]}
-]
-
 interface Brand {
   id: number
   name: string
@@ -70,7 +56,7 @@ export default function ProductItemsPage() {
   }, {} as Record<string, number>)
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="상품">
+    <Layout sidebarMenus={PRODUCTS_SIDEBAR} activeNav="상품">
       {/* 2-Column Layout */}
       <div style={{ display: 'flex', gap: 20, flex: 1, minHeight: 0 }}>
         

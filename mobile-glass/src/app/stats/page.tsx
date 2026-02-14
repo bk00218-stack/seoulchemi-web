@@ -3,25 +3,12 @@
 import { useState } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from '../components/Layout'
 
-const SIDEBAR = [
-  {
-    title: '주제별 통계',
-    items: [
-      { label: '가맹점 매출 통계', href: '/stats' },
-      { label: '가맹점 상품 통계', href: '/stats/products' },
-      { label: '가맹점 출고 통계', href: '/stats/shipping' },
-      { label: '그룹별 상품 통계', href: '/stats/groups' },
-      { label: '기타 통계', href: '/stats/etc' },
-    ]
-  }
-]
-
 export default function StatsPage() {
   const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0])
   const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0])
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="통계">
+    <Layout sidebarMenus={STATS_SIDEBAR} activeNav="통계">
       {/* Page Title */}
       <div>
         <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>가맹점 매출통계</h1>

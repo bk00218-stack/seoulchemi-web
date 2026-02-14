@@ -4,25 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Layout, { btnStyle, cardStyle, selectStyle, inputStyle } from '../components/Layout'
 
-const SIDEBAR = [
-  {
-    title: '관리',
-    items: [
-      { label: '가맹점 관리', href: '/stores' },
-      { label: '담당자 관리', href: '/stores/delivery-staff' },
-      { label: '가맹점 공지사항', href: '/stores/notices' },
-    ]
-  },
-  {
-    title: '그룹관리',
-    items: [
-      { label: '그룹별 가맹점 연결', href: '/stores/groups' },
-      { label: '그룹별 할인율 설정', href: '/stores/groups/discounts' },
-      { label: '그룹별 타입 설정', href: '/stores/groups/types' },
-    ]
-  }
-]
-
 type TabType = '가맹점목록' | '미결제현황' | '입금내역' | '거래내역'
 
 interface Store {
@@ -405,7 +386,7 @@ export default function StoresPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="가맹점">
+    <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
       {/* 헤더 */}
       <div style={{ 
         display: 'flex', 

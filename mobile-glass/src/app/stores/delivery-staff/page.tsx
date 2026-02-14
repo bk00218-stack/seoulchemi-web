@@ -3,25 +3,6 @@
 import { useEffect, useState } from 'react'
 import Layout, { btnStyle, cardStyle, selectStyle, inputStyle } from '../../components/Layout'
 
-const SIDEBAR = [
-  {
-    title: '관리',
-    items: [
-      { label: '가맹점 관리', href: '/stores' },
-      { label: '담당자 관리', href: '/stores/delivery-staff' },
-      { label: '가맹점 공지사항', href: '/stores/notices' },
-    ]
-  },
-  {
-    title: '그룹관리',
-    items: [
-      { label: '그룹별 가맹점 연결', href: '/stores/groups' },
-      { label: '그룹별 할인율 설정', href: '/stores/groups/discounts' },
-      { label: '그룹별 타입 설정', href: '/stores/groups/types' },
-    ]
-  }
-]
-
 const AREA_CODES = ['서울', '경기', '인천', '강원', '충북', '충남', '대전', '세종', '전북', '전남', '광주', '경북', '경남', '대구', '울산', '부산', '제주']
 
 type TabType = 'group' | 'delivery' | 'sales'
@@ -278,7 +259,7 @@ export default function StaffManagementPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="가맹점">
+    <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
       {/* 헤더 */}
       <div style={{ 
         display: 'flex', 

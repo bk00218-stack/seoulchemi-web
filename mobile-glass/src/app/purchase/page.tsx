@@ -3,29 +3,12 @@
 import { useState } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from '../components/Layout'
 
-const SIDEBAR = [
-  {
-    title: '매입관리',
-    items: [
-      { label: '매입내역', href: '/purchase' },
-      { label: '매입등록', href: '/purchase/new' },
-    ]
-  },
-  {
-    title: '매입처 관리',
-    items: [
-      { label: '매입처 관리', href: '/purchase/vendors' },
-      { label: '매입처 미납금 관리', href: '/purchase/vendors/unpaid' },
-    ]
-  }
-]
-
 export default function PurchasePage() {
   const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0])
   const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0])
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="매입">
+    <Layout sidebarMenus={PURCHASE_SIDEBAR} activeNav="매입">
       {/* Page Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>

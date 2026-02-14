@@ -9,7 +9,7 @@ const SIDEBAR = [{ title: '주제별 통계', items: [
 ]}]
 export default function GroupStatsPage() {
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="통계">
+    <Layout sidebarMenus={STATS_SIDEBAR} activeNav="통계">
       <h1 style={{ fontSize: 20, fontWeight: 700 }}>그룹별 상품 통계</h1>
       <div style={{ ...cardStyle, padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>👥</div>

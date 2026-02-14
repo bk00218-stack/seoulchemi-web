@@ -3,21 +3,6 @@
 import { useState, useEffect } from 'react'
 import Layout, { btnStyle, cardStyle, selectStyle, inputStyle, thStyle, tdStyle } from '../../components/Layout'
 
-const SIDEBAR = [
-  { title: '매입관리', items: [
-    { label: '매입내역', href: '/purchase' },
-    { label: '매입등록', href: '/purchase/new' },
-  ]},
-  { title: '매입처 관리', items: [
-    { label: '매입처 관리', href: '/purchase/vendors' },
-    { label: '매입처 미납금 관리', href: '/purchase/vendors/unpaid' },
-  ]},
-  { title: '정산', items: [
-    { label: '정산내역', href: '/purchase/settlement' },
-    { label: '정산이력', href: '/purchase/settlement/history' },
-  ]}
-]
-
 interface Vendor {
   id: number
   name: string
@@ -293,7 +278,7 @@ export default function VendorsPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="매입">
+    <Layout sidebarMenus={PURCHASE_SIDEBAR} activeNav="매입">
       {/* 헤더 */}
       <div style={{ 
         display: 'flex', 

@@ -4,25 +4,6 @@ import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Layout, { btnStyle, cardStyle, inputStyle, selectStyle } from '../../components/Layout'
 
-const SIDEBAR = [
-  {
-    title: '가맹점 관리',
-    items: [
-      { label: '가맹점 관리', href: '/stores' },
-      { label: '배송담당자 관리', href: '/stores/delivery-staff' },
-      { label: '가맹점 공지사항', href: '/stores/notices' },
-    ]
-  },
-  {
-    title: '가맹점그룹 관리',
-    items: [
-      { label: '그룹별 가맹점 연결', href: '/stores/groups' },
-      { label: '그룹별 할인율 설정', href: '/stores/groups/discounts' },
-      { label: '그룹별 타입 설정', href: '/stores/groups/types' },
-    ]
-  }
-]
-
 const STATUS_OPTIONS = [
   { value: 'active', label: '정상', color: '#4caf50' },
   { value: 'caution', label: '주의', color: '#ff9800' },
@@ -329,7 +310,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
 
   if (loading) {
     return (
-      <Layout sidebarMenus={SIDEBAR} activeNav="가맹점">
+      <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 400 }}>
           <div style={{ color: '#868e96' }}>로딩 중...</div>
         </div>
@@ -339,7 +320,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
 
   if (error || !store) {
     return (
-      <Layout sidebarMenus={SIDEBAR} activeNav="가맹점">
+      <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 400, gap: 16 }}>
           <div style={{ fontSize: 48 }}>😵</div>
           <div style={{ color: '#666' }}>{error || '거래처를 찾을 수 없습니다.'}</div>
@@ -367,7 +348,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="가맹점">
+    <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
       {/* 헤더 */}
       <div style={{ 
         display: 'flex', 

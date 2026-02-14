@@ -2,26 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Layout from '@/app/components/Layout'
-
-const SIDEBAR = [
-  {
-    title: '상품관리',
-    items: [
-      { label: '상품 관리', href: '/products' },
-      { label: '여벌 일괄등록', href: '/products/bulk-spare' },
-      { label: 'RX상품 관리', href: '/products/rx' },
-      { label: '묶음상품 설정', href: '/products/bundles' },
-      { label: '상품 단축코드 설정', href: '/products/shortcuts' },
-    ]
-  },
-  {
-    title: '재고관리',
-    items: [
-      { label: '일괄재고수정', href: '/products/stock/bulk' },
-      { label: '적정재고 설정', href: '/products/stock/optimal' },
-    ]
-  }
-]
+import { PRODUCTS_SIDEBAR } from '../constants/sidebar'
 
 interface Brand {
   id: number
@@ -255,7 +236,7 @@ export default function BulkSpareRegistrationPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="상품">
+    <Layout sidebarMenus={PRODUCTS_SIDEBAR} activeNav="상품">
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>여벌 상품 일괄등록</h1>
       <p style={{ fontSize: 13, color: 'var(--gray-500)', marginBottom: 24 }}>
         도수표에서 범위를 선택하여 상품과 도수 옵션을 한번에 등록합니다.

@@ -3,31 +3,6 @@
 import { useState } from 'react'
 import Layout, { btnStyle, cardStyle, inputStyle } from '../components/Layout'
 
-const SIDEBAR = [
-  {
-    title: '환경설정',
-    items: [
-      { label: '기본설정', href: '/settings' },
-      { label: '구분설정', href: '/settings/categories' },
-      { label: '배송비 설정', href: '/settings/shipping' },
-    ]
-  },
-  {
-    title: '쇼핑몰 화면설정',
-    items: [
-      { label: '메인화면 설정', href: '/settings/main' },
-      { label: '상품 상세화면 설정', href: '/settings/product-detail' },
-    ]
-  },
-  {
-    title: '접속권한 설정',
-    items: [
-      { label: '그룹별 메뉴설정', href: '/settings/menu-permissions' },
-      { label: '계정관리', href: '/settings/accounts' },
-    ]
-  }
-]
-
 interface Setting {
   key: string
   label: string
@@ -61,7 +36,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <Layout sidebarMenus={SIDEBAR} activeNav="설정">
+    <Layout sidebarMenus={SETTINGS_SIDEBAR} activeNav="설정">
       {/* Page Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
