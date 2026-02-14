@@ -183,7 +183,7 @@ export default function NewPurchasePage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 >
@@ -205,7 +205,7 @@ export default function NewPurchasePage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -224,7 +224,7 @@ export default function NewPurchasePage() {
                   width: '100%',
                   padding: '10px',
                   borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   fontSize: '14px',
                   resize: 'vertical'
                 }}
@@ -259,7 +259,7 @@ export default function NewPurchasePage() {
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+                  <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                     <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>상품</th>
                     <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: 500, width: '100px' }}>수량</th>
                     <th style={{ padding: '12px 8px', textAlign: 'right', fontSize: '13px', fontWeight: 500, width: '120px' }}>단가</th>
@@ -284,7 +284,7 @@ export default function NewPurchasePage() {
                             width: '70px',
                             padding: '6px',
                             borderRadius: '4px',
-                            border: '1px solid #e5e5e5',
+                            border: '1px solid #e9ecef',
                             textAlign: 'center'
                           }}
                         />
@@ -299,7 +299,7 @@ export default function NewPurchasePage() {
                             width: '100px',
                             padding: '6px',
                             borderRadius: '4px',
-                            border: '1px solid #e5e5e5',
+                            border: '1px solid #e9ecef',
                             textAlign: 'right'
                           }}
                         />
@@ -335,7 +335,7 @@ export default function NewPurchasePage() {
           <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', position: 'sticky', top: '100px' }}>
             <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>주문 요약</h2>
             
-            <div style={{ borderBottom: '1px solid #e5e5e5', paddingBottom: '16px', marginBottom: '16px' }}>
+            <div style={{ borderBottom: '1px solid #e9ecef', paddingBottom: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ color: '#666' }}>상품 수</span>
                 <span>{items.length}개</span>
@@ -417,7 +417,7 @@ export default function NewPurchasePage() {
                 width: '100%',
                 padding: '12px 16px',
                 borderRadius: '8px',
-                border: '1px solid #e5e5e5',
+                border: '1px solid #e9ecef',
                 fontSize: '14px',
                 marginBottom: '16px'
               }}
@@ -437,7 +437,7 @@ export default function NewPurchasePage() {
                       style={{
                         padding: '12px 16px',
                         borderRadius: '8px',
-                        border: '1px solid #e5e5e5',
+                        border: '1px solid #e9ecef',
                         cursor: 'pointer',
                         display: 'flex',
                         justifyContent: 'space-between',

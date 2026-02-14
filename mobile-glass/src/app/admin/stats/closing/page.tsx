@@ -136,7 +136,7 @@ export default function ClosingPage() {
           style={{
             padding: '8px 16px',
             borderRadius: '8px',
-            border: '1px solid #e5e5e5',
+            border: '1px solid #e9ecef',
             background: '#fff',
             cursor: 'pointer',
             fontSize: '16px'
@@ -170,7 +170,7 @@ export default function ClosingPage() {
           style={{
             padding: '8px 16px',
             borderRadius: '8px',
-            border: '1px solid #e5e5e5',
+            border: '1px solid #e9ecef',
             background: '#fff',
             cursor: 'pointer',
             fontSize: '16px'
@@ -378,7 +378,7 @@ export default function ClosingPage() {
                 style={{
                   padding: '12px 24px',
                   borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   background: '#fff',
                   fontSize: '15px',
                   cursor: processing ? 'not-allowed' : 'pointer'

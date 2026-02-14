@@ -25,7 +25,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       {/* Header */}
       <header style={{
         background: 'white',
-        borderBottom: '1px solid #e5e5e5',
+        borderBottom: '1px solid #e9ecef',
         padding: '0 20px',
         position: 'sticky',
         top: 0,

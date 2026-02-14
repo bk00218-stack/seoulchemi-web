@@ -126,7 +126,7 @@ export default function ReorderPage() {
             style={{
               padding: '8px 12px',
               borderRadius: '6px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               fontSize: '14px'
             }}
           >
@@ -167,10 +167,10 @@ export default function ReorderPage() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-          <button onClick={selectAll} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', background: '#fff', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={selectAll} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer', fontSize: '13px' }}>
             전체 선택
           </button>
-          <button onClick={deselectAll} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', background: '#fff', cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={deselectAll} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer', fontSize: '13px' }}>
             선택 해제
           </button>
         </div>
@@ -244,7 +244,7 @@ export default function ReorderPage() {
             <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e5e5' }}>
+                  <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e9ecef' }}>
                     <th style={{ padding: '12px 16px', textAlign: 'center', width: '40px' }}></th>
                     <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, width: '80px' }}>긴급도</th>
                     <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>상품</th>

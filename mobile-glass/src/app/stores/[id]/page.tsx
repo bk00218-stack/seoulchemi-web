@@ -331,7 +331,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
     return (
       <Layout sidebarMenus={SIDEBAR} activeNav="가맹점">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 400 }}>
-          <div style={{ color: '#999' }}>로딩 중...</div>
+          <div style={{ color: '#868e96' }}>로딩 중...</div>
         </div>
       </Layout>
     )
@@ -344,7 +344,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
           <div style={{ fontSize: 48 }}>😵</div>
           <div style={{ color: '#666' }}>{error || '거래처를 찾을 수 없습니다.'}</div>
           <button 
-            style={{ ...btnStyle, background: '#1976d2', color: '#fff', border: 'none' }}
+            style={{ ...btnStyle, background: '#5d7a5d', border: 'none', color: '#fff' }}
             onClick={() => router.push('/stores')}
           >
             목록으로 돌아가기
@@ -375,7 +375,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
         alignItems: 'center',
         marginBottom: 15,
         paddingBottom: 10,
-        borderBottom: '2px solid #333'
+        borderBottom: '2px solid #5d7a5d'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button
@@ -452,7 +452,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
           gap: 8
         }}>
           <span style={{ fontSize: 11, color: '#666' }}>신용한도</span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#1976d2' }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#5d7a5d' }}>
             {store.creditLimit.toLocaleString()}원
           </span>
         </div>
@@ -489,8 +489,8 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
       {/* 탭 */}
       <div style={{
         display: 'flex',
-        borderBottom: '2px solid #1976d2',
-        background: '#f5f5f5',
+        borderBottom: '2px solid #5d7a5d',
+        background: '#f8f9fa',
         borderRadius: '8px 8px 0 0',
         overflow: 'hidden'
       }}>
@@ -502,7 +502,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
               flex: 1,
               padding: '12px 20px',
               border: 'none',
-              background: activeTab === tab ? '#1976d2' : 'transparent',
+              background: activeTab === tab ? '#5d7a5d' : 'transparent',
               color: activeTab === tab ? '#fff' : '#333',
               fontWeight: activeTab === tab ? 600 : 400,
               fontSize: 13,
@@ -571,7 +571,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
                     <label style={labelStyle}>코드</label>
                     <input 
                       type="text"
-                      style={{ ...inputStyle, width: '100%', background: '#f5f5f5' }}
+                      style={{ ...inputStyle, width: '100%', background: '#f8f9fa' }}
                       value={form.code}
                       readOnly
                     />
@@ -889,13 +889,13 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
                   브랜드별 할인율
                 </h3>
                 {store.brandDiscounts.length === 0 ? (
-                  <div style={{ padding: 20, textAlign: 'center', color: '#999', background: '#f9f9f9', borderRadius: 8 }}>
+                  <div style={{ padding: 20, textAlign: 'center', color: '#868e96', background: '#f9f9f9', borderRadius: 8 }}>
                     설정된 브랜드별 할인율이 없습니다.
                   </div>
                 ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ background: '#f5f5f5' }}>
+                      <tr style={{ background: '#f8f9fa' }}>
                         <th style={{ padding: 10, textAlign: 'left', fontSize: 12 }}>브랜드</th>
                         <th style={{ padding: 10, textAlign: 'right', fontSize: 12 }}>할인율</th>
                       </tr>
@@ -921,13 +921,13 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
         {activeTab === '주문내역' && (
           <div style={{ flex: 1, overflow: 'auto' }}>
             {store.orders.length === 0 ? (
-              <div style={{ padding: 60, textAlign: 'center', color: '#999' }}>
+              <div style={{ padding: 60, textAlign: 'center', color: '#868e96' }}>
                 <div style={{ fontSize: 48, marginBottom: 15 }}>📦</div>
                 주문 내역이 없습니다.
               </div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ position: 'sticky', top: 0, background: '#f5f5f5' }}>
+                <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
                   <tr>
                     <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>주문번호</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>유형</th>
@@ -947,7 +947,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
                       }}
                       onClick={() => router.push(`/orders/${order.id}`)}
                     >
-                      <td style={{ padding: '12px', fontSize: 13, fontFamily: 'monospace', color: '#1976d2' }}>
+                      <td style={{ padding: '12px', fontSize: 13, fontFamily: 'monospace', color: '#5d7a5d' }}>
                         {order.orderNo}
                       </td>
                       <td style={{ padding: '12px', fontSize: 12, textAlign: 'center' }}>
@@ -955,8 +955,8 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
                           padding: '3px 8px',
                           borderRadius: 4,
                           fontSize: 11,
-                          background: order.orderType === 'rx' ? '#e3f2fd' : '#f5f5f5',
-                          color: order.orderType === 'rx' ? '#1976d2' : '#666'
+                          background: order.orderType === 'rx' ? '#eef4ee' : '#f5f5f5',
+                          color: order.orderType === 'rx' ? '#5d7a5d' : '#666'
                         }}>
                           {order.orderType === 'rx' ? 'RX' : '여벌'}
                         </span>
@@ -994,7 +994,7 @@ export default function StoreDetailPage({ params }: { params: Promise<{ id: stri
         {activeTab === '입금내역' && (
           <div style={{ flex: 1, overflow: 'auto' }}>
             {store.transactions.filter(t => t.type === 'deposit').length === 0 ? (
-              <div style={{ padding: 60, textAlign: 'center', color: '#999' }}>
+              <div style={{ padding: 60, textAlign: 'center', color: '#868e96' }}>
                 <div style={{ fontSize: 48, marginBottom: 15 }}>💰</div>
                 입금 내역이 없습니다.
               </div>

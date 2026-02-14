@@ -377,7 +377,7 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         bottom: 8, 
         left: 8, 
         fontSize: 10, 
-        color: '#999',
+        color: '#868e96',
         background: 'rgba(255,255,255,0.9)',
         padding: '4px 8px',
         borderRadius: 4,
@@ -388,16 +388,17 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
 
       {/* Header */}
       <header style={{
-        background: '#fff',
-        borderBottom: '1px solid var(--gray-200)',
-        height: 56,
+        background: '#ffffff',
+        borderBottom: '1px solid #e9ecef',
+        height: 60,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
         position: 'sticky',
         top: 0,
-        zIndex: 100
+        zIndex: 100,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           {/* Mobile Menu Button */}
@@ -450,23 +451,24 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              background: '#f9fafb',
-              color: '#6b7280',
+              gap: 10,
+              padding: '10px 16px',
+              borderRadius: 10,
+              border: '1px solid #e9ecef',
+              background: '#ffffff',
+              color: '#6c757d',
               fontSize: 14,
               cursor: 'pointer',
-              minWidth: 200
+              minWidth: 220,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
             }}
           >
-            <span>🔍</span>
+            <span style={{ opacity: 0.7 }}>🔍</span>
             <span>검색...</span>
-            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9ca3af', background: '#fff', padding: '2px 6px', borderRadius: 4, border: '1px solid #e5e7eb' }}>Ctrl+K</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#868e96', background: '#f1f3f5', padding: '3px 8px', borderRadius: 5, fontWeight: 500 }}>Ctrl+K</span>
           </button>
 
-          <nav className="desktop-nav desktop-nav-links" style={{ display: 'flex', gap: 4 }} role="navigation" aria-label="메인 메뉴">
+          <nav className="desktop-nav desktop-nav-links" style={{ display: 'flex', gap: 6, background: '#f1f3f5', padding: '6px', borderRadius: 10 }} role="navigation" aria-label="메인 메뉴">
             {NAV_ITEMS.map((item, index) => {
               const isActive = item.label === activeNav
               return (
@@ -478,13 +480,14 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                   onKeyDown={e => handleNavKeyDown(e, index)}
                   onFocus={() => setNavFocusIndex(index)}
                   style={{
-                    padding: '10px 18px',
-                    borderRadius: 6,
+                    padding: '10px 20px',
+                    borderRadius: 8,
                     fontSize: 15,
-                    fontWeight: isActive ? 600 : 400,
-                    color: isActive ? 'var(--primary)' : 'var(--gray-600)',
-                    background: isActive ? 'var(--primary-light)' : 'transparent',
-                    transition: 'all 0.15s',
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? '#fff' : '#495057',
+                    background: isActive ? '#5d7a5d' : 'transparent',
+                    boxShadow: isActive ? '0 2px 8px rgba(93, 122, 93, 0.3)' : 'none',
+                    transition: 'all 0.2s',
                     outline: navFocusIndex === index ? '2px solid var(--primary)' : 'none',
                     outlineOffset: 2,
                     textDecoration: 'none'
@@ -495,17 +498,18 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
             })}
           </nav>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--gray-500)' }}>
-          <span className="header-right-info" style={{ fontWeight: 600, color: 'var(--gray-700)' }}>서울케미</span>
-          <span className="header-right-info" style={{ color: 'var(--gray-400)' }}>|</span>
-          <span className="header-right-info">{timeStr}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 14 }}>
+          <span className="header-right-info" style={{ fontWeight: 600, color: '#495057' }}>서울케미</span>
+          <span className="header-right-info" style={{ color: '#dee2e6' }}>|</span>
+          <span className="header-right-info" style={{ color: '#6c757d', fontWeight: 500 }}>{timeStr}</span>
           {/* 알림 버튼 */}
           <NotificationBell />
           <div style={{
-            width: 32, height: 32, borderRadius: '50%',
-            background: 'var(--gray-200)',
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #5d7a5d 0%, #4a6b4a 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 12, fontWeight: 600, color: 'var(--gray-600)'
+            fontSize: 13, fontWeight: 600, color: '#fff',
+            boxShadow: '0 2px 4px rgba(93, 122, 93, 0.3)'
           }}>AD</div>
         </div>
       </header>
@@ -595,26 +599,27 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           className="desktop-nav sidebar desktop-sidebar"
           style={{
             width: 'fit-content',
-            minWidth: 100,
-            background: '#fff',
-            borderRight: '1px solid var(--gray-200)',
-            padding: '16px 0',
+            minWidth: 140,
+            background: '#ffffff',
+            borderRight: '1px solid #e9ecef',
+            padding: '20px 12px',
             position: 'sticky',
-            top: 56,
-            height: 'calc(100vh - 56px)',
+            top: 60,
+            height: 'calc(100vh - 60px)',
             overflowY: 'auto'
           }}
           role="navigation"
           aria-label="사이드 메뉴"
         >
           {sidebarMenus.map((menu, menuIdx) => (
-            <div key={menuIdx} style={{ marginBottom: 8 }}>
+            <div key={menuIdx} style={{ marginBottom: 16 }}>
               <div style={{
-                padding: '10px 12px 6px',
-                fontSize: 15,
+                padding: '8px 12px',
+                fontSize: 13,
                 fontWeight: 700,
-                letterSpacing: '0.3px',
-                color: '#1f2937',
+                letterSpacing: '0.5px',
+                color: '#adb5bd',
+                textTransform: 'uppercase',
                 whiteSpace: 'nowrap'
               }}>{menu.title}</div>
               {menu.items.map(item => {
@@ -630,13 +635,14 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     onFocus={() => setSidebarFocusIndex(currentIndex)}
                     style={{
                       display: 'block',
-                      padding: '9px 12px',
+                      padding: '10px 14px',
+                      margin: '2px 0',
+                      borderRadius: 8,
                       fontSize: 15,
-                      color: isActive ? 'var(--primary)' : '#374151',
-                      background: isActive ? 'var(--primary-light)' : 
-                                  sidebarFocusIndex === currentIndex ? 'var(--gray-100)' : 'transparent',
-                      borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
-                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? '#5d7a5d' : '#495057',
+                      background: isActive ? '#eef4ee' : 
+                                  sidebarFocusIndex === currentIndex ? '#f1f3f5' : 'transparent',
+                      fontWeight: isActive ? 600 : 500,
                       transition: 'all 0.15s',
                       outline: sidebarFocusIndex === currentIndex ? '2px solid var(--primary)' : 'none',
                       outlineOffset: -2,
@@ -657,13 +663,13 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           className="main-content"
           style={{ 
             flex: 1, 
-            padding: 24, 
+            padding: 28, 
             display: 'flex', 
             flexDirection: 'column', 
-            gap: 20,
+            gap: 24,
             overflowY: 'auto',
-            height: 'calc(100vh - 56px)',
-            background: 'var(--gray-50)',
+            height: 'calc(100vh - 60px)',
+            background: '#f8f9fa',
             outline: 'none'
           }}
         >

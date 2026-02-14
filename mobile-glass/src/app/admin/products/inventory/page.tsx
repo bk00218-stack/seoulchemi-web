@@ -129,7 +129,7 @@ export default function InventoryPage() {
         <select
           value={selectedBrand}
           onChange={e => setSelectedBrand(e.target.value)}
-          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
         >
           <option value="all">전체 브랜드</option>
           {brands.map(brand => (
@@ -141,7 +141,7 @@ export default function InventoryPage() {
           placeholder="상품명 검색..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+          style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
         />
       </div>
 
@@ -191,7 +191,7 @@ export default function InventoryPage() {
                 <div style={{ padding: '0 16px 16px', background: '#f9fafb' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+                      <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                         <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>SPH</th>
                         <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>CYL</th>
                         <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>옵션</th>
@@ -223,7 +223,7 @@ export default function InventoryPage() {
                               style={{
                                 padding: '4px 12px',
                                 borderRadius: '4px',
-                                border: '1px solid #e5e5e5',
+                                border: '1px solid #e9ecef',
                                 background: '#fff',
                                 fontSize: '12px',
                                 cursor: 'pointer'
@@ -304,7 +304,7 @@ export default function InventoryPage() {
                 value={adjustQty}
                 onChange={e => setAdjustQty(parseInt(e.target.value) || 0)}
                 min={0}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
               />
             </div>
 
@@ -315,14 +315,14 @@ export default function InventoryPage() {
                 value={adjustMemo}
                 onChange={e => setAdjustMemo(e.target.value)}
                 placeholder="조정 사유 입력"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
               />
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => setShowAdjustModal(false)}
-                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e5e5e5', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
               >
                 취소
               </button>

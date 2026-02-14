@@ -222,7 +222,7 @@ export default function ImportPage() {
               width: '100%',
               padding: '10px',
               borderRadius: '8px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               background: '#fff',
               cursor: 'pointer',
               fontSize: '14px'
@@ -308,7 +308,7 @@ export default function ImportPage() {
                 style={{
                   padding: '12px',
                   borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   background: '#fff',
                   cursor: 'pointer',
                   fontSize: '14px'
@@ -324,7 +324,7 @@ export default function ImportPage() {
                 style={{
                   padding: '12px',
                   borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   background: '#fff',
                   cursor: 'pointer',
                   fontSize: '14px'
@@ -347,7 +347,7 @@ export default function ImportPage() {
                   padding: '6px 12px', 
                   borderRadius: '4px', 
                   background: '#fff', 
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   fontSize: '13px',
                   textDecoration: 'none',
                   color: '#1d1d1f'
@@ -361,7 +361,7 @@ export default function ImportPage() {
                   padding: '6px 12px', 
                   borderRadius: '4px', 
                   background: '#fff', 
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   fontSize: '13px',
                   textDecoration: 'none',
                   color: '#1d1d1f'
@@ -375,7 +375,7 @@ export default function ImportPage() {
                   padding: '6px 12px', 
                   borderRadius: '4px', 
                   background: '#fff', 
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   fontSize: '13px',
                   textDecoration: 'none',
                   color: '#1d1d1f'

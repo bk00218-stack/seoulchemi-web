@@ -36,7 +36,7 @@ export default async function OrdersPage() {
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       <header style={{ 
-        borderBottom: '2px solid #333', 
+        borderBottom: '2px solid #5d7a5d', 
         paddingBottom: '20px', 
         marginBottom: '30px',
         display: 'flex',
@@ -79,7 +79,7 @@ export default async function OrdersPage() {
           </div>
           <div style={{ color: '#666' }}>대기</div>
         </div>
-        <div style={{ padding: '20px', background: '#e3f2fd', borderRadius: '8px', textAlign: 'center' }}>
+        <div style={{ padding: '20px', background: '#eef4ee', borderRadius: '8px', textAlign: 'center' }}>
           <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2196f3' }}>
             {orders.filter(o => o.status === 'confirmed').length}
           </div>
@@ -193,7 +193,7 @@ export default async function OrdersPage() {
           background: '#f9f9f9',
           borderRadius: '8px'
         }}>
-          <p style={{ color: '#999', fontSize: '18px' }}>주문 내역이 없습니다.</p>
+          <p style={{ color: '#868e96', fontSize: '18px' }}>주문 내역이 없습니다.</p>
           <Link href="/orders/new" style={{
             display: 'inline-block',
             marginTop: '20px',
@@ -212,7 +212,7 @@ export default async function OrdersPage() {
         marginTop: '50px', 
         paddingTop: '20px', 
         borderTop: '1px solid #eee',
-        color: '#999',
+        color: '#868e96',
         fontSize: '12px'
       }}>
         MobileGlass Admin v0.1 | 서울케미렌즈

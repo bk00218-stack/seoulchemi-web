@@ -167,7 +167,7 @@ export default function ShortcutsPage() {
             flex: 1,
             padding: '10px 16px',
             borderRadius: '8px',
-            border: '1px solid #e5e5e5',
+            border: '1px solid #e9ecef',
             fontSize: '14px'
           }}
         />
@@ -191,7 +191,7 @@ export default function ShortcutsPage() {
       <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e5e5' }}>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e9ecef' }}>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>단축코드</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>상품</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>설명</th>
@@ -269,7 +269,7 @@ export default function ShortcutsPage() {
                       style={{
                         padding: '4px 8px',
                         borderRadius: '4px',
-                        border: '1px solid #e5e5e5',
+                        border: '1px solid #e9ecef',
                         background: '#fff',
                         fontSize: '12px',
                         cursor: 'pointer',
@@ -339,7 +339,7 @@ export default function ShortcutsPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px',
                     fontFamily: 'monospace',
                     textTransform: 'uppercase',
@@ -393,7 +393,7 @@ export default function ShortcutsPage() {
                         width: '100%',
                         padding: '10px',
                         borderRadius: '8px',
-                        border: '1px solid #e5e5e5',
+                        border: '1px solid #e9ecef',
                         fontSize: '14px'
                       }}
                     />
@@ -402,7 +402,7 @@ export default function ShortcutsPage() {
                       <div style={{ 
                         maxHeight: '200px', 
                         overflow: 'auto', 
-                        border: '1px solid #e5e5e5',
+                        border: '1px solid #e9ecef',
                         borderRadius: '8px',
                         marginTop: '8px'
                       }}>
@@ -442,7 +442,7 @@ export default function ShortcutsPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -455,7 +455,7 @@ export default function ShortcutsPage() {
                 style={{
                   padding: '10px 20px',
                   borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   background: '#fff',
                   cursor: 'pointer'
                 }}

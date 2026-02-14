@@ -208,7 +208,7 @@ export default function StoreProductsPage() {
                 width: '100%',
                 padding: '12px 16px',
                 fontSize: 14,
-                border: '1px solid #e5e5e5',
+                border: '1px solid #e9ecef',
                 borderRadius: 10,
                 outline: 'none',
                 boxSizing: 'border-box',
@@ -232,7 +232,7 @@ export default function StoreProductsPage() {
                   <div
                     key={product.id}
                     style={{
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       borderRadius: 12,
                       padding: 16,
                       transition: 'all 0.2s',

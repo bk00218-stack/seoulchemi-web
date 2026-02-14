@@ -199,15 +199,17 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
     <>
       {/* 헤더 */}
       <header style={{ 
-        background: '#fff',
-        borderBottom: '1px solid #e5e5e5',
-        padding: '16px 32px',
+        background: '#ffffff',
+        borderBottom: '1px solid #e9ecef',
+        padding: '12px 32px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         position: 'sticky',
         top: 0,
-        zIndex: 100
+        zIndex: 100,
+        height: '60px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
           <Link href="/admin" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
@@ -222,26 +224,28 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
               <circle cx="18" cy="18" r="8" fill="url(#lensGrad)" opacity="0.15"/>
               <circle cx="18" cy="18" r="4" fill="url(#lensGrad)" opacity="0.3"/>
               <circle cx="14" cy="14" r="2" fill="white" opacity="0.8"/>
-              <text x="42" y="24" fontFamily="Inter, -apple-system, sans-serif" fontSize="18" fontWeight="600" fill="#1d1d1f">
+              <text x="42" y="24" fontFamily="Inter, -apple-system, sans-serif" fontSize="18" fontWeight="600" fill="#212529">
                 AI<tspan fill="#5d7a5d">Optic</tspan>
               </text>
             </svg>
           </Link>
-          <nav style={{ display: 'flex', gap: '24px' }}>
+          <nav style={{ display: 'flex', gap: '6px', background: '#f1f3f5', padding: '6px', borderRadius: '10px' }}>
             {Object.entries(menuStructure).map(([key, value]) => (
               <button
                 key={key}
                 onClick={() => handleMenuClick(key as MenuKey)}
                 style={{ 
-                  background: 'none',
+                  background: currentMenu === key ? '#5d7a5d' : 'transparent',
                   border: 'none',
-                  color: currentMenu === key ? '#1d1d1f' : '#86868b',
+                  color: currentMenu === key ? '#fff' : '#495057',
                   textDecoration: 'none',
-                  fontWeight: currentMenu === key ? 500 : 400,
+                  fontWeight: currentMenu === key ? 600 : 500,
                   cursor: 'pointer',
-                  fontSize: '14px',
-                  padding: '4px 0',
-                  borderBottom: currentMenu === key ? '2px solid #5d7a5d' : '2px solid transparent'
+                  fontSize: '15px',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  boxShadow: currentMenu === key ? '0 2px 8px rgba(93, 122, 93, 0.3)' : 'none',
+                  transition: 'all 0.2s'
                 }}
               >
                 {value.label}
@@ -255,29 +259,30 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
             onClick={toggleTheme}
             title={resolvedTheme === 'dark' ? '라이트 모드' : '다크 모드'}
             style={{
-              padding: '8px',
+              padding: '8px 12px',
               borderRadius: '8px',
-              border: '1px solid var(--border-color)',
-              background: 'var(--bg-primary)',
+              border: '1px solid #e9ecef',
+              background: '#ffffff',
               cursor: 'pointer',
               fontSize: '18px',
-              lineHeight: 1
+              lineHeight: 1,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
             }}
           >
             {resolvedTheme === 'dark' ? '☀️' : '🌙'}
           </button>
           {user && (
             <>
-              <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
+              <span style={{ fontSize: '14px', color: '#495057', fontWeight: 500 }}>
                 <span style={{
                   display: 'inline-block',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: 500,
-                  marginRight: '6px',
-                  background: user.role === 'admin' ? '#fee2e2' : user.role === 'manager' ? '#dbeafe' : '#f3f4f6',
-                  color: user.role === 'admin' ? '#dc2626' : user.role === 'manager' ? '#2563eb' : '#374151'
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  marginRight: '8px',
+                  background: user.role === 'admin' ? '#ffe3e3' : user.role === 'manager' ? '#dbeafe' : '#f1f3f5',
+                  color: user.role === 'admin' ? '#e03131' : user.role === 'manager' ? '#1971c2' : '#495057'
                 }}>
                   {user.role === 'admin' ? '관리자' : user.role === 'manager' ? '매니저' : '사용자'}
                 </span>
@@ -286,13 +291,15 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
               <button
                 onClick={logout}
                 style={{
-                  padding: '6px 12px',
-                  borderRadius: '6px',
-                  border: '1px solid #e5e5e5',
-                  background: '#fff',
-                  fontSize: '13px',
-                  color: '#86868b',
-                  cursor: 'pointer'
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e9ecef',
+                  background: '#ffffff',
+                  fontSize: '14px',
+                  color: '#6c757d',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
                 }}
               >
                 로그아웃
@@ -304,20 +311,20 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
 
       {/* 사이드바 */}
       <aside style={{ 
-        width: '200px', 
-        background: '#fff', 
-        borderRight: '1px solid #e5e5e5',
+        width: '220px', 
+        background: '#ffffff', 
+        borderRight: '1px solid #e9ecef',
         minHeight: 'calc(100vh - 60px)',
-        padding: '20px 0',
+        padding: '24px 16px',
         position: 'fixed',
         top: '60px',
         left: 0,
         overflowY: 'auto'
       }}>
         {menu.sections.map((section, idx) => (
-          <div key={idx}>
-            <div style={{ padding: '0 16px', margin: idx > 0 ? '24px 0 16px' : '0 0 16px' }}>
-              <div style={{ fontSize: '12px', color: '#86868b', fontWeight: 500 }}>
+          <div key={idx} style={{ marginBottom: '20px' }}>
+            <div style={{ padding: '8px 12px', marginBottom: '4px' }}>
+              <div style={{ fontSize: '13px', color: '#adb5bd', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                 {section.title}
               </div>
             </div>
@@ -329,14 +336,16 @@ export default function Navigation({ activeMenu = 'order' }: NavigationProps) {
                   href={item.path}
                   style={{
                     display: 'block',
-                    padding: '10px 16px',
+                    padding: '10px 14px',
+                    margin: '2px 0',
+                    borderRadius: '8px',
                     textAlign: 'left',
-                    background: isActive ? '#f0f7f0' : 'transparent',
-                    borderLeft: isActive ? '3px solid #5d7a5d' : '3px solid transparent',
-                    color: isActive ? '#5d7a5d' : '#1d1d1f',
-                    fontSize: '14px',
+                    background: isActive ? '#eef4ee' : 'transparent',
+                    color: isActive ? '#5d7a5d' : '#495057',
+                    fontSize: '15px',
                     textDecoration: 'none',
-                    fontWeight: isActive ? 500 : 400
+                    fontWeight: isActive ? 600 : 500,
+                    transition: 'all 0.15s'
                   }}
                 >
                   {item.label}
@@ -361,12 +370,12 @@ export function AdminLayout({
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#f5f5f7',
+      background: '#f8f9fa',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       <Navigation activeMenu={activeMenu} />
       <main style={{ 
-        marginLeft: '200px', 
+        marginLeft: '220px', 
         padding: '32px', 
         paddingTop: '92px',
         maxWidth: '1200px' 

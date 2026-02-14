@@ -163,7 +163,7 @@ export default function SuppliersPage() {
             flex: 1,
             padding: '10px 16px',
             borderRadius: '8px',
-            border: '1px solid #e5e5e5',
+            border: '1px solid #e9ecef',
             fontSize: '14px'
           }}
         />
@@ -187,7 +187,7 @@ export default function SuppliersPage() {
       <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e5e5' }}>
+            <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e9ecef' }}>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>코드</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>매입처명</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500 }}>담당자</th>
@@ -255,7 +255,7 @@ export default function SuppliersPage() {
                       style={{
                         padding: '4px 8px',
                         borderRadius: '4px',
-                        border: '1px solid #e5e5e5',
+                        border: '1px solid #e9ecef',
                         background: '#fff',
                         fontSize: '12px',
                         cursor: 'pointer',
@@ -326,7 +326,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -344,7 +344,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px',
                       background: editingSupplier ? '#f9fafb' : '#fff'
                     }}
@@ -365,7 +365,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -382,7 +382,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -401,7 +401,7 @@ export default function SuppliersPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -419,7 +419,7 @@ export default function SuppliersPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -438,7 +438,7 @@ export default function SuppliersPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -457,7 +457,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -474,7 +474,7 @@ export default function SuppliersPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -493,7 +493,7 @@ export default function SuppliersPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px',
                     resize: 'vertical'
                   }}
@@ -507,7 +507,7 @@ export default function SuppliersPage() {
                 style={{
                   padding: '10px 20px',
                   borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   background: '#fff',
                   cursor: 'pointer'
                 }}

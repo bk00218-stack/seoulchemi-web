@@ -134,7 +134,7 @@ export default function BrandsPage() {
     )},
     { key: 'productCount', label: '상품 수', align: 'center', render: (v) => (
       <span style={{ 
-        background: '#e3f2fd', 
+        background: '#eef4ee', 
         color: '#007aff', 
         padding: '3px 10px', 
         borderRadius: '12px', 
@@ -291,7 +291,7 @@ export default function BrandsPage() {
                 type="text" 
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
               />
             </div>
             
@@ -301,7 +301,7 @@ export default function BrandsPage() {
                 <select 
                   value={formData.stockManage}
                   onChange={(e) => setFormData({ ...formData, stockManage: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
                 >
                   <option value="">미사용</option>
                   <option value="barcode">바코드</option>
@@ -314,7 +314,7 @@ export default function BrandsPage() {
                   type="number" 
                   value={formData.displayOrder}
                   onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
                 />
               </div>
             </div>

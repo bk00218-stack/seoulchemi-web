@@ -125,7 +125,7 @@ export default function ShippingPage() {
         alignItems: 'center',
         marginBottom: 15,
         paddingBottom: 10,
-        borderBottom: '2px solid #333'
+        borderBottom: '2px solid #5d7a5d'
       }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>전표발행 (출고 확인)</h1>
@@ -149,7 +149,7 @@ export default function ShippingPage() {
         
         {/* 왼쪽: 매입처별 대기량 */}
         <div style={{ 
-          background: '#f5f5f5',
+          background: '#f8f9fa',
           borderRadius: 8,
           overflow: 'hidden',
           display: 'flex',
@@ -157,7 +157,7 @@ export default function ShippingPage() {
         }}>
           <div style={{
             padding: '12px 15px',
-            background: '#333',
+            background: '#5d7a5d',
             color: '#fff',
             fontSize: 13,
             fontWeight: 600
@@ -172,7 +172,7 @@ export default function ShippingPage() {
               padding: '12px 15px',
               borderBottom: '1px solid #ddd',
               cursor: 'pointer',
-              background: selectedSupplier === null ? '#e3f2fd' : '#fff',
+              background: selectedSupplier === null ? '#eef4ee' : '#fff',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center'
@@ -187,7 +187,7 @@ export default function ShippingPage() {
             <div style={{ 
               fontSize: 12, 
               fontWeight: 600, 
-              color: '#1976d2' 
+              color: '#5d7a5d' 
             }}>
               {suppliers.reduce((sum, s) => sum + s.pendingAmount, 0).toLocaleString()}원
             </div>
@@ -203,7 +203,7 @@ export default function ShippingPage() {
                   padding: '12px 15px',
                   borderBottom: '1px solid #eee',
                   cursor: 'pointer',
-                  background: selectedSupplier === supplier.id ? '#e3f2fd' : '#fff',
+                  background: selectedSupplier === supplier.id ? '#eef4ee' : '#fff',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
@@ -239,8 +239,8 @@ export default function ShippingPage() {
           {/* 탭 */}
           <div style={{
             display: 'flex',
-            borderBottom: '2px solid #1976d2',
-            background: '#f5f5f5'
+            borderBottom: '2px solid #5d7a5d',
+            background: '#f8f9fa'
           }}>
             {(['전체', '여벌', '착색', 'RX'] as OrderType[]).map(tab => (
               <button
@@ -250,7 +250,7 @@ export default function ShippingPage() {
                   flex: 1,
                   padding: '12px 20px',
                   border: 'none',
-                  background: activeTab === tab ? '#1976d2' : 'transparent',
+                  background: activeTab === tab ? '#5d7a5d' : 'transparent',
                   color: activeTab === tab ? '#fff' : '#333',
                   fontWeight: activeTab === tab ? 600 : 400,
                   fontSize: 13,
@@ -304,11 +304,11 @@ export default function ShippingPage() {
           {/* 주문 목록 */}
           <div style={{ flex: 1, overflow: 'auto' }}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>
+              <div style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
                 로딩 중...
               </div>
             ) : filteredOrders.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>
+              <div style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
                 <div style={{ fontSize: 36, marginBottom: 10 }}>📦</div>
                 출고 대기 주문이 없습니다
               </div>
@@ -322,7 +322,7 @@ export default function ShippingPage() {
                     padding: '10px 12px',
                     fontSize: 12,
                     borderBottom: '1px solid #eee',
-                    background: selectedOrders.has(order.id) ? '#e3f2fd' : (index % 2 === 0 ? '#fff' : '#fafafa'),
+                    background: selectedOrders.has(order.id) ? '#eef4ee' : (index % 2 === 0 ? '#fff' : '#fafafa'),
                     cursor: 'pointer',
                     alignItems: 'center'
                   }}
@@ -338,7 +338,7 @@ export default function ShippingPage() {
                   </div>
                   <div>
                     <div style={{ fontWeight: 500 }}>{order.storeName}</div>
-                    <div style={{ fontSize: 10, color: '#999' }}>{order.storeCode} · {order.orderedAt}</div>
+                    <div style={{ fontSize: 10, color: '#868e96' }}>{order.storeCode} · {order.orderedAt}</div>
                   </div>
                   <div>
                     <div style={{ fontWeight: 500, fontSize: 11 }}>{order.productName}</div>
@@ -352,7 +352,7 @@ export default function ShippingPage() {
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <span style={{
-                      background: order.supplierId === 1 ? '#e3f2fd' : order.supplierId === 2 ? '#fff3e0' : '#e8f5e9',
+                      background: order.supplierId === 1 ? '#eef4ee' : order.supplierId === 2 ? '#fff3e0' : '#e8f5e9',
                       padding: '2px 8px',
                       borderRadius: 4,
                       fontSize: 10
@@ -369,14 +369,14 @@ export default function ShippingPage() {
           <div style={{
             padding: '12px 15px',
             borderTop: '1px solid #ccc',
-            background: '#f5f5f5',
+            background: '#f8f9fa',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
             <div style={{ fontSize: 13 }}>
               선택: <strong>{selectedOrders.size}</strong>건 
-              <span style={{ marginLeft: 15, color: '#1976d2', fontWeight: 600 }}>
+              <span style={{ marginLeft: 15, color: '#5d7a5d', fontWeight: 600 }}>
                 {selectedTotal.toLocaleString()}원
               </span>
             </div>

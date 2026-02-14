@@ -185,7 +185,7 @@ export default function ProductStatsPage() {
               borderRadius: '6px',
               background: '#fff',
               color: '#1d1d1f',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               fontSize: '13px',
               cursor: 'pointer'
             }}

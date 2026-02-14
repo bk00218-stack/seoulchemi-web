@@ -218,7 +218,7 @@ export default function StoresPage() {
     )},
     { key: 'orderCount', label: '주문수', align: 'center', render: (v) => (
       <span style={{ 
-        background: (v as number) > 0 ? '#e3f2fd' : '#f5f5f7', 
+        background: (v as number) > 0 ? '#eef4ee' : '#f5f5f7', 
         color: (v as number) > 0 ? '#007aff' : '#86868b',
         padding: '2px 8px', 
         borderRadius: '4px', 
@@ -369,7 +369,7 @@ export default function StoresPage() {
                   borderRadius: '6px',
                   background: page === 1 ? '#f5f5f7' : '#fff',
                   color: page === 1 ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   cursor: page === 1 ? 'default' : 'pointer',
                 }}
               >
@@ -391,7 +391,7 @@ export default function StoresPage() {
                   borderRadius: '6px',
                   background: page === totalPages ? '#f5f5f7' : '#fff',
                   color: page === totalPages ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   cursor: page === totalPages ? 'default' : 'pointer',
                 }}
               >
@@ -443,7 +443,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px',
                     background: editingStore ? '#f5f5f7' : '#fff'
                   }} 
@@ -461,7 +461,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -479,7 +479,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -495,7 +495,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -514,7 +514,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -530,7 +530,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -551,7 +551,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -565,7 +565,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }}
                 >
@@ -589,7 +589,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -605,7 +605,7 @@ export default function StoresPage() {
                     width: '100%', 
                     padding: '10px 12px', 
                     borderRadius: '8px', 
-                    border: '1px solid #e5e5e5', 
+                    border: '1px solid #e9ecef', 
                     fontSize: '14px' 
                   }} 
                 />
@@ -622,7 +622,7 @@ export default function StoresPage() {
                   width: '100%', 
                   padding: '10px 12px', 
                   borderRadius: '8px', 
-                  border: '1px solid #e5e5e5', 
+                  border: '1px solid #e9ecef', 
                   fontSize: '14px' 
                 }} 
               />
@@ -637,7 +637,7 @@ export default function StoresPage() {
                   width: '100%', 
                   padding: '10px 12px', 
                   borderRadius: '8px', 
-                  border: '1px solid #e5e5e5', 
+                  border: '1px solid #e9ecef', 
                   fontSize: '14px' 
                 }}
               >

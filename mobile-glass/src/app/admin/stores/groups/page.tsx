@@ -98,12 +98,12 @@ export default function StoreGroupsPage() {
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>그룹 등록</h3>
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>그룹명 *</label>
-              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>타입</label>
-                <select value={formData.storeType} onChange={(e) => setFormData({ ...formData, storeType: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}>
+                <select value={formData.storeType} onChange={(e) => setFormData({ ...formData, storeType: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}>
                   <option value="normal">일반</option>
                   <option value="vip">VIP</option>
                   <option value="wholesale">도매</option>
@@ -111,7 +111,7 @@ export default function StoreGroupsPage() {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>기본 할인율 (%)</label>
-                <input type="number" value={formData.discountRate} onChange={(e) => setFormData({ ...formData, discountRate: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} />
+                <input type="number" value={formData.discountRate} onChange={(e) => setFormData({ ...formData, discountRate: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>

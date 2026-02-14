@@ -184,7 +184,7 @@ export default function RxOrdersPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return { bg: '#fff3e0', color: '#e65100' }
-      case 'preparing': return { bg: '#e3f2fd', color: '#1565c0' }
+      case 'preparing': return { bg: '#eef4ee', color: '#4a6b4a' }
       case 'shipped': return { bg: '#e8f5e9', color: '#2e7d32' }
       case 'cancelled': return { bg: '#ffebee', color: '#c62828' }
       default: return { bg: '#f5f5f5', color: '#666' }
@@ -199,7 +199,7 @@ export default function RxOrdersPage() {
         color: '#fff', 
         padding: '12px 20px', 
         borderRadius: '8px 8px 0 0',
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: 600
       }}>
         후결제 RX 주문내역
@@ -319,8 +319,8 @@ export default function RxOrdersPage() {
         <div style={{ display: 'flex', gap: 8 }}>
           <button style={btnStyle}>📢 공지사항</button>
           <button style={{ ...btnStyle, background: '#e65100', color: '#fff', border: 'none' }}>🖨️ 선택출력</button>
-          <button style={{ ...btnStyle, background: '#1565c0', color: '#fff', border: 'none' }}>📥 전체</button>
-          <button style={{ ...btnStyle, background: '#1565c0', color: '#fff', border: 'none' }}>📥 선택</button>
+          <button style={{ ...btnStyle, background: '#4a6b4a', color: '#fff', border: 'none' }}>📥 전체</button>
+          <button style={{ ...btnStyle, background: '#4a6b4a', color: '#fff', border: 'none' }}>📥 선택</button>
         </div>
         <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
           <span>주문수량 : <strong>{stats.orderCount}/{stats.totalOrderCount}</strong></span>

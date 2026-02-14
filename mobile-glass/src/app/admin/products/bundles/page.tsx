@@ -269,7 +269,7 @@ export default function BundlesPage() {
                       style={{
                         padding: '6px 12px',
                         borderRadius: '6px',
-                        border: '1px solid #e5e5e5',
+                        border: '1px solid #e9ecef',
                         background: '#fff',
                         fontSize: '13px',
                         cursor: 'pointer'
@@ -373,7 +373,7 @@ export default function BundlesPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -391,7 +391,7 @@ export default function BundlesPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -410,7 +410,7 @@ export default function BundlesPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -427,7 +427,7 @@ export default function BundlesPage() {
                       width: '100%',
                       padding: '10px',
                       borderRadius: '8px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       fontSize: '14px'
                     }}
                   />
@@ -473,7 +473,7 @@ export default function BundlesPage() {
                               width: '60px',
                               padding: '4px 8px',
                               borderRadius: '4px',
-                              border: '1px solid #e5e5e5',
+                              border: '1px solid #e9ecef',
                               textAlign: 'center'
                             }}
                           />
@@ -506,7 +506,7 @@ export default function BundlesPage() {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px',
                     marginBottom: '8px'
                   }}
@@ -516,7 +516,7 @@ export default function BundlesPage() {
                   <div style={{ 
                     maxHeight: '150px', 
                     overflow: 'auto', 
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     borderRadius: '8px'
                   }}>
                     {filteredProducts.slice(0, 10).map(product => (
@@ -589,7 +589,7 @@ export default function BundlesPage() {
                 style={{
                   padding: '10px 20px',
                   borderRadius: '8px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   background: '#fff',
                   cursor: 'pointer'
                 }}

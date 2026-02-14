@@ -301,7 +301,7 @@ export default function VendorsPage() {
         alignItems: 'center',
         marginBottom: 15,
         paddingBottom: 10,
-        borderBottom: '2px solid #333'
+        borderBottom: '2px solid #5d7a5d'
       }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>매입처 관리</h1>
@@ -322,9 +322,9 @@ export default function VendorsPage() {
 
       {/* 통계 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 15 }}>
-        <div style={{ ...cardStyle, padding: '15px 20px', borderLeft: '4px solid #1976d2' }}>
+        <div style={{ ...cardStyle, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
           <div style={{ fontSize: 12, color: '#666' }}>전체 매입처</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>{stats.total}개</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>{stats.total}개</div>
         </div>
         <div style={{ ...cardStyle, padding: '15px 20px', borderLeft: '4px solid #4caf50' }}>
           <div style={{ fontSize: 12, color: '#666' }}>활성 매입처</div>
@@ -367,7 +367,7 @@ export default function VendorsPage() {
       <div style={{ ...cardStyle, flex: 1, overflow: 'hidden' }}>
         <div style={{ overflow: 'auto', height: '100%' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1200 }}>
-            <thead style={{ position: 'sticky', top: 0, background: '#f5f5f5' }}>
+            <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
               <tr>
                 <th style={thStyle}>코드</th>
                 <th style={thStyle}>매입처명</th>
@@ -385,13 +385,13 @@ export default function VendorsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} style={{ ...tdStyle, padding: 40, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={11} style={{ ...tdStyle, padding: 40, textAlign: 'center', color: '#868e96' }}>
                     로딩 중...
                   </td>
                 </tr>
               ) : filteredVendors.length === 0 ? (
                 <tr>
-                  <td colSpan={11} style={{ ...tdStyle, padding: 40, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={11} style={{ ...tdStyle, padding: 40, textAlign: 'center', color: '#868e96' }}>
                     <div style={{ fontSize: 48, marginBottom: 10 }}>🏭</div>
                     등록된 매입처가 없습니다
                   </td>
@@ -426,8 +426,8 @@ export default function VendorsPage() {
                         padding: '3px 8px',
                         borderRadius: 4,
                         fontSize: 11,
-                        background: '#e3f2fd',
-                        color: '#1976d2',
+                        background: '#eef4ee',
+                        color: '#5d7a5d',
                       }}>
                         {vendor.paymentTermDays}일
                       </span>
@@ -496,7 +496,7 @@ export default function VendorsPage() {
             {/* 모달 헤더 */}
             <div style={{ 
               padding: '20px 24px', 
-              background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+              background: 'linear-gradient(135deg, #5d7a5d 0%, #4a6b4a 100%)',
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
@@ -525,7 +525,7 @@ export default function VendorsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 {/* 왼쪽: 기본 정보 */}
                 <div>
-                  <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: '#1976d2', borderBottom: '2px solid #1976d2', paddingBottom: 8 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: '#5d7a5d', borderBottom: '2px solid #5d7a5d', paddingBottom: 8 }}>
                     📋 기본 정보
                   </h3>
                   
@@ -702,7 +702,7 @@ export default function VendorsPage() {
                 취소
               </button>
               <button 
-                style={{ ...btnStyle, background: '#1976d2', color: '#fff', border: 'none', minWidth: 120 }} 
+                style={{ ...btnStyle, background: '#5d7a5d', border: 'none', color: '#fff', minWidth: 120 }} 
                 onClick={handleSubmit}
                 disabled={saving}
               >

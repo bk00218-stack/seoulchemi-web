@@ -87,7 +87,7 @@ export default function PrintHistoryPage() {
     { key: 'storeName', label: '가맹점' },
     { key: 'printType', label: '출력유형', render: (v) => {
       const types: Record<string, { bg: string; color: string }> = {
-        '거래명세서': { bg: '#e3f2fd', color: '#1565c0' },
+        '거래명세서': { bg: '#eef4ee', color: '#4a6b4a' },
         '출고명세서': { bg: '#e8f5e9', color: '#2e7d32' },
         '납품확인서': { bg: '#fff3e0', color: '#ef6c00' }
       }
@@ -207,7 +207,7 @@ export default function PrintHistoryPage() {
               borderRadius: '6px',
               background: '#fff',
               color: '#1d1d1f',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               fontSize: '13px',
               cursor: 'pointer'
             }}

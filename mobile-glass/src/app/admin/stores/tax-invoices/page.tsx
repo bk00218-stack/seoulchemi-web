@@ -209,7 +209,7 @@ export default function TaxInvoicesPage() {
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e5e5e5', background: '#f9fafb' }}>
+              <tr style={{ borderBottom: '1px solid #e9ecef', background: '#f9fafb' }}>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>계산서번호</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>거래처</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>사업자번호</th>
@@ -253,7 +253,7 @@ export default function TaxInvoicesPage() {
                         style={{
                           padding: '6px 12px',
                           borderRadius: '6px',
-                          border: '1px solid #e5e5e5',
+                          border: '1px solid #e9ecef',
                           background: '#fff',
                           fontSize: '13px',
                           cursor: 'pointer'
@@ -292,7 +292,7 @@ export default function TaxInvoicesPage() {
                     value={formData.storeId}
                     onChange={e => setFormData({ ...formData, storeId: e.target.value })}
                     required
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
                   >
                     <option value="">선택</option>
                     {stores.map(store => (
@@ -307,7 +307,7 @@ export default function TaxInvoicesPage() {
                     value={formData.supplyDate}
                     onChange={e => setFormData({ ...formData, supplyDate: e.target.value })}
                     required
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px' }}
                   />
                 </div>
               </div>
@@ -345,7 +345,7 @@ export default function TaxInvoicesPage() {
                             value={item.itemName}
                             onChange={e => updateItem(idx, 'itemName', e.target.value)}
                             placeholder="품명"
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '13px' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '13px' }}
                           />
                         </td>
                         <td style={{ padding: '4px' }}>
@@ -354,7 +354,7 @@ export default function TaxInvoicesPage() {
                             value={item.specification}
                             onChange={e => updateItem(idx, 'specification', e.target.value)}
                             placeholder="규격"
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '13px' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '13px' }}
                           />
                         </td>
                         <td style={{ padding: '4px' }}>
@@ -363,7 +363,7 @@ export default function TaxInvoicesPage() {
                             value={item.quantity}
                             onChange={e => updateItem(idx, 'quantity', parseInt(e.target.value) || 0)}
                             min={1}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '13px', textAlign: 'right' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '13px', textAlign: 'right' }}
                           />
                         </td>
                         <td style={{ padding: '4px' }}>
@@ -372,7 +372,7 @@ export default function TaxInvoicesPage() {
                             value={item.unitPrice}
                             onChange={e => updateItem(idx, 'unitPrice', parseInt(e.target.value) || 0)}
                             min={0}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '13px', textAlign: 'right' }}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '13px', textAlign: 'right' }}
                           />
                         </td>
                         <td style={{ padding: '4px', textAlign: 'right', fontWeight: 500 }}>
@@ -415,7 +415,7 @@ export default function TaxInvoicesPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e5e5e5', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
                 >
                   취소
                 </button>
@@ -501,7 +501,7 @@ export default function TaxInvoicesPage() {
 
             <button
               onClick={() => setSelectedInvoice(null)}
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #e5e5e5', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
+              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
             >
               닫기
             </button>

@@ -166,7 +166,7 @@ export default function DepositPage() {
                     padding: '6px 12px',
                     borderRadius: '6px',
                     background: '#fff',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '12px',
                     cursor: 'pointer'
                   }}
@@ -185,7 +185,7 @@ export default function DepositPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px',
                     marginBottom: '8px'
                   }}
@@ -193,7 +193,7 @@ export default function DepositPage() {
                 <div style={{
                   maxHeight: '200px',
                   overflow: 'auto',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   borderRadius: '8px'
                 }}>
                   {filteredStores.slice(0, 20).map(store => (
@@ -246,7 +246,7 @@ export default function DepositPage() {
                 width: '100%',
                 padding: '14px',
                 borderRadius: '8px',
-                border: '1px solid #e5e5e5',
+                border: '1px solid #e9ecef',
                 fontSize: '20px',
                 fontWeight: 600,
                 textAlign: 'right'
@@ -273,7 +273,7 @@ export default function DepositPage() {
                     padding: '10px',
                     borderRadius: '6px',
                     border: depositMethod === opt.value ? '2px solid #007aff' : '1px solid #e5e5e5',
-                    background: depositMethod === opt.value ? '#e3f2fd' : '#fff',
+                    background: depositMethod === opt.value ? '#eef4ee' : '#fff',
                     color: depositMethod === opt.value ? '#007aff' : '#1d1d1f',
                     fontSize: '13px',
                     fontWeight: depositMethod === opt.value ? 600 : 400,
@@ -300,7 +300,7 @@ export default function DepositPage() {
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: '8px',
-                border: '1px solid #e5e5e5',
+                border: '1px solid #e9ecef',
                 fontSize: '14px'
               }}
             />
@@ -320,7 +320,7 @@ export default function DepositPage() {
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: '8px',
-                border: '1px solid #e5e5e5',
+                border: '1px solid #e9ecef',
                 fontSize: '14px'
               }}
             />

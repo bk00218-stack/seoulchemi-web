@@ -206,12 +206,12 @@ export default function DeliveryPage() {
       </h2>
 
       <div style={{ 
-        background: '#e3f2fd', 
+        background: '#eef4ee', 
         borderRadius: '8px', 
         padding: '16px 20px',
         marginBottom: '24px',
         fontSize: '14px',
-        color: '#1565c0'
+        color: '#4a6b4a'
       }}>
         📍 <strong>배송지 관리 안내</strong><br />
         가맹점별 기본 배송지 정보를 관리합니다. 배송지 변경 시 해당 가맹점의 모든 주문에 적용됩니다.
@@ -244,7 +244,7 @@ export default function DeliveryPage() {
                 borderRadius: '6px',
                 background: '#fff',
                 color: '#1d1d1f',
-                border: '1px solid #e5e5e5',
+                border: '1px solid #e9ecef',
                 fontSize: '13px',
                 cursor: 'pointer'
               }}
@@ -257,7 +257,7 @@ export default function DeliveryPage() {
                 borderRadius: '6px',
                 background: '#fff',
                 color: '#1d1d1f',
-                border: '1px solid #e5e5e5',
+                border: '1px solid #e9ecef',
                 fontSize: '13px',
                 cursor: 'pointer'
               }}

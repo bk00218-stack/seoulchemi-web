@@ -254,10 +254,10 @@ export default function StaffManagementPage() {
     fontSize: 14,
     fontWeight: isActive ? 600 : 400,
     border: 'none',
-    borderBottom: isActive ? '3px solid #1976d2' : '3px solid transparent',
+    borderBottom: isActive ? '3px solid #5d7a5d' : '3px solid transparent',
     background: 'transparent',
     cursor: 'pointer',
-    color: isActive ? '#1976d2' : '#666',
+    color: isActive ? '#5d7a5d' : '#666',
     transition: 'all 0.2s',
   })
 
@@ -286,7 +286,7 @@ export default function StaffManagementPage() {
         alignItems: 'center',
         marginBottom: 15,
         paddingBottom: 10,
-        borderBottom: '2px solid #333'
+        borderBottom: '2px solid #5d7a5d'
       }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>담당자/그룹 관리</h1>
@@ -325,9 +325,9 @@ export default function StaffManagementPage() {
       {/* 요약 카드 */}
       {activeTab === 'group' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 15 }}>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #1976d2' }}>
+          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
             <div style={{ fontSize: 12, color: '#666' }}>전체 그룹</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>{groups.length}개</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>{groups.length}개</div>
           </div>
           <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #4caf50' }}>
             <div style={{ fontSize: 12, color: '#666' }}>연결된 거래처</div>
@@ -344,9 +344,9 @@ export default function StaffManagementPage() {
       
       {(activeTab === 'delivery' || activeTab === 'sales') && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 15 }}>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #1976d2' }}>
+          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
             <div style={{ fontSize: 12, color: '#666' }}>전체 담당자</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>
               {(activeTab === 'delivery' ? deliveryStaff : salesStaff).length}명
             </div>
           </div>
@@ -373,7 +373,7 @@ export default function StaffManagementPage() {
         <div style={{ overflow: 'auto', height: '100%' }}>
           {activeTab === 'group' ? (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#f5f5f5' }}>
+              <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
                 <tr>
                   <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>그룹명</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>설명</th>
@@ -385,9 +385,9 @@ export default function StaffManagementPage() {
               </thead>
               <tbody>
                 {groupsLoading ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#999' }}>로딩 중...</td></tr>
+                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>로딩 중...</td></tr>
                 ) : groups.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#999' }}>
+                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
                     <div style={{ fontSize: 36, marginBottom: 10 }}>📁</div>
                     등록된 그룹이 없습니다
                   </td></tr>
@@ -396,7 +396,7 @@ export default function StaffManagementPage() {
                     <td style={{ padding: '12px', fontSize: 13, fontWeight: 500 }}>{group.name}</td>
                     <td style={{ padding: '12px', fontSize: 12, color: '#666' }}>{group.description || '-'}</td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, background: '#e3f2fd', color: '#1976d2' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, background: '#eef4ee', color: '#5d7a5d' }}>
                         {group.discountRate}%
                       </span>
                     </td>
@@ -408,7 +408,7 @@ export default function StaffManagementPage() {
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, marginRight: 6 }} onClick={() => handleEditGroup(group)}>수정</button>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: '#f5f5f5', color: '#999' }} onClick={() => handleDelete(group.id)}>비활성화</button>
+                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: '#f8f9fa', color: '#868e96' }} onClick={() => handleDelete(group.id)}>비활성화</button>
                     </td>
                   </tr>
                 ))}
@@ -416,7 +416,7 @@ export default function StaffManagementPage() {
             </table>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#f5f5f5' }}>
+              <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
                 <tr>
                   <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>담당자명</th>
                   <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>연락처</th>
@@ -428,9 +428,9 @@ export default function StaffManagementPage() {
               </thead>
               <tbody>
                 {(activeTab === 'delivery' ? deliveryLoading : salesLoading) ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#999' }}>로딩 중...</td></tr>
+                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>로딩 중...</td></tr>
                 ) : (activeTab === 'delivery' ? deliveryStaff : salesStaff).length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#999' }}>
+                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
                     <div style={{ fontSize: 36, marginBottom: 10 }}>{getTabIcon()}</div>
                     등록된 {getTabTitle()}가 없습니다
                   </td></tr>
@@ -440,7 +440,7 @@ export default function StaffManagementPage() {
                     <td style={{ padding: '12px', fontSize: 12 }}>{staff.phone || '-'}</td>
                     <td style={{ padding: '12px', fontSize: 12 }}>
                       {staff.areaCode ? (
-                        <span style={{ padding: '3px 8px', borderRadius: 4, fontSize: 11, background: '#e3f2fd', color: '#1976d2' }}>{staff.areaCode}</span>
+                        <span style={{ padding: '3px 8px', borderRadius: 4, fontSize: 11, background: '#eef4ee', color: '#5d7a5d' }}>{staff.areaCode}</span>
                       ) : '-'}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
@@ -455,7 +455,7 @@ export default function StaffManagementPage() {
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, marginRight: 6 }} onClick={() => handleEditStaff(staff)}>수정</button>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: '#f5f5f5', color: '#999' }} onClick={() => handleDelete(staff.id)}>비활성화</button>
+                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: '#f8f9fa', color: '#868e96' }} onClick={() => handleDelete(staff.id)}>비활성화</button>
                     </td>
                   </tr>
                 ))}
@@ -477,7 +477,7 @@ export default function StaffManagementPage() {
               <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
                 {getTabIcon()} {editingId ? `${getTabTitle()} 수정` : `${getTabTitle()} 추가`}
               </h2>
-              <button style={{ border: 'none', background: 'none', fontSize: 24, cursor: 'pointer', color: '#999', padding: 4 }} onClick={() => setShowModal(false)}>×</button>
+              <button style={{ border: 'none', background: 'none', fontSize: 24, cursor: 'pointer', color: '#868e96', padding: 4 }} onClick={() => setShowModal(false)}>×</button>
             </div>
             
             {/* 모달 바디 */}
@@ -541,7 +541,7 @@ export default function StaffManagementPage() {
             {/* 모달 푸터 */}
             <div style={{ padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button style={{ ...btnStyle, minWidth: 80 }} onClick={() => setShowModal(false)}>취소</button>
-              <button style={{ ...btnStyle, background: '#1976d2', color: '#fff', border: 'none', minWidth: 100 }} onClick={handleSubmit} disabled={saving}>
+              <button style={{ ...btnStyle, background: '#5d7a5d', border: 'none', color: '#fff', minWidth: 100 }} onClick={handleSubmit} disabled={saving}>
                 {saving ? '저장 중...' : editingId ? '수정' : '등록'}
               </button>
             </div>

@@ -46,7 +46,7 @@ export default function DiscountsPage() {
       key: `brand_${brand.id}` as keyof GroupDiscount,
       label: brand.name,
       align: 'center' as const,
-      render: () => <input type="number" defaultValue={0} style={{ width: '50px', textAlign: 'center', padding: '4px', border: '1px solid #e5e5e5', borderRadius: '4px' }} />
+      render: () => <input type="number" defaultValue={0} style={{ width: '50px', textAlign: 'center', padding: '4px', border: '1px solid #e9ecef', borderRadius: '4px' }} />
     }))
   ]
 
@@ -54,7 +54,7 @@ export default function DiscountsPage() {
     <AdminLayout activeMenu="stores">
       <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}>그룹별 할인율 설정</h2>
 
-      <div style={{ background: '#e3f2fd', borderRadius: '8px', padding: '16px 20px', marginBottom: '24px', fontSize: '14px', color: '#1565c0' }}>
+      <div style={{ background: '#eef4ee', borderRadius: '8px', padding: '16px 20px', marginBottom: '24px', fontSize: '14px', color: '#4a6b4a' }}>
         💡 각 그룹별로 브랜드 할인율을 설정할 수 있습니다. 빈 칸은 기본 할인율이 적용됩니다.
       </div>
 

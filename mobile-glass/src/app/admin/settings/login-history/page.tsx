@@ -215,7 +215,7 @@ export default function LoginHistoryPage() {
               fontSize: '13px',
             }}
           />
-          <span style={{ color: '#999' }}>~</span>
+          <span style={{ color: '#868e96' }}>~</span>
           <input
             type="date"
             value={endDate}

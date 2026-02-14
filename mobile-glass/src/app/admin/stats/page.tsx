@@ -213,7 +213,7 @@ export default function StatsPage() {
             style={{
               padding: '12px 24px',
               borderRadius: '8px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               background: '#fff',
               fontSize: '14px',
               cursor: 'pointer',
@@ -229,7 +229,7 @@ export default function StatsPage() {
             style={{
               padding: '12px 24px',
               borderRadius: '8px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               background: '#fff',
               fontSize: '14px',
               cursor: 'pointer',
@@ -245,7 +245,7 @@ export default function StatsPage() {
             style={{
               padding: '12px 24px',
               borderRadius: '8px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               background: '#fff',
               fontSize: '14px',
               cursor: 'pointer',

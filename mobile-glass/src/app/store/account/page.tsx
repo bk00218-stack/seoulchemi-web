@@ -131,7 +131,7 @@ export default function StoreAccountPage() {
             <select style={{
               padding: '6px 12px',
               fontSize: 13,
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               borderRadius: 8,
               outline: 'none',
             }}>
@@ -143,7 +143,7 @@ export default function StoreAccountPage() {
 
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+              <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                 <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>일자</th>
                 <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>구분</th>
                 <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>내용</th>

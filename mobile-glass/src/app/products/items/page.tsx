@@ -247,8 +247,8 @@ export default function ProductItemsPage() {
                       <span style={{ 
                         padding: '2px 8px', 
                         borderRadius: 4, 
-                        background: p.optionType === '콘택트렌즈' ? '#e8f5e9' : p.optionType === '안경렌즈 RX' ? '#e3f2fd' : '#fff3e0',
-                        color: p.optionType === '콘택트렌즈' ? '#2e7d32' : p.optionType === '안경렌즈 RX' ? '#1565c0' : '#ef6c00',
+                        background: p.optionType === '콘택트렌즈' ? '#e8f5e9' : p.optionType === '안경렌즈 RX' ? '#eef4ee' : '#fff3e0',
+                        color: p.optionType === '콘택트렌즈' ? '#2e7d32' : p.optionType === '안경렌즈 RX' ? '#4a6b4a' : '#ef6c00',
                         fontSize: 11
                       }}>{p.optionType}</span>
                     </td>

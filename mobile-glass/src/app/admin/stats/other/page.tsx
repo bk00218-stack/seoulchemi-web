@@ -72,7 +72,7 @@ export default function OtherStatsPage() {
                 <div 
                   style={{ 
                     width: '100%',
-                    background: count > 20 ? '#34c759' : count > 10 ? '#007aff' : '#e3f2fd',
+                    background: count > 20 ? '#34c759' : count > 10 ? '#007aff' : '#eef4ee',
                     borderRadius: '2px 2px 0 0',
                     height: `${count * 3}px`,
                   }}

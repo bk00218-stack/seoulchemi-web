@@ -166,7 +166,7 @@ export default function OrdersPage() {
     )},
     { key: 'product', label: '상품명', width: '180px' },
     { key: 'quantity', label: '수량', align: 'center', render: (v) => (
-      <span style={{ background: '#e3f2fd', color: '#007aff', padding: '2px 10px', borderRadius: '4px', fontSize: '13px', fontWeight: 600 }}>
+      <span style={{ background: '#eef4ee', color: '#007aff', padding: '2px 10px', borderRadius: '4px', fontSize: '13px', fontWeight: 600 }}>
         {v as number}
       </span>
     )},
@@ -272,7 +272,7 @@ export default function OrdersPage() {
                   borderRadius: '6px',
                   background: page === 1 ? '#f5f5f7' : '#fff',
                   color: page === 1 ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   cursor: page === 1 ? 'default' : 'pointer',
                 }}
               >
@@ -289,7 +289,7 @@ export default function OrdersPage() {
                   borderRadius: '6px',
                   background: page === totalPages ? '#f5f5f7' : '#fff',
                   color: page === totalPages ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   cursor: page === totalPages ? 'default' : 'pointer',
                 }}
               >

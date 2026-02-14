@@ -113,7 +113,7 @@ export default function StoreOrdersPage() {
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+              <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                 <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#86868b' }}>주문번호</th>
                 <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#86868b' }}>주문일시</th>
                 <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#86868b' }}>상품수</th>

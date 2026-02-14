@@ -108,7 +108,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
         left: 0,
         right: 0,
         background: '#fff',
-        borderBottom: '1px solid #e5e5e5',
+        borderBottom: '1px solid #e9ecef',
         padding: '12px 24px',
         display: 'flex',
         justifyContent: 'space-between',
@@ -121,7 +121,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
             style={{
               padding: '8px 16px',
               borderRadius: '6px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               background: docType === 'statement' ? '#007aff' : '#fff',
               color: docType === 'statement' ? '#fff' : '#1d1d1f',
               fontSize: '14px',
@@ -135,7 +135,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
             style={{
               padding: '8px 16px',
               borderRadius: '6px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               background: docType === 'shipping' ? '#007aff' : '#fff',
               color: docType === 'shipping' ? '#fff' : '#1d1d1f',
               fontSize: '14px',
@@ -149,7 +149,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
             style={{
               padding: '8px 16px',
               borderRadius: '6px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               background: docType === 'confirm' ? '#007aff' : '#fff',
               color: docType === 'confirm' ? '#fff' : '#1d1d1f',
               fontSize: '14px',
@@ -165,7 +165,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
             style={{
               padding: '8px 16px',
               borderRadius: '6px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               background: '#fff',
               fontSize: '14px',
               cursor: 'pointer'
@@ -222,15 +222,15 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <tbody>
                   <tr>
-                    <td style={{ padding: '6px 12px', background: '#f5f5f5', fontWeight: 600, width: '80px', border: '1px solid #ddd' }}>거래처명</td>
+                    <td style={{ padding: '6px 12px', background: '#f8f9fa', fontWeight: 600, width: '80px', border: '1px solid #ddd' }}>거래처명</td>
                     <td style={{ padding: '6px 12px', border: '1px solid #ddd' }}>{order.storeName}</td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '6px 12px', background: '#f5f5f5', fontWeight: 600, border: '1px solid #ddd' }}>코드</td>
+                    <td style={{ padding: '6px 12px', background: '#f8f9fa', fontWeight: 600, border: '1px solid #ddd' }}>코드</td>
                     <td style={{ padding: '6px 12px', border: '1px solid #ddd' }}>{order.storeCode}</td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '6px 12px', background: '#f5f5f5', fontWeight: 600, border: '1px solid #ddd' }}>연락처</td>
+                    <td style={{ padding: '6px 12px', background: '#f8f9fa', fontWeight: 600, border: '1px solid #ddd' }}>연락처</td>
                     <td style={{ padding: '6px 12px', border: '1px solid #ddd' }}>{order.phone || '-'}</td>
                   </tr>
                 </tbody>
@@ -247,7 +247,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
           {/* 품목 테이블 */}
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '20px' }}>
             <thead>
-              <tr style={{ background: '#f5f5f5' }}>
+              <tr style={{ background: '#f8f9fa' }}>
                 <th style={{ padding: '10px 8px', border: '1px solid #ddd', fontWeight: 600 }}>No</th>
                 <th style={{ padding: '10px 8px', border: '1px solid #ddd', fontWeight: 600 }}>브랜드</th>
                 <th style={{ padding: '10px 8px', border: '1px solid #ddd', fontWeight: 600 }}>품명</th>
@@ -279,13 +279,13 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
             <table style={{ borderCollapse: 'collapse', fontSize: '13px' }}>
               <tbody>
                 <tr>
-                  <td style={{ padding: '8px 20px', background: '#f5f5f5', fontWeight: 600, border: '1px solid #ddd' }}>공급가액</td>
+                  <td style={{ padding: '8px 20px', background: '#f8f9fa', fontWeight: 600, border: '1px solid #ddd' }}>공급가액</td>
                   <td style={{ padding: '8px 20px', border: '1px solid #ddd', textAlign: 'right', width: '120px' }}>
                     {supplyAmount.toLocaleString()} 원
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '8px 20px', background: '#f5f5f5', fontWeight: 600, border: '1px solid #ddd' }}>부가세</td>
+                  <td style={{ padding: '8px 20px', background: '#f8f9fa', fontWeight: 600, border: '1px solid #ddd' }}>부가세</td>
                   <td style={{ padding: '8px 20px', border: '1px solid #ddd', textAlign: 'right' }}>
                     {taxAmount.toLocaleString()} 원
                   </td>
@@ -322,15 +322,15 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
             <table style={{ width: '50%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <tbody>
                 <tr>
-                  <td style={{ padding: '6px 12px', background: '#f5f5f5', fontWeight: 600, width: '80px', border: '1px solid #ddd' }}>상호</td>
+                  <td style={{ padding: '6px 12px', background: '#f8f9fa', fontWeight: 600, width: '80px', border: '1px solid #ddd' }}>상호</td>
                   <td style={{ padding: '6px 12px', border: '1px solid #ddd' }}>서울케미</td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '6px 12px', background: '#f5f5f5', fontWeight: 600, border: '1px solid #ddd' }}>대표자</td>
+                  <td style={{ padding: '6px 12px', background: '#f8f9fa', fontWeight: 600, border: '1px solid #ddd' }}>대표자</td>
                   <td style={{ padding: '6px 12px', border: '1px solid #ddd' }}>홍길동</td>
                 </tr>
                 <tr>
-                  <td style={{ padding: '6px 12px', background: '#f5f5f5', fontWeight: 600, border: '1px solid #ddd' }}>연락처</td>
+                  <td style={{ padding: '6px 12px', background: '#f8f9fa', fontWeight: 600, border: '1px solid #ddd' }}>연락처</td>
                   <td style={{ padding: '6px 12px', border: '1px solid #ddd' }}>02-1234-5678</td>
                 </tr>
               </tbody>

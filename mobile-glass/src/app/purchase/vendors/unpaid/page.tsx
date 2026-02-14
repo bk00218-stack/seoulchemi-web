@@ -229,7 +229,7 @@ export default function VendorsUnpaidPage() {
         alignItems: 'center',
         marginBottom: 15,
         paddingBottom: 10,
-        borderBottom: '2px solid #333'
+        borderBottom: '2px solid #5d7a5d'
       }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>매입처 미납금 관리</h1>
@@ -242,9 +242,9 @@ export default function VendorsUnpaidPage() {
 
       {/* 통계 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 15 }}>
-        <div style={{ ...cardStyle, padding: '15px 20px', borderLeft: '4px solid #1976d2' }}>
+        <div style={{ ...cardStyle, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
           <div style={{ fontSize: 12, color: '#666' }}>미결제 매입처</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>{stats.totalVendors}개</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>{stats.totalVendors}개</div>
         </div>
         <div style={{ ...cardStyle, padding: '15px 20px', borderLeft: '4px solid #f44336' }}>
           <div style={{ fontSize: 12, color: '#666' }}>총 미결제금</div>
@@ -278,7 +278,7 @@ export default function VendorsUnpaidPage() {
           onChange={e => setSearch(e.target.value)}
           style={{ ...inputStyle, minWidth: 250 }} 
         />
-        <button style={{ ...btnStyle, background: '#1976d2', color: '#fff', border: 'none' }}>검색</button>
+        <button style={{ ...btnStyle, background: '#5d7a5d', border: 'none', color: '#fff' }}>검색</button>
         <div style={{ marginLeft: 'auto', fontSize: 12, color: '#666' }}>
           검색결과: <strong>{filteredVendors.length}</strong>개
         </div>
@@ -288,7 +288,7 @@ export default function VendorsUnpaidPage() {
       <div style={{ ...cardStyle, flex: 1, overflow: 'hidden' }}>
         <div style={{ overflow: 'auto', height: '100%' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1000 }}>
-            <thead style={{ position: 'sticky', top: 0, background: '#f5f5f5', zIndex: 10 }}>
+            <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa', zIndex: 10 }}>
               <tr>
                 <th style={{ ...thStyle, width: 30 }}></th>
                 <th style={thStyle}>순위</th>
@@ -307,13 +307,13 @@ export default function VendorsUnpaidPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={12} style={{ ...tdStyle, padding: 40, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={12} style={{ ...tdStyle, padding: 40, textAlign: 'center', color: '#868e96' }}>
                     로딩 중...
                   </td>
                 </tr>
               ) : filteredVendors.length === 0 ? (
                 <tr>
-                  <td colSpan={12} style={{ ...tdStyle, padding: 60, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={12} style={{ ...tdStyle, padding: 60, textAlign: 'center', color: '#868e96' }}>
                     <div style={{ fontSize: 48, marginBottom: 10 }}>✅</div>
                     미결제 매입처가 없습니다
                   </td>
@@ -355,7 +355,7 @@ export default function VendorsUnpaidPage() {
                             {index + 1}
                           </span>
                         ) : (
-                          <span style={{ color: '#999' }}>{index + 1}</span>
+                          <span style={{ color: '#868e96' }}>{index + 1}</span>
                         )}
                       </td>
                       <td style={{ ...tdStyle, fontFamily: 'monospace', color: '#666' }}>{vendor.vendorCode}</td>
@@ -376,8 +376,8 @@ export default function VendorsUnpaidPage() {
                           padding: '3px 8px',
                           borderRadius: 4,
                           fontSize: 11,
-                          background: '#e3f2fd',
-                          color: '#1976d2',
+                          background: '#eef4ee',
+                          color: '#5d7a5d',
                         }}>
                           {vendor.paymentTermDays}일
                         </span>
@@ -436,14 +436,14 @@ export default function VendorsUnpaidPage() {
                     {/* 거래 내역 확장 행 */}
                     {expandedId === vendor.id && (
                       <tr>
-                        <td colSpan={12} style={{ background: '#f5f5f5', padding: 0 }}>
+                        <td colSpan={12} style={{ background: '#f8f9fa', padding: 0 }}>
                           <div style={{ padding: '16px 40px' }}>
                             <h4 style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 600, color: '#333' }}>
                               📋 최근 거래 내역
                             </h4>
                             <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 8, overflow: 'hidden' }}>
                               <thead>
-                                <tr style={{ background: '#e3f2fd' }}>
+                                <tr style={{ background: '#eef4ee' }}>
                                   <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600 }}>일자</th>
                                   <th style={{ padding: '8px 12px', textAlign: 'center', fontSize: 11, fontWeight: 600 }}>유형</th>
                                   <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600 }}>내용</th>
@@ -460,8 +460,8 @@ export default function VendorsUnpaidPage() {
                                         padding: '2px 8px',
                                         borderRadius: 4,
                                         fontSize: 11,
-                                        background: tx.type === '매입' ? '#e3f2fd' : '#e8f5e9',
-                                        color: tx.type === '매입' ? '#1976d2' : '#4caf50',
+                                        background: tx.type === '매입' ? '#eef4ee' : '#e8f5e9',
+                                        color: tx.type === '매입' ? '#5d7a5d' : '#4caf50',
                                         fontWeight: 500
                                       }}>
                                         {tx.type}

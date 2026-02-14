@@ -413,7 +413,7 @@ export default function StoresPage() {
         alignItems: 'center',
         marginBottom: 15,
         paddingBottom: 10,
-        borderBottom: '2px solid #333'
+        borderBottom: '2px solid #5d7a5d'
       }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>거래처 관리</h1>
@@ -426,7 +426,7 @@ export default function StoresPage() {
             + 신규등록
           </button>
           <button 
-            style={{ ...btnStyle, background: '#1976d2', color: '#fff', border: 'none' }}
+            style={{ ...btnStyle, background: '#5d7a5d', border: 'none', color: '#fff' }}
             onClick={() => { setBulkResult(null); setShowBulkModal(true); }}
           >
             📤 일괄등록
@@ -449,10 +449,10 @@ export default function StoresPage() {
           border: '1px solid #e0e0e0', 
           borderRadius: 8, 
           padding: '15px 20px',
-          borderLeft: '4px solid #1976d2'
+          borderLeft: '4px solid #5d7a5d'
         }}>
           <div style={{ fontSize: 12, color: '#666' }}>전체 가맹점</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#1976d2' }}>{stats.total.toLocaleString()}</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>{stats.total.toLocaleString()}</div>
         </div>
         <div style={{ 
           background: '#fff', 
@@ -491,8 +491,8 @@ export default function StoresPage() {
       {/* 탭 */}
       <div style={{
         display: 'flex',
-        borderBottom: '2px solid #1976d2',
-        background: '#f5f5f5',
+        borderBottom: '2px solid #5d7a5d',
+        background: '#f8f9fa',
         borderRadius: '8px 8px 0 0',
         overflow: 'hidden'
       }}>
@@ -504,7 +504,7 @@ export default function StoresPage() {
               flex: 1,
               padding: '12px 20px',
               border: 'none',
-              background: activeTab === tab ? '#1976d2' : 'transparent',
+              background: activeTab === tab ? '#5d7a5d' : 'transparent',
               color: activeTab === tab ? '#fff' : '#333',
               fontWeight: activeTab === tab ? 600 : 400,
               fontSize: 13,
@@ -579,7 +579,7 @@ export default function StoresPage() {
             {/* 테이블 */}
             <div style={{ flex: 1, overflow: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ position: 'sticky', top: 0, background: '#f5f5f5' }}>
+                <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
                   <tr>
                     <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>코드</th>
                     <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>가맹점명</th>
@@ -590,7 +590,7 @@ export default function StoresPage() {
                     <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>최근주문</th>
                     <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>상태</th>
                   </tr>
-                  <tr style={{ background: '#e3f2fd' }}>
+                  <tr style={{ background: '#eef4ee' }}>
                     <th style={{ padding: '6px 8px' }}>
                       <input
                         type="text"
@@ -636,11 +636,11 @@ export default function StoresPage() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#999' }}>로딩 중...</td>
+                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>로딩 중...</td>
                     </tr>
                   ) : paginatedStores.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#999' }}>검색 결과가 없습니다</td>
+                      <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>검색 결과가 없습니다</td>
                     </tr>
                   ) : (
                     paginatedStores.map((store, index) => (
@@ -651,7 +651,7 @@ export default function StoresPage() {
                           cursor: 'pointer'
                         }}
                         onClick={() => handleRowClick(store)}
-                        onMouseEnter={e => e.currentTarget.style.background = '#e3f2fd'}
+                        onMouseEnter={e => e.currentTarget.style.background = '#eef4ee'}
                         onMouseLeave={e => e.currentTarget.style.background = index % 2 === 0 ? '#fff' : '#fafafa'}
                       >
                         <td style={{ padding: '10px 12px', fontSize: 12, fontFamily: 'monospace', color: '#666' }}>{store.code}</td>
@@ -757,7 +757,7 @@ export default function StoresPage() {
                         style={{
                           padding: '6px 12px',
                           border: '1px solid #ddd',
-                          background: currentPage === i ? '#1976d2' : '#fff',
+                          background: currentPage === i ? '#5d7a5d' : '#fff',
                           color: currentPage === i ? '#fff' : '#333',
                           borderRadius: 4,
                           cursor: 'pointer',
@@ -826,7 +826,7 @@ export default function StoresPage() {
         {activeTab === '미결제현황' && (
           <div style={{ flex: 1, overflow: 'auto' }}>
             {outstandingStores.length === 0 ? (
-              <div style={{ padding: 60, textAlign: 'center', color: '#999' }}>
+              <div style={{ padding: 60, textAlign: 'center', color: '#868e96' }}>
                 <div style={{ fontSize: 48, marginBottom: 15 }}>✅</div>
                 미결제 가맹점이 없습니다
               </div>
@@ -869,7 +869,7 @@ export default function StoresPage() {
                             {index + 1}
                           </span>
                         ) : (
-                          <span style={{ color: '#999' }}>{index + 1}</span>
+                          <span style={{ color: '#868e96' }}>{index + 1}</span>
                         )}
                       </td>
                       <td style={{ padding: '12px', fontSize: 12, fontFamily: 'monospace' }}>{store.code}</td>
@@ -922,7 +922,7 @@ export default function StoresPage() {
               <tbody>
                 {deposits.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ padding: 40, textAlign: 'center', color: '#999' }}>입금 내역이 없습니다</td>
+                    <td colSpan={5} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>입금 내역이 없습니다</td>
                   </tr>
                 ) : (
                   deposits.map((tx, index) => (
@@ -946,20 +946,20 @@ export default function StoresPage() {
         {activeTab === '거래내역' && (
           <div style={{ flex: 1, overflow: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#e3f2fd' }}>
+              <thead style={{ position: 'sticky', top: 0, background: '#eef4ee' }}>
                 <tr>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #1976d2' }}>일시</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #1976d2' }}>코드</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #1976d2' }}>가맹점명</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #1976d2' }}>유형</th>
-                  <th style={{ padding: '12px', textAlign: 'right', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #1976d2' }}>금액</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #1976d2' }}>내용</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #5d7a5d' }}>일시</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #5d7a5d' }}>코드</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #5d7a5d' }}>가맹점명</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #5d7a5d' }}>유형</th>
+                  <th style={{ padding: '12px', textAlign: 'right', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #5d7a5d' }}>금액</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '2px solid #5d7a5d' }}>내용</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#999' }}>거래 내역이 없습니다</td>
+                    <td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>거래 내역이 없습니다</td>
                   </tr>
                 ) : (
                   orders.map((tx, index) => (
@@ -972,8 +972,8 @@ export default function StoresPage() {
                           padding: '3px 10px',
                           borderRadius: 4,
                           fontSize: 11,
-                          background: tx.type === '주문' ? '#e3f2fd' : '#ffebee',
-                          color: tx.type === '주문' ? '#1976d2' : '#f44336'
+                          background: tx.type === '주문' ? '#eef4ee' : '#ffebee',
+                          color: tx.type === '주문' ? '#5d7a5d' : '#f44336'
                         }}>
                           {tx.type}
                         </span>
@@ -1028,7 +1028,7 @@ export default function StoresPage() {
             {/* 모달 헤더 */}
             <div style={{
               padding: '24px 28px',
-              background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+              background: 'linear-gradient(135deg, #5d7a5d 0%, #4a6b4a 100%)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -1070,8 +1070,8 @@ export default function StoresPage() {
                     fontSize: 15, 
                     fontWeight: 700, 
                     marginBottom: 20, 
-                    color: '#1976d2', 
-                    borderBottom: '2px solid #1976d2', 
+                    color: '#5d7a5d', 
+                    borderBottom: '2px solid #5d7a5d', 
                     paddingBottom: 10,
                     display: 'flex',
                     alignItems: 'center',
@@ -1245,7 +1245,7 @@ export default function StoresPage() {
                       <label style={labelStyle}>배송담당자 연락처</label>
                       <input 
                         type="text"
-                        style={{ ...inputStyle, width: '100%', background: '#f5f5f5' }}
+                        style={{ ...inputStyle, width: '100%', background: '#f8f9fa' }}
                         value={deliveryStaffList.find(s => String(s.id) === form.deliveryStaffId)?.phone || ''}
                         readOnly
                         placeholder="배송담당 선택시 자동표시"
@@ -1294,7 +1294,7 @@ export default function StoresPage() {
                         max={31}
                         placeholder="예: 15"
                       />
-                      <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>매월 청구일</p>
+                      <p style={{ fontSize: 11, color: '#868e96', marginTop: 4 }}>매월 청구일</p>
                     </div>
                     <div style={fieldGroupStyle}>
                       <label style={labelStyle}>기본 할인율 (%)</label>
@@ -1321,7 +1321,7 @@ export default function StoresPage() {
                       min={0}
                       placeholder="0"
                     />
-                    <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>기존 미수금이 있는 경우 입력</p>
+                    <p style={{ fontSize: 11, color: '#868e96', marginTop: 4 }}>기존 미수금이 있는 경우 입력</p>
                   </div>
                   
                   <h3 style={{ 
@@ -1359,7 +1359,7 @@ export default function StoresPage() {
                       <label style={labelStyle}>영업담당자 연락처</label>
                       <input 
                         type="text"
-                        style={{ ...inputStyle, width: '100%', background: '#f5f5f5' }}
+                        style={{ ...inputStyle, width: '100%', background: '#f8f9fa' }}
                         value={salesStaffList.find(s => String(s.id) === form.salesStaffId)?.phone || ''}
                         readOnly
                         placeholder="영업담당 선택시 자동표시"
@@ -1470,7 +1470,7 @@ export default function StoresPage() {
                   border: 'none', 
                   minWidth: 140,
                   padding: '12px 28px',
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: 700,
                   borderRadius: 8,
                   boxShadow: saving ? 'none' : '0 4px 15px rgba(76, 175, 80, 0.4)',
@@ -1517,7 +1517,7 @@ export default function StoresPage() {
             {/* 모달 헤더 */}
             <div style={{
               padding: '24px 28px',
-              background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+              background: 'linear-gradient(135deg, #5d7a5d 0%, #4a6b4a 100%)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center'
@@ -1547,14 +1547,14 @@ export default function StoresPage() {
             </div>
             
             {/* 모드 탭 */}
-            <div style={{ display: 'flex', borderBottom: '2px solid #1976d2' }}>
+            <div style={{ display: 'flex', borderBottom: '2px solid #5d7a5d' }}>
               <button
                 onClick={() => { setBulkMode('register'); setBulkResult(null); setBulkFile(null); }}
                 style={{
                   flex: 1,
                   padding: '12px 20px',
                   border: 'none',
-                  background: bulkMode === 'register' ? '#1976d2' : '#f5f5f5',
+                  background: bulkMode === 'register' ? '#5d7a5d' : '#f5f5f5',
                   color: bulkMode === 'register' ? '#fff' : '#333',
                   fontWeight: bulkMode === 'register' ? 600 : 400,
                   fontSize: 14,
@@ -1584,12 +1584,12 @@ export default function StoresPage() {
             <div style={{ padding: 28 }}>
               {/* 양식 다운로드 */}
               <div style={{ 
-                background: bulkMode === 'register' ? '#e3f2fd' : '#fff3e0', 
+                background: bulkMode === 'register' ? '#eef4ee' : '#fff3e0', 
                 padding: 20, 
                 borderRadius: 12,
                 marginBottom: 24
               }}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: bulkMode === 'register' ? '#1976d2' : '#ff9800' }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: bulkMode === 'register' ? '#5d7a5d' : '#ff9800' }}>
                   1️⃣ {bulkMode === 'register' ? '양식 다운로드' : '현재 데이터 다운로드'}
                 </h3>
                 <p style={{ fontSize: 13, color: '#666', margin: '0 0 12px' }}>
@@ -1600,7 +1600,7 @@ export default function StoresPage() {
                 <button 
                   style={{ 
                     ...btnStyle, 
-                    background: bulkMode === 'register' ? '#1976d2' : '#ff9800', 
+                    background: bulkMode === 'register' ? '#5d7a5d' : '#ff9800', 
                     color: '#fff', 
                     border: 'none',
                     padding: '10px 20px'
@@ -1655,7 +1655,7 @@ export default function StoresPage() {
               
               {/* 파일 업로드 */}
               <div style={{ 
-                background: '#f5f5f5', 
+                background: '#f8f9fa', 
                 padding: 20, 
                 borderRadius: 12,
                 marginBottom: 24
@@ -1728,7 +1728,7 @@ export default function StoresPage() {
                   color: '#fff', 
                   border: 'none',
                   padding: '14px 24px',
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: 700,
                   borderRadius: 8,
                   cursor: bulkUploading || !bulkFile ? 'not-allowed' : 'pointer',
@@ -1796,7 +1796,7 @@ export default function StoresPage() {
                 {bulkUploading ? '처리 중...' : `🚀 일괄 ${bulkMode === 'register' ? '등록' : '수정'}하기`}
               </button>
               
-              <p style={{ fontSize: 11, color: '#999', marginTop: 12, textAlign: 'center' }}>
+              <p style={{ fontSize: 11, color: '#868e96', marginTop: 12, textAlign: 'center' }}>
                 {bulkMode === 'register' 
                   ? '※ 기존 거래처는 유지되며, 새 거래처만 추가됩니다.'
                   : '※ 코드가 일치하는 거래처의 정보가 업데이트됩니다.'}

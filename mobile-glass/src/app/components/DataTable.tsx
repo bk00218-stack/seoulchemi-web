@@ -58,7 +58,7 @@ export default function DataTable<T extends Record<string, any>>({
     <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+          <tr style={{ borderBottom: '1px solid #e9ecef' }}>
             {selectable && (
               <th style={{ padding: '12px 14px', width: '40px' }}>
                 <input
@@ -167,7 +167,7 @@ export function StatusBadge({ status, statusMap }: {
 }) {
   const defaultMap: Record<string, { bg: string; color: string; label: string }> = {
     pending: { bg: '#fff3e0', color: '#ff9500', label: '대기' },
-    confirmed: { bg: '#e3f2fd', color: '#007aff', label: '확인' },
+    confirmed: { bg: '#eef4ee', color: '#007aff', label: '확인' },
     shipped: { bg: '#e8f5e9', color: '#34c759', label: '출고' },
     delivered: { bg: '#f3e5f5', color: '#af52de', label: '완료' },
     cancelled: { bg: '#ffebee', color: '#ff3b30', label: '취소' },

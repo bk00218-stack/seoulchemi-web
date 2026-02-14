@@ -560,17 +560,17 @@ export default function NewOrderPage() {
 
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, paddingBottom: 4, borderBottom: '2px solid #333' }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>판매전표 입력</h1>
-        <span style={{ fontSize: 12, color: '#666' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 8, borderBottom: '2px solid #5d7a5d' }}>
+        <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#212529' }}>판매전표 입력</h1>
+        <span style={{ fontSize: 12, color: '#6c757d' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 280px', gap: 4, height: 'calc(100vh - 110px)' }}>
         {/* 왼쪽 패널 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f5f5f5', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, background: '#f8f9fa', padding: 5, borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
           <section>
-            <label style={{ fontWeight: 700, color: '#1976d2', display: 'flex', alignItems: 'center', gap: 4 }}>
-              🏪 상호 <span style={{ fontSize: 10, color: '#999', fontWeight: 400 }}>[Esc]</span>
+            <label style={{ fontWeight: 700, color: '#5d7a5d', display: 'flex', alignItems: 'center', gap: 4 }}>
+              🏪 상호 <span style={{ fontSize: 10, color: '#868e96', fontWeight: 400 }}>[Esc]</span>
             </label>
             <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
               onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
@@ -578,18 +578,19 @@ export default function NewOrderPage() {
               style={{ 
                 width: '100%', 
                 padding: '12px 14px', 
-                border: '2px solid #1976d2', 
+                border: '2px solid #5d7a5d', 
                 borderRadius: 8, 
                 fontSize: 15, 
                 marginTop: 6,
                 background: '#fff',
-                boxShadow: '0 2px 8px rgba(25, 118, 210, 0.15)',
+                color: '#212529',
+                boxShadow: '0 2px 8px rgba(93, 122, 93, 0.15)',
                 outline: 'none',
                 transition: 'all 0.2s'
               }} />
             {selectedStore && (
-              <div style={{ marginTop: 6, padding: 10, background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', borderRadius: 8, fontSize: 12, lineHeight: 1.6, border: '1px solid #90caf9' }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: '#1565c0' }}>{selectedStore.name}</div>
+              <div style={{ marginTop: 6, padding: 10, background: 'linear-gradient(135deg, #eef4ee 0%, #d4e8d4 100%)', borderRadius: 8, fontSize: 12, lineHeight: 1.6, border: '1px solid #a8c8a8' }}>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: '#4a6b4a' }}>{selectedStore.name}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 10px' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>📞 <span style={{ color: '#333' }}>{selectedStore.phone || '-'}</span></span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>📱 <span style={{ color: '#333' }}>{selectedStore.deliveryPhone || '-'}</span></span>
@@ -632,27 +633,27 @@ export default function NewOrderPage() {
               </div>
             )}
             {storeSearchText && !selectedStore && !storesLoaded && (
-              <div style={{ marginTop: 4, padding: 12, background: '#e3f2fd', borderRadius: 8, textAlign: 'center', color: '#1976d2', fontSize: 13 }}>
+              <div style={{ marginTop: 4, padding: 12, background: '#eef4ee', borderRadius: 8, textAlign: 'center', color: '#5d7a5d', fontSize: 13 }}>
                 로딩 중...
               </div>
             )}
             {storeSearchText && !selectedStore && storesLoaded && storeSearchResults.length > 0 && (
-              <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #1976d2', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+              <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #5d7a5d', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                 {storeSearchResults.map((s, i) => (
                   <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
                     style={{ 
-                      padding: '6px 10px', 
+                      padding: '8px 12px', 
                       cursor: 'pointer', 
                       borderBottom: '1px solid #eee', 
-                      background: storeFocusIndex === i ? '#1976d2' : '#fff', 
-                      color: storeFocusIndex === i ? '#fff' : '#333',
-                      fontSize: 13,
+                      background: storeFocusIndex === i ? '#5d7a5d' : '#fff',
+                      color: storeFocusIndex === i ? '#fff' : '#212529',
+                      fontSize: 14,
                       transition: 'all 0.1s',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center'
                     }}
-                    onMouseEnter={e => { if (storeFocusIndex !== i) e.currentTarget.style.background = '#e3f2fd' }}
+                    onMouseEnter={e => { if (storeFocusIndex !== i) e.currentTarget.style.background = '#eef4ee' }}
                     onMouseLeave={e => { if (storeFocusIndex !== i) e.currentTarget.style.background = '#fff' }}
                   >
                     <span style={{ fontWeight: 500 }}>{s.name}</span>
@@ -687,7 +688,7 @@ export default function NewOrderPage() {
           <section>
             <label style={{ fontWeight: 600 }}>품목 [F5]</label>
             <select ref={brandSelectRef} value={selectedBrandId || ''} onChange={e => { const bid = e.target.value ? parseInt(e.target.value) : null; setSelectedBrandId(bid); setSelectedProductId(null); if (bid) setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
-              style={{ width: '100%', padding: 10, border: '1px solid #ccc', borderRadius: 3, fontSize: 14, marginTop: 4 }}>
+              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: '#fff', color: '#212529' }}>
               <option value="">브랜드...</option>
               {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
@@ -695,10 +696,10 @@ export default function NewOrderPage() {
           <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <label style={{ fontWeight: 600 }}>상품 [F6]</label>
             <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 1, border: '1px solid #ccc', borderRadius: 2, background: '#fff', flex: 1, overflow: 'auto', outline: 'none' }}>
-              {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#999' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
+              {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#868e96' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
                 filteredProducts.map((p, i) => (
                   <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
-                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#e3f2fd' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#eef4ee' : productFocusIndex === i ? '#fff3e0' : '#fff', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                     <span style={{ color: '#5d7a5d', fontWeight: 600 }}>{(p.sellingPrice/1000).toFixed(0)}k</span>
                   </div>
@@ -730,7 +731,7 @@ export default function NewOrderPage() {
                   })}
                   
                   {/* 가운데 구분 열 -Sph+ */}
-                  <th style={{ border: '1px solid #4a6b4a', borderLeft: '2px solid #4a6b4a', borderRight: '2px solid #4a6b4a', padding: '4px 10px', minWidth: 60, fontWeight: 700, background: '#4a6b4a', color: '#fff', fontSize: 14, whiteSpace: 'nowrap' }}>-SPH+</th>
+                  <th style={{ border: '1px solid #4a6b4a', borderLeft: '2px solid #4a6b4a', borderRight: '2px solid #4a6b4a', padding: '4px 10px', minWidth: 60, fontWeight: 700, background: '#4a6b4a', color: '#fff', fontSize: 11, whiteSpace: 'nowrap' }}>-SPH+</th>
                   
                   {/* 오른쪽 CYL 열들 (000 → 400) */}
                   {cylColsRight.map((cyl, i) => {
@@ -774,11 +775,11 @@ export default function NewOrderPage() {
               const convertedSph = focusedInfo.sph + focusedInfo.cyl
               const convertedCyl = -focusedInfo.cyl
               return <>
-                <strong style={{ color: '#fff', fontSize: 16 }}>
+                <strong style={{ color: '#fff', fontSize: 14 }}>
                   {focusedInfo.sph >= 0 ? '+' : ''}{focusedInfo.sph.toFixed(2)}
                 </strong>
                 <span style={{ margin: '0 6px', color: 'rgba(255,255,255,0.6)' }}>/</span>
-                <strong style={{ color: '#fff', fontSize: 16 }}>
+                <strong style={{ color: '#fff', fontSize: 14 }}>
                   {focusedInfo.cyl >= 0 ? '+' : ''}{focusedInfo.cyl.toFixed(2)}
                 </strong>
                 <span style={{ margin: '0 12px', color: 'rgba(255,255,255,0.5)' }}>→</span>
@@ -794,8 +795,8 @@ export default function NewOrderPage() {
         </div>
 
         {/* 오른쪽: 주문 목록 */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#f5f5f5', borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
-          <div style={{ padding: '6px 8px', background: '#333', color: '#fff', fontWeight: 600, fontSize: 14, display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#f8f9fa', borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
+          <div style={{ padding: '8px 10px', background: '#5d7a5d', color: '#fff', fontWeight: 600, fontSize: 13, display: 'flex', justifyContent: 'space-between', borderRadius: '3px 3px 0 0' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '4px 6px', background: '#e0e0e0', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
@@ -807,7 +808,7 @@ export default function NewOrderPage() {
             <span style={{ textAlign: 'right' }}>금액</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
-            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#999' }}>도수표에서 수량 입력</div> : (
+            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#868e96' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
                 <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#666' }}>{item.product.brand}</div>
@@ -823,12 +824,12 @@ export default function NewOrderPage() {
           <div style={{ padding: 6, borderTop: '1px solid #ddd' }}>
             <input type="text" placeholder="메모..." value={memo} onChange={e => setMemo(e.target.value)} style={{ width: '100%', padding: 6, border: '1px solid #ccc', borderRadius: 2, fontSize: 12 }} />
           </div>
-          <div style={{ padding: '8px 10px', background: '#333', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14 }}>
+          <div style={{ padding: '10px 12px', background: '#5d7a5d', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
             <span>총 <strong>{totalQuantity}</strong>개</span>
             <span style={{ fontSize: 16, fontWeight: 700 }}>{totalAmount.toLocaleString()}원</span>
           </div>
           <div style={{ padding: 6, display: 'flex', gap: 4 }}>
-            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 8, background: '#f5f5f5', border: '1px solid #ccc', borderRadius: 3, cursor: 'pointer', fontSize: 12 }}>초기화</button>
+            <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 8, background: '#f8f9fa', border: '1px solid #ccc', borderRadius: 3, cursor: 'pointer', fontSize: 12 }}>초기화</button>
             <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 8, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>전송 [F2]</button>
           </div>
         </div>
@@ -867,7 +868,7 @@ export default function NewOrderPage() {
 
             <button 
               onClick={handleCompleteClose}
-              style={{ width: '100%', padding: '14px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 600, cursor: 'pointer' }}
+              style={{ width: '100%', padding: '14px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
             >
               전체 주문내역 보기
             </button>
@@ -900,7 +901,7 @@ export default function NewOrderPage() {
               style={{ width: '100%', padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 16, marginBottom: 16, boxSizing: 'border-box' }}
               onKeyDown={e => { if (e.key === 'Enter') handleEditConfirm(); if (e.key === 'Escape') { setEditModal(null); setEditValue('') } }} />
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => { setEditModal(null); setEditValue('') }} style={{ flex: 1, padding: '10px', background: '#f5f5f5', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>취소</button>
+              <button onClick={() => { setEditModal(null); setEditValue('') }} style={{ flex: 1, padding: '10px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>취소</button>
               <button onClick={handleEditConfirm} style={{ flex: 1, padding: '10px', background: '#5d7a5d', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>확인</button>
             </div>
           </div>
@@ -937,7 +938,7 @@ export default function NewOrderPage() {
           <div style={{ background: '#fff', borderRadius: 6, padding: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.15)', width: 'fit-content' }} onClick={e => e.stopPropagation()}>
             <div style={{ marginBottom: 8, fontSize: 11, textAlign: 'center', color: '#333' }}>
               <span style={{ fontWeight: 600 }}>{quantityActionModal.sphStr}/{quantityActionModal.cylStr}</span>
-              <span style={{ margin: '0 6px', color: '#999' }}>|</span>
+              <span style={{ margin: '0 6px', color: '#868e96' }}>|</span>
               <span>{quantityActionModal.existingQty} → {quantityActionModal.newQty}</span>
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
@@ -956,7 +957,7 @@ export default function NewOrderPage() {
                 setCellInputValue('')
                 setQuantityActionSelection(0)
                 setTimeout(() => gridRef.current?.focus(), 0)
-              }} style={{ padding: '5px 8px', background: quantityActionSelection === 1 ? '#1565c0' : '#2196f3', color: '#fff', border: quantityActionSelection === 1 ? '2px solid #fff' : 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600, outline: quantityActionSelection === 1 ? '2px solid #1565c0' : 'none' }}>
+              }} style={{ padding: '5px 8px', background: quantityActionSelection === 1 ? '#4a6b4a' : '#2196f3', color: '#fff', border: quantityActionSelection === 1 ? '2px solid #fff' : 'none', borderRadius: 3, cursor: 'pointer', fontSize: 11, fontWeight: 600, outline: quantityActionSelection === 1 ? '2px solid #4a6b4a' : 'none' }}>
                 ✏️{quantityActionModal.newQty}
               </button>
               <button onClick={() => { setQuantityActionModal(null); setCellInputValue(''); setQuantityActionSelection(0); setTimeout(() => gridRef.current?.focus(), 0) }}

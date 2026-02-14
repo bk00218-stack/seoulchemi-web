@@ -33,7 +33,7 @@ export default function StoreTypesPage() {
   const typeLabels: Record<string, { label: string; color: string; bg: string }> = {
     normal: { label: '일반', color: '#1d1d1f', bg: '#f5f5f7' },
     vip: { label: 'VIP', color: '#ff9500', bg: '#fff3e0' },
-    wholesale: { label: '도매', color: '#007aff', bg: '#e3f2fd' }
+    wholesale: { label: '도매', color: '#007aff', bg: '#eef4ee' }
   }
 
   const columns: Column<StoreType>[] = [
@@ -45,7 +45,7 @@ export default function StoreTypesPage() {
     { key: 'storeCount', label: '가맹점 수', align: 'center', render: (v) => <span>{v as number}개</span> },
     { key: 'discountRate', label: '할인율', align: 'center', render: (v) => <span>{v as number}%</span> },
     { key: 'id', label: '타입 변경', align: 'center', render: (_, row) => (
-      <select defaultValue={row.storeType} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '12px' }}>
+      <select defaultValue={row.storeType} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #e9ecef', fontSize: '12px' }}>
         <option value="normal">일반</option>
         <option value="vip">VIP</option>
         <option value="wholesale">도매</option>

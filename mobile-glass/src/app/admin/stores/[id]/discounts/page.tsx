@@ -207,7 +207,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
               width: '100px',
               padding: '10px 12px',
               fontSize: '16px',
-              border: '1px solid #e5e5e5',
+              border: '1px solid #e9ecef',
               borderRadius: '8px',
               textAlign: 'right'
             }}
@@ -267,7 +267,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
               <select
                 value={newBrandId}
                 onChange={(e) => setNewBrandId(parseInt(e.target.value))}
-                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef' }}
               >
                 <option value={0}>브랜드 선택</option>
                 {availableBrands.map(b => (
@@ -279,7 +279,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                 placeholder="할인율"
                 value={newBrandRate || ''}
                 onChange={(e) => setNewBrandRate(parseFloat(e.target.value) || 0)}
-                style={{ width: '100px', padding: '10px', borderRadius: '6px', border: '1px solid #e5e5e5', textAlign: 'right' }}
+                style={{ width: '100px', padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef', textAlign: 'right' }}
               />
               <span style={{ alignSelf: 'center' }}>%</span>
               <button
@@ -305,7 +305,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+                  <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                     <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>브랜드</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>할인율</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500, width: '80px' }}>삭제</th>
@@ -345,7 +345,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
               <select
                 value={newProductId}
                 onChange={(e) => setNewProductId(parseInt(e.target.value))}
-                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef' }}
               >
                 <option value={0}>상품 선택</option>
                 {availableProductsForDiscount.map(p => (
@@ -357,7 +357,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                 placeholder="할인율"
                 value={newProductRate || ''}
                 onChange={(e) => setNewProductRate(parseFloat(e.target.value) || 0)}
-                style={{ width: '100px', padding: '10px', borderRadius: '6px', border: '1px solid #e5e5e5', textAlign: 'right' }}
+                style={{ width: '100px', padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef', textAlign: 'right' }}
               />
               <span style={{ alignSelf: 'center' }}>%</span>
               <button
@@ -383,7 +383,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+                  <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                     <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>상품</th>
                     <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>정가</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>할인율</th>
@@ -438,7 +438,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                   const product = products.find(p => p.id === pid)
                   if (product) setNewSpecialPrice(product.sellingPrice)
                 }}
-                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e5e5e5' }}
+                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef' }}
               >
                 <option value={0}>상품 선택</option>
                 {availableProductsForPrice.map(p => (
@@ -450,7 +450,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                 placeholder="특수단가"
                 value={newSpecialPrice || ''}
                 onChange={(e) => setNewSpecialPrice(parseInt(e.target.value) || 0)}
-                style={{ width: '120px', padding: '10px', borderRadius: '6px', border: '1px solid #e5e5e5', textAlign: 'right' }}
+                style={{ width: '120px', padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef', textAlign: 'right' }}
               />
               <span style={{ alignSelf: 'center' }}>원</span>
               <button
@@ -476,7 +476,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+                  <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                     <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>상품</th>
                     <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>정가</th>
                     <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>특수단가</th>

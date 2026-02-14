@@ -109,7 +109,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 12px',
   borderRadius: 8,
-  border: '1px solid #e5e5e5',
+  border: '1px solid #e9ecef',
   fontSize: 14,
   outline: 'none',
 }
@@ -886,12 +886,12 @@ function EditPriceModal({
         ? 'var(--primary-light)' 
         : price > 0 
           ? '#ffebee' 
-          : '#e3f2fd',  // 파란색 배경으로 도수 있음 표시
+          : '#eef4ee',  // 파란색 배경으로 도수 있음 표시
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       fontSize: 10,
-      color: price > 0 ? '#c62828' : '#1976d2',
+      color: price > 0 ? '#c62828' : '#5d7a5d',
       fontWeight: price > 0 ? 600 : 500,
     }
   }
@@ -981,7 +981,7 @@ function EditPriceModal({
           {/* 범례 */}
           <div style={{ marginBottom: 12, display: 'flex', gap: 16, alignItems: 'center', fontSize: 11 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 20, height: 20, background: '#e3f2fd', border: '1px solid var(--gray-200)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#1976d2' }}>✓</div>
+              <div style={{ width: 20, height: 20, background: '#eef4ee', border: '1px solid var(--gray-200)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#5d7a5d' }}>✓</div>
               <span style={{ color: 'var(--gray-600)' }}>도수 있음 (기본가)</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -1841,8 +1841,8 @@ export default function ProductsPage() {
                             fontSize: 11,
                             padding: '2px 8px',
                             borderRadius: 10,
-                            background: '#e3f2fd',
-                            color: '#1565c0',
+                            background: '#eef4ee',
+                            color: '#4a6b4a',
                             fontWeight: 500,
                           }}>
                             {product._count.options}
@@ -2320,7 +2320,7 @@ export default function ProductsPage() {
                 {editingProduct && options.length > 0 && (
                   <div style={{ 
                     padding: 14, 
-                    background: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)', 
+                    background: 'linear-gradient(135deg, #eef4ee 0%, #f3e5f5 100%)', 
                     borderRadius: 10,
                     border: '1px solid #e1bee7'
                   }}>

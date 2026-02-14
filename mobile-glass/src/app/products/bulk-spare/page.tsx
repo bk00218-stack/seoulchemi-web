@@ -452,7 +452,7 @@ export default function BulkSpareRegistrationPage() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={() => selectRange(0, 6, -2, 0)}
-                  style={{ padding: '6px 12px', fontSize: 11, background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 6, cursor: 'pointer' }}
+                  style={{ padding: '6px 12px', fontSize: 11, background: '#eef4ee', border: '1px solid #a8c8a8', borderRadius: 6, cursor: 'pointer' }}
                 >
                   저도수 (0~6)
                 </button>

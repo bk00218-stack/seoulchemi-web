@@ -142,7 +142,7 @@ export default function MainScreenPage() {
                     borderRadius: '4px',
                     background: '#fff',
                     color: '#007aff',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '12px',
                     cursor: 'pointer'
                   }}
@@ -178,7 +178,7 @@ export default function MainScreenPage() {
       }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>미리보기</h3>
         <div style={{ 
-          border: '1px solid #e5e5e5', 
+          border: '1px solid #e9ecef', 
           borderRadius: '12px', 
           padding: '20px',
           background: '#f5f5f7'

@@ -170,7 +170,7 @@ export default function ReturnsPage() {
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e5e5e5', background: '#f9fafb' }}>
+              <tr style={{ borderBottom: '1px solid #e9ecef', background: '#f9fafb' }}>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>반품번호</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>원주문</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>가맹점</th>
@@ -226,7 +226,7 @@ export default function ReturnsPage() {
                         style={{
                           padding: '6px 12px',
                           borderRadius: '6px',
-                          border: '1px solid #e5e5e5',
+                          border: '1px solid #e9ecef',
                           background: '#fff',
                           fontSize: '13px',
                           cursor: 'pointer'
@@ -290,7 +290,7 @@ export default function ReturnsPage() {
               <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>품목</h3>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+                  <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                     <th style={{ padding: '8px', textAlign: 'left', fontWeight: 500 }}>상품</th>
                     <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500 }}>수량</th>
                     <th style={{ padding: '8px', textAlign: 'right', fontWeight: 500 }}>금액</th>
@@ -329,7 +329,7 @@ export default function ReturnsPage() {
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setSelectedReturn(null)}
-                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #e5e5e5', background: '#fff', cursor: 'pointer' }}
+                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}
               >
                 닫기
               </button>

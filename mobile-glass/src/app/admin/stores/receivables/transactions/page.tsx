@@ -26,7 +26,7 @@ const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> 
   sale: { label: '매출', color: '#ff3b30', bg: '#ffebee' },
   deposit: { label: '입금', color: '#34c759', bg: '#e8f5e9' },
   return: { label: '반품', color: '#ff9500', bg: '#fff3e0' },
-  adjustment: { label: '조정', color: '#007aff', bg: '#e3f2fd' },
+  adjustment: { label: '조정', color: '#007aff', bg: '#eef4ee' },
 }
 
 const METHOD_LABELS: Record<string, string> = {
@@ -200,7 +200,7 @@ export default function TransactionsPage() {
                 style={{
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   fontSize: '13px'
                 }}
               />
@@ -212,7 +212,7 @@ export default function TransactionsPage() {
                 style={{
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   fontSize: '13px'
                 }}
               />
@@ -265,7 +265,7 @@ export default function TransactionsPage() {
                   borderRadius: '6px',
                   background: page === 1 ? '#f5f5f7' : '#fff',
                   color: page === 1 ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   cursor: page === 1 ? 'default' : 'pointer',
                 }}
               >
@@ -287,7 +287,7 @@ export default function TransactionsPage() {
                   borderRadius: '6px',
                   background: page === totalPages ? '#f5f5f7' : '#fff',
                   color: page === totalPages ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   cursor: page === totalPages ? 'default' : 'pointer',
                 }}
               >

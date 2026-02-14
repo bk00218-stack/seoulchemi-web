@@ -140,7 +140,7 @@ export default function NoticesPage() {
     )},
     { key: 'type', label: '구분', width: '80px', render: (v) => {
       const types: Record<string, { bg: string; color: string; label: string }> = {
-        notice: { bg: '#e3f2fd', color: '#1565c0', label: '공지' },
+        notice: { bg: '#eef4ee', color: '#4a6b4a', label: '공지' },
         event: { bg: '#e8f5e9', color: '#2e7d32', label: '이벤트' },
         urgent: { bg: '#ffebee', color: '#c62828', label: '긴급' }
       }
@@ -241,7 +241,7 @@ export default function NoticesPage() {
         </div>
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
           <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>공지</div>
-          <div style={{ fontSize: '28px', fontWeight: 600, color: '#1565c0' }}>{stats.notice}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
+          <div style={{ fontSize: '28px', fontWeight: 600, color: '#4a6b4a' }}>{stats.notice}<span style={{ fontSize: '14px', color: '#86868b', marginLeft: '4px' }}>건</span></div>
         </div>
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px' }}>
           <div style={{ color: '#86868b', fontSize: '12px', marginBottom: '4px' }}>이벤트</div>
@@ -334,7 +334,7 @@ export default function NoticesPage() {
                 type="text" 
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
               />
             </div>
 
@@ -344,7 +344,7 @@ export default function NoticesPage() {
                 <select 
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
                 >
                   <option value="notice">공지</option>
                   <option value="event">이벤트</option>
@@ -385,7 +385,7 @@ export default function NoticesPage() {
                 value={formData.content}
                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 rows={8}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px', resize: 'vertical' }} 
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px', resize: 'vertical' }} 
               />
             </div>
             

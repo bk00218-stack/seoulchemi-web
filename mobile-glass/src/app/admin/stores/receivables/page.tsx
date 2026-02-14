@@ -332,7 +332,7 @@ export default function ReceivablesPage() {
                   borderRadius: '6px',
                   background: page === 1 ? '#f5f5f7' : '#fff',
                   color: page === 1 ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   cursor: page === 1 ? 'default' : 'pointer',
                 }}
               >
@@ -354,7 +354,7 @@ export default function ReceivablesPage() {
                   borderRadius: '6px',
                   background: page === totalPages ? '#f5f5f7' : '#fff',
                   color: page === totalPages ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e5e5e5',
+                  border: '1px solid #e9ecef',
                   cursor: page === totalPages ? 'default' : 'pointer',
                 }}
               >
@@ -419,7 +419,7 @@ export default function ReceivablesPage() {
                   width: '100%', 
                   padding: '12px', 
                   borderRadius: '8px', 
-                  border: '1px solid #e5e5e5', 
+                  border: '1px solid #e9ecef', 
                   fontSize: '18px',
                   fontWeight: 600,
                   textAlign: 'right'
@@ -446,7 +446,7 @@ export default function ReceivablesPage() {
                       padding: '10px',
                       borderRadius: '6px',
                       border: depositMethod === opt.value ? '2px solid #007aff' : '1px solid #e5e5e5',
-                      background: depositMethod === opt.value ? '#e3f2fd' : '#fff',
+                      background: depositMethod === opt.value ? '#eef4ee' : '#fff',
                       color: depositMethod === opt.value ? '#007aff' : '#1d1d1f',
                       fontSize: '13px',
                       fontWeight: depositMethod === opt.value ? 600 : 400,
@@ -472,7 +472,7 @@ export default function ReceivablesPage() {
                   width: '100%', 
                   padding: '10px 12px', 
                   borderRadius: '8px', 
-                  border: '1px solid #e5e5e5', 
+                  border: '1px solid #e9ecef', 
                   fontSize: '14px' 
                 }} 
               />

@@ -167,7 +167,7 @@ export default function UsersPage() {
       <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #e5e5e5', background: '#f9fafb' }}>
+            <tr style={{ borderBottom: '1px solid #e9ecef', background: '#f9fafb' }}>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>아이디</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>이름</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#6b7280' }}>이메일</th>
@@ -207,7 +207,7 @@ export default function UsersPage() {
                     style={{
                       padding: '6px 12px',
                       borderRadius: '6px',
-                      border: '1px solid #e5e5e5',
+                      border: '1px solid #e9ecef',
                       background: '#fff',
                       fontSize: '13px',
                       cursor: 'pointer',
@@ -277,7 +277,7 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px',
                     background: editUser ? '#f5f5f7' : '#fff'
                   }}
@@ -297,7 +297,7 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -316,7 +316,7 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -336,7 +336,7 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 />
@@ -353,7 +353,7 @@ export default function UsersPage() {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     fontSize: '14px'
                   }}
                 >
@@ -372,7 +372,7 @@ export default function UsersPage() {
                     flex: 1,
                     padding: '12px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e5e5',
+                    border: '1px solid #e9ecef',
                     background: '#fff',
                     fontSize: '14px',
                     fontWeight: 500,

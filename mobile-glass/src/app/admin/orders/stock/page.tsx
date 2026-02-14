@@ -125,7 +125,7 @@ export default function StockOrdersPage() {
     { key: 'orderNo', label: '주문번호', render: (v) => <span style={{ fontWeight: 500, color: '#007aff' }}>{v as string}</span> },
     { key: 'store', label: '가맹점' },
     { key: 'brand', label: '브랜드', render: (v) => (
-      <span style={{ background: '#e3f2fd', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#007aff' }}>
+      <span style={{ background: '#eef4ee', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#007aff' }}>
         {v as string}
       </span>
     )},

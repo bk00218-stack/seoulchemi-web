@@ -126,7 +126,7 @@ export default function ProductsPage() {
       <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
     )},
     { key: 'brand', label: '브랜드', render: (v) => (
-      <span style={{ background: '#e3f2fd', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#007aff' }}>
+      <span style={{ background: '#eef4ee', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#007aff' }}>
         {v as string}
       </span>
     )},
@@ -426,7 +426,7 @@ export default function ProductsPage() {
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>브랜드 *</label>
                 <select 
                   defaultValue={editingProduct?.brandId || ''} 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
                 >
                   <option value="">선택</option>
                   {brands.map(b => (
@@ -440,7 +440,7 @@ export default function ProductsPage() {
                 <input 
                   type="text" 
                   defaultValue={editingProduct?.name} 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
                 />
               </div>
 
@@ -449,7 +449,7 @@ export default function ProductsPage() {
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>옵션타입</label>
                   <select 
                     defaultValue={editingProduct?.optionType || ''} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
                   >
                     <option value="">선택</option>
                     <option value="안경렌즈 RX">안경렌즈 RX</option>
@@ -461,7 +461,7 @@ export default function ProductsPage() {
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>굴절률</label>
                   <select 
                     defaultValue={editingProduct?.refractiveIndex || ''} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
                   >
                     <option value="">선택</option>
                     <option value="1.50">1.50</option>
@@ -479,7 +479,7 @@ export default function ProductsPage() {
                   <input 
                     type="text" 
                     defaultValue={editingProduct?.bundleName || ''} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
                   />
                 </div>
                 <div>
@@ -488,7 +488,7 @@ export default function ProductsPage() {
                     type="text" 
                     defaultValue={editingProduct?.erpCode || ''} 
                     placeholder="레티나 상품코드"
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
                   />
                 </div>
               </div>
@@ -499,7 +499,7 @@ export default function ProductsPage() {
                   <input 
                     type="number" 
                     defaultValue={editingProduct?.sellingPrice || 0} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
                   />
                 </div>
                 <div>
@@ -507,7 +507,7 @@ export default function ProductsPage() {
                   <input 
                     type="number" 
                     defaultValue={editingProduct?.purchasePrice || 0} 
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }} 
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} 
                   />
                 </div>
               </div>
@@ -516,7 +516,7 @@ export default function ProductsPage() {
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상태</label>
                 <select 
                   defaultValue={editingProduct?.isActive ? 'active' : 'inactive'} 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
                 >
                   <option value="active">활성</option>
                   <option value="inactive">비활성</option>
@@ -565,17 +565,17 @@ export default function ProductsPage() {
                     <div style={{ 
                       maxHeight: '250px', 
                       overflowY: 'auto', 
-                      border: '1px solid #e5e5e5', 
+                      border: '1px solid #e9ecef', 
                       borderRadius: '8px'
                     }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                         <thead>
                           <tr style={{ background: '#f5f5f7', position: 'sticky', top: 0 }}>
-                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>SPH</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>CYL</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>재고</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>상태</th>
-                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e5e5e5' }}>관리</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>SPH</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>CYL</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>재고</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>상태</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 500, borderBottom: '1px solid #e9ecef' }}>관리</th>
                           </tr>
                         </thead>
                         <tbody>

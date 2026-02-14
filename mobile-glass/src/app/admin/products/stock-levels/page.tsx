@@ -91,7 +91,7 @@ export default function StockLevelsPage() {
         normal: { bg: '#e8f5e9', color: '#2e7d32', label: '정상' },
         low: { bg: '#fff3e0', color: '#ef6c00', label: '부족' },
         outofstock: { bg: '#ffebee', color: '#c62828', label: '품절' },
-        over: { bg: '#e3f2fd', color: '#1565c0', label: '과잉' }
+        over: { bg: '#eef4ee', color: '#4a6b4a', label: '과잉' }
       }
       const s = styles[v as string] || styles.normal
       return (
