@@ -21,12 +21,6 @@ export const PASSWORD_POLICY = {
   specialChars: '!@#$%^&*()_+-=[]{}|;:,.<>?'
 }
 
-// 계정 잠금 설정
-export const LOCKOUT_POLICY = {
-  maxAttempts: 5,           // 최대 시도 횟수
-  lockoutDurationMin: 15,   // 잠금 시간 (분)
-}
-
 // 비밀번호 유효성 검사
 export function validatePassword(password: string): { valid: boolean; errors: string[] } {
   const errors: string[] = []
@@ -57,38 +51,6 @@ export function validatePassword(password: string): { valid: boolean; errors: st
   return { valid: errors.length === 0, errors }
 }
 
-// 계정 잠금 체크
-async function checkAccountLockout(userId: number): Promise<{ locked: boolean; remainingMin?: number }> {
-  const recentFailures = await prisma.loginHistory.count({
-    where: {
-      userId,
-      success: false,
-      createdAt: {
-        gte: new Date(Date.now() - LOCKOUT_POLICY.lockoutDurationMin * 60 * 1000)
-      }
-    }
-  })
-
-  if (recentFailures >= LOCKOUT_POLICY.maxAttempts) {
-    // 마지막 실패 시간 확인
-    const lastFailure = await prisma.loginHistory.findFirst({
-      where: { userId, success: false },
-      orderBy: { createdAt: 'desc' }
-    })
-
-    if (lastFailure) {
-      const lockoutEnds = new Date(lastFailure.createdAt.getTime() + LOCKOUT_POLICY.lockoutDurationMin * 60 * 1000)
-      const remainingMs = lockoutEnds.getTime() - Date.now()
-      
-      if (remainingMs > 0) {
-        return { locked: true, remainingMin: Math.ceil(remainingMs / 60000) }
-      }
-    }
-  }
-
-  return { locked: false }
-}
-
 // 비밀번호 해시
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12)
@@ -100,7 +62,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 // 사용자 인증
-export async function authenticateUser(username: string, password: string): Promise<AuthUser | null | { locked: true; remainingMin: number }> {
+export async function authenticateUser(username: string, password: string): Promise<AuthUser | null> {
   try {
     const user = await prisma.user.findFirst({
       where: {
@@ -126,12 +88,6 @@ export async function authenticateUser(username: string, password: string): Prom
       return null
     }
 
-    // 계정 잠금 체크
-    const lockoutStatus = await checkAccountLockout(user.id)
-    if (lockoutStatus.locked) {
-      return { locked: true, remainingMin: lockoutStatus.remainingMin! }
-    }
-
     const isValid = await verifyPassword(password, user.password)
 
     if (!isValid) {
@@ -145,23 +101,6 @@ export async function authenticateUser(username: string, password: string): Prom
           ipAddress: 'unknown'
         }
       })
-
-      // 남은 시도 횟수 계산
-      const recentFailures = await prisma.loginHistory.count({
-        where: {
-          userId: user.id,
-          success: false,
-          createdAt: {
-            gte: new Date(Date.now() - LOCKOUT_POLICY.lockoutDurationMin * 60 * 1000)
-          }
-        }
-      })
-
-      const remainingAttempts = LOCKOUT_POLICY.maxAttempts - recentFailures
-      if (remainingAttempts <= 2 && remainingAttempts > 0) {
-        console.warn(`User ${user.username}: ${remainingAttempts} login attempts remaining`)
-      }
-
       return null
     }
 

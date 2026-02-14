@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateUser, AuthUser } from '@/lib/auth'
+import { authenticateUser } from '@/lib/auth'
 import { cookies } from 'next/headers'
 import { SignJWT } from 'jose'
 
@@ -25,34 +25,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // IP 주소 가져오기 (로깅용)
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-               request.headers.get('x-real-ip') || 
-               'unknown'
+    const user = await authenticateUser(username, password)
 
-    const result = await authenticateUser(username, password)
-
-    // 계정 잠금된 경우
-    if (result && typeof result === 'object' && 'locked' in result) {
-      return NextResponse.json(
-        { 
-          error: `계정이 일시적으로 잠겼습니다. ${result.remainingMin}분 후에 다시 시도해주세요.`,
-          locked: true,
-          remainingMin: result.remainingMin
-        },
-        { status: 423 } // Locked
-      )
-    }
-
-    if (!result) {
+    if (!user) {
       return NextResponse.json(
         { error: '아이디 또는 비밀번호가 올바르지 않습니다.' },
         { status: 401 }
       )
     }
-
-    // 타입이 AuthUser로 좁혀짐 (locked 케이스는 위에서 처리됨)
-    const user = result as AuthUser
 
     // JWT 토큰 생성
     const token = await new SignJWT({
