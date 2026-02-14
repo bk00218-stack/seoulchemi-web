@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const category = await prisma.category.findUnique({
+    const category = await prisma.mainCategory.findUnique({
       where: { id: parseInt(id) },
       include: {
         brands: {
@@ -39,7 +39,7 @@ export async function PATCH(
     const { id } = await params
     const body = await request.json()
 
-    const category = await prisma.category.update({
+    const category = await prisma.mainCategory.update({
       where: { id: parseInt(id) },
       data: body
     })
@@ -71,7 +71,7 @@ export async function DELETE(
       )
     }
 
-    await prisma.category.delete({
+    await prisma.mainCategory.delete({
       where: { id: parseInt(id) }
     })
 
