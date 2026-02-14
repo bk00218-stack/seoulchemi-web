@@ -5,6 +5,8 @@ import {
   LineChart, Line, AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
+import Layout from '../components/Layout'
+import { ORDER_SIDEBAR } from '../constants/sidebar'
 
 interface DashboardData {
   today: {
@@ -137,35 +139,27 @@ export default function DashboardPage() {
     }
   }
 
-  if (loading && !data) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '24px', marginBottom: '12px' }}>⏳</div>
-        <p>대시보드 로딩 중...</p>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>
-        <div style={{ fontSize: '24px', marginBottom: '12px' }}>❌</div>
-        <p>{error}</p>
-      </div>
-    )
-  }
-
-  if (!data) return null
-
-  const chartData = data.chart.daily.map(d => ({
+  const chartData = data?.chart.daily.map(d => ({
     ...d,
     date: d.date.slice(5), // MM-DD 형식
     매출: d.revenue,
     주문: d.orders
-  }))
+  })) || []
 
   return (
-    <div style={{ padding: '24px', background: 'var(--gray-100)', minHeight: '100vh' }}>
+    <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
+      {loading && !data ? (
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', marginBottom: '12px' }}>⏳</div>
+          <p>대시보드 로딩 중...</p>
+        </div>
+      ) : error ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>
+          <div style={{ fontSize: '24px', marginBottom: '12px' }}>❌</div>
+          <p>{error}</p>
+        </div>
+      ) : !data ? null : (
+      <div>
       {/* 헤더 */}
       <div style={{ 
         display: 'flex', 
@@ -344,6 +338,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+      )}
+    </Layout>
   )
 }
