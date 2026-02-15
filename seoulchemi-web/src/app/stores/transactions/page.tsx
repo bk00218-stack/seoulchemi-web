@@ -262,23 +262,23 @@ export default function TransactionsPage() {
           
           {/* 검색/목록 */}
           <div style={{ 
-            height: '160px', flexShrink: 0,
+            height: '240px', flexShrink: 0,
             background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
             display: 'flex', flexDirection: 'column', overflow: 'hidden'
           }}>
-            <div style={{ padding: '8px', borderBottom: '1px solid #e9ecef' }}>
+            <div style={{ padding: '10px', borderBottom: '1px solid #e9ecef' }}>
               <input
                 ref={searchInputRef} type="text" placeholder="상호/전화번호..."
                 value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={handleKeyDown}
-                style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #e9ecef', fontSize: '12px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
             <div ref={listRef} style={{ flex: 1, overflow: 'auto' }}>
-              {loading ? <div style={{ padding: '15px', textAlign: 'center', color: '#86868b', fontSize: '11px' }}>로딩...</div>
-              : sortedStores.length === 0 ? <div style={{ padding: '15px', textAlign: 'center', color: '#86868b', fontSize: '11px' }}>없음</div>
+              {loading ? <div style={{ padding: '20px', textAlign: 'center', color: '#86868b', fontSize: '13px' }}>로딩...</div>
+              : sortedStores.length === 0 ? <div style={{ padding: '20px', textAlign: 'center', color: '#86868b', fontSize: '13px' }}>없음</div>
               : sortedStores.map((store, idx) => (
                 <div key={store.id} data-store-item onClick={() => handleSelectStore(store)}
-                  style={{ padding: '6px 10px', cursor: 'pointer', fontSize: '12px',
+                  style={{ padding: '10px 12px', cursor: 'pointer', fontSize: '14px',
                     background: selectedStore?.id === store.id ? '#e3f2fd' : highlightIndex === idx ? '#fff3cd' : 'transparent',
                     borderBottom: '1px solid #f5f5f5', fontWeight: selectedStore?.id === store.id ? 600 : 400 }}
                   onMouseEnter={e => { if (selectedStore?.id !== store.id && highlightIndex !== idx) e.currentTarget.style.background = '#f8f9fa' }}
@@ -286,25 +286,25 @@ export default function TransactionsPage() {
                 >{store.name}</div>
               ))}
             </div>
-            <div style={{ padding: '4px 8px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '10px', color: '#888', textAlign: 'center' }}>
+            <div style={{ padding: '6px 10px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '12px', color: '#888', textAlign: 'center' }}>
               {filteredStores.length}개
             </div>
           </div>
 
           {/* 거래처 정보 */}
           <div style={{ flex: 1, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-            padding: '10px 12px', overflow: 'auto', position: 'relative' }}>
+            padding: '14px', overflow: 'auto', position: 'relative' }}>
             <button onClick={() => setShowSettings(!showSettings)}
-              style={{ position: 'absolute', top: '6px', right: '6px', padding: '2px 5px', fontSize: '9px',
+              style={{ position: 'absolute', top: '8px', right: '8px', padding: '4px 8px', fontSize: '11px',
                 background: showSettings ? '#007aff' : '#f5f5f7', color: showSettings ? '#fff' : '#666',
-                border: 'none', borderRadius: '3px', cursor: 'pointer' }}>⚙️</button>
+                border: 'none', borderRadius: '4px', cursor: 'pointer' }}>⚙️</button>
 
             {showSettings && (
-              <div style={{ position: 'absolute', top: '24px', right: '6px', background: '#fff', border: '1px solid #e9ecef',
-                borderRadius: '6px', padding: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10, width: '140px' }}>
+              <div style={{ position: 'absolute', top: '32px', right: '8px', background: '#fff', border: '1px solid #e9ecef',
+                borderRadius: '8px', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10, width: '160px' }}>
                 {DISPLAY_FIELDS.map(field => (
-                  <label key={field.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', cursor: 'pointer', padding: '2px 0' }}>
-                    <input type="checkbox" checked={isVisible(field.key)} onChange={() => toggleField(field.key)} style={{ margin: 0, width: 12, height: 12 }} />
+                  <label key={field.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', padding: '4px 0' }}>
+                    <input type="checkbox" checked={isVisible(field.key)} onChange={() => toggleField(field.key)} style={{ margin: 0, width: 14, height: 14 }} />
                     {field.label}
                   </label>
                 ))}
@@ -312,27 +312,27 @@ export default function TransactionsPage() {
             )}
 
             {!selectedStore ? (
-              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#86868b', fontSize: '11px' }}>
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#86868b', fontSize: '14px' }}>
                 거래처 선택
               </div>
             ) : (
-              <div style={{ fontSize: '10px' }}>
-                <div style={{ marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #f0f0f0' }}>
-                  <h3 style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px' }}>{selectedStore.name}</h3>
+              <div style={{ fontSize: '13px' }}>
+                <div style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f0f0f0' }}>
+                  <h3 style={{ fontSize: '17px', fontWeight: 600, margin: '0 0 6px' }}>{selectedStore.name}</h3>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '9px', color: selectedStore.status !== 'active' ? '#d32f2f' : '#86868b' }}>
+                    <span style={{ fontSize: '12px', color: selectedStore.status !== 'active' ? '#d32f2f' : '#86868b' }}>
                       {selectedStore.status === 'suspended' ? '⚠️거래정지' : selectedStore.status === 'caution' ? '⚠️주의' : ''}
                     </span>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '8px', color: '#86868b' }}>미결제</div>
-                      <div style={{ fontSize: '16px', fontWeight: 700, color: selectedStore.balance > 0 ? '#d32f2f' : '#2e7d32' }}>
+                      <div style={{ fontSize: '11px', color: '#86868b' }}>미결제</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: selectedStore.balance > 0 ? '#d32f2f' : '#2e7d32' }}>
                         {selectedStore.balance.toLocaleString()}
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   {isVisible('ownerName') && <div><span style={{ color: '#999' }}>대표:</span> {selectedStore.ownerName || '-'}</div>}
                   {isVisible('phone') && <div><span style={{ color: '#999' }}>연락처:</span> {selectedStore.phone || '-'}</div>}
                   {isVisible('email') && <div><span style={{ color: '#999' }}>이메일:</span> {selectedStore.email || '-'}</div>}
@@ -341,8 +341,8 @@ export default function TransactionsPage() {
                   {isVisible('groupName') && <div><span style={{ color: '#999' }}>그룹:</span> {selectedStore.groupName || '-'}</div>}
                   {isVisible('discountRate') && <div><span style={{ color: '#999' }}>할인:</span> <span style={{ color: '#e65100' }}>{selectedStore.discountRate}%</span></div>}
                   {isVisible('creditLimit') && selectedStore.creditLimit > 0 && <div><span style={{ color: '#999' }}>한도:</span> {selectedStore.creditLimit.toLocaleString()}</div>}
-                  {isVisible('address') && selectedStore.address && <div style={{ marginTop: '4px' }}><span style={{ color: '#999' }}>📍</span> {selectedStore.address}</div>}
-                  {isVisible('memo') && selectedStore.memo && <div style={{ marginTop: '4px', padding: '4px', background: '#fff9e6', borderRadius: '3px', color: '#856404' }}>📝 {selectedStore.memo}</div>}
+                  {isVisible('address') && selectedStore.address && <div style={{ marginTop: '6px' }}><span style={{ color: '#999' }}>📍</span> {selectedStore.address}</div>}
+                  {isVisible('memo') && selectedStore.memo && <div style={{ marginTop: '6px', padding: '6px 8px', background: '#fff9e6', borderRadius: '4px', color: '#856404' }}>📝 {selectedStore.memo}</div>}
                 </div>
               </div>
             )}
@@ -352,12 +352,12 @@ export default function TransactionsPage() {
         {/* 중앙: 거래내역 목록 (테이블 형태) */}
         <div style={{ flex: 1, minWidth: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '8px 12px', borderBottom: '1px solid #e9ecef', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600 }}>📋 거래내역</span>
-            <div style={{ display: 'flex', gap: '3px' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid #e9ecef', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600 }}>📋 거래내역</span>
+            <div style={{ display: 'flex', gap: '4px' }}>
               {[{ value: 'all', label: '전체' }, { value: 'sale', label: '매출' }, { value: 'deposit', label: '입금' }, { value: 'return', label: '반품' }].map(f => (
                 <button key={f.value} onClick={() => setTypeFilter(f.value)} style={{
-                  padding: '2px 6px', borderRadius: '3px', border: 'none', fontSize: '10px', cursor: 'pointer',
+                  padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '12px', cursor: 'pointer',
                   background: typeFilter === f.value ? '#007aff' : '#f5f5f7', color: typeFilter === f.value ? '#fff' : '#666'
                 }}>{f.label}</button>
               ))}
@@ -366,20 +366,20 @@ export default function TransactionsPage() {
 
           <div style={{ flex: 1, overflow: 'auto' }}>
             {!selectedStore ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#86868b', fontSize: '11px' }}>거래처 선택</div>
+              <div style={{ padding: '50px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>거래처 선택</div>
             ) : transLoading ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#86868b', fontSize: '11px' }}>로딩...</div>
+              <div style={{ padding: '50px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>로딩...</div>
             ) : filteredTransactions.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#86868b', fontSize: '11px' }}>내역 없음</div>
+              <div style={{ padding: '50px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>내역 없음</div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
-                    <th style={{ padding: '6px 8px', textAlign: 'left', fontWeight: 600, color: '#666', width: '60px' }}>일자</th>
-                    <th style={{ padding: '6px 8px', textAlign: 'left', fontWeight: 600, color: '#666', width: '100px' }}>주문번호</th>
-                    <th style={{ padding: '6px 8px', textAlign: 'left', fontWeight: 600, color: '#666' }}>품목</th>
-                    <th style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600, color: '#666', width: '90px' }}>금액</th>
-                    <th style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600, color: '#666', width: '90px' }}>잔액</th>
+                    <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666', width: '70px' }}>일자</th>
+                    <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666', width: '110px' }}>주문번호</th>
+                    <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666' }}>품목</th>
+                    <th style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: '#666', width: '100px' }}>금액</th>
+                    <th style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: '#666', width: '100px' }}>잔액</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -391,22 +391,22 @@ export default function TransactionsPage() {
                         onMouseEnter={e => { if (selectedTransaction?.id !== t.id) e.currentTarget.style.background = '#f8f9fa' }}
                         onMouseLeave={e => { if (selectedTransaction?.id !== t.id) e.currentTarget.style.background = 'transparent' }}
                       >
-                        <td style={{ padding: '8px', color: '#666' }}>
+                        <td style={{ padding: '10px', color: '#666' }}>
                           {new Date(t.processedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
                         </td>
-                        <td style={{ padding: '8px' }}>
-                          <span style={{ padding: '1px 4px', borderRadius: '2px', fontSize: '9px', color: typeInfo.color, background: typeInfo.bg, marginRight: '4px' }}>
+                        <td style={{ padding: '10px' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '3px', fontSize: '11px', color: typeInfo.color, background: typeInfo.bg, marginRight: '6px' }}>
                             {typeInfo.label}
                           </span>
                           {t.orderNo || '-'}
                         </td>
-                        <td style={{ padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px' }}>
+                        <td style={{ padding: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
                           {getItemSummary(t)}
                         </td>
-                        <td style={{ padding: '8px', textAlign: 'right', fontWeight: 600, color: t.type === 'deposit' ? '#2e7d32' : t.type === 'return' ? '#e65100' : '#1d1d1f' }}>
+                        <td style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: t.type === 'deposit' ? '#2e7d32' : t.type === 'return' ? '#e65100' : '#1d1d1f' }}>
                           {t.type === 'deposit' ? '+' : ''}{t.amount.toLocaleString()}
                         </td>
-                        <td style={{ padding: '8px', textAlign: 'right', color: '#666' }}>
+                        <td style={{ padding: '10px', textAlign: 'right', color: '#666' }}>
                           {t.balanceAfter.toLocaleString()}
                         </td>
                       </tr>
@@ -418,7 +418,7 @@ export default function TransactionsPage() {
           </div>
 
           {selectedStore && filteredTransactions.length > 0 && (
-            <div style={{ padding: '6px 10px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '10px', color: '#666' }}>
+            <div style={{ padding: '8px 12px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '12px', color: '#666' }}>
               {filteredTransactions.length}건 · 
               매출 {filteredTransactions.filter(t => t.type === 'sale').reduce((s, t) => s + t.amount, 0).toLocaleString()} · 
               입금 {filteredTransactions.filter(t => t.type === 'deposit').reduce((s, t) => s + t.amount, 0).toLocaleString()}
@@ -428,32 +428,32 @@ export default function TransactionsPage() {
 
         {/* 우측: 세부내역 */}
         <div style={{ flex: 1, minWidth: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-          padding: '12px', overflow: 'auto' }}>
-          <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '10px' }}>📄 세부내역</div>
+          padding: '14px', overflow: 'auto' }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>📄 세부내역</div>
           
           {!selectedTransaction ? (
-            <div style={{ padding: '40px 10px', textAlign: 'center', color: '#86868b', fontSize: '11px' }}>
+            <div style={{ padding: '50px 10px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>
               거래내역 선택
             </div>
           ) : (
-            <div style={{ fontSize: '11px' }}>
+            <div style={{ fontSize: '13px' }}>
               {/* 헤더 */}
-              <div style={{ textAlign: 'center', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f0f0f0' }}>
-                <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
+              <div style={{ textAlign: 'center', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #f0f0f0' }}>
+                <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: 600,
                   color: TYPE_LABELS[selectedTransaction.type]?.color, background: TYPE_LABELS[selectedTransaction.type]?.bg }}>
                   {TYPE_LABELS[selectedTransaction.type]?.label}
                 </span>
-                <div style={{ fontSize: '22px', fontWeight: 700, marginTop: '6px',
+                <div style={{ fontSize: '26px', fontWeight: 700, marginTop: '8px',
                   color: selectedTransaction.type === 'deposit' ? '#2e7d32' : selectedTransaction.type === 'return' ? '#e65100' : '#1d1d1f' }}>
                   {selectedTransaction.type === 'deposit' ? '+' : ''}{selectedTransaction.amount.toLocaleString()}원
                 </div>
-                <div style={{ fontSize: '10px', color: '#86868b', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: '#86868b', marginTop: '6px' }}>
                   {new Date(selectedTransaction.processedAt).toLocaleString('ko-KR')}
                 </div>
               </div>
 
               {/* 기본 정보 */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                 {selectedTransaction.orderNo && (
                   <div><span style={{ color: '#86868b' }}>주문번호:</span> <span style={{ color: '#1565c0', fontWeight: 500 }}>{selectedTransaction.orderNo}</span></div>
                 )}
@@ -462,24 +462,24 @@ export default function TransactionsPage() {
                   <div><span style={{ color: '#86868b' }}>결제방법:</span> {selectedTransaction.paymentMethod}</div>
                 )}
                 {selectedTransaction.memo && (
-                  <div style={{ padding: '6px', background: '#f8f9fa', borderRadius: '4px' }}>📝 {selectedTransaction.memo}</div>
+                  <div style={{ padding: '8px', background: '#f8f9fa', borderRadius: '6px' }}>📝 {selectedTransaction.memo}</div>
                 )}
               </div>
 
               {/* 품목 상세 */}
               {selectedTransaction.items && selectedTransaction.items.length > 0 && (
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, marginBottom: '8px', color: '#666' }}>📦 품목 상세 ({selectedTransaction.items.length}건)</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: '#666' }}>📦 품목 상세 ({selectedTransaction.items.length}건)</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {selectedTransaction.items.map((item, idx) => (
-                      <div key={idx} style={{ padding: '8px', background: '#f8f9fa', borderRadius: '6px', borderLeft: '3px solid #007aff' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <div key={idx} style={{ padding: '10px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '3px solid #007aff' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                           <span style={{ fontWeight: 600 }}>{item.brand}</span>
                           <span style={{ fontWeight: 600, color: '#1565c0' }}>{item.price.toLocaleString()}원</span>
                         </div>
-                        <div style={{ color: '#666', marginBottom: '4px' }}>{item.product} × {item.qty}</div>
+                        <div style={{ color: '#666', marginBottom: '6px' }}>{item.product} × {item.qty}</div>
                         {(item.sph || item.cyl || item.add) && (
-                          <div style={{ fontSize: '10px', color: '#86868b', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <div style={{ fontSize: '12px', color: '#86868b', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                             {item.sph && <span>SPH: {item.sph}</span>}
                             {item.cyl && <span>CYL: {item.cyl}</span>}
                             {item.axis && <span>AXIS: {item.axis}</span>}
