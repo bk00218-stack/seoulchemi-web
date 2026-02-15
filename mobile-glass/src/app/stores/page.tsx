@@ -182,7 +182,7 @@ export default function StoresPage() {
     try {
       const params = new URLSearchParams()
       params.set('page', String(page))
-      params.set('limit', '50')
+      params.set('limit', '100')
       if (filter !== 'all') params.set('status', filter)
       if (searchRef.current.code) params.set('groupName', searchRef.current.code)
       if (searchRef.current.name) params.set('name', searchRef.current.name)
@@ -345,65 +345,51 @@ export default function StoresPage() {
 
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
-      {/* 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', margin: 0 }}>가맹점 관리</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <OutlineButton onClick={() => alert('엑셀 다운로드 - 준비 중')}>📥 엑셀</OutlineButton>
-          <button onClick={() => openModal(null)} style={{ padding: '10px 16px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
-            + 가맹점 등록
+      {/* 헤더 + 통계 + 필터 통합 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1d1d1f', margin: 0 }}>가맹점</h2>
+          {/* 인라인 통계 */}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', fontSize: '13px', color: '#666' }}>
+            <span>🏪 <strong style={{ color: '#1d1d1f' }}>{stats.total.toLocaleString()}</strong></span>
+            <span>✅ <strong style={{ color: '#34c759' }}>{stats.active.toLocaleString()}</strong></span>
+            <span>⏸️ <strong style={{ color: '#ff9500' }}>{stats.inactive.toLocaleString()}</strong></span>
+            <span style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '2px 8px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}>✨ 신규 {stats.newThisMonth}</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* 필터 버튼 */}
+          {[
+            { label: '전체', value: 'all' },
+            { label: '활성', value: 'active' },
+            { label: '비활성', value: 'inactive' },
+          ].map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => { setFilter(opt.value); setPage(1); }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                fontSize: '12px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                background: filter === opt.value ? '#007aff' : '#f5f5f7',
+                color: filter === opt.value ? '#fff' : '#666'
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+          <div style={{ width: '1px', height: '20px', background: '#e0e0e0', margin: '0 4px' }} />
+          <button onClick={resetColWidths} style={{ padding: '6px 10px', fontSize: '11px', color: '#86868b', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer' }} title="컬럼 너비 초기화">
+            ↺
+          </button>
+          <OutlineButton onClick={() => alert('엑셀 다운로드 - 준비 중')}>📥</OutlineButton>
+          <button onClick={() => openModal(null)} style={{ padding: '6px 14px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+            + 등록
           </button>
         </div>
-      </div>
-
-      {/* 통계 카드 - 컴팩트 */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-        <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px' }}>🏪</span>
-          <span style={{ color: '#86868b', fontSize: '12px' }}>전체</span>
-          <span style={{ fontSize: '14px', fontWeight: 600 }}>{stats.total.toLocaleString()}</span>
-        </div>
-        <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px' }}>✅</span>
-          <span style={{ color: '#86868b', fontSize: '12px' }}>활성</span>
-          <span style={{ fontSize: '14px', fontWeight: 600, color: '#34c759' }}>{stats.active.toLocaleString()}</span>
-        </div>
-        <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px' }}>⏸️</span>
-          <span style={{ color: '#86868b', fontSize: '12px' }}>비활성</span>
-          <span style={{ fontSize: '14px', fontWeight: 600, color: '#ff9500' }}>{stats.inactive.toLocaleString()}</span>
-        </div>
-        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '6px', padding: '6px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '14px' }}>✨</span>
-          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px' }}>신규</span>
-          <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{stats.newThisMonth.toLocaleString()}</span>
-        </div>
-      </div>
-
-      {/* 필터 버튼 */}
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-        {[
-          { label: `전체 (${stats.total})`, value: 'all' },
-          { label: `활성 (${stats.active})`, value: 'active' },
-          { label: `비활성 (${stats.inactive})`, value: 'inactive' },
-        ].map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => { setFilter(opt.value); setPage(1); }}
-            style={{
-              padding: '8px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              background: filter === opt.value ? '#007aff' : '#f5f5f7',
-              color: filter === opt.value ? '#fff' : '#666'
-            }}
-          >
-            {opt.label}
-          </button>
-        ))}
       </div>
 
       {/* 일괄 작업 바 - 선택된 항목이 있을 때만 표시 */}
@@ -411,58 +397,27 @@ export default function StoresPage() {
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
-          gap: '12px', 
-          padding: '12px 16px', 
+          gap: '8px', 
+          padding: '8px 12px', 
           background: '#e3f2fd', 
-          borderRadius: '8px', 
-          marginBottom: '12px',
+          borderRadius: '6px', 
+          marginBottom: '8px',
           border: '1px solid #90caf9'
         }}>
-          <span style={{ fontWeight: 600, color: '#1976d2' }}>
-            ✓ {selectedIds.size}개 선택됨
+          <span style={{ fontWeight: 600, color: '#1976d2', fontSize: '13px' }}>
+            ✓ {selectedIds.size}개
           </span>
           <div style={{ flex: 1 }} />
-          <button 
-            onClick={handleBulkSetGroup}
-            style={{ padding: '6px 12px', borderRadius: '6px', background: '#fff', color: '#1976d2', border: '1px solid #1976d2', fontSize: '13px', cursor: 'pointer' }}
-          >
-            📁 그룹 설정
-          </button>
-          <button 
-            onClick={() => handleBulkAction('setActive')}
-            style={{ padding: '6px 12px', borderRadius: '6px', background: '#fff', color: '#2e7d32', border: '1px solid #2e7d32', fontSize: '13px', cursor: 'pointer' }}
-          >
-            ✅ 활성화
-          </button>
-          <button 
-            onClick={() => handleBulkAction('setInactive')}
-            style={{ padding: '6px 12px', borderRadius: '6px', background: '#fff', color: '#e65100', border: '1px solid #e65100', fontSize: '13px', cursor: 'pointer' }}
-          >
-            ⏸️ 비활성화
-          </button>
-          <button 
-            onClick={handleBulkDelete}
-            style={{ padding: '6px 12px', borderRadius: '6px', background: '#c62828', color: '#fff', border: 'none', fontSize: '13px', cursor: 'pointer' }}
-          >
-            🗑️ 삭제
-          </button>
-          <button 
-            onClick={() => setSelectedIds(new Set())}
-            style={{ padding: '6px 12px', borderRadius: '6px', background: '#f5f5f7', color: '#666', border: 'none', fontSize: '13px', cursor: 'pointer' }}
-          >
-            선택 해제
-          </button>
+          <button onClick={handleBulkSetGroup} style={{ padding: '5px 10px', borderRadius: '4px', background: '#fff', color: '#1976d2', border: '1px solid #1976d2', fontSize: '12px', cursor: 'pointer' }}>📁 그룹</button>
+          <button onClick={() => handleBulkAction('setActive')} style={{ padding: '5px 10px', borderRadius: '4px', background: '#fff', color: '#2e7d32', border: '1px solid #2e7d32', fontSize: '12px', cursor: 'pointer' }}>✅</button>
+          <button onClick={() => handleBulkAction('setInactive')} style={{ padding: '5px 10px', borderRadius: '4px', background: '#fff', color: '#e65100', border: '1px solid #e65100', fontSize: '12px', cursor: 'pointer' }}>⏸️</button>
+          <button onClick={handleBulkDelete} style={{ padding: '5px 10px', borderRadius: '4px', background: '#c62828', color: '#fff', border: 'none', fontSize: '12px', cursor: 'pointer' }}>🗑️</button>
+          <button onClick={() => setSelectedIds(new Set())} style={{ padding: '5px 10px', borderRadius: '4px', background: '#f5f5f7', color: '#666', border: 'none', fontSize: '12px', cursor: 'pointer' }}>✕</button>
         </div>
       )}
 
       {/* 테이블 */}
-      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-        {/* 컬럼 너비 초기화 버튼 */}
-        <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={resetColWidths} style={{ padding: '4px 8px', fontSize: '11px', color: '#86868b', background: 'none', border: '1px solid #e9ecef', borderRadius: '4px', cursor: 'pointer' }}>
-            ↺ 컬럼 너비 초기화
-          </button>
-        </div>
+      <div style={{ background: '#fff', borderRadius: '10px', overflow: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
         <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
             {colWidths.map((w, i) => (
@@ -470,99 +425,78 @@ export default function StoresPage() {
             ))}
           </colgroup>
           <thead>
-            {/* 헤더 */}
-            <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #e9ecef' }}>
-              <th style={{ padding: '12px 8px', textAlign: 'center' }}>
+            {/* 헤더 + 검색 필터 통합 */}
+            <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #e9ecef' }}>
+              <th style={{ padding: '8px 4px', textAlign: 'center', verticalAlign: 'middle' }}>
                 <input type="checkbox" checked={selectedIds.size === data.length && data.length > 0} onChange={toggleSelectAll} />
               </th>
-              {['그룹', '안경원명', '대표자', '연락처', '주소', '영업담당', '배송담당', '관리'].map((label, i) => (
-                <th key={label} style={{ 
-                  padding: '12px 8px', 
-                  textAlign: i >= 5 && i <= 6 ? 'center' : 'left', 
-                  fontSize: '14px', 
-                  fontWeight: 600, 
-                  color: '#1d1d1f', 
+              {[
+                { label: '그룹', placeholder: '그룹', value: searchCode, onChange: setSearchCode, align: 'left' },
+                { label: '안경원명', placeholder: '이름', value: searchName, onChange: setSearchName, align: 'left' },
+                { label: '대표자', placeholder: '대표자', value: searchOwner, onChange: setSearchOwner, align: 'left' },
+                { label: '연락처', placeholder: '전화', value: searchPhone, onChange: setSearchPhone, align: 'left' },
+                { label: '주소', placeholder: '주소', value: searchAddress, onChange: setSearchAddress, align: 'left' },
+                { label: '영업', placeholder: '영업', value: searchSalesRep, onChange: setSearchSalesRep, align: 'center' },
+                { label: '배송', placeholder: '배송', value: searchDelivery, onChange: setSearchDelivery, align: 'center' },
+              ].map((field, i) => (
+                <th key={field.label} style={{ 
+                  padding: '6px 4px', 
+                  textAlign: field.align as any, 
+                  fontSize: '12px', 
+                  fontWeight: 500, 
+                  color: '#666', 
                   whiteSpace: 'nowrap', 
-                  position: i === 7 ? 'sticky' : 'relative', 
-                  right: i === 7 ? 0 : undefined,
-                  background: i === 7 ? '#f8f9fa' : undefined,
-                  boxShadow: i === 7 ? '-2px 0 4px rgba(0,0,0,0.1)' : undefined,
-                  zIndex: i === 7 ? 10 : undefined,
+                  position: 'relative',
+                  verticalAlign: 'middle',
                   userSelect: 'none' 
                 }}>
-                  {label}
-                  {i < 7 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ color: '#1d1d1f', fontWeight: 600 }}>{field.label}</span>
+                    <input 
+                      type="text" 
+                      placeholder={field.placeholder}
+                      value={field.value} 
+                      onChange={(e) => field.onChange(e.target.value)} 
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      style={{ width: '100%', padding: '4px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px', fontWeight: 400 }} 
+                    />
+                  </div>
+                  {i < 6 && (
                     <div
                       onMouseDown={(e) => handleResizeStart(e, i + 1)}
                       style={{
                         position: 'absolute',
                         right: 0,
-                        top: '25%',
-                        height: '50%',
+                        top: '15%',
+                        height: '70%',
                         width: '5px',
                         cursor: 'col-resize',
-                        borderRight: '2px solid #d0d0d0',
+                        borderRight: '2px solid #e0e0e0',
                         transition: 'border-color 0.15s',
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#007aff')}
-                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d0d0d0')}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e0e0e0')}
                     />
                   )}
                 </th>
               ))}
-            </tr>
-            {/* 검색 필터 */}
-            <tr style={{ background: '#f1f3f4', borderBottom: '1px solid #e9ecef' }}>
-              <td style={{ padding: '6px 4px' }}></td>
-              {[
-                { placeholder: '그룹', value: searchCode, onChange: setSearchCode },
-                { placeholder: '안경원명', value: searchName, onChange: setSearchName },
-                { placeholder: '대표자', value: searchOwner, onChange: setSearchOwner },
-                { placeholder: '연락처', value: searchPhone, onChange: setSearchPhone },
-                { placeholder: '주소', value: searchAddress, onChange: setSearchAddress },
-                { placeholder: '영업', value: searchSalesRep, onChange: setSearchSalesRep },
-                { placeholder: '배송', value: searchDelivery, onChange: setSearchDelivery },
-              ].map((field, i) => (
-                <td key={field.placeholder} style={{ padding: '6px 4px', position: 'relative' }}>
-                  <input 
-                    type="text" 
-                    placeholder={field.placeholder} 
-                    value={field.value} 
-                    onChange={(e) => field.onChange(e.target.value)} 
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} 
-                  />
-                  <div
-                    onMouseDown={(e) => handleResizeStart(e, i + 1)}
-                    style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: '20%',
-                      height: '60%',
-                      width: '5px',
-                      cursor: 'col-resize',
-                      borderRight: '2px solid #d0d0d0',
-                      transition: 'border-color 0.15s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#007aff')}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d0d0d0')}
-                  />
-                </td>
-              ))}
-              <td style={{ padding: '6px 8px', textAlign: 'center', position: 'sticky', right: 0, background: '#f1f3f4', boxShadow: '-2px 0 4px rgba(0,0,0,0.1)', zIndex: 10 }}>
-                <button onClick={handleSearch} style={{ padding: '5px 10px', borderRadius: '4px', background: '#007aff', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>검색</button>
-              </td>
+              <th style={{ padding: '6px 8px', textAlign: 'center', position: 'sticky', right: 0, background: '#f8f9fa', boxShadow: '-2px 0 4px rgba(0,0,0,0.08)', zIndex: 10, verticalAlign: 'middle' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                  <span style={{ color: '#1d1d1f', fontWeight: 600, fontSize: '12px' }}>관리</span>
+                  <button onClick={handleSearch} style={{ padding: '4px 10px', borderRadius: '4px', background: '#007aff', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>🔍</button>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               // 스켈레톤 로딩
-              Array.from({ length: 10 }).map((_, idx) => (
+              Array.from({ length: 15 }).map((_, idx) => (
                 <tr key={`skeleton-${idx}`} style={{ borderBottom: '1px solid #f0f0f0' }}>
                   {Array.from({ length: 9 }).map((_, colIdx) => (
-                    <td key={colIdx} style={{ padding: '14px 8px' }}>
+                    <td key={colIdx} style={{ padding: '8px 4px' }}>
                       <div style={{
-                        height: '14px',
+                        height: '12px',
                         background: 'linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%)',
                         backgroundSize: '200% 100%',
                         animation: 'shimmer 1.5s infinite',
@@ -573,27 +507,27 @@ export default function StoresPage() {
                 </tr>
               ))
             ) : data.length === 0 ? (
-              <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
+              <tr><td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
             ) : data.map(store => (
               <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0', background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', cursor: 'pointer' }} onClick={() => router.push(`/stores/${store.id}`)} onMouseEnter={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fafafa' }} onMouseLeave={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fff' }}>
-                <td style={{ padding: '10px 8px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                <td style={{ padding: '6px 4px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
-                <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
-                <td style={{ padding: '10px 8px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '140px', maxWidth: '140px' }}>{store.name}</td>
-                <td style={{ padding: '10px 8px', fontSize: '12px' }}>{store.ownerName}</td>
-                <td style={{ padding: '10px 8px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
-                <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '120px', maxWidth: '120px' }}>{store.address}</td>
-                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', color: store.salesRepName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '80px' }}>{store.salesRepName || '-'}</td>
-                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '80px' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
-                <td style={{ padding: '10px 8px', position: 'sticky', right: 0, background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', boxShadow: '-2px 0 4px rgba(0,0,0,0.1)', zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
-                  <div style={{ display: 'flex', flexDirection: 'row', gap: '3px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
-                    <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100', whiteSpace: 'nowrap' }}>
-                      {store.isActive ? '활성' : '비활성'}
+                <td style={{ padding: '6px 4px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
+                <td style={{ padding: '6px 4px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.name}</td>
+                <td style={{ padding: '6px 4px', fontSize: '12px' }}>{store.ownerName}</td>
+                <td style={{ padding: '6px 4px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
+                <td style={{ padding: '6px 4px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.address}</td>
+                <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '11px', color: store.salesRepName ? '#333' : '#ccc', whiteSpace: 'nowrap' }}>{store.salesRepName || '-'}</td>
+                <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
+                <td style={{ padding: '6px 4px', position: 'sticky', right: 0, background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', boxShadow: '-2px 0 4px rgba(0,0,0,0.08)', zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
+                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
+                    <span style={{ padding: '2px 5px', borderRadius: '6px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100' }}>
+                      {store.isActive ? '✓' : '⏸'}
                     </span>
-                    <button onClick={() => router.push(`/stores/${store.id}/discounts`)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>할인</button>
-                    <button onClick={() => openModal(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>수정</button>
-                    <button onClick={() => handleDeleteClick(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>삭제</button>
+                    <button onClick={() => router.push(`/stores/${store.id}/discounts`)} style={{ padding: '2px 5px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '10px', cursor: 'pointer' }}>%</button>
+                    <button onClick={() => openModal(store)} style={{ padding: '2px 5px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '10px', cursor: 'pointer' }}>✎</button>
+                    <button onClick={() => handleDeleteClick(store)} style={{ padding: '2px 5px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '10px', cursor: 'pointer' }}>×</button>
                   </div>
                 </td>
               </tr>
@@ -604,18 +538,14 @@ export default function StoresPage() {
           
       {/* 페이지네이션 */}
       {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px', marginTop: '16px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '12px', color: '#86868b', marginRight: '12px' }}>
-            총 {totalCount.toLocaleString()}건 ({page}/{totalPages} 페이지)
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '3px', marginTop: '10px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '11px', color: '#86868b', marginRight: '8px' }}>
+            {totalCount.toLocaleString()}건 • {page}/{totalPages}
           </span>
           <button onClick={() => setPage(1)} disabled={page === 1}
-            style={{ padding: '6px 10px', borderRadius: '6px', background: page === 1 ? '#f5f5f7' : '#fff', color: page === 1 ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === 1 ? 'default' : 'pointer', fontSize: '12px' }}>
-            ⟪
-          </button>
+            style={{ padding: '4px 8px', borderRadius: '4px', background: page === 1 ? '#f5f5f7' : '#fff', color: page === 1 ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === 1 ? 'default' : 'pointer', fontSize: '11px' }}>⟪</button>
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-            style={{ padding: '6px 10px', borderRadius: '6px', background: page === 1 ? '#f5f5f7' : '#fff', color: page === 1 ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === 1 ? 'default' : 'pointer', fontSize: '12px' }}>
-            ◂
-          </button>
+            style={{ padding: '4px 8px', borderRadius: '4px', background: page === 1 ? '#f5f5f7' : '#fff', color: page === 1 ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === 1 ? 'default' : 'pointer', fontSize: '11px' }}>◂</button>
           {(() => {
             const pages = []
             let start = Math.max(1, page - 2)
@@ -625,21 +555,15 @@ export default function StoresPage() {
             for (let i = start; i <= end; i++) {
               pages.push(
                 <button key={i} onClick={() => setPage(i)}
-                  style={{ padding: '6px 12px', borderRadius: '6px', background: i === page ? '#007aff' : '#fff', color: i === page ? '#fff' : '#333', border: '1px solid #e9ecef', cursor: 'pointer', fontSize: '12px', fontWeight: i === page ? 600 : 400, minWidth: '36px' }}>
-                  {i}
-                </button>
+                  style={{ padding: '4px 10px', borderRadius: '4px', background: i === page ? '#007aff' : '#fff', color: i === page ? '#fff' : '#333', border: '1px solid #e9ecef', cursor: 'pointer', fontSize: '11px', fontWeight: i === page ? 600 : 400, minWidth: '30px' }}>{i}</button>
               )
             }
             return pages
           })()}
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-            style={{ padding: '6px 10px', borderRadius: '6px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '12px' }}>
-            ▸
-          </button>
+            style={{ padding: '4px 8px', borderRadius: '4px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '11px' }}>▸</button>
           <button onClick={() => setPage(totalPages)} disabled={page === totalPages}
-            style={{ padding: '6px 10px', borderRadius: '6px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '12px' }}>
-            ⟫
-          </button>
+            style={{ padding: '4px 8px', borderRadius: '4px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '11px' }}>⟫</button>
         </div>
       )}
 
