@@ -43,7 +43,6 @@ export default function TransactionsPage() {
   const [transLoading, setTransLoading] = useState(false)
   
   // 검색/필터
-  const [searchMode, setSearchMode] = useState<'name' | 'region'>('name')
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
 
@@ -75,22 +74,19 @@ export default function TransactionsPage() {
     }
   }
 
-  // 검색 필터링
+  // 검색 필터링 (상호 또는 전화번호로 검색)
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredStores(stores)
       return
     }
-    const q = searchQuery.toLowerCase()
+    const q = searchQuery.toLowerCase().replace(/-/g, '') // 하이픈 제거하여 전화번호 검색 용이하게
     const filtered = stores.filter(s => {
-      if (searchMode === 'name') {
-        return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
-      } else {
-        return s.region.toLowerCase().includes(q)
-      }
+      const phoneClean = (s.phone || '').replace(/-/g, '').toLowerCase()
+      return s.name.toLowerCase().includes(q) || phoneClean.includes(q)
     })
     setFilteredStores(filtered)
-  }, [searchQuery, searchMode, stores])
+  }, [searchQuery, stores])
 
   // 거래처 선택 시 거래내역 로드
   const handleSelectStore = useCallback(async (store: Store) => {
@@ -114,12 +110,9 @@ export default function TransactionsPage() {
     return true
   })
 
-  // 거래처 목록 정렬 (지역별)
+  // 거래처 목록 정렬 (지역 → 상호)
   const sortedStores = [...filteredStores].sort((a, b) => {
-    if (searchMode === 'region') {
-      return a.region.localeCompare(b.region) || a.name.localeCompare(b.name)
-    }
-    return a.name.localeCompare(b.name)
+    return a.region.localeCompare(b.region) || a.name.localeCompare(b.name)
   })
 
   return (
@@ -148,33 +141,9 @@ export default function TransactionsPage() {
         }}>
           {/* 검색 영역 */}
           <div style={{ padding: '12px', borderBottom: '1px solid #e9ecef' }}>
-            {/* 검색 모드 */}
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', cursor: 'pointer' }}>
-                <input 
-                  type="radio" 
-                  name="searchMode" 
-                  checked={searchMode === 'name'} 
-                  onChange={() => setSearchMode('name')}
-                  style={{ margin: 0 }}
-                />
-                <span>상호</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', cursor: 'pointer' }}>
-                <input 
-                  type="radio" 
-                  name="searchMode" 
-                  checked={searchMode === 'region'} 
-                  onChange={() => setSearchMode('region')}
-                  style={{ margin: 0 }}
-                />
-                <span>지역별</span>
-              </label>
-            </div>
-            {/* 검색 입력 */}
             <input
               type="text"
-              placeholder={searchMode === 'name' ? '상호/코드 검색...' : '지역 검색...'}
+              placeholder="상호 또는 전화번호 검색..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{ 
