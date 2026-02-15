@@ -96,7 +96,7 @@ export default function StoresPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   // 컬럼 너비 조절 기능
-  const defaultColWidths = [40, 60, 140, 60, 95, 200, 70, 70, 180]
+  const defaultColWidths = [40, 60, 160, 60, 100, 250, 80, 80, 170]
   const colNames = ['checkbox', 'group', 'name', 'owner', 'phone', 'address', 'salesRep', 'delivery', 'actions']
   const [colWidths, setColWidths] = useState<number[]>(defaultColWidths)
   const resizingCol = useRef<number | null>(null)
@@ -472,7 +472,7 @@ export default function StoresPage() {
         <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
             {colWidths.map((w, i) => (
-              <col key={i} style={{ width: i === 5 ? 'auto' : `${w}px` }} />
+              <col key={i} style={{ width: `${w}px` }} />
             ))}
           </colgroup>
           <thead>
@@ -507,34 +507,41 @@ export default function StoresPage() {
             {/* 검색 필터 */}
             <tr style={{ background: '#f1f3f4', borderBottom: '1px solid #e9ecef' }}>
               <td style={{ padding: '6px 4px' }}></td>
-              <td style={{ padding: '6px 4px' }}>
-                <input type="text" placeholder="그룹" value={searchCode} onChange={(e) => setSearchCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
-              </td>
-              <td style={{ padding: '6px 4px', width: '140px' }}>
-                <input type="text" placeholder="안경원명" value={searchName} onChange={(e) => setSearchName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
-              </td>
-              <td style={{ padding: '6px 4px' }}>
-                <input type="text" placeholder="대표자" value={searchOwner} onChange={(e) => setSearchOwner(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
-              </td>
-              <td style={{ padding: '6px 4px' }}>
-                <input type="text" placeholder="연락처" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
-              </td>
-              <td style={{ padding: '6px 4px', width: '120px' }}>
-                <input type="text" placeholder="주소" value={searchAddress} onChange={(e) => setSearchAddress(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
-              </td>
-              <td style={{ padding: '6px 4px', width: '80px' }}>
-                <input type="text" placeholder="영업" value={searchSalesRep} onChange={(e) => setSearchSalesRep(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
-              </td>
-              <td style={{ padding: '6px 4px', width: '80px' }}>
-                <input type="text" placeholder="배송" value={searchDelivery} onChange={(e) => setSearchDelivery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
-              </td>
+              {[
+                { placeholder: '그룹', value: searchCode, onChange: setSearchCode },
+                { placeholder: '안경원명', value: searchName, onChange: setSearchName },
+                { placeholder: '대표자', value: searchOwner, onChange: setSearchOwner },
+                { placeholder: '연락처', value: searchPhone, onChange: setSearchPhone },
+                { placeholder: '주소', value: searchAddress, onChange: setSearchAddress },
+                { placeholder: '영업', value: searchSalesRep, onChange: setSearchSalesRep },
+                { placeholder: '배송', value: searchDelivery, onChange: setSearchDelivery },
+              ].map((field, i) => (
+                <td key={field.placeholder} style={{ padding: '6px 4px', position: 'relative' }}>
+                  <input 
+                    type="text" 
+                    placeholder={field.placeholder} 
+                    value={field.value} 
+                    onChange={(e) => field.onChange(e.target.value)} 
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} 
+                  />
+                  <div
+                    onMouseDown={(e) => handleResizeStart(e, i + 1)}
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: '20%',
+                      height: '60%',
+                      width: '5px',
+                      cursor: 'col-resize',
+                      borderRight: '2px solid #d0d0d0',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#007aff')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d0d0d0')}
+                  />
+                </td>
+              ))}
               <td style={{ padding: '6px 8px', textAlign: 'center' }}>
                 <button onClick={handleSearch} style={{ padding: '5px 10px', borderRadius: '4px', background: '#007aff', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>검색</button>
               </td>
