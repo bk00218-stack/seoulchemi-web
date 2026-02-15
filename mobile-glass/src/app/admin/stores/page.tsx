@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { AdminLayout } from '../../components/Navigation'
 import { OutlineButton } from '../../components/SearchFilter'
@@ -104,6 +104,10 @@ export default function StoresPage() {
       .catch(err => console.error('Failed to fetch groups:', err))
   }, [])
 
+  // 검색 파라미터를 ref로 관리 (타이핑할 때마다 API 호출 방지)
+  const searchRef = useRef({ code: '', name: '', owner: '', phone: '', address: '', salesRep: '', delivery: '' })
+  const [searchTrigger, setSearchTrigger] = useState(0)
+
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
@@ -111,13 +115,13 @@ export default function StoresPage() {
       params.set('page', String(page))
       params.set('limit', '50')
       if (filter !== 'all') params.set('status', filter)
-      if (searchCode) params.set('groupName', searchCode)
-      if (searchName) params.set('name', searchName)
-      if (searchOwner) params.set('ownerName', searchOwner)
-      if (searchPhone) params.set('phone', searchPhone)
-      if (searchAddress) params.set('address', searchAddress)
-      if (searchSalesRep) params.set('salesRepName', searchSalesRep)
-      if (searchDelivery) params.set('deliveryContact', searchDelivery)
+      if (searchRef.current.code) params.set('groupName', searchRef.current.code)
+      if (searchRef.current.name) params.set('name', searchRef.current.name)
+      if (searchRef.current.owner) params.set('ownerName', searchRef.current.owner)
+      if (searchRef.current.phone) params.set('phone', searchRef.current.phone)
+      if (searchRef.current.address) params.set('address', searchRef.current.address)
+      if (searchRef.current.salesRep) params.set('salesRepName', searchRef.current.salesRep)
+      if (searchRef.current.delivery) params.set('deliveryContact', searchRef.current.delivery)
       
       const res = await fetch(`/api/stores?${params}`)
       const json = await res.json()
@@ -132,11 +136,19 @@ export default function StoresPage() {
       console.error('Failed to fetch stores:', error)
     }
     setLoading(false)
-  }, [filter, searchCode, searchName, searchOwner, searchPhone, searchAddress, searchSalesRep, searchDelivery, page])
+  }, [filter, page, searchTrigger])
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  const handleSearch = () => { setPage(1); fetchData() }
+  const handleSearch = () => {
+    searchRef.current = { 
+      code: searchCode, name: searchName, owner: searchOwner, 
+      phone: searchPhone, address: searchAddress, 
+      salesRep: searchSalesRep, delivery: searchDelivery 
+    }
+    setPage(1)
+    setSearchTrigger(t => t + 1)
+  }
 
   const openModal = (store: any | null = null) => {
     if (store) {
