@@ -48,26 +48,24 @@ export async function POST(request: Request) {
         })
 
         // 2. 재고 차감 + 재고 이력 생성
+        // TODO: ProductOption 기반 재고 관리 (도수별 재고)
+        // 현재는 OrderItem에 productOptionId가 없어서 재고 차감 미구현
+        // 추후 ProductOption 연동 필요
         for (const item of order.items) {
-          // 재고 차감 (Product.stockQty)
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stockQty: { decrement: item.quantity }
-            }
-          })
-
           // 재고 이력 기록 (InventoryTransaction)
           await tx.inventoryTransaction.create({
             data: {
               productId: item.productId,
-              transactionType: 'sale',
+              type: 'out',
+              reason: 'sale',
               quantity: -item.quantity, // 출고는 마이너스
+              beforeStock: 0, // TODO: 실제 재고 조회 필요
+              afterStock: 0,  // TODO: 실제 재고 조회 필요
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
-              referenceType: 'order',
-              referenceId: order.id,
-              memo: `출고: ${order.store.name} (${order.orderNo})`,
+              orderId: order.id,
+              orderNo: order.orderNo,
+              memo: `출고: ${order.store.name}`,
             }
           })
         }
@@ -84,12 +82,13 @@ export async function POST(request: Request) {
         await tx.transaction.create({
           data: {
             storeId: order.storeId,
-            transactionType: 'sale',
+            type: 'sale',
             amount: order.totalAmount,
-            balance: order.store.outstandingAmount + order.totalAmount, // 새 잔액
-            description: `판매 출고 (${order.orderNo})`,
-            referenceType: 'order',
-            referenceId: order.id,
+            balanceAfter: order.store.outstandingAmount + order.totalAmount, // 새 잔액
+            orderId: order.id,
+            orderNo: order.orderNo,
+            memo: `판매 출고`,
+            processedBy: 'admin',
           }
         })
 
@@ -166,7 +165,7 @@ export async function GET(request: Request) {
             product: {
               include: {
                 brand: {
-                  select: { id: true, name: true, supplierId: true }
+                  select: { id: true, name: true }
                 }
               }
             }
@@ -189,7 +188,7 @@ export async function GET(request: Request) {
         productName: item.product.name,
         brandId: item.product.brandId,
         brandName: item.product.brand.name,
-        supplierId: item.product.brand.supplierId,
+        supplierId: null, // TODO: Brand에 supplierId 추가 필요
         sph: item.sph,
         cyl: item.cyl,
         quantity: item.quantity,
@@ -201,17 +200,9 @@ export async function GET(request: Request) {
       }))
     )
 
-    // 매입처별 집계
-    const supplierStats = await prisma.brand.groupBy({
-      by: ['supplierId'],
-      _count: true
-    })
-
-    // 매입처 정보 조회
-    const suppliers = await prisma.supplier.findMany({
-      where: { isActive: true },
-      select: { id: true, name: true }
-    })
+    // TODO: 매입처별 집계 (Brand에 supplierId 추가 필요)
+    // 현재는 매입처 기능 미구현
+    const suppliers: { id: number; name: string }[] = []
 
     return NextResponse.json({
       orders: flatOrders,
