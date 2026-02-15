@@ -12,27 +12,23 @@ interface Store {
   ownerName: string
   phone: string
   address: string
-  balance: number  // outstandingAmount
+  balance: number
   salesStaffName: string
   deliveryStaffName: string
   groupName: string
-  // 추가 정보
   email: string
   businessRegNo: string
   businessType: string
   businessCategory: string
-  // 배송 정보
   deliveryContact: string
   deliveryPhone: string
   deliveryAddress: string
   deliveryMemo: string
-  // 미수금/결제
   creditLimit: number
   paymentTermDays: number
   billingDay: number | null
   lastPaymentAt: string | null
   discountRate: number
-  // 상태
   status: string
   memo: string
 }
@@ -56,6 +52,29 @@ const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> 
   adjustment: { label: '조정', color: '#666', bg: '#f5f5f5' },
 }
 
+// 표시 가능한 필드 목록
+const DISPLAY_FIELDS = [
+  { key: 'ownerName', label: '대표자' },
+  { key: 'phone', label: '연락처' },
+  { key: 'email', label: '이메일' },
+  { key: 'businessRegNo', label: '사업자번호' },
+  { key: 'businessType', label: '업태' },
+  { key: 'businessCategory', label: '업종' },
+  { key: 'salesStaffName', label: '영업담당' },
+  { key: 'deliveryStaffName', label: '배송담당' },
+  { key: 'groupName', label: '그룹' },
+  { key: 'discountRate', label: '할인율' },
+  { key: 'paymentTermDays', label: '결제기한' },
+  { key: 'billingDay', label: '청구일' },
+  { key: 'creditLimit', label: '신용한도' },
+  { key: 'address', label: '주소' },
+  { key: 'delivery', label: '배송정보' },
+  { key: 'lastPaymentAt', label: '최근입금' },
+  { key: 'memo', label: '메모' },
+] as const
+
+const DEFAULT_VISIBLE_FIELDS = ['ownerName', 'phone', 'salesStaffName', 'deliveryStaffName', 'groupName', 'discountRate', 'address']
+
 const MOCK_TRANSACTIONS: Transaction[] = [
   { id: 1, storeId: 0, type: 'sale', amount: 1250000, balanceAfter: 5504502, orderNo: 'ORD-2025-0215-001', paymentMethod: null, memo: '다초점렌즈 외 5건', processedAt: '2025-02-15T10:30:00' },
   { id: 2, storeId: 0, type: 'deposit', amount: 500000, balanceAfter: 5004502, orderNo: null, paymentMethod: '계좌이체', memo: '2월 중간정산', processedAt: '2025-02-10T14:20:00' },
@@ -77,12 +96,26 @@ export default function TransactionsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [highlightIndex, setHighlightIndex] = useState(-1)
+  const [showSettings, setShowSettings] = useState(false)
+  const [visibleFields, setVisibleFields] = useState<string[]>(DEFAULT_VISIBLE_FIELDS)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetchStores()
+    // localStorage에서 설정 불러오기
+    const saved = localStorage.getItem('transactionPageFields')
+    if (saved) {
+      try {
+        setVisibleFields(JSON.parse(saved))
+      } catch {}
+    }
   }, [])
+
+  // 설정 저장
+  useEffect(() => {
+    localStorage.setItem('transactionPageFields', JSON.stringify(visibleFields))
+  }, [visibleFields])
 
   async function fetchStores() {
     try {
@@ -100,23 +133,19 @@ export default function TransactionsPage() {
         salesStaffName: s.salesStaff?.name || s.salesStaffName || '',
         deliveryStaffName: s.deliveryStaff?.name || s.deliveryStaffName || '',
         groupName: s.group?.name || s.groupName || '',
-        // 추가 정보
         email: s.email || '',
         businessRegNo: s.businessRegNo || '',
         businessType: s.businessType || '',
         businessCategory: s.businessCategory || '',
-        // 배송 정보
         deliveryContact: s.deliveryContact || '',
         deliveryPhone: s.deliveryPhone || '',
         deliveryAddress: s.deliveryAddress || '',
         deliveryMemo: s.deliveryMemo || '',
-        // 미수금/결제
         creditLimit: s.creditLimit || 0,
         paymentTermDays: s.paymentTermDays || 30,
         billingDay: s.billingDay || null,
         lastPaymentAt: s.lastPaymentAt || null,
         discountRate: s.discountRate || 0,
-        // 상태
         status: s.status || 'active',
         memo: s.memo || '',
       }))
@@ -196,6 +225,14 @@ export default function TransactionsPage() {
     return true
   })
 
+  const toggleField = (key: string) => {
+    setVisibleFields(prev => 
+      prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key]
+    )
+  }
+
+  const isVisible = (key: string) => visibleFields.includes(key)
+
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
       {/* 헤더 */}
@@ -203,7 +240,7 @@ export default function TransactionsPage() {
         <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>가맹점 거래내역</h2>
       </div>
 
-      {/* 메인 레이아웃 - 상하 분할 */}
+      {/* 메인 레이아웃 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: 'calc(100vh - 160px)', minHeight: '500px' }}>
         
         {/* 상단: 거래처 검색/목록 + 거래처 정보 */}
@@ -220,7 +257,6 @@ export default function TransactionsPage() {
             flexDirection: 'column',
             overflow: 'hidden'
           }}>
-            {/* 검색 */}
             <div style={{ padding: '10px', borderBottom: '1px solid #e9ecef' }}>
               <input
                 ref={searchInputRef}
@@ -240,7 +276,6 @@ export default function TransactionsPage() {
               />
             </div>
             
-            {/* 목록 */}
             <div ref={listRef} style={{ flex: 1, overflow: 'auto' }}>
               {loading ? (
                 <div style={{ padding: '20px', textAlign: 'center', color: '#86868b', fontSize: '13px' }}>로딩...</div>
@@ -281,7 +316,6 @@ export default function TransactionsPage() {
               )}
             </div>
             
-            {/* 카운트 */}
             <div style={{ padding: '6px 10px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '11px', color: '#888', textAlign: 'center' }}>
               {filteredStores.length}개 · ↑↓ Enter
             </div>
@@ -294,8 +328,59 @@ export default function TransactionsPage() {
             borderRadius: '10px', 
             boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
             padding: '12px 16px',
-            overflow: 'auto'
+            overflow: 'auto',
+            position: 'relative'
           }}>
+            {/* 설정 버튼 */}
+            <button 
+              onClick={() => setShowSettings(!showSettings)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                padding: '4px 8px',
+                fontSize: '11px',
+                background: showSettings ? '#007aff' : '#f5f5f7',
+                color: showSettings ? '#fff' : '#666',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              ⚙️ 표시항목
+            </button>
+
+            {/* 설정 패널 */}
+            {showSettings && (
+              <div style={{
+                position: 'absolute',
+                top: '36px',
+                right: '10px',
+                background: '#fff',
+                border: '1px solid #e9ecef',
+                borderRadius: '8px',
+                padding: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                zIndex: 10,
+                width: '200px'
+              }}>
+                <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px', fontWeight: 600 }}>표시할 항목 선택</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {DISPLAY_FIELDS.map(field => (
+                    <label key={field.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={isVisible(field.key)}
+                        onChange={() => toggleField(field.key)}
+                        style={{ margin: 0 }}
+                      />
+                      {field.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {!selectedStore ? (
               <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#86868b' }}>
                 거래처를 선택해주세요
@@ -307,9 +392,8 @@ export default function TransactionsPage() {
                   <div>
                     <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>{selectedStore.name}</h3>
                     <div style={{ fontSize: '11px', color: '#86868b', marginTop: '2px' }}>
-                      {selectedStore.code}
-                      {selectedStore.status === 'suspended' && <span style={{ marginLeft: '8px', color: '#d32f2f' }}>⚠️ 거래정지</span>}
-                      {selectedStore.status === 'caution' && <span style={{ marginLeft: '8px', color: '#e65100' }}>⚠️ 주의</span>}
+                      {selectedStore.status === 'suspended' && <span style={{ color: '#d32f2f' }}>⚠️ 거래정지</span>}
+                      {selectedStore.status === 'caution' && <span style={{ color: '#e65100' }}>⚠️ 주의</span>}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
@@ -322,54 +406,40 @@ export default function TransactionsPage() {
                     }}>
                       {selectedStore.balance.toLocaleString()}원
                     </div>
-                    {selectedStore.creditLimit > 0 && (
+                    {isVisible('creditLimit') && selectedStore.creditLimit > 0 && (
                       <div style={{ fontSize: '10px', color: '#86868b' }}>한도: {selectedStore.creditLimit.toLocaleString()}원</div>
                     )}
                   </div>
                 </div>
                 
-                {/* 3열 정보 그리드 */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px 12px' }}>
-                  {/* 기본정보 */}
-                  <div><span style={{ color: '#999' }}>대표자:</span> <strong>{selectedStore.ownerName || '-'}</strong></div>
-                  <div><span style={{ color: '#999' }}>연락처:</span> <strong>{selectedStore.phone || '-'}</strong></div>
-                  <div><span style={{ color: '#999' }}>이메일:</span> {selectedStore.email || '-'}</div>
-                  
-                  <div><span style={{ color: '#999' }}>사업자번호:</span> {selectedStore.businessRegNo || '-'}</div>
-                  <div><span style={{ color: '#999' }}>업태:</span> {selectedStore.businessType || '-'}</div>
-                  <div><span style={{ color: '#999' }}>업종:</span> {selectedStore.businessCategory || '-'}</div>
-                  
-                  {/* 담당자 */}
-                  <div><span style={{ color: '#999' }}>👔영업:</span> <strong style={{ color: '#1565c0' }}>{selectedStore.salesStaffName || '-'}</strong></div>
-                  <div><span style={{ color: '#999' }}>🚚배송:</span> <strong style={{ color: '#2e7d32' }}>{selectedStore.deliveryStaffName || '-'}</strong></div>
-                  <div><span style={{ color: '#999' }}>그룹:</span> <strong>{selectedStore.groupName || '-'}</strong></div>
-                  
-                  {/* 결제 조건 */}
-                  <div><span style={{ color: '#999' }}>할인율:</span> <strong style={{ color: '#e65100' }}>{selectedStore.discountRate}%</strong></div>
-                  <div><span style={{ color: '#999' }}>결제기한:</span> {selectedStore.paymentTermDays}일</div>
-                  <div><span style={{ color: '#999' }}>청구일:</span> {selectedStore.billingDay ? `매월 ${selectedStore.billingDay}일` : '-'}</div>
-                  
-                  {/* 주소 */}
-                  <div style={{ gridColumn: 'span 3' }}><span style={{ color: '#999' }}>📍주소:</span> {selectedStore.address || '-'}</div>
-                  
-                  {/* 배송정보 */}
-                  {(selectedStore.deliveryContact || selectedStore.deliveryAddress) && (
-                    <div style={{ gridColumn: 'span 3', paddingTop: '4px', borderTop: '1px dashed #eee' }}>
+                {/* 동적 정보 그리드 */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px' }}>
+                  {isVisible('ownerName') && <div><span style={{ color: '#999' }}>대표자:</span> <strong>{selectedStore.ownerName || '-'}</strong></div>}
+                  {isVisible('phone') && <div><span style={{ color: '#999' }}>연락처:</span> <strong>{selectedStore.phone || '-'}</strong></div>}
+                  {isVisible('email') && <div><span style={{ color: '#999' }}>이메일:</span> {selectedStore.email || '-'}</div>}
+                  {isVisible('businessRegNo') && <div><span style={{ color: '#999' }}>사업자번호:</span> {selectedStore.businessRegNo || '-'}</div>}
+                  {isVisible('businessType') && <div><span style={{ color: '#999' }}>업태:</span> {selectedStore.businessType || '-'}</div>}
+                  {isVisible('businessCategory') && <div><span style={{ color: '#999' }}>업종:</span> {selectedStore.businessCategory || '-'}</div>}
+                  {isVisible('salesStaffName') && <div><span style={{ color: '#999' }}>👔영업:</span> <strong style={{ color: '#1565c0' }}>{selectedStore.salesStaffName || '-'}</strong></div>}
+                  {isVisible('deliveryStaffName') && <div><span style={{ color: '#999' }}>🚚배송:</span> <strong style={{ color: '#2e7d32' }}>{selectedStore.deliveryStaffName || '-'}</strong></div>}
+                  {isVisible('groupName') && <div><span style={{ color: '#999' }}>그룹:</span> <strong>{selectedStore.groupName || '-'}</strong></div>}
+                  {isVisible('discountRate') && <div><span style={{ color: '#999' }}>할인율:</span> <strong style={{ color: '#e65100' }}>{selectedStore.discountRate}%</strong></div>}
+                  {isVisible('paymentTermDays') && <div><span style={{ color: '#999' }}>결제기한:</span> {selectedStore.paymentTermDays}일</div>}
+                  {isVisible('billingDay') && <div><span style={{ color: '#999' }}>청구일:</span> {selectedStore.billingDay ? `매월 ${selectedStore.billingDay}일` : '-'}</div>}
+                  {isVisible('address') && selectedStore.address && (
+                    <div style={{ width: '100%' }}><span style={{ color: '#999' }}>📍주소:</span> {selectedStore.address}</div>
+                  )}
+                  {isVisible('delivery') && (selectedStore.deliveryContact || selectedStore.deliveryAddress) && (
+                    <div style={{ width: '100%' }}>
                       <span style={{ color: '#999' }}>📦배송:</span> {selectedStore.deliveryContact || ''} {selectedStore.deliveryPhone || ''} / {selectedStore.deliveryAddress || '-'}
                       {selectedStore.deliveryMemo && <span style={{ color: '#e65100' }}> ({selectedStore.deliveryMemo})</span>}
                     </div>
                   )}
-                  
-                  {/* 최근입금 */}
-                  {selectedStore.lastPaymentAt && (
-                    <div style={{ gridColumn: 'span 3' }}>
-                      <span style={{ color: '#999' }}>최근입금:</span> {new Date(selectedStore.lastPaymentAt).toLocaleDateString('ko-KR')}
-                    </div>
+                  {isVisible('lastPaymentAt') && selectedStore.lastPaymentAt && (
+                    <div><span style={{ color: '#999' }}>최근입금:</span> {new Date(selectedStore.lastPaymentAt).toLocaleDateString('ko-KR')}</div>
                   )}
-                  
-                  {/* 메모 */}
-                  {selectedStore.memo && (
-                    <div style={{ gridColumn: 'span 3', padding: '4px 8px', background: '#fff9e6', borderRadius: '4px', color: '#856404' }}>
+                  {isVisible('memo') && selectedStore.memo && (
+                    <div style={{ width: '100%', padding: '4px 8px', background: '#fff9e6', borderRadius: '4px', color: '#856404' }}>
                       📝 {selectedStore.memo}
                     </div>
                   )}
@@ -379,7 +449,7 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        {/* 하단: 거래내역 (전체 폭) */}
+        {/* 하단: 거래내역 */}
         <div style={{ 
           flex: 1,
           background: '#fff', 
@@ -390,7 +460,6 @@ export default function TransactionsPage() {
           overflow: 'hidden',
           minHeight: '250px'
         }}>
-          {/* 거래내역 헤더 */}
           <div style={{ 
             padding: '10px 14px', 
             borderBottom: '1px solid #e9ecef',
@@ -426,7 +495,6 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          {/* 거래내역 테이블 */}
           <div style={{ flex: 1, overflow: 'auto' }}>
             {!selectedStore ? (
               <div style={{ padding: '50px', textAlign: 'center', color: '#86868b' }}>
@@ -492,7 +560,6 @@ export default function TransactionsPage() {
             )}
           </div>
           
-          {/* 요약 */}
           {selectedStore && filteredTransactions.length > 0 && (
             <div style={{ 
               padding: '10px 14px', 
