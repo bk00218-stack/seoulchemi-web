@@ -12,10 +12,32 @@ interface Store {
   ownerName: string
   phone: string
   address: string
-  balance: number
+  balance: number  // outstandingAmount
   salesStaffName: string
   deliveryStaffName: string
   groupName: string
+  // 추가 정보
+  email: string
+  businessRegNo: string
+  businessType: string
+  businessCategory: string
+  // 배송 정보
+  deliveryContact: string
+  deliveryPhone: string
+  deliveryAddress: string
+  deliveryMemo: string
+  // 미수금/결제
+  creditLimit: number
+  paymentTermDays: number
+  billingDay: number | null
+  lastPaymentAt: string | null
+  discountRate: number
+  // 레티나
+  retinaCode: string
+  retinaJoined: boolean
+  // 상태
+  status: string
+  memo: string
 }
 
 interface Transaction {
@@ -77,10 +99,32 @@ export default function TransactionsPage() {
         ownerName: s.ownerName || '',
         phone: s.phone || '',
         address: s.address || '',
-        balance: s.balance || 0,
+        balance: s.outstandingAmount || s.balance || 0,
         salesStaffName: s.salesStaff?.name || s.salesStaffName || '',
         deliveryStaffName: s.deliveryStaff?.name || s.deliveryStaffName || '',
         groupName: s.group?.name || s.groupName || '',
+        // 추가 정보
+        email: s.email || '',
+        businessRegNo: s.businessRegNo || '',
+        businessType: s.businessType || '',
+        businessCategory: s.businessCategory || '',
+        // 배송 정보
+        deliveryContact: s.deliveryContact || '',
+        deliveryPhone: s.deliveryPhone || '',
+        deliveryAddress: s.deliveryAddress || '',
+        deliveryMemo: s.deliveryMemo || '',
+        // 미수금/결제
+        creditLimit: s.creditLimit || 0,
+        paymentTermDays: s.paymentTermDays || 30,
+        billingDay: s.billingDay || null,
+        lastPaymentAt: s.lastPaymentAt || null,
+        discountRate: s.discountRate || 0,
+        // 레티나
+        retinaCode: s.retinaCode || '',
+        retinaJoined: s.retinaJoined || false,
+        // 상태
+        status: s.status || 'active',
+        memo: s.memo || '',
       }))
       setStores(storeList)
       setFilteredStores(storeList)
@@ -169,7 +213,7 @@ export default function TransactionsPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: 'calc(100vh - 160px)', minHeight: '500px' }}>
         
         {/* 상단: 거래처 검색/목록 + 거래처 정보 */}
-        <div style={{ display: 'flex', gap: '12px', height: '200px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '12px', height: '260px', flexShrink: 0 }}>
           
           {/* 거래처 검색/목록 */}
           <div style={{ 
@@ -255,7 +299,7 @@ export default function TransactionsPage() {
             background: '#fff', 
             borderRadius: '10px', 
             boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-            padding: '14px 18px',
+            padding: '12px 16px',
             overflow: 'auto'
           }}>
             {!selectedStore ? (
@@ -263,56 +307,80 @@ export default function TransactionsPage() {
                 거래처를 선택해주세요
               </div>
             ) : (
-              <div>
+              <div style={{ fontSize: '12px' }}>
                 {/* 상호 + 미결제액 */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' }}>
                   <div>
-                    <h3 style={{ fontSize: '17px', fontWeight: 600, margin: 0 }}>{selectedStore.name}</h3>
-                    <span style={{ fontSize: '11px', color: '#86868b' }}>{selectedStore.code}</span>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>{selectedStore.name}</h3>
+                    <div style={{ fontSize: '11px', color: '#86868b', marginTop: '2px' }}>
+                      {selectedStore.code}
+                      {selectedStore.retinaJoined && <span style={{ marginLeft: '8px', color: '#1565c0' }}>🔗 레티나</span>}
+                      {selectedStore.status === 'suspended' && <span style={{ marginLeft: '8px', color: '#d32f2f' }}>⚠️ 거래정지</span>}
+                      {selectedStore.status === 'caution' && <span style={{ marginLeft: '8px', color: '#e65100' }}>⚠️ 주의</span>}
+                    </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '11px', color: '#86868b' }}>미결제액</div>
+                    <div style={{ fontSize: '10px', color: '#86868b' }}>미결제액</div>
                     <div style={{ 
-                      fontSize: '22px', 
+                      fontSize: '20px', 
                       fontWeight: 700, 
                       color: selectedStore.balance > 0 ? '#d32f2f' : '#2e7d32',
                       lineHeight: 1.2
                     }}>
                       {selectedStore.balance.toLocaleString()}원
                     </div>
+                    {selectedStore.creditLimit > 0 && (
+                      <div style={{ fontSize: '10px', color: '#86868b' }}>한도: {selectedStore.creditLimit.toLocaleString()}원</div>
+                    )}
                   </div>
                 </div>
                 
-                {/* 상세 정보 */}
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(4, 1fr)', 
-                  gap: '8px 16px', 
-                  fontSize: '12px',
-                  paddingTop: '10px',
-                  borderTop: '1px solid #f0f0f0'
-                }}>
-                  <div>
-                    <span style={{ color: '#86868b' }}>대표:</span> <strong>{selectedStore.ownerName || '-'}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#86868b' }}>연락처:</span> <strong>{selectedStore.phone || '-'}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#86868b' }}>지역:</span> <strong>{selectedStore.region || '-'}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#86868b' }}>그룹:</span> <strong>{selectedStore.groupName || '-'}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#86868b' }}>👔영업:</span> <strong style={{ color: '#1565c0' }}>{selectedStore.salesStaffName || '-'}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#86868b' }}>🚚배송:</span> <strong style={{ color: '#2e7d32' }}>{selectedStore.deliveryStaffName || '-'}</strong>
-                  </div>
-                  <div style={{ gridColumn: 'span 2' }}>
-                    <span style={{ color: '#86868b' }}>📍</span> {selectedStore.address || '-'}
-                  </div>
+                {/* 3열 정보 그리드 */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px 12px' }}>
+                  {/* 기본정보 */}
+                  <div><span style={{ color: '#999' }}>대표자:</span> <strong>{selectedStore.ownerName || '-'}</strong></div>
+                  <div><span style={{ color: '#999' }}>연락처:</span> <strong>{selectedStore.phone || '-'}</strong></div>
+                  <div><span style={{ color: '#999' }}>이메일:</span> {selectedStore.email || '-'}</div>
+                  
+                  <div><span style={{ color: '#999' }}>사업자번호:</span> {selectedStore.businessRegNo || '-'}</div>
+                  <div><span style={{ color: '#999' }}>업태:</span> {selectedStore.businessType || '-'}</div>
+                  <div><span style={{ color: '#999' }}>업종:</span> {selectedStore.businessCategory || '-'}</div>
+                  
+                  {/* 담당자 */}
+                  <div><span style={{ color: '#999' }}>👔영업:</span> <strong style={{ color: '#1565c0' }}>{selectedStore.salesStaffName || '-'}</strong></div>
+                  <div><span style={{ color: '#999' }}>🚚배송:</span> <strong style={{ color: '#2e7d32' }}>{selectedStore.deliveryStaffName || '-'}</strong></div>
+                  <div><span style={{ color: '#999' }}>그룹:</span> <strong>{selectedStore.groupName || '-'}</strong></div>
+                  
+                  {/* 결제 조건 */}
+                  <div><span style={{ color: '#999' }}>할인율:</span> <strong style={{ color: '#e65100' }}>{selectedStore.discountRate}%</strong></div>
+                  <div><span style={{ color: '#999' }}>결제기한:</span> {selectedStore.paymentTermDays}일</div>
+                  <div><span style={{ color: '#999' }}>청구일:</span> {selectedStore.billingDay ? `매월 ${selectedStore.billingDay}일` : '-'}</div>
+                  
+                  {/* 주소 */}
+                  <div style={{ gridColumn: 'span 3' }}><span style={{ color: '#999' }}>📍주소:</span> {selectedStore.address || '-'}</div>
+                  
+                  {/* 배송정보 */}
+                  {(selectedStore.deliveryContact || selectedStore.deliveryAddress) && (
+                    <div style={{ gridColumn: 'span 3', paddingTop: '4px', borderTop: '1px dashed #eee' }}>
+                      <span style={{ color: '#999' }}>📦배송:</span> {selectedStore.deliveryContact || ''} {selectedStore.deliveryPhone || ''} / {selectedStore.deliveryAddress || '-'}
+                      {selectedStore.deliveryMemo && <span style={{ color: '#e65100' }}> ({selectedStore.deliveryMemo})</span>}
+                    </div>
+                  )}
+                  
+                  {/* 레티나/최근입금 */}
+                  {(selectedStore.retinaCode || selectedStore.lastPaymentAt) && (
+                    <div style={{ gridColumn: 'span 3', display: 'flex', gap: '16px' }}>
+                      {selectedStore.retinaCode && <span><span style={{ color: '#999' }}>레티나:</span> {selectedStore.retinaCode}</span>}
+                      {selectedStore.lastPaymentAt && <span><span style={{ color: '#999' }}>최근입금:</span> {new Date(selectedStore.lastPaymentAt).toLocaleDateString('ko-KR')}</span>}
+                    </div>
+                  )}
+                  
+                  {/* 메모 */}
+                  {selectedStore.memo && (
+                    <div style={{ gridColumn: 'span 3', padding: '4px 8px', background: '#fff9e6', borderRadius: '4px', color: '#856404' }}>
+                      📝 {selectedStore.memo}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
