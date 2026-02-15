@@ -498,7 +498,7 @@ export default function StoresPage() {
                       value={field.value} 
                       onChange={(e) => field.onChange(e.target.value)} 
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      style={{ width: '100%', padding: '4px 6px', borderRadius: '4px', border: '2px solid #007aff', fontSize: '11px', fontWeight: 400, textAlign: 'center', background: '#f8faff' }} 
+                      style={{ width: '100%', padding: '4px 6px', borderRadius: '4px', border: '1px solid #c5d9f1', fontSize: '11px', fontWeight: 400, textAlign: 'center', background: '#f8faff' }} 
                     />
                   </div>
                   {i < 7 && (
@@ -514,7 +514,7 @@ export default function StoresPage() {
                         borderRight: '2px solid #e0e0e0',
                         transition: 'border-color 0.15s',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#007aff')}
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#86b7fe')}
                       onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e0e0e0')}
                     />
                   )}
@@ -555,9 +555,7 @@ export default function StoresPage() {
                 </td>
                 <td style={{ padding: '6px 4px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
                 <td style={{ padding: '6px 4px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }} onClick={() => openModal(store)}>
-                  <span style={{ color: '#007aff' }}>
-                    {store.name}
-                  </span>
+                  {store.name}
                 </td>
                 <td style={{ padding: '6px 4px', fontSize: '12px' }}>{store.ownerName}</td>
                 <td style={{ padding: '6px 4px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
