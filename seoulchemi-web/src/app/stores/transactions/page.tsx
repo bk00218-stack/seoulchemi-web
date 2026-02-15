@@ -355,7 +355,7 @@ export default function TransactionsPage() {
           <div style={{ padding: '10px 14px', borderBottom: '1px solid #e9ecef', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '14px', fontWeight: 600 }}>📋 거래내역</span>
             <div style={{ display: 'flex', gap: '4px' }}>
-              {[{ value: 'all', label: '전체' }, { value: 'sale', label: '매출' }, { value: 'deposit', label: '입금' }, { value: 'return', label: '반품' }].map(f => (
+              {[{ value: 'all', label: '전체' }, { value: 'sale', label: '매출' }, { value: 'deposit', label: '입금' }, { value: 'return', label: '반품' }, { value: 'adjustment', label: '할인' }].map(f => (
                 <button key={f.value} onClick={() => setTypeFilter(f.value)} style={{
                   padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '12px', cursor: 'pointer',
                   background: typeFilter === f.value ? '#007aff' : '#f5f5f7', color: typeFilter === f.value ? '#fff' : '#666'
@@ -376,8 +376,9 @@ export default function TransactionsPage() {
                 <thead>
                   <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
                     <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666', width: '70px' }}>일자</th>
-                    <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666', width: '110px' }}>주문번호</th>
+                    <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666', width: '70px' }}>주문번호</th>
                     <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666' }}>품목</th>
+                    <th style={{ padding: '10px', textAlign: 'center', fontWeight: 600, color: '#666', width: '60px' }}>유형</th>
                     <th style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: '#666', width: '100px' }}>금액</th>
                     <th style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: '#666', width: '100px' }}>잔액</th>
                   </tr>
@@ -395,13 +396,15 @@ export default function TransactionsPage() {
                           {new Date(t.processedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
                         </td>
                         <td style={{ padding: '10px' }}>
-                          <span style={{ padding: '2px 6px', borderRadius: '3px', fontSize: '11px', color: typeInfo.color, background: typeInfo.bg, marginRight: '6px' }}>
-                            {typeInfo.label}
-                          </span>
                           {t.orderNo || '-'}
                         </td>
                         <td style={{ padding: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
                           {getItemSummary(t)}
+                        </td>
+                        <td style={{ padding: '10px', textAlign: 'center' }}>
+                          <span style={{ padding: '2px 8px', borderRadius: '3px', fontSize: '11px', color: typeInfo.color, background: typeInfo.bg }}>
+                            {typeInfo.label}
+                          </span>
                         </td>
                         <td style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: t.type === 'deposit' ? '#2e7d32' : t.type === 'return' ? '#e65100' : '#1d1d1f' }}>
                           {t.type === 'deposit' ? '+' : ''}{t.amount.toLocaleString()}
