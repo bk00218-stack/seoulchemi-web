@@ -525,29 +525,44 @@ export default function StoresPage() {
     }
   }
 
-  // CSV 다운로드 실행
-  const executeDownload = () => {
+  // CSV 다운로드 실행 (전체 데이터)
+  const executeDownload = async () => {
     if (downloadColumns.size === 0) {
       alert('다운로드할 항목을 선택해주세요.')
-      return
-    }
-    
-    if (data.length === 0) {
-      alert('다운로드할 데이터가 없습니다.')
       return
     }
 
     setDownloading(true)
     
     try {
+      // 전체 데이터 가져오기
+      const params = new URLSearchParams()
+      params.set('limit', '99999')
+      if (filter !== 'all') params.set('status', filter)
+      if (searchRef.current.code) params.set('groupName', searchRef.current.code)
+      if (searchRef.current.name) params.set('name', searchRef.current.name)
+      if (searchRef.current.owner) params.set('ownerName', searchRef.current.owner)
+      if (searchRef.current.phone) params.set('phone', searchRef.current.phone)
+      if (searchRef.current.address) params.set('address', searchRef.current.address)
+      if (searchRef.current.salesRep) params.set('salesRepName', searchRef.current.salesRep)
+      if (searchRef.current.delivery) params.set('deliveryContact', searchRef.current.delivery)
+      
+      const res = await fetch(`/api/stores?${params}`)
+      const json = await res.json()
+      
+      if (!json.stores || json.stores.length === 0) {
+        alert('다운로드할 데이터가 없습니다.')
+        return
+      }
+      
       // 선택된 컬럼만 헤더로
       const selectedCols = downloadColumnOptions.filter(c => downloadColumns.has(c.key))
       const headers = selectedCols.map(c => c.label)
       
       // 데이터 행 생성
-      const rows = data.map(store => {
+      const rows = json.stores.map((store: any) => {
         return selectedCols.map(col => {
-          const val = (store as any)[col.key]
+          const val = store[col.key]
           if (col.key === 'isActive') return val ? '활성' : '비활성'
           if (col.key === 'ownerName' && val === '-') return ''
           if (col.key === 'phone' && val === '-') return ''
@@ -558,7 +573,7 @@ export default function StoresPage() {
       // BOM + CSV
       const csvContent = '\uFEFF' + [
         headers.join(','),
-        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        ...rows.map((row: any[]) => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
       ].join('\n')
 
       // 다운로드
@@ -1014,7 +1029,8 @@ export default function StoresPage() {
             
             {/* 안내 */}
             <div style={{ background: '#e8f5e9', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#2e7d32' }}>
-              현재 화면에 표시된 <strong>{data.length}건</strong>을 다운로드합니다.
+              전체 <strong>{stats.total.toLocaleString()}건</strong>을 다운로드합니다.
+              {filter !== 'all' && <span> (필터: {filter === 'active' ? '활성' : '비활성'})</span>}
             </div>
             
             {/* 컬럼 선택 */}
