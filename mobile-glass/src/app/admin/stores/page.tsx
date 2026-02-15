@@ -95,6 +95,73 @@ export default function StoresPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'bulk'; store?: Store }>({ type: 'bulk' })
   const [deleteLoading, setDeleteLoading] = useState(false)
 
+  // 컬럼 너비 조절 기능
+  const defaultColWidths = [40, 60, 140, 60, 95, 200, 70, 70, 180]
+  const colNames = ['checkbox', 'group', 'name', 'owner', 'phone', 'address', 'salesRep', 'delivery', 'actions']
+  const [colWidths, setColWidths] = useState<number[]>(defaultColWidths)
+  const resizingCol = useRef<number | null>(null)
+  const startX = useRef<number>(0)
+  const startWidth = useRef<number>(0)
+
+  // localStorage에서 컬럼 너비 불러오기
+  useEffect(() => {
+    const saved = localStorage.getItem('storesTableColWidths')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length === defaultColWidths.length) {
+          setColWidths(parsed)
+        }
+      } catch (e) { /* ignore */ }
+    }
+  }, [])
+
+  // 컬럼 너비 저장
+  const saveColWidths = (widths: number[]) => {
+    localStorage.setItem('storesTableColWidths', JSON.stringify(widths))
+  }
+
+  // 리사이즈 시작
+  const handleResizeStart = (e: React.MouseEvent, colIndex: number) => {
+    e.preventDefault()
+    resizingCol.current = colIndex
+    startX.current = e.clientX
+    startWidth.current = colWidths[colIndex]
+    document.addEventListener('mousemove', handleResizeMove)
+    document.addEventListener('mouseup', handleResizeEnd)
+  }
+
+  // 리사이즈 중
+  const handleResizeMove = (e: MouseEvent) => {
+    if (resizingCol.current === null) return
+    const diff = e.clientX - startX.current
+    const newWidth = Math.max(40, startWidth.current + diff)
+    setColWidths(prev => {
+      const updated = [...prev]
+      updated[resizingCol.current!] = newWidth
+      return updated
+    })
+  }
+
+  // 리사이즈 종료
+  const handleResizeEnd = () => {
+    if (resizingCol.current !== null) {
+      setColWidths(prev => {
+        saveColWidths(prev)
+        return prev
+      })
+    }
+    resizingCol.current = null
+    document.removeEventListener('mousemove', handleResizeMove)
+    document.removeEventListener('mouseup', handleResizeEnd)
+  }
+
+  // 컬럼 너비 초기화
+  const resetColWidths = () => {
+    setColWidths(defaultColWidths)
+    localStorage.removeItem('storesTableColWidths')
+  }
+
   useEffect(() => {
     fetch('/api/store-groups')
       .then(res => res.json())
@@ -396,17 +463,17 @@ export default function StoresPage() {
 
       {/* 테이블 */}
       <div style={{ background: '#fff', borderRadius: '12px', overflow: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+        {/* 컬럼 너비 초기화 버튼 */}
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={resetColWidths} style={{ padding: '4px 8px', fontSize: '11px', color: '#86868b', background: 'none', border: '1px solid #e9ecef', borderRadius: '4px', cursor: 'pointer' }}>
+            ↺ 컬럼 너비 초기화
+          </button>
+        </div>
         <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
-            <col style={{ width: '40px' }} />
-            <col style={{ width: '60px' }} />
-            <col style={{ width: '140px' }} />
-            <col style={{ width: '60px' }} />
-            <col style={{ width: '95px' }} />
-            <col style={{ width: 'auto' }} />
-            <col style={{ width: '70px' }} />
-            <col style={{ width: '70px' }} />
-            <col style={{ width: '180px' }} />
+            {colWidths.map((w, i) => (
+              <col key={i} style={{ width: i === 5 ? 'auto' : `${w}px` }} />
+            ))}
           </colgroup>
           <thead>
             {/* 헤더 */}
@@ -414,14 +481,27 @@ export default function StoresPage() {
               <th style={{ padding: '12px 8px', textAlign: 'center' }}>
                 <input type="checkbox" checked={selectedIds.size === data.length && data.length > 0} onChange={toggleSelectAll} />
               </th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>그룹</th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '140px' }}>안경원명</th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>대표자</th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>연락처</th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '120px' }}>주소</th>
-              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '80px' }}>영업담당</th>
-              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '80px' }}>배송담당</th>
-              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>관리</th>
+              {['그룹', '안경원명', '대표자', '연락처', '주소', '영업담당', '배송담당', '관리'].map((label, i) => (
+                <th key={label} style={{ padding: '12px 8px', textAlign: i >= 5 && i <= 6 ? 'center' : 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', position: 'relative', userSelect: 'none' }}>
+                  {label}
+                  {i < 7 && (
+                    <div
+                      onMouseDown={(e) => handleResizeStart(e, i + 1)}
+                      style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: '6px',
+                        cursor: 'col-resize',
+                        background: 'transparent',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#007aff33')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    />
+                  )}
+                </th>
+              ))}
             </tr>
             {/* 검색 필터 */}
             <tr style={{ background: '#f1f3f4', borderBottom: '1px solid #e9ecef' }}>
