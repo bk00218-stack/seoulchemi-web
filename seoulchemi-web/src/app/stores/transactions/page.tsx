@@ -52,7 +52,6 @@ const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> 
   adjustment: { label: '조정', color: '#666', bg: '#f5f5f5' },
 }
 
-// 표시 가능한 필드 목록
 const DISPLAY_FIELDS = [
   { key: 'ownerName', label: '대표자' },
   { key: 'phone', label: '연락처' },
@@ -91,6 +90,7 @@ export default function TransactionsPage() {
   const [filteredStores, setFilteredStores] = useState<Store[]>([])
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [loading, setLoading] = useState(true)
   const [transLoading, setTransLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -103,16 +103,12 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     fetchStores()
-    // localStorage에서 설정 불러오기
     const saved = localStorage.getItem('transactionPageFields')
     if (saved) {
-      try {
-        setVisibleFields(JSON.parse(saved))
-      } catch {}
+      try { setVisibleFields(JSON.parse(saved)) } catch {}
     }
   }, [])
 
-  // 설정 저장
   useEffect(() => {
     localStorage.setItem('transactionPageFields', JSON.stringify(visibleFields))
   }, [visibleFields])
@@ -122,48 +118,27 @@ export default function TransactionsPage() {
       const res = await fetch('/api/stores?limit=1000')
       const data = await res.json()
       const storeList = (data.stores || []).map((s: any) => ({
-        id: s.id,
-        code: s.code || '',
-        name: s.name,
-        region: s.region || '',
-        ownerName: s.ownerName || '',
-        phone: s.phone || '',
-        address: s.address || '',
+        id: s.id, code: s.code || '', name: s.name, region: s.region || '',
+        ownerName: s.ownerName || '', phone: s.phone || '', address: s.address || '',
         balance: s.outstandingAmount || s.balance || 0,
         salesStaffName: s.salesStaff?.name || s.salesStaffName || '',
         deliveryStaffName: s.deliveryStaff?.name || s.deliveryStaffName || '',
         groupName: s.group?.name || s.groupName || '',
-        email: s.email || '',
-        businessRegNo: s.businessRegNo || '',
-        businessType: s.businessType || '',
-        businessCategory: s.businessCategory || '',
-        deliveryContact: s.deliveryContact || '',
-        deliveryPhone: s.deliveryPhone || '',
-        deliveryAddress: s.deliveryAddress || '',
-        deliveryMemo: s.deliveryMemo || '',
-        creditLimit: s.creditLimit || 0,
-        paymentTermDays: s.paymentTermDays || 30,
-        billingDay: s.billingDay || null,
-        lastPaymentAt: s.lastPaymentAt || null,
-        discountRate: s.discountRate || 0,
-        status: s.status || 'active',
-        memo: s.memo || '',
+        email: s.email || '', businessRegNo: s.businessRegNo || '',
+        businessType: s.businessType || '', businessCategory: s.businessCategory || '',
+        deliveryContact: s.deliveryContact || '', deliveryPhone: s.deliveryPhone || '',
+        deliveryAddress: s.deliveryAddress || '', deliveryMemo: s.deliveryMemo || '',
+        creditLimit: s.creditLimit || 0, paymentTermDays: s.paymentTermDays || 30,
+        billingDay: s.billingDay || null, lastPaymentAt: s.lastPaymentAt || null,
+        discountRate: s.discountRate || 0, status: s.status || 'active', memo: s.memo || '',
       }))
       setStores(storeList)
       setFilteredStores(storeList)
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { console.error(e) } finally { setLoading(false) }
   }
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredStores(stores)
-      setHighlightIndex(-1)
-      return
-    }
+    if (!searchQuery.trim()) { setFilteredStores(stores); setHighlightIndex(-1); return }
     const q = searchQuery.toLowerCase().replace(/-/g, '')
     const filtered = stores.filter(s => {
       const phoneClean = (s.phone || '').replace(/-/g, '').toLowerCase()
@@ -175,81 +150,54 @@ export default function TransactionsPage() {
 
   const handleSelectStore = useCallback(async (store: Store) => {
     setSelectedStore(store)
+    setSelectedTransaction(null)
     setTransLoading(true)
     try {
       const res = await fetch(`/api/transactions?storeId=${store.id}&limit=100`)
       const data = await res.json()
       const realTransactions = data.transactions || []
-      if (realTransactions.length === 0) {
-        setTransactions(MOCK_TRANSACTIONS.map(t => ({ ...t, storeId: store.id })))
-      } else {
-        setTransactions(realTransactions)
-      }
+      setTransactions(realTransactions.length === 0 ? MOCK_TRANSACTIONS.map(t => ({ ...t, storeId: store.id })) : realTransactions)
     } catch (e) {
       console.error(e)
       setTransactions(MOCK_TRANSACTIONS.map(t => ({ ...t, storeId: store.id })))
-    } finally {
-      setTransLoading(false)
-    }
+    } finally { setTransLoading(false) }
   }, [])
 
-  const sortedStores = [...filteredStores].sort((a, b) => {
-    return a.region.localeCompare(b.region) || a.name.localeCompare(b.name)
-  })
+  const sortedStores = [...filteredStores].sort((a, b) => a.region.localeCompare(b.region) || a.name.localeCompare(b.name))
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (sortedStores.length === 0) return
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setHighlightIndex(prev => Math.min(prev + 1, sortedStores.length - 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHighlightIndex(prev => Math.max(prev - 1, 0))
-    } else if (e.key === 'Enter' && highlightIndex >= 0) {
-      e.preventDefault()
-      handleSelectStore(sortedStores[highlightIndex])
-    }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightIndex(prev => Math.min(prev + 1, sortedStores.length - 1)) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightIndex(prev => Math.max(prev - 1, 0)) }
+    else if (e.key === 'Enter' && highlightIndex >= 0) { e.preventDefault(); handleSelectStore(sortedStores[highlightIndex]) }
   }, [highlightIndex, handleSelectStore, sortedStores])
 
   useEffect(() => {
     if (highlightIndex >= 0 && listRef.current) {
       const items = listRef.current.querySelectorAll('[data-store-item]')
-      if (items[highlightIndex]) {
-        items[highlightIndex].scrollIntoView({ block: 'nearest' })
-      }
+      if (items[highlightIndex]) items[highlightIndex].scrollIntoView({ block: 'nearest' })
     }
   }, [highlightIndex])
 
-  const filteredTransactions = transactions.filter(t => {
-    if (typeFilter !== 'all' && t.type !== typeFilter) return false
-    return true
-  })
-
-  const toggleField = (key: string) => {
-    setVisibleFields(prev => 
-      prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key]
-    )
-  }
-
+  const filteredTransactions = transactions.filter(t => typeFilter === 'all' || t.type === typeFilter)
+  const toggleField = (key: string) => setVisibleFields(prev => prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key])
   const isVisible = (key: string) => visibleFields.includes(key)
 
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
-      {/* 헤더 */}
       <div style={{ marginBottom: '12px' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>가맹점 거래내역</h2>
       </div>
 
-      {/* 메인 레이아웃 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: 'calc(100vh - 160px)', minHeight: '500px' }}>
+      {/* 3컬럼 레이아웃: 2:1:1 */}
+      <div style={{ display: 'flex', gap: '12px', height: 'calc(100vh - 140px)', minHeight: '500px' }}>
         
-        {/* 상단: 거래처 검색/목록 + 거래처 정보 */}
-        <div style={{ display: 'flex', gap: '12px', height: '260px', flexShrink: 0 }}>
+        {/* 좌측 (2): 검색/목록 + 거래처 정보 */}
+        <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
           
-          {/* 거래처 검색/목록 */}
+          {/* 검색/목록 */}
           <div style={{ 
-            width: '260px', 
-            flexShrink: 0,
+            flex: 1,
             background: '#fff', 
             borderRadius: '10px', 
             boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
@@ -265,14 +213,7 @@ export default function TransactionsPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                style={{ 
-                  width: '100%', 
-                  padding: '7px 10px', 
-                  borderRadius: '6px', 
-                  border: '1px solid #e9ecef', 
-                  fontSize: '13px',
-                  boxSizing: 'border-box'
-                }}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '13px', boxSizing: 'border-box' }}
               />
             </div>
             
@@ -284,31 +225,16 @@ export default function TransactionsPage() {
               ) : (
                 sortedStores.map((store, idx) => (
                   <div 
-                    key={store.id}
-                    data-store-item
+                    key={store.id} data-store-item
                     onClick={() => handleSelectStore(store)}
                     style={{ 
-                      padding: '8px 12px',
-                      cursor: 'pointer',
-                      background: selectedStore?.id === store.id 
-                        ? '#e3f2fd' 
-                        : highlightIndex === idx 
-                          ? '#fff3cd' 
-                          : 'transparent',
-                      borderBottom: '1px solid #f5f5f5',
-                      fontSize: '13px',
+                      padding: '8px 12px', cursor: 'pointer',
+                      background: selectedStore?.id === store.id ? '#e3f2fd' : highlightIndex === idx ? '#fff3cd' : 'transparent',
+                      borderBottom: '1px solid #f5f5f5', fontSize: '13px',
                       fontWeight: selectedStore?.id === store.id ? 600 : 400
                     }}
-                    onMouseEnter={e => {
-                      if (selectedStore?.id !== store.id && highlightIndex !== idx) {
-                        e.currentTarget.style.background = '#f8f9fa'
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      if (selectedStore?.id !== store.id && highlightIndex !== idx) {
-                        e.currentTarget.style.background = 'transparent'
-                      }
-                    }}
+                    onMouseEnter={e => { if (selectedStore?.id !== store.id && highlightIndex !== idx) e.currentTarget.style.background = '#f8f9fa' }}
+                    onMouseLeave={e => { if (selectedStore?.id !== store.id && highlightIndex !== idx) e.currentTarget.style.background = 'transparent' }}
                   >
                     {store.name}
                   </div>
@@ -323,57 +249,25 @@ export default function TransactionsPage() {
 
           {/* 거래처 정보 */}
           <div style={{ 
-            flex: 1,
-            background: '#fff', 
-            borderRadius: '10px', 
-            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-            padding: '12px 16px',
-            overflow: 'auto',
-            position: 'relative'
+            height: '200px', flexShrink: 0,
+            background: '#fff', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+            padding: '12px 14px', overflow: 'auto', position: 'relative'
           }}>
-            {/* 설정 버튼 */}
             <button 
               onClick={() => setShowSettings(!showSettings)}
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                padding: '4px 8px',
-                fontSize: '11px',
-                background: showSettings ? '#007aff' : '#f5f5f7',
-                color: showSettings ? '#fff' : '#666',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              ⚙️ 표시항목
-            </button>
+              style={{ position: 'absolute', top: '8px', right: '8px', padding: '3px 6px', fontSize: '10px',
+                background: showSettings ? '#007aff' : '#f5f5f7', color: showSettings ? '#fff' : '#666',
+                border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            >⚙️</button>
 
-            {/* 설정 패널 */}
             {showSettings && (
-              <div style={{
-                position: 'absolute',
-                top: '36px',
-                right: '10px',
-                background: '#fff',
-                border: '1px solid #e9ecef',
-                borderRadius: '8px',
-                padding: '10px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                zIndex: 10,
-                width: '200px'
-              }}>
-                <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px', fontWeight: 600 }}>표시할 항목 선택</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ position: 'absolute', top: '30px', right: '8px', background: '#fff', border: '1px solid #e9ecef',
+                borderRadius: '8px', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10, width: '180px' }}>
+                <div style={{ fontSize: '10px', color: '#666', marginBottom: '6px', fontWeight: 600 }}>표시할 항목</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                   {DISPLAY_FIELDS.map(field => (
-                    <label key={field.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={isVisible(field.key)}
-                        onChange={() => toggleField(field.key)}
-                        style={{ margin: 0 }}
-                      />
+                    <label key={field.key} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={isVisible(field.key)} onChange={() => toggleField(field.key)} style={{ margin: 0 }} />
                       {field.label}
                     </label>
                   ))}
@@ -382,205 +276,175 @@ export default function TransactionsPage() {
             )}
 
             {!selectedStore ? (
-              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#86868b' }}>
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#86868b', fontSize: '13px' }}>
                 거래처를 선택해주세요
               </div>
             ) : (
-              <div style={{ fontSize: '12px' }}>
-                {/* 상호 + 미결제액 */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' }}>
+              <div style={{ fontSize: '11px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #f0f0f0' }}>
                   <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>{selectedStore.name}</h3>
-                    <div style={{ fontSize: '11px', color: '#86868b', marginTop: '2px' }}>
-                      {selectedStore.status === 'suspended' && <span style={{ color: '#d32f2f' }}>⚠️ 거래정지</span>}
-                      {selectedStore.status === 'caution' && <span style={{ color: '#e65100' }}>⚠️ 주의</span>}
-                    </div>
+                    <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0 }}>{selectedStore.name}</h3>
+                    {selectedStore.status !== 'active' && (
+                      <span style={{ fontSize: '10px', color: selectedStore.status === 'suspended' ? '#d32f2f' : '#e65100' }}>
+                        ⚠️ {selectedStore.status === 'suspended' ? '거래정지' : '주의'}
+                      </span>
+                    )}
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '10px', color: '#86868b' }}>미결제액</div>
-                    <div style={{ 
-                      fontSize: '20px', 
-                      fontWeight: 700, 
-                      color: selectedStore.balance > 0 ? '#d32f2f' : '#2e7d32',
-                      lineHeight: 1.2
-                    }}>
+                    <div style={{ fontSize: '9px', color: '#86868b' }}>미결제액</div>
+                    <div style={{ fontSize: '18px', fontWeight: 700, color: selectedStore.balance > 0 ? '#d32f2f' : '#2e7d32' }}>
                       {selectedStore.balance.toLocaleString()}원
                     </div>
-                    {isVisible('creditLimit') && selectedStore.creditLimit > 0 && (
-                      <div style={{ fontSize: '10px', color: '#86868b' }}>한도: {selectedStore.creditLimit.toLocaleString()}원</div>
-                    )}
                   </div>
                 </div>
                 
-                {/* 동적 정보 그리드 */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px' }}>
-                  {isVisible('ownerName') && <div><span style={{ color: '#999' }}>대표자:</span> <strong>{selectedStore.ownerName || '-'}</strong></div>}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
+                  {isVisible('ownerName') && <div><span style={{ color: '#999' }}>대표:</span> <strong>{selectedStore.ownerName || '-'}</strong></div>}
                   {isVisible('phone') && <div><span style={{ color: '#999' }}>연락처:</span> <strong>{selectedStore.phone || '-'}</strong></div>}
                   {isVisible('email') && <div><span style={{ color: '#999' }}>이메일:</span> {selectedStore.email || '-'}</div>}
-                  {isVisible('businessRegNo') && <div><span style={{ color: '#999' }}>사업자번호:</span> {selectedStore.businessRegNo || '-'}</div>}
-                  {isVisible('businessType') && <div><span style={{ color: '#999' }}>업태:</span> {selectedStore.businessType || '-'}</div>}
-                  {isVisible('businessCategory') && <div><span style={{ color: '#999' }}>업종:</span> {selectedStore.businessCategory || '-'}</div>}
-                  {isVisible('salesStaffName') && <div><span style={{ color: '#999' }}>👔영업:</span> <strong style={{ color: '#1565c0' }}>{selectedStore.salesStaffName || '-'}</strong></div>}
-                  {isVisible('deliveryStaffName') && <div><span style={{ color: '#999' }}>🚚배송:</span> <strong style={{ color: '#2e7d32' }}>{selectedStore.deliveryStaffName || '-'}</strong></div>}
+                  {isVisible('businessRegNo') && <div><span style={{ color: '#999' }}>사업자:</span> {selectedStore.businessRegNo || '-'}</div>}
+                  {isVisible('salesStaffName') && <div><span style={{ color: '#999' }}>👔:</span> <strong style={{ color: '#1565c0' }}>{selectedStore.salesStaffName || '-'}</strong></div>}
+                  {isVisible('deliveryStaffName') && <div><span style={{ color: '#999' }}>🚚:</span> <strong style={{ color: '#2e7d32' }}>{selectedStore.deliveryStaffName || '-'}</strong></div>}
                   {isVisible('groupName') && <div><span style={{ color: '#999' }}>그룹:</span> <strong>{selectedStore.groupName || '-'}</strong></div>}
-                  {isVisible('discountRate') && <div><span style={{ color: '#999' }}>할인율:</span> <strong style={{ color: '#e65100' }}>{selectedStore.discountRate}%</strong></div>}
-                  {isVisible('paymentTermDays') && <div><span style={{ color: '#999' }}>결제기한:</span> {selectedStore.paymentTermDays}일</div>}
-                  {isVisible('billingDay') && <div><span style={{ color: '#999' }}>청구일:</span> {selectedStore.billingDay ? `매월 ${selectedStore.billingDay}일` : '-'}</div>}
-                  {isVisible('address') && selectedStore.address && (
-                    <div style={{ width: '100%' }}><span style={{ color: '#999' }}>📍주소:</span> {selectedStore.address}</div>
-                  )}
-                  {isVisible('delivery') && (selectedStore.deliveryContact || selectedStore.deliveryAddress) && (
-                    <div style={{ width: '100%' }}>
-                      <span style={{ color: '#999' }}>📦배송:</span> {selectedStore.deliveryContact || ''} {selectedStore.deliveryPhone || ''} / {selectedStore.deliveryAddress || '-'}
-                      {selectedStore.deliveryMemo && <span style={{ color: '#e65100' }}> ({selectedStore.deliveryMemo})</span>}
-                    </div>
-                  )}
-                  {isVisible('lastPaymentAt') && selectedStore.lastPaymentAt && (
-                    <div><span style={{ color: '#999' }}>최근입금:</span> {new Date(selectedStore.lastPaymentAt).toLocaleDateString('ko-KR')}</div>
-                  )}
-                  {isVisible('memo') && selectedStore.memo && (
-                    <div style={{ width: '100%', padding: '4px 8px', background: '#fff9e6', borderRadius: '4px', color: '#856404' }}>
-                      📝 {selectedStore.memo}
-                    </div>
-                  )}
+                  {isVisible('discountRate') && <div><span style={{ color: '#999' }}>할인:</span> <strong style={{ color: '#e65100' }}>{selectedStore.discountRate}%</strong></div>}
+                  {isVisible('creditLimit') && selectedStore.creditLimit > 0 && <div><span style={{ color: '#999' }}>한도:</span> {selectedStore.creditLimit.toLocaleString()}원</div>}
+                  {isVisible('address') && selectedStore.address && <div style={{ width: '100%' }}><span style={{ color: '#999' }}>📍</span> {selectedStore.address}</div>}
+                  {isVisible('memo') && selectedStore.memo && <div style={{ width: '100%', padding: '3px 6px', background: '#fff9e6', borderRadius: '3px', color: '#856404' }}>📝 {selectedStore.memo}</div>}
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* 하단: 거래내역 */}
+        {/* 중앙 (1): 거래내역 목록 */}
         <div style={{ 
-          flex: 1,
-          background: '#fff', 
-          borderRadius: '10px', 
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          minHeight: '250px'
+          flex: 1, minWidth: 0,
+          background: '#fff', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden'
         }}>
-          <div style={{ 
-            padding: '10px 14px', 
-            borderBottom: '1px solid #e9ecef',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <span style={{ fontSize: '14px', fontWeight: 600 }}>📋 거래내역</span>
-            
-            <div style={{ display: 'flex', gap: '5px' }}>
-              {[
-                { value: 'all', label: '전체' },
-                { value: 'sale', label: '매출' },
-                { value: 'deposit', label: '입금' },
-                { value: 'return', label: '반품' },
-              ].map(f => (
-                <button 
-                  key={f.value} 
-                  onClick={() => setTypeFilter(f.value)} 
-                  style={{
-                    padding: '4px 10px', 
-                    borderRadius: '4px', 
-                    border: 'none', 
-                    fontSize: '12px', 
-                    cursor: 'pointer',
-                    background: typeFilter === f.value ? '#007aff' : '#f5f5f7', 
-                    color: typeFilter === f.value ? '#fff' : '#666'
-                  }}
-                >
-                  {f.label}
-                </button>
+          <div style={{ padding: '10px 12px', borderBottom: '1px solid #e9ecef', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>📋 거래내역</span>
+            <div style={{ display: 'flex', gap: '3px' }}>
+              {[{ value: 'all', label: '전체' }, { value: 'sale', label: '매출' }, { value: 'deposit', label: '입금' }, { value: 'return', label: '반품' }].map(f => (
+                <button key={f.value} onClick={() => setTypeFilter(f.value)} style={{
+                  padding: '3px 6px', borderRadius: '3px', border: 'none', fontSize: '10px', cursor: 'pointer',
+                  background: typeFilter === f.value ? '#007aff' : '#f5f5f7', color: typeFilter === f.value ? '#fff' : '#666'
+                }}>{f.label}</button>
               ))}
             </div>
           </div>
 
           <div style={{ flex: 1, overflow: 'auto' }}>
             {!selectedStore ? (
-              <div style={{ padding: '50px', textAlign: 'center', color: '#86868b' }}>
-                거래처를 선택하면 거래내역이 표시됩니다
-              </div>
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: '#86868b', fontSize: '12px' }}>거래처 선택</div>
             ) : transLoading ? (
-              <div style={{ padding: '50px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: '#86868b', fontSize: '12px' }}>로딩...</div>
             ) : filteredTransactions.length === 0 ? (
-              <div style={{ padding: '50px', textAlign: 'center', color: '#86868b' }}>거래내역이 없습니다</div>
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: '#86868b', fontSize: '12px' }}>내역 없음</div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
-                    <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#666' }}>일자</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: '#666', width: '70px' }}>유형</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: '#666' }}>거래금액</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: '#666' }}>잔액</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#666' }}>주문번호</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#666' }}>결제방법</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#666' }}>메모</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTransactions.map(t => {
-                    const typeInfo = TYPE_LABELS[t.type] || TYPE_LABELS.adjustment
-                    return (
-                      <tr key={t.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                        <td style={{ padding: '10px 14px', fontSize: '13px' }}>
-                          {new Date(t.processedAt).toLocaleDateString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' })}
-                        </td>
-                        <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                          <span style={{ 
-                            padding: '3px 10px', 
-                            borderRadius: '4px', 
-                            fontSize: '11px', 
-                            fontWeight: 500, 
-                            color: typeInfo.color, 
-                            background: typeInfo.bg 
-                          }}>
-                            {typeInfo.label}
-                          </span>
-                        </td>
-                        <td style={{ 
-                          padding: '10px 14px', 
-                          textAlign: 'right', 
-                          fontSize: '13px', 
-                          fontWeight: 600, 
-                          color: t.type === 'deposit' ? '#2e7d32' : t.type === 'return' ? '#e65100' : '#1d1d1f' 
-                        }}>
-                          {t.type === 'deposit' ? '+' : ''}{t.amount.toLocaleString()}원
-                        </td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontSize: '13px', color: '#666' }}>
-                          {t.balanceAfter.toLocaleString()}원
-                        </td>
-                        <td style={{ padding: '10px 14px', fontSize: '12px', color: '#666' }}>{t.orderNo || '-'}</td>
-                        <td style={{ padding: '10px 14px', fontSize: '12px', color: '#666' }}>{t.paymentMethod || '-'}</td>
-                        <td style={{ padding: '10px 14px', fontSize: '12px', color: '#86868b' }}>{t.memo || '-'}</td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+              filteredTransactions.map(t => {
+                const typeInfo = TYPE_LABELS[t.type] || TYPE_LABELS.adjustment
+                return (
+                  <div 
+                    key={t.id}
+                    onClick={() => setSelectedTransaction(t)}
+                    style={{ 
+                      padding: '10px 12px', borderBottom: '1px solid #f0f0f0', cursor: 'pointer',
+                      background: selectedTransaction?.id === t.id ? '#e3f2fd' : 'transparent'
+                    }}
+                    onMouseEnter={e => { if (selectedTransaction?.id !== t.id) e.currentTarget.style.background = '#f8f9fa' }}
+                    onMouseLeave={e => { if (selectedTransaction?.id !== t.id) e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '12px', color: '#666' }}>
+                        {new Date(t.processedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
+                      </span>
+                      <span style={{ padding: '2px 6px', borderRadius: '3px', fontSize: '10px', fontWeight: 500, color: typeInfo.color, background: typeInfo.bg }}>
+                        {typeInfo.label}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: t.type === 'deposit' ? '#2e7d32' : t.type === 'return' ? '#e65100' : '#1d1d1f' }}>
+                      {t.type === 'deposit' ? '+' : ''}{t.amount.toLocaleString()}원
+                    </div>
+                    {t.memo && <div style={{ fontSize: '11px', color: '#86868b', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.memo}</div>}
+                  </div>
+                )
+              })
             )}
           </div>
-          
+
           {selectedStore && filteredTransactions.length > 0 && (
-            <div style={{ 
-              padding: '10px 14px', 
-              borderTop: '1px solid #e9ecef', 
-              background: '#f8f9fa',
-              display: 'flex',
-              gap: '24px',
-              fontSize: '12px'
-            }}>
-              <span style={{ color: '#666' }}>
-                전체 <strong>{filteredTransactions.length}</strong>건
-              </span>
-              <span style={{ color: '#1565c0' }}>
-                매출 <strong>{filteredTransactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}</strong>원
-              </span>
-              <span style={{ color: '#2e7d32' }}>
-                입금 <strong>{filteredTransactions.filter(t => t.type === 'deposit').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}</strong>원
-              </span>
-              <span style={{ color: '#e65100' }}>
-                반품 <strong>{filteredTransactions.filter(t => t.type === 'return').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}</strong>원
-              </span>
+            <div style={{ padding: '8px 12px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '10px', color: '#666' }}>
+              {filteredTransactions.length}건 · 
+              매출 {filteredTransactions.filter(t => t.type === 'sale').reduce((s, t) => s + t.amount, 0).toLocaleString()} · 
+              입금 {filteredTransactions.filter(t => t.type === 'deposit').reduce((s, t) => s + t.amount, 0).toLocaleString()}
+            </div>
+          )}
+        </div>
+
+        {/* 우측 (1): 세부내역 */}
+        <div style={{ 
+          flex: 1, minWidth: 0,
+          background: '#fff', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+          padding: '14px', overflow: 'auto'
+        }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>📄 세부내역</div>
+          
+          {!selectedTransaction ? (
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: '#86868b', fontSize: '12px' }}>
+              거래내역을 선택하면<br/>상세정보가 표시됩니다
+            </div>
+          ) : (
+            <div style={{ fontSize: '12px' }}>
+              {/* 유형 & 금액 */}
+              <div style={{ textAlign: 'center', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #f0f0f0' }}>
+                <span style={{ 
+                  display: 'inline-block', padding: '4px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: 600,
+                  color: TYPE_LABELS[selectedTransaction.type]?.color, background: TYPE_LABELS[selectedTransaction.type]?.bg
+                }}>
+                  {TYPE_LABELS[selectedTransaction.type]?.label}
+                </span>
+                <div style={{ 
+                  fontSize: '28px', fontWeight: 700, marginTop: '8px',
+                  color: selectedTransaction.type === 'deposit' ? '#2e7d32' : selectedTransaction.type === 'return' ? '#e65100' : '#1d1d1f'
+                }}>
+                  {selectedTransaction.type === 'deposit' ? '+' : ''}{selectedTransaction.amount.toLocaleString()}원
+                </div>
+              </div>
+
+              {/* 상세 정보 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>
+                  <div style={{ color: '#86868b', fontSize: '10px', marginBottom: '2px' }}>거래일시</div>
+                  <div style={{ fontWeight: 500 }}>{new Date(selectedTransaction.processedAt).toLocaleString('ko-KR')}</div>
+                </div>
+                
+                <div>
+                  <div style={{ color: '#86868b', fontSize: '10px', marginBottom: '2px' }}>거래 후 잔액</div>
+                  <div style={{ fontWeight: 500 }}>{selectedTransaction.balanceAfter.toLocaleString()}원</div>
+                </div>
+
+                {selectedTransaction.orderNo && (
+                  <div>
+                    <div style={{ color: '#86868b', fontSize: '10px', marginBottom: '2px' }}>주문번호</div>
+                    <div style={{ fontWeight: 500, color: '#1565c0' }}>{selectedTransaction.orderNo}</div>
+                  </div>
+                )}
+
+                {selectedTransaction.paymentMethod && (
+                  <div>
+                    <div style={{ color: '#86868b', fontSize: '10px', marginBottom: '2px' }}>결제방법</div>
+                    <div style={{ fontWeight: 500 }}>{selectedTransaction.paymentMethod}</div>
+                  </div>
+                )}
+
+                {selectedTransaction.memo && (
+                  <div>
+                    <div style={{ color: '#86868b', fontSize: '10px', marginBottom: '2px' }}>메모</div>
+                    <div style={{ padding: '8px', background: '#f8f9fa', borderRadius: '6px' }}>{selectedTransaction.memo}</div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
