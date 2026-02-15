@@ -75,6 +75,7 @@ export default function StoresPage() {
   const [searchName, setSearchName] = useState('')
   const [searchOwner, setSearchOwner] = useState('')
   const [searchPhone, setSearchPhone] = useState('')
+  const [searchAddress, setSearchAddress] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [groups, setGroups] = useState<StoreGroup[]>([])
@@ -95,7 +96,7 @@ export default function StoresPage() {
       params.set('page', String(page))
       params.set('limit', '50')
       if (filter !== 'all') params.set('status', filter)
-      const searchTerms = [searchCode, searchName, searchOwner, searchPhone].filter(Boolean).join(' ')
+      const searchTerms = [searchCode, searchName, searchOwner, searchPhone, searchAddress].filter(Boolean).join(' ')
       if (searchTerms) params.set('search', searchTerms)
       
       const res = await fetch(`/api/stores?${params}`)
@@ -110,7 +111,7 @@ export default function StoresPage() {
       console.error('Failed to fetch stores:', error)
     }
     setLoading(false)
-  }, [filter, searchCode, searchName, searchOwner, searchPhone, page])
+  }, [filter, searchCode, searchName, searchOwner, searchPhone, searchAddress, page])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -195,7 +196,7 @@ export default function StoresPage() {
         </div>
       </div>
 
-      {/* 통계 카드 - 크기 줄임 */}
+      {/* 통계 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
         <div style={{ background: '#fff', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '22px' }}>🏪</span>
@@ -255,46 +256,60 @@ export default function StoresPage() {
 
       {/* 테이블 */}
       <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: '40px' }} />
+            <col style={{ width: '70px' }} />
+            <col style={{ width: '150px' }} />
+            <col style={{ width: '70px' }} />
+            <col style={{ width: '110px' }} />
+            <col style={{ width: 'auto' }} />
+            <col style={{ width: '50px' }} />
+            <col style={{ width: '80px' }} />
+            <col style={{ width: '180px' }} />
+          </colgroup>
           <thead>
-            {/* 헤더 - 폰트 키움 */}
+            {/* 헤더 */}
             <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #e9ecef' }}>
-              <th style={{ padding: '14px 12px', textAlign: 'center', width: '40px' }}>
+              <th style={{ padding: '12px 8px', textAlign: 'center' }}>
                 <input type="checkbox" checked={selectedIds.size === data.length && data.length > 0} onChange={toggleSelectAll} />
               </th>
-              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>코드</th>
-              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>안경원명</th>
-              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>대표자</th>
-              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>연락처</th>
-              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>주소</th>
-              <th style={{ padding: '14px 12px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>주문</th>
-              <th style={{ padding: '14px 12px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>최근주문</th>
-              <th style={{ padding: '14px 12px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>관리</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>코드</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>안경원명</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>대표자</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>연락처</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>주소</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>주문</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>최근주문</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>관리</th>
             </tr>
-            {/* 검색 필터 - 헤더 밑에 박스 */}
+            {/* 검색 필터 */}
             <tr style={{ background: '#f1f3f4', borderBottom: '1px solid #e9ecef' }}>
-              <td style={{ padding: '8px 12px' }}></td>
-              <td style={{ padding: '8px 6px' }}>
+              <td style={{ padding: '6px 4px' }}></td>
+              <td style={{ padding: '6px 4px' }}>
                 <input type="text" placeholder="코드" value={searchCode} onChange={(e) => setSearchCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px' }} />
+                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '8px 6px' }}>
+              <td style={{ padding: '6px 4px' }}>
                 <input type="text" placeholder="안경원명" value={searchName} onChange={(e) => setSearchName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px' }} />
+                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '8px 6px' }}>
+              <td style={{ padding: '6px 4px' }}>
                 <input type="text" placeholder="대표자" value={searchOwner} onChange={(e) => setSearchOwner(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px' }} />
+                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '8px 6px' }}>
+              <td style={{ padding: '6px 4px' }}>
                 <input type="text" placeholder="연락처" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px' }} />
+                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '8px 6px' }}></td>
-              <td style={{ padding: '8px 6px' }}></td>
-              <td style={{ padding: '8px 6px' }}></td>
-              <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                <button onClick={handleSearch} style={{ padding: '6px 12px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '12px', cursor: 'pointer' }}>검색</button>
+              <td style={{ padding: '6px 4px' }}>
+                <input type="text" placeholder="주소" value={searchAddress} onChange={(e) => setSearchAddress(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
+              </td>
+              <td style={{ padding: '6px 4px' }}></td>
+              <td style={{ padding: '6px 4px' }}></td>
+              <td style={{ padding: '6px 8px', textAlign: 'center' }}>
+                <button onClick={handleSearch} style={{ padding: '5px 10px', borderRadius: '4px', background: '#007aff', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>검색</button>
               </td>
             </tr>
           </thead>
@@ -305,24 +320,24 @@ export default function StoresPage() {
               <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
             ) : data.map(store => (
               <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fafafa'} onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}>
-                <td style={{ padding: '12px', textAlign: 'center' }}>
+                <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
-                <td style={{ padding: '12px', fontSize: '12px', fontFamily: 'monospace', color: '#666' }}>{store.code}</td>
-                <td style={{ padding: '12px', fontWeight: 500 }}>{store.name}</td>
-                <td style={{ padding: '12px', fontSize: '13px' }}>{store.ownerName}</td>
-                <td style={{ padding: '12px', fontSize: '12px', fontFamily: 'monospace' }}>{store.phone}</td>
-                <td style={{ padding: '12px', fontSize: '12px', color: '#666', maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.address}</td>
-                <td style={{ padding: '12px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: store.orderCount > 0 ? '#007aff' : '#ccc' }}>{store.orderCount}</td>
-                <td style={{ padding: '12px', textAlign: 'center', fontSize: '11px', color: store.lastOrderDate ? '#333' : '#ccc' }}>{store.lastOrderDate || '-'}</td>
-                <td style={{ padding: '12px' }}>
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', alignItems: 'center' }}>
-                    <span style={{ padding: '3px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100' }}>
+                <td style={{ padding: '10px 8px', fontSize: '11px', fontFamily: 'monospace', color: '#666' }}>{store.code}</td>
+                <td style={{ padding: '10px 8px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.name}</td>
+                <td style={{ padding: '10px 8px', fontSize: '12px' }}>{store.ownerName}</td>
+                <td style={{ padding: '10px 8px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
+                <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.address}</td>
+                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: 500, color: store.orderCount > 0 ? '#007aff' : '#ccc' }}>{store.orderCount}</td>
+                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '10px', color: store.lastOrderDate ? '#333' : '#ccc', whiteSpace: 'nowrap' }}>{store.lastOrderDate || '-'}</td>
+                <td style={{ padding: '10px 8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', gap: '3px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
+                    <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100', whiteSpace: 'nowrap' }}>
                       {store.isActive ? '활성' : '비활성'}
                     </span>
-                    <button onClick={() => router.push(`/admin/stores/${store.id}/discounts`)} style={{ padding: '3px 8px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '11px', cursor: 'pointer' }}>할인</button>
-                    <button onClick={() => openModal(store)} style={{ padding: '3px 8px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '11px', cursor: 'pointer' }}>수정</button>
-                    <button onClick={() => handleDelete(store)} style={{ padding: '3px 8px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '11px', cursor: 'pointer' }}>삭제</button>
+                    <button onClick={() => router.push(`/admin/stores/${store.id}/discounts`)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>할인</button>
+                    <button onClick={() => openModal(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>수정</button>
+                    <button onClick={() => handleDelete(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>삭제</button>
                   </div>
                 </td>
               </tr>
