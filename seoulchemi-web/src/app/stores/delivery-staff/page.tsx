@@ -170,7 +170,7 @@ export default function StaffManagementPage() {
   }
 
   const headerStyle: React.CSSProperties = {
-    padding: '16px 20px',
+    padding: '12px 16px',
     borderBottom: '1px solid #e9ecef',
     display: 'flex',
     justifyContent: 'space-between',
@@ -181,13 +181,13 @@ export default function StaffManagementPage() {
   const listStyle: React.CSSProperties = {
     flex: 1,
     overflow: 'auto',
-    padding: '8px'
+    padding: '4px'
   }
 
   const itemStyle: React.CSSProperties = {
-    padding: '12px 16px',
-    borderRadius: '8px',
-    marginBottom: '6px',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    marginBottom: '4px',
     background: '#fff',
     border: '1px solid #e9ecef',
     cursor: 'pointer',
@@ -231,7 +231,7 @@ export default function StaffManagementPage() {
             </div>
             <div style={listStyle}>
               {groups.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>등록된 그룹이 없습니다</div>
+                <div style={{ textAlign: 'center', padding: '30px', color: '#86868b', fontSize: '13px' }}>등록된 그룹이 없습니다</div>
               ) : groups.map(group => (
                 <div 
                   key={group.id} 
@@ -240,27 +240,17 @@ export default function StaffManagementPage() {
                   onMouseLeave={e => e.currentTarget.style.background = '#fff'}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{group.name}</div>
-                      <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>
-                        {group.description || '설명 없음'} • 할인 {group.discountRate}%
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ 
-                        padding: '2px 8px', 
-                        borderRadius: '10px', 
-                        fontSize: '11px', 
-                        background: group.storeCount > 0 ? '#e8f5e9' : '#f5f5f5',
-                        color: group.storeCount > 0 ? '#2e7d32' : '#999'
-                      }}>
-                        {group.storeCount}개
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
+                      <span style={{ fontSize: '11px', color: '#86868b' }}>{group.discountRate}%</span>
+                      <span style={{ padding: '1px 6px', borderRadius: '8px', fontSize: '10px', background: group.storeCount > 0 ? '#e8f5e9' : '#f5f5f5', color: group.storeCount > 0 ? '#2e7d32' : '#999' }}>
+                        {group.storeCount}
                       </span>
                     </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                    <button onClick={() => openModal('group', group)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
-                    <button onClick={() => handleDelete('group', group.id)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                      <button onClick={() => openModal('group', group)} style={{ padding: '3px 8px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
+                      <button onClick={() => handleDelete('group', group.id)} style={{ padding: '3px 8px', fontSize: '10px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -278,7 +268,7 @@ export default function StaffManagementPage() {
             </div>
             <div style={listStyle}>
               {deliveryStaff.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>등록된 배송담당이 없습니다</div>
+                <div style={{ textAlign: 'center', padding: '30px', color: '#86868b', fontSize: '13px' }}>등록된 배송담당이 없습니다</div>
               ) : deliveryStaff.map(staff => (
                 <div 
                   key={staff.id} 
@@ -287,25 +277,17 @@ export default function StaffManagementPage() {
                   onMouseLeave={e => e.currentTarget.style.background = '#fff'}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{staff.name}</div>
-                      <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>
-                        {staff.phone || '연락처 없음'} {staff.areaCode && `• ${staff.areaCode}`}
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap' }}>{staff.name}</span>
+                      {staff.areaCode && <span style={{ fontSize: '10px', color: '#1565c0', background: '#e3f2fd', padding: '1px 5px', borderRadius: '4px' }}>{staff.areaCode}</span>}
+                      <span style={{ padding: '1px 6px', borderRadius: '8px', fontSize: '10px', background: staff.storeCount > 0 ? '#e3f2fd' : '#f5f5f5', color: staff.storeCount > 0 ? '#1565c0' : '#999' }}>
+                        {staff.storeCount}
+                      </span>
                     </div>
-                    <span style={{ 
-                      padding: '2px 8px', 
-                      borderRadius: '10px', 
-                      fontSize: '11px', 
-                      background: staff.storeCount > 0 ? '#e3f2fd' : '#f5f5f5',
-                      color: staff.storeCount > 0 ? '#1565c0' : '#999'
-                    }}>
-                      {staff.storeCount}개
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                    <button onClick={() => openModal('delivery', staff)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
-                    <button onClick={() => handleDelete('delivery', staff.id)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                      <button onClick={() => openModal('delivery', staff)} style={{ padding: '3px 8px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
+                      <button onClick={() => handleDelete('delivery', staff.id)} style={{ padding: '3px 8px', fontSize: '10px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -323,7 +305,7 @@ export default function StaffManagementPage() {
             </div>
             <div style={listStyle}>
               {salesStaff.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>등록된 영업담당이 없습니다</div>
+                <div style={{ textAlign: 'center', padding: '30px', color: '#86868b', fontSize: '13px' }}>등록된 영업담당이 없습니다</div>
               ) : salesStaff.map(staff => (
                 <div 
                   key={staff.id} 
@@ -332,25 +314,17 @@ export default function StaffManagementPage() {
                   onMouseLeave={e => e.currentTarget.style.background = '#fff'}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{staff.name}</div>
-                      <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>
-                        {staff.phone || '연락처 없음'} {staff.areaCode && `• ${staff.areaCode}`}
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap' }}>{staff.name}</span>
+                      {staff.areaCode && <span style={{ fontSize: '10px', color: '#e65100', background: '#fff3e0', padding: '1px 5px', borderRadius: '4px' }}>{staff.areaCode}</span>}
+                      <span style={{ padding: '1px 6px', borderRadius: '8px', fontSize: '10px', background: staff.storeCount > 0 ? '#fff3e0' : '#f5f5f5', color: staff.storeCount > 0 ? '#e65100' : '#999' }}>
+                        {staff.storeCount}
+                      </span>
                     </div>
-                    <span style={{ 
-                      padding: '2px 8px', 
-                      borderRadius: '10px', 
-                      fontSize: '11px', 
-                      background: staff.storeCount > 0 ? '#fff3e0' : '#f5f5f5',
-                      color: staff.storeCount > 0 ? '#e65100' : '#999'
-                    }}>
-                      {staff.storeCount}개
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                    <button onClick={() => openModal('sales', staff)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
-                    <button onClick={() => handleDelete('sales', staff.id)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                      <button onClick={() => openModal('sales', staff)} style={{ padding: '3px 8px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
+                      <button onClick={() => handleDelete('sales', staff.id)} style={{ padding: '3px 8px', fontSize: '10px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                    </div>
                   </div>
                 </div>
               ))}
