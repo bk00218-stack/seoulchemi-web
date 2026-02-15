@@ -266,7 +266,7 @@ export default function StoresPage() {
             <col style={{ width: 'auto' }} />
             <col style={{ width: '50px' }} />
             <col style={{ width: '80px' }} />
-            <col style={{ width: '180px' }} />
+            <col style={{ width: '220px' }} />
           </colgroup>
           <thead>
             {/* 헤더 */}
