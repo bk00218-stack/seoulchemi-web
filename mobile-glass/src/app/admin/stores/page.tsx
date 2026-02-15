@@ -65,6 +65,7 @@ export default function StoresPage() {
   const [filter, setFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [showModal, setShowModal] = useState(false)
+  const [showGroupModal, setShowGroupModal] = useState(false)
   const [editingStore, setEditingStore] = useState<Store | null>(null)
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [data, setData] = useState<Store[]>([])
@@ -79,6 +80,7 @@ export default function StoresPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [groups, setGroups] = useState<StoreGroup[]>([])
+  const [bulkGroupId, setBulkGroupId] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/store-groups')
@@ -171,6 +173,40 @@ export default function StoresPage() {
     } catch (error) { alert('삭제에 실패했습니다.') }
   }
 
+  // 일괄 작업 함수들
+  const handleBulkAction = async (action: string, value?: any) => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) { alert('선택된 가맹점이 없습니다.'); return }
+    
+    try {
+      const res = await fetch('/api/stores/bulk-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, action, value }),
+      })
+      const json = await res.json()
+      if (json.error) { alert(json.error); return }
+      alert(json.message)
+      setSelectedIds(new Set())
+      fetchData()
+    } catch (error) { alert('일괄 작업에 실패했습니다.') }
+  }
+
+  const handleBulkDelete = () => {
+    if (!confirm(`선택한 ${selectedIds.size}개 가맹점을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return
+    handleBulkAction('delete')
+  }
+
+  const handleBulkSetGroup = () => {
+    setBulkGroupId(null)
+    setShowGroupModal(true)
+  }
+
+  const confirmBulkSetGroup = () => {
+    handleBulkAction('setGroup', bulkGroupId)
+    setShowGroupModal(false)
+  }
+
   const toggleSelect = (id: number) => {
     const newSet = new Set(selectedIds)
     if (newSet.has(id)) newSet.delete(id)
@@ -254,6 +290,55 @@ export default function StoresPage() {
         ))}
       </div>
 
+      {/* 일괄 작업 바 - 선택된 항목이 있을 때만 표시 */}
+      {selectedIds.size > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          padding: '12px 16px', 
+          background: '#e3f2fd', 
+          borderRadius: '8px', 
+          marginBottom: '12px',
+          border: '1px solid #90caf9'
+        }}>
+          <span style={{ fontWeight: 600, color: '#1976d2' }}>
+            ✓ {selectedIds.size}개 선택됨
+          </span>
+          <div style={{ flex: 1 }} />
+          <button 
+            onClick={handleBulkSetGroup}
+            style={{ padding: '6px 12px', borderRadius: '6px', background: '#fff', color: '#1976d2', border: '1px solid #1976d2', fontSize: '13px', cursor: 'pointer' }}
+          >
+            📁 그룹 설정
+          </button>
+          <button 
+            onClick={() => handleBulkAction('setActive')}
+            style={{ padding: '6px 12px', borderRadius: '6px', background: '#fff', color: '#2e7d32', border: '1px solid #2e7d32', fontSize: '13px', cursor: 'pointer' }}
+          >
+            ✅ 활성화
+          </button>
+          <button 
+            onClick={() => handleBulkAction('setInactive')}
+            style={{ padding: '6px 12px', borderRadius: '6px', background: '#fff', color: '#e65100', border: '1px solid #e65100', fontSize: '13px', cursor: 'pointer' }}
+          >
+            ⏸️ 비활성화
+          </button>
+          <button 
+            onClick={handleBulkDelete}
+            style={{ padding: '6px 12px', borderRadius: '6px', background: '#c62828', color: '#fff', border: 'none', fontSize: '13px', cursor: 'pointer' }}
+          >
+            🗑️ 삭제
+          </button>
+          <button 
+            onClick={() => setSelectedIds(new Set())}
+            style={{ padding: '6px 12px', borderRadius: '6px', background: '#f5f5f7', color: '#666', border: 'none', fontSize: '13px', cursor: 'pointer' }}
+          >
+            선택 해제
+          </button>
+        </div>
+      )}
+
       {/* 테이블 */}
       <div style={{ background: '#fff', borderRadius: '12px', overflow: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
         <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
@@ -319,7 +404,7 @@ export default function StoresPage() {
             ) : data.length === 0 ? (
               <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
             ) : data.map(store => (
-              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fafafa'} onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}>
+              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0', background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff' }} onMouseEnter={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fafafa' }} onMouseLeave={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fff' }}>
                 <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
@@ -358,6 +443,32 @@ export default function StoresPage() {
             style={{ padding: '8px 14px', borderRadius: '6px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '13px' }}>
             다음 →
           </button>
+        </div>
+      )}
+
+      {/* 그룹 설정 모달 */}
+      {showGroupModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '400px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>📁 그룹 일괄 설정</h3>
+            <p style={{ color: '#666', marginBottom: '16px' }}>선택한 {selectedIds.size}개 가맹점의 그룹을 변경합니다.</p>
+            
+            <select 
+              value={bulkGroupId || ''} 
+              onChange={(e) => setBulkGroupId(e.target.value ? parseInt(e.target.value) : null)}
+              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px', marginBottom: '20px' }}
+            >
+              <option value="">그룹 없음</option>
+              {groups.map(group => (
+                <option key={group.id} value={group.id}>{group.name}</option>
+              ))}
+            </select>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowGroupModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
+              <button onClick={confirmBulkSetGroup} style={{ padding: '10px 24px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>적용</button>
+            </div>
+          </div>
         </div>
       )}
 
