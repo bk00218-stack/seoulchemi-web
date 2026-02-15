@@ -202,6 +202,7 @@ model Store {
   distributorStatus String?   // 승인상태 (pending, approved, rejected)
   
   // ===== 미수금 관리 (OlwsPro) =====
+  initialReceivables Int      @default(0)  // 초기 미수금 (등록 시점)
   outstandingAmount Int       @default(0)  // 미수금 잔액
   creditLimit       Int       @default(0)  // 신용한도
   paymentTermDays   Int       @default(30) // 결제 기한 (일)

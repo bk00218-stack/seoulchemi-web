@@ -210,6 +210,7 @@ export async function POST(request: Request) {
       deliveryStaffId,
       outstandingAmount,
       billingDay,
+      initialReceivables,
     } = body
     
     if (!name) {
@@ -259,7 +260,8 @@ export async function POST(request: Request) {
         status: status || 'active',
         salesStaffId: salesStaffId ? parseInt(String(salesStaffId)) : null,
         deliveryStaffId: deliveryStaffId ? parseInt(String(deliveryStaffId)) : null,
-        outstandingAmount: outstandingAmount ? parseInt(String(outstandingAmount)) : 0,
+        initialReceivables: initialReceivables ? parseInt(String(initialReceivables)) : 0,
+        outstandingAmount: initialReceivables ? parseInt(String(initialReceivables)) : (outstandingAmount ? parseInt(String(outstandingAmount)) : 0),
       },
     })
     

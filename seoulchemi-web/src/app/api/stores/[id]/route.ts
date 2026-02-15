@@ -116,6 +116,7 @@ export async function PATCH(
       deliveryStaffId,
       outstandingAmount,
       billingDay,
+      initialReceivables,
     } = body
     
     // 필수값 체크
@@ -166,6 +167,7 @@ export async function PATCH(
         salesStaffId: salesStaffId !== undefined ? (salesStaffId ? parseInt(String(salesStaffId)) : null) : undefined,
         deliveryStaffId: deliveryStaffId !== undefined ? (deliveryStaffId ? parseInt(String(deliveryStaffId)) : null) : undefined,
         outstandingAmount: outstandingAmount !== undefined ? parseInt(String(outstandingAmount)) : undefined,
+        initialReceivables: initialReceivables !== undefined ? parseInt(String(initialReceivables)) : undefined,
       },
     })
     

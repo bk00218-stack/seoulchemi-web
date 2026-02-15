@@ -60,6 +60,7 @@ interface FormData {
   deliveryStaffId: number | null
   isActive: boolean
   createdAt: string
+  initialReceivables: number
 }
 
 const initialFormData: FormData = {
@@ -80,6 +81,7 @@ const initialFormData: FormData = {
   deliveryStaffId: null,
   isActive: true,
   createdAt: '',
+  initialReceivables: 0,
 }
 
 export default function StoresPage() {
@@ -271,6 +273,7 @@ export default function StoresPage() {
         deliveryStaffId: store.deliveryStaffId || null,
         isActive: store.isActive,
         createdAt: store.createdAt || '',
+        initialReceivables: store.initialReceivables || 0,
       })
     } else {
       setEditingStore(null)
@@ -639,8 +642,8 @@ export default function StoresPage() {
             </div>
             
             {/* 기본 정보 */}
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#007aff', marginBottom: '8px' }}>📋 기본 정보</div>
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#007aff', marginBottom: '10px', padding: '6px 0', borderBottom: '2px solid #007aff' }}>📋 기본 정보</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '8px', marginBottom: '8px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>코드</label>
@@ -687,8 +690,8 @@ export default function StoresPage() {
             </div>
 
             {/* 사업자 정보 */}
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#007aff', marginBottom: '8px' }}>🏢 사업자 정보</div>
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#ff9500', marginBottom: '10px', padding: '6px 0', borderBottom: '2px solid #ff9500' }}>🏢 사업자 정보</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>사업자등록번호</label>
@@ -715,8 +718,8 @@ export default function StoresPage() {
 
             {/* 거래 정보 */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#007aff', marginBottom: '8px' }}>🤝 거래 정보</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '8px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#34c759', marginBottom: '10px', padding: '6px 0', borderBottom: '2px solid #34c759' }}>🤝 거래 정보</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gap: '8px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>그룹</label>
                   <select value={formData.groupId || ''} onChange={(e) => setFormData({ ...formData, groupId: e.target.value ? parseInt(e.target.value) : null })}
@@ -744,6 +747,11 @@ export default function StoresPage() {
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>청구일</label>
                   <input type="number" min="1" max="31" value={formData.billingDay || ''} onChange={(e) => setFormData({ ...formData, billingDay: e.target.value ? parseInt(e.target.value) : null })} placeholder="일"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>초기 미수금</label>
+                  <input type="number" min="0" value={formData.initialReceivables || ''} onChange={(e) => setFormData({ ...formData, initialReceivables: e.target.value ? parseInt(e.target.value) : 0 })} placeholder="0"
                     style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
                 </div>
                 <div>
