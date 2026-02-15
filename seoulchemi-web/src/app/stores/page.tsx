@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Layout from '../components/Layout'
 import { STORES_SIDEBAR } from '../constants/sidebar'
 import { OutlineButton } from '../components/SearchFilter'
@@ -548,12 +549,16 @@ export default function StoresPage() {
             ) : data.length === 0 ? (
               <tr><td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
             ) : data.map(store => (
-              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0', background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', cursor: 'pointer' }} onClick={() => router.push(`/stores/${store.id}`)} onMouseEnter={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fafafa' }} onMouseLeave={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fff' }}>
-                <td style={{ padding: '6px 4px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0', background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff' }} onMouseEnter={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fafafa' }} onMouseLeave={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fff' }}>
+                <td style={{ padding: '6px 4px', textAlign: 'center' }}>
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
                 <td style={{ padding: '6px 4px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
-                <td style={{ padding: '6px 4px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.name}</td>
+                <td style={{ padding: '6px 4px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <Link href={`/stores/${store.id}`} style={{ color: '#007aff', textDecoration: 'none' }} prefetch={true}>
+                    {store.name}
+                  </Link>
+                </td>
                 <td style={{ padding: '6px 4px', fontSize: '12px' }}>{store.ownerName}</td>
                 <td style={{ padding: '6px 4px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
                 <td style={{ padding: '6px 4px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.address}</td>
