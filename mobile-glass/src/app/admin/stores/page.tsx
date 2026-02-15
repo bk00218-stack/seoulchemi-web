@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AdminLayout } from '../../components/Navigation'
-import DataTable, { StatusBadge, Column } from '../../components/DataTable'
 import { OutlineButton } from '../../components/SearchFilter'
 
 interface Store {
@@ -64,7 +63,7 @@ const initialFormData: FormData = {
 export default function StoresPage() {
   const router = useRouter()
   const [filter, setFilter] = useState('all')
-  const [selectedIds, setSelectedIds] = useState<Set<number | string>>(new Set())
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [showModal, setShowModal] = useState(false)
   const [editingStore, setEditingStore] = useState<Store | null>(null)
   const [formData, setFormData] = useState<FormData>(initialFormData)
@@ -75,18 +74,16 @@ export default function StoresPage() {
   const [searchCode, setSearchCode] = useState('')
   const [searchName, setSearchName] = useState('')
   const [searchOwner, setSearchOwner] = useState('')
+  const [searchPhone, setSearchPhone] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [groups, setGroups] = useState<StoreGroup[]>([])
 
-  // 그룹 목록 가져오기
   useEffect(() => {
     fetch('/api/store-groups')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setGroups(data)
-        }
+        if (Array.isArray(data)) setGroups(data)
       })
       .catch(err => console.error('Failed to fetch groups:', err))
   }, [])
@@ -98,18 +95,13 @@ export default function StoresPage() {
       params.set('page', String(page))
       params.set('limit', '50')
       if (filter !== 'all') params.set('status', filter)
-      
-      // 통합 검색어 생성
-      const searchTerms = [searchCode, searchName, searchOwner].filter(Boolean).join(' ')
+      const searchTerms = [searchCode, searchName, searchOwner, searchPhone].filter(Boolean).join(' ')
       if (searchTerms) params.set('search', searchTerms)
       
       const res = await fetch(`/api/stores?${params}`)
       const json = await res.json()
       
-      if (json.error) {
-        console.error(json.error)
-        return
-      }
+      if (json.error) { console.error(json.error); return }
       
       setData(json.stores)
       setStats(json.stats)
@@ -118,16 +110,11 @@ export default function StoresPage() {
       console.error('Failed to fetch stores:', error)
     }
     setLoading(false)
-  }, [filter, searchCode, searchName, searchOwner, page])
+  }, [filter, searchCode, searchName, searchOwner, searchPhone, page])
 
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
+  useEffect(() => { fetchData() }, [fetchData])
 
-  const handleSearch = () => {
-    setPage(1)
-    fetchData()
-  }
+  const handleSearch = () => { setPage(1); fetchData() }
 
   const openModal = (store: any | null = null) => {
     if (store) {
@@ -154,651 +141,279 @@ export default function StoresPage() {
   }
 
   const handleSave = async () => {
-    if (!formData.name.trim()) {
-      alert('안경원명을 입력해주세요.')
-      return
-    }
-    
+    if (!formData.name.trim()) { alert('안경원명을 입력해주세요.'); return }
     setSaving(true)
     try {
-      const url = editingStore 
-        ? `/api/stores/${editingStore.id}` 
-        : '/api/stores'
-      
+      const url = editingStore ? `/api/stores/${editingStore.id}` : '/api/stores'
       const res = await fetch(url, {
         method: editingStore ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
-      
       const json = await res.json()
-      
-      if (json.error) {
-        alert(json.error)
-        return
-      }
-      
+      if (json.error) { alert(json.error); return }
       alert(editingStore ? '수정되었습니다.' : '등록되었습니다.')
       setShowModal(false)
       fetchData()
-    } catch (error) {
-      alert('저장에 실패했습니다.')
-    }
+    } catch (error) { alert('저장에 실패했습니다.') }
     setSaving(false)
   }
 
   const handleDelete = async (store: Store) => {
     if (!confirm(`'${store.name}'을(를) 삭제하시겠습니까?`)) return
-    
     try {
       const res = await fetch(`/api/stores/${store.id}`, { method: 'DELETE' })
       const json = await res.json()
-      
-      if (json.error) {
-        alert(json.error)
-        return
-      }
-      
+      if (json.error) { alert(json.error); return }
       alert(json.message)
       fetchData()
-    } catch (error) {
-      alert('삭제에 실패했습니다.')
-    }
+    } catch (error) { alert('삭제에 실패했습니다.') }
   }
 
-  const columns: Column<Store>[] = [
-    { key: 'code', label: '코드', width: '80px', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#666' }}>{v as string}</span>
-    )},
-    { key: 'name', label: '안경원명', render: (v) => (
-      <span style={{ fontWeight: 500 }}>{v as string}</span>
-    )},
-    { key: 'ownerName', label: '대표자', width: '80px' },
-    { key: 'phone', label: '연락처', width: '120px', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{v as string}</span>
-    )},
-    { key: 'address', label: '주소', render: (v) => (
-      <span style={{ fontSize: '12px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', maxWidth: '200px' }}>{v as string}</span>
-    )},
-    { key: 'orderCount', label: '주문', width: '50px', align: 'center', render: (v) => (
-      <span style={{ color: (v as number) > 0 ? '#007aff' : '#ccc', fontSize: '13px', fontWeight: 500 }}>{v as number}</span>
-    )},
-    { key: 'lastOrderDate', label: '최근주문', width: '85px', render: (v) => (
-      v ? <span style={{ fontSize: '11px' }}>{v as string}</span> : <span style={{ color: '#ccc', fontSize: '11px' }}>-</span>
-    )},
-    { key: 'id', label: '', width: '200px', align: 'center', render: (_, row) => (
-      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', alignItems: 'center' }}>
-        <span style={{
-          padding: '3px 8px',
-          borderRadius: '10px',
-          fontSize: '11px',
-          fontWeight: 500,
-          background: row.isActive ? '#e8f5e9' : '#fff3e0',
-          color: row.isActive ? '#2e7d32' : '#e65100'
-        }}>
-          {row.isActive ? '활성' : '비활성'}
-        </span>
-        <button
-          onClick={() => router.push(`/admin/stores/${row.id}/discounts`)}
-          style={{
-            padding: '3px 8px',
-            borderRadius: '4px',
-            background: '#fff3e0',
-            color: '#e65100',
-            border: 'none',
-            fontSize: '11px',
-            cursor: 'pointer'
-          }}
-        >
-          할인
-        </button>
-        <button
-          onClick={() => openModal(row)}
-          style={{
-            padding: '3px 8px',
-            borderRadius: '4px',
-            background: '#e3f2fd',
-            color: '#1976d2',
-            border: 'none',
-            fontSize: '11px',
-            cursor: 'pointer'
-          }}
-        >
-          수정
-        </button>
-        <button
-          onClick={() => handleDelete(row)}
-          style={{
-            padding: '3px 8px',
-            borderRadius: '4px',
-            background: '#ffebee',
-            color: '#c62828',
-            border: 'none',
-            fontSize: '11px',
-            cursor: 'pointer'
-          }}
-        >
-          삭제
-        </button>
-      </div>
-    )},
-  ]
+  const toggleSelect = (id: number) => {
+    const newSet = new Set(selectedIds)
+    if (newSet.has(id)) newSet.delete(id)
+    else newSet.add(id)
+    setSelectedIds(newSet)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === data.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(data.map(d => d.id)))
+  }
 
   return (
     <AdminLayout activeMenu="stores">
-      {/* 헤더 - 꽉 차게 */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        marginBottom: '16px'
-      }}>
-        <h2 style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', margin: 0 }}>
-          가맹점 관리
-        </h2>
+      {/* 헤더 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', margin: 0 }}>가맹점 관리</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <OutlineButton onClick={() => alert('엑셀 다운로드 - 준비 중')}>📥 엑셀</OutlineButton>
-          <button
-            onClick={() => openModal(null)}
-            style={{
-              padding: '10px 16px',
-              borderRadius: '8px',
-              background: '#007aff',
-              color: '#fff',
-              border: 'none',
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'pointer'
-            }}
-          >
+          <button onClick={() => openModal(null)} style={{ padding: '10px 16px', borderRadius: '8px', background: '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
             + 가맹점 등록
           </button>
         </div>
       </div>
 
-      {/* 통계 카드 - 크기 키움 */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '16px',
-        marginBottom: '16px'
-      }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '28px' }}>🏪</span>
-            <div>
-              <div style={{ color: '#86868b', fontSize: '13px', marginBottom: '4px' }}>전체 가맹점</div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d1d1f' }}>{stats.total.toLocaleString()}</div>
-            </div>
+      {/* 통계 카드 - 크기 줄임 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+        <div style={{ background: '#fff', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '22px' }}>🏪</span>
+          <div>
+            <div style={{ color: '#86868b', fontSize: '12px' }}>전체</div>
+            <div style={{ fontSize: '20px', fontWeight: 700 }}>{stats.total.toLocaleString()}</div>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '28px' }}>✅</span>
-            <div>
-              <div style={{ color: '#86868b', fontSize: '13px', marginBottom: '4px' }}>활성</div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#34c759' }}>{stats.active.toLocaleString()}</div>
-            </div>
+        <div style={{ background: '#fff', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '22px' }}>✅</span>
+          <div>
+            <div style={{ color: '#86868b', fontSize: '12px' }}>활성</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#34c759' }}>{stats.active.toLocaleString()}</div>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '28px' }}>⏸️</span>
-            <div>
-              <div style={{ color: '#86868b', fontSize: '13px', marginBottom: '4px' }}>비활성</div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#ff9500' }}>{stats.inactive.toLocaleString()}</div>
-            </div>
+        <div style={{ background: '#fff', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '22px' }}>⏸️</span>
+          <div>
+            <div style={{ color: '#86868b', fontSize: '12px' }}>비활성</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#ff9500' }}>{stats.inactive.toLocaleString()}</div>
           </div>
         </div>
-        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '28px' }}>✨</span>
-            <div>
-              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', marginBottom: '4px' }}>이번달 신규</div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>{stats.newThisMonth.toLocaleString()}</div>
-            </div>
+        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '22px' }}>✨</span>
+          <div>
+            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px' }}>이번달 신규</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>{stats.newThisMonth.toLocaleString()}</div>
           </div>
         </div>
       </div>
 
-      {/* 필터 + 검색 */}
-      <div style={{
-        background: '#fff',
-        borderRadius: '12px',
-        padding: '16px 20px',
-        marginBottom: '16px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-          {/* 필터 버튼 */}
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {[
-              { label: `전체 (${stats.total})`, value: 'all' },
-              { label: `활성 (${stats.active})`, value: 'active' },
-              { label: `비활성 (${stats.inactive})`, value: 'inactive' },
-            ].map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => { setFilter(opt.value); setPage(1); }}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  background: filter === opt.value ? '#007aff' : '#f5f5f7',
-                  color: filter === opt.value ? '#fff' : '#666'
-                }}
-              >
-                {opt.label}
-              </button>
+      {/* 필터 버튼 */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+        {[
+          { label: `전체 (${stats.total})`, value: 'all' },
+          { label: `활성 (${stats.active})`, value: 'active' },
+          { label: `비활성 (${stats.inactive})`, value: 'inactive' },
+        ].map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => { setFilter(opt.value); setPage(1); }}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              background: filter === opt.value ? '#007aff' : '#f5f5f7',
+              color: filter === opt.value ? '#fff' : '#666'
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 테이블 */}
+      <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            {/* 헤더 - 폰트 키움 */}
+            <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #e9ecef' }}>
+              <th style={{ padding: '14px 12px', textAlign: 'center', width: '40px' }}>
+                <input type="checkbox" checked={selectedIds.size === data.length && data.length > 0} onChange={toggleSelectAll} />
+              </th>
+              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>코드</th>
+              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>안경원명</th>
+              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>대표자</th>
+              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>연락처</th>
+              <th style={{ padding: '14px 12px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>주소</th>
+              <th style={{ padding: '14px 12px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>주문</th>
+              <th style={{ padding: '14px 12px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>최근주문</th>
+              <th style={{ padding: '14px 12px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>관리</th>
+            </tr>
+            {/* 검색 필터 - 헤더 밑에 박스 */}
+            <tr style={{ background: '#f1f3f4', borderBottom: '1px solid #e9ecef' }}>
+              <td style={{ padding: '8px 12px' }}></td>
+              <td style={{ padding: '8px 6px' }}>
+                <input type="text" placeholder="코드" value={searchCode} onChange={(e) => setSearchCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px' }} />
+              </td>
+              <td style={{ padding: '8px 6px' }}>
+                <input type="text" placeholder="안경원명" value={searchName} onChange={(e) => setSearchName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px' }} />
+              </td>
+              <td style={{ padding: '8px 6px' }}>
+                <input type="text" placeholder="대표자" value={searchOwner} onChange={(e) => setSearchOwner(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px' }} />
+              </td>
+              <td style={{ padding: '8px 6px' }}>
+                <input type="text" placeholder="연락처" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px' }} />
+              </td>
+              <td style={{ padding: '8px 6px' }}></td>
+              <td style={{ padding: '8px 6px' }}></td>
+              <td style={{ padding: '8px 6px' }}></td>
+              <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                <button onClick={handleSearch} style={{ padding: '6px 12px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '12px', cursor: 'pointer' }}>검색</button>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>로딩 중...</td></tr>
+            ) : data.length === 0 ? (
+              <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
+            ) : data.map(store => (
+              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fafafa'} onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}>
+                <td style={{ padding: '12px', textAlign: 'center' }}>
+                  <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
+                </td>
+                <td style={{ padding: '12px', fontSize: '12px', fontFamily: 'monospace', color: '#666' }}>{store.code}</td>
+                <td style={{ padding: '12px', fontWeight: 500 }}>{store.name}</td>
+                <td style={{ padding: '12px', fontSize: '13px' }}>{store.ownerName}</td>
+                <td style={{ padding: '12px', fontSize: '12px', fontFamily: 'monospace' }}>{store.phone}</td>
+                <td style={{ padding: '12px', fontSize: '12px', color: '#666', maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.address}</td>
+                <td style={{ padding: '12px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: store.orderCount > 0 ? '#007aff' : '#ccc' }}>{store.orderCount}</td>
+                <td style={{ padding: '12px', textAlign: 'center', fontSize: '11px', color: store.lastOrderDate ? '#333' : '#ccc' }}>{store.lastOrderDate || '-'}</td>
+                <td style={{ padding: '12px' }}>
+                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', alignItems: 'center' }}>
+                    <span style={{ padding: '3px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100' }}>
+                      {store.isActive ? '활성' : '비활성'}
+                    </span>
+                    <button onClick={() => router.push(`/admin/stores/${store.id}/discounts`)} style={{ padding: '3px 8px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '11px', cursor: 'pointer' }}>할인</button>
+                    <button onClick={() => openModal(store)} style={{ padding: '3px 8px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '11px', cursor: 'pointer' }}>수정</button>
+                    <button onClick={() => handleDelete(store)} style={{ padding: '3px 8px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '11px', cursor: 'pointer' }}>삭제</button>
+                  </div>
+                </td>
+              </tr>
             ))}
-          </div>
-          
-          {/* 검색 필드 - 코드/안경원명/대표자 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="text"
-              placeholder="코드"
-              value={searchCode}
-              onChange={(e) => setSearchCode(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid #e5e5e5',
-                fontSize: '13px',
-                width: '80px'
-              }}
-            />
-            <input
-              type="text"
-              placeholder="안경원명"
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid #e5e5e5',
-                fontSize: '13px',
-                width: '120px'
-              }}
-            />
-            <input
-              type="text"
-              placeholder="대표자"
-              value={searchOwner}
-              onChange={(e) => setSearchOwner(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid #e5e5e5',
-                fontSize: '13px',
-                width: '80px'
-              }}
-            />
-            <button
-              onClick={handleSearch}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
-                background: '#007aff',
-                color: '#fff',
-                border: 'none',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: 'pointer'
-              }}
-            >
-              검색
-            </button>
-          </div>
-        </div>
+          </tbody>
+        </table>
       </div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
-          로딩 중...
-        </div>
-      ) : (
-        <>
-          <DataTable
-            columns={columns}
-            data={data}
-            selectable
-            selectedIds={selectedIds}
-            onSelectionChange={setSelectedIds}
-            emptyMessage="등록된 가맹점이 없습니다"
-          />
           
-          {/* 페이지네이션 */}
-          {totalPages > 1 && (
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center',
-              gap: '8px', 
-              marginTop: '16px' 
-            }}>
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '6px',
-                  background: page === 1 ? '#f5f5f7' : '#fff',
-                  color: page === 1 ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e9ecef',
-                  cursor: page === 1 ? 'default' : 'pointer',
-                  fontSize: '13px'
-                }}
-              >
-                ← 이전
-              </button>
-              <span style={{ 
-                padding: '8px 16px', 
-                color: '#666',
-                fontSize: '13px'
-              }}>
-                {page} / {totalPages}
-              </span>
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '6px',
-                  background: page === totalPages ? '#f5f5f7' : '#fff',
-                  color: page === totalPages ? '#c5c5c7' : '#007aff',
-                  border: '1px solid #e9ecef',
-                  cursor: page === totalPages ? 'default' : 'pointer',
-                  fontSize: '13px'
-                }}
-              >
-                다음 →
-              </button>
-            </div>
-          )}
-        </>
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            style={{ padding: '8px 14px', borderRadius: '6px', background: page === 1 ? '#f5f5f7' : '#fff', color: page === 1 ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === 1 ? 'default' : 'pointer', fontSize: '13px' }}>
+            ← 이전
+          </button>
+          <span style={{ padding: '8px 16px', color: '#666', fontSize: '13px' }}>{page} / {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+            style={{ padding: '8px 14px', borderRadius: '6px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '13px' }}>
+            다음 →
+          </button>
+        </div>
       )}
 
       {/* 등록/수정 모달 */}
       {showModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: '16px',
-            padding: '24px',
-            width: '520px',
-            maxHeight: '80vh',
-            overflow: 'auto'
-          }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editingStore ? '가맹점 수정' : '가맹점 등록'}
-            </h3>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '520px', maxHeight: '80vh', overflow: 'auto' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>{editingStore ? '가맹점 수정' : '가맹점 등록'}</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px', color: '#86868b' }}>
-                  가맹점 코드
-                </label>
-                <input 
-                  type="text" 
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="자동생성"
-                  disabled={!!editingStore}
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px',
-                    background: editingStore ? '#f5f5f7' : '#fff'
-                  }} 
-                />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px', color: '#86868b' }}>가맹점 코드</label>
+                <input type="text" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder="자동생성" disabled={!!editingStore}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px', background: editingStore ? '#f5f5f7' : '#fff' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-                  안경원명 <span style={{ color: '#ff3b30' }}>*</span>
-                </label>
-                <input 
-                  type="text" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }} 
-                />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>안경원명 <span style={{ color: '#ff3b30' }}>*</span></label>
+                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
               </div>
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>대표자</label>
-                <input 
-                  type="text" 
-                  value={formData.ownerName}
-                  onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }} 
-                />
+                <input type="text" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>전화</label>
-                <input 
-                  type="tel" 
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="02-000-0000"
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }} 
-                />
+                <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="02-000-0000"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>핸드폰</label>
-                <input 
-                  type="tel" 
-                  value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                  placeholder="010-0000-0000"
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }} 
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>결제기한 (일)</label>
-                <input 
-                  type="number" 
-                  value={formData.paymentTermDays}
-                  onChange={(e) => setFormData({ ...formData, paymentTermDays: parseInt(e.target.value) || 30 })}
-                  placeholder="30"
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }} 
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>청구일 (매월)</label>
-                <input 
-                  type="number" 
-                  value={formData.billingDay || ''}
-                  onChange={(e) => setFormData({ ...formData, billingDay: e.target.value ? parseInt(e.target.value) : null })}
-                  placeholder="예: 15 (매월 15일)"
-                  min={1}
-                  max={31}
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }} 
-                />
+                <input type="tel" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} placeholder="010-0000-0000"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>그룹</label>
-                <select 
-                  value={formData.groupId || ''}
-                  onChange={(e) => setFormData({ ...formData, groupId: e.target.value ? parseInt(e.target.value) : null })}
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }}
-                >
+                <select value={formData.groupId || ''} onChange={(e) => setFormData({ ...formData, groupId: e.target.value ? parseInt(e.target.value) : null })}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}>
                   <option value="">선택 안함</option>
-                  {groups.map(group => (
-                    <option key={group.id} value={group.id}>{group.name}</option>
-                  ))}
+                  {groups.map(group => (<option key={group.id} value={group.id}>{group.name}</option>))}
                 </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>담당</label>
-                <input 
-                  type="text" 
-                  value={formData.salesRepName}
-                  onChange={(e) => setFormData({ ...formData, salesRepName: e.target.value })}
-                  placeholder="담당자명"
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }} 
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>배송</label>
-                <input 
-                  type="text" 
-                  value={formData.deliveryContact}
-                  onChange={(e) => setFormData({ ...formData, deliveryContact: e.target.value })}
-                  placeholder="배송담당"
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    border: '1px solid #e9ecef', 
-                    fontSize: '14px' 
-                  }} 
-                />
               </div>
             </div>
             
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>주소</label>
-              <input 
-                type="text" 
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                style={{ 
-                  width: '100%', 
-                  padding: '10px 12px', 
-                  borderRadius: '8px', 
-                  border: '1px solid #e9ecef', 
-                  fontSize: '14px' 
-                }} 
-              />
+              <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상태</label>
-              <select 
-                value={formData.isActive ? 'active' : 'inactive'}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'active' })}
-                style={{ 
-                  width: '100%', 
-                  padding: '10px 12px', 
-                  borderRadius: '8px', 
-                  border: '1px solid #e9ecef', 
-                  fontSize: '14px' 
-                }}
-              >
+              <select value={formData.isActive ? 'active' : 'inactive'} onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'active' })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}>
                 <option value="active">활성</option>
                 <option value="inactive">비활성</option>
               </select>
             </div>
             
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
-              <button 
-                onClick={() => setShowModal(false)} 
-                disabled={saving}
-                style={{ 
-                  padding: '10px 20px', 
-                  borderRadius: '8px', 
-                  background: '#f5f5f7', 
-                  color: '#1d1d1f', 
-                  border: 'none', 
-                  fontSize: '14px', 
-                  cursor: 'pointer' 
-                }}
-              >
-                취소
-              </button>
-              <button 
-                onClick={handleSave}
-                disabled={saving}
-                style={{ 
-                  padding: '10px 24px', 
-                  borderRadius: '8px', 
-                  background: saving ? '#86868b' : '#007aff', 
-                  color: '#fff', 
-                  border: 'none', 
-                  fontSize: '14px', 
-                  fontWeight: 500, 
-                  cursor: saving ? 'default' : 'pointer' 
-                }}
-              >
+              <button onClick={() => setShowModal(false)} disabled={saving}
+                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
+              <button onClick={handleSave} disabled={saving}
+                style={{ padding: '10px 24px', borderRadius: '8px', background: saving ? '#86868b' : '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: saving ? 'default' : 'pointer' }}>
                 {saving ? '저장 중...' : '저장'}
               </button>
             </div>
