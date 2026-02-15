@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AdminLayout } from '@/app/components/Navigation'
 import Link from 'next/link'
+import useSWR from 'swr'
 
 interface DashboardData {
   summary: {
@@ -36,6 +37,105 @@ interface DashboardData {
   }
 }
 
+const fetcher = (url: string) => fetch(url).then(res => res.json())
+
+// 스켈레톤 컴포넌트
+const Skeleton = ({ width = '100%', height = '20px', radius = '4px' }: { width?: string; height?: string; radius?: string }) => (
+  <div
+    style={{
+      width,
+      height,
+      borderRadius: radius,
+      background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+      backgroundSize: '200% 100%',
+      animation: 'shimmer 1.5s infinite',
+    }}
+  />
+)
+
+// 스켈레톤 대시보드
+const DashboardSkeleton = () => (
+  <AdminLayout activeMenu="order">
+    <style>{`
+      @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+    `}</style>
+    
+    {/* 헤더 */}
+    <div style={{ marginBottom: '24px' }}>
+      <Skeleton width="200px" height="32px" radius="8px" />
+      <div style={{ marginTop: '8px' }}>
+        <Skeleton width="150px" height="16px" />
+      </div>
+    </div>
+
+    {/* 빠른 액션 */}
+    <div style={{ marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} style={{ padding: '16px 12px', borderRadius: '12px', background: '#fff', border: '1px solid #e5e5e5', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <Skeleton width="32px" height="32px" radius="8px" />
+            <Skeleton width="50px" height="14px" />
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* 오늘 요약 + 주문 상태 */}
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '16px', padding: '24px', opacity: 0.7 }}>
+        <Skeleton width="80px" height="16px" />
+        <div style={{ marginTop: '12px' }}>
+          <Skeleton width="60px" height="40px" radius="8px" />
+        </div>
+        <div style={{ marginTop: '8px' }}>
+          <Skeleton width="100px" height="16px" />
+        </div>
+      </div>
+      <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
+        <Skeleton width="100px" height="20px" radius="6px" />
+        <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Skeleton width="8px" height="8px" radius="50%" />
+              <Skeleton width="40px" height="14px" />
+              <div style={{ marginLeft: 'auto' }}>
+                <Skeleton width="24px" height="16px" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* 대기 주문 + 경고 */}
+    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+      <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <Skeleton width="120px" height="20px" />
+          <Skeleton width="80px" height="16px" />
+        </div>
+        {[1, 2, 3].map(i => (
+          <div key={i} style={{ padding: '12px', borderRadius: '8px', background: '#f9fafb', marginBottom: '8px' }}>
+            <Skeleton width="120px" height="16px" />
+            <div style={{ marginTop: '4px' }}>
+              <Skeleton width="80px" height="12px" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background: '#fff', borderRadius: '16px', padding: '24px' }}>
+        <Skeleton width="80px" height="20px" />
+        <div style={{ marginTop: '16px' }}>
+          <Skeleton width="100%" height="40px" radius="8px" />
+        </div>
+      </div>
+    </div>
+  </AdminLayout>
+)
+
 // 빠른 액션 버튼
 const QuickAction = ({ icon, label, href }: { icon: string; label: string; href: string }) => (
   <Link
@@ -51,6 +151,15 @@ const QuickAction = ({ icon, label, href }: { icon: string; label: string; href:
       textDecoration: 'none',
       color: 'inherit',
       border: '1px solid #e5e5e5',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)'
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)'
+      e.currentTarget.style.boxShadow = 'none'
     }}
   >
     <span style={{ fontSize: '24px' }}>{icon}</span>
@@ -59,42 +168,40 @@ const QuickAction = ({ icon, label, href }: { icon: string; label: string; href:
 )
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const fetchDashboard = useCallback(async () => {
-    try {
-      const res = await fetch('/api/orders/dashboard')
-      if (res.ok) {
-        setData(await res.json())
-      }
-    } catch (error) {
-      console.error('Dashboard fetch error:', error)
-    } finally {
-      setLoading(false)
+  // SWR로 데이터 캐싱 + 자동 재검증
+  const { data, error, isLoading } = useSWR<DashboardData>(
+    '/api/orders/dashboard',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 30000, // 30초간 중복 요청 방지
+      keepPreviousData: true, // 새 데이터 로딩 중 이전 데이터 유지
     }
-  }, [])
+  )
 
-  useEffect(() => {
-    fetchDashboard()
-  }, [fetchDashboard])
-
-  if (loading) {
-    return (
-      <AdminLayout>
-        <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>
-          로딩 중...
-        </div>
-      </AdminLayout>
-    )
+  // 스켈레톤 표시 (첫 로딩시만)
+  if (isLoading && !data) {
+    return <DashboardSkeleton />
   }
 
-  if (!data) {
+  if (error || !data) {
     return (
       <AdminLayout>
         <div style={{ padding: '40px', textAlign: 'center' }}>
           <p>데이터를 불러올 수 없습니다.</p>
-          <button onClick={fetchDashboard} style={{ padding: '8px 16px', marginTop: '12px' }}>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{ 
+              padding: '8px 16px', 
+              marginTop: '12px',
+              background: '#007aff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
             다시 시도
           </button>
         </div>
@@ -180,8 +287,11 @@ export default function DashboardPage() {
                     borderRadius: '8px',
                     background: '#f9fafb',
                     textDecoration: 'none',
-                    color: 'inherit'
+                    color: 'inherit',
+                    transition: 'background 0.2s',
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#f9fafb'}
                 >
                   <div>
                     <div style={{ fontSize: '14px', fontWeight: 500 }}>{order.storeName}</div>
