@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import NoticePopup from '../components/NoticePopup'
+import NoticeBanner from '../components/NoticeBanner'
 
 interface Brand {
   id: number
@@ -115,6 +117,12 @@ export default function StoreProductsPage() {
 
   return (
     <div>
+      {/* 공지 팝업 */}
+      <NoticePopup />
+      
+      {/* 공지 배너 */}
+      <NoticeBanner />
+
       {/* Page Header */}
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
