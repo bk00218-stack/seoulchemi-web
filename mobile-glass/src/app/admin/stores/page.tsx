@@ -399,14 +399,14 @@ export default function StoresPage() {
         <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
             <col style={{ width: '40px' }} />
-            <col style={{ width: '70px' }} />
-            <col style={{ width: '150px' }} />
-            <col style={{ width: '70px' }} />
+            <col style={{ width: '60px' }} />
+            <col style={{ width: '140px' }} />
+            <col style={{ width: '60px' }} />
             <col style={{ width: '110px' }} />
             <col style={{ width: 'auto' }} />
-            <col style={{ width: '50px' }} />
-            <col style={{ width: '80px' }} />
-            <col style={{ width: '220px' }} />
+            <col style={{ width: '70px' }} />
+            <col style={{ width: '70px' }} />
+            <col style={{ width: '180px' }} />
           </colgroup>
           <thead>
             {/* 헤더 */}
