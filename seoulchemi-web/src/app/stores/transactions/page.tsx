@@ -189,7 +189,7 @@ export default function TransactionsPage() {
         
         {/* 좌측: 거래처 목록 */}
         <div style={{ 
-          width: '320px', 
+          width: '240px', 
           flexShrink: 0,
           background: '#fff', 
           borderRadius: '12px', 
@@ -203,7 +203,7 @@ export default function TransactionsPage() {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="상호 또는 전화번호 검색... (↑↓ 이동, Enter 선택)"
+              placeholder="상호/전화번호 검색..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -216,59 +216,56 @@ export default function TransactionsPage() {
                 boxSizing: 'border-box'
               }}
             />
+            <div style={{ fontSize: '10px', color: '#aaa', marginTop: '4px', textAlign: 'center' }}>
+              ↑↓ 이동 · Enter 선택
+            </div>
           </div>
           
-          {/* 거래처 목록 테이블 */}
+          {/* 거래처 목록 */}
           <div ref={listRef} style={{ flex: 1, overflow: 'auto' }}>
             {loading ? (
               <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
             ) : sortedStores.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>거래처가 없습니다</div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#666', width: '70px' }}>지역</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#666' }}>상호</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedStores.map((store, idx) => (
-                    <tr 
-                      key={store.id} 
-                      onClick={() => handleSelectStore(store)}
-                      style={{ 
-                        cursor: 'pointer',
-                        background: selectedStore?.id === store.id 
-                          ? '#e3f2fd' 
-                          : highlightIndex === idx 
-                            ? '#fff3cd' 
-                            : 'transparent',
-                        borderBottom: '1px solid #f0f0f0'
-                      }}
-                      onMouseEnter={e => {
-                        if (selectedStore?.id !== store.id && highlightIndex !== idx) {
-                          e.currentTarget.style.background = '#f5f5f7'
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        if (selectedStore?.id !== store.id && highlightIndex !== idx) {
-                          e.currentTarget.style.background = 'transparent'
-                        }
-                      }}
-                    >
-                      <td style={{ padding: '10px 12px', fontSize: '12px', color: '#666' }}>{store.region || '-'}</td>
-                      <td style={{ padding: '10px 12px', fontSize: '13px', fontWeight: 500 }}>{store.name}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div>
+                {sortedStores.map((store, idx) => (
+                  <div 
+                    key={store.id} 
+                    onClick={() => handleSelectStore(store)}
+                    style={{ 
+                      padding: '10px 14px',
+                      cursor: 'pointer',
+                      background: selectedStore?.id === store.id 
+                        ? '#e3f2fd' 
+                        : highlightIndex === idx 
+                          ? '#fff3cd' 
+                          : 'transparent',
+                      borderBottom: '1px solid #f0f0f0',
+                      fontSize: '13px',
+                      fontWeight: selectedStore?.id === store.id ? 600 : 400
+                    }}
+                    onMouseEnter={e => {
+                      if (selectedStore?.id !== store.id && highlightIndex !== idx) {
+                        e.currentTarget.style.background = '#f5f5f7'
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (selectedStore?.id !== store.id && highlightIndex !== idx) {
+                        e.currentTarget.style.background = 'transparent'
+                      }
+                    }}
+                  >
+                    {store.name}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
           
           {/* 거래처 수 표시 */}
-          <div style={{ padding: '10px 12px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '12px', color: '#666' }}>
-            총 {filteredStores.length}개 거래처
+          <div style={{ padding: '8px 12px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '11px', color: '#666', textAlign: 'center' }}>
+            {filteredStores.length}개 거래처
           </div>
         </div>
 
