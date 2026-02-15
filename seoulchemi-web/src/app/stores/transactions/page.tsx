@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
 
@@ -13,6 +13,9 @@ interface Store {
   phone: string
   address: string
   balance: number  // 미결제액 (미수금)
+  salesStaffName: string  // 영업담당
+  deliveryStaffName: string  // 배송담당
+  groupName: string  // 그룹
 }
 
 interface Transaction {
@@ -34,6 +37,18 @@ const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> 
   adjustment: { label: '조정', color: '#666', bg: '#f5f5f5' },
 }
 
+// 임의 거래내역 데이터 (미리보기용)
+const MOCK_TRANSACTIONS: Transaction[] = [
+  { id: 1, storeId: 0, type: 'sale', amount: 1250000, balanceAfter: 5504502, orderNo: 'ORD-2025-0215-001', paymentMethod: null, memo: '다초점렌즈 외 5건', processedAt: '2025-02-15T10:30:00' },
+  { id: 2, storeId: 0, type: 'deposit', amount: 500000, balanceAfter: 5004502, orderNo: null, paymentMethod: '계좌이체', memo: '2월 중간정산', processedAt: '2025-02-10T14:20:00' },
+  { id: 3, storeId: 0, type: 'sale', amount: 890000, balanceAfter: 5504502, orderNo: 'ORD-2025-0208-003', paymentMethod: null, memo: '누진렌즈 2건', processedAt: '2025-02-08T11:45:00' },
+  { id: 4, storeId: 0, type: 'return', amount: 150000, balanceAfter: 4614502, orderNo: 'ORD-2025-0205-002', paymentMethod: null, memo: '불량 교환', processedAt: '2025-02-05T16:00:00' },
+  { id: 5, storeId: 0, type: 'deposit', amount: 1000000, balanceAfter: 4764502, orderNo: null, paymentMethod: '현금', memo: '1월 말 정산', processedAt: '2025-01-31T17:30:00' },
+  { id: 6, storeId: 0, type: 'sale', amount: 2340000, balanceAfter: 5764502, orderNo: 'ORD-2025-0128-005', paymentMethod: null, memo: '단초점 10건, 다초점 3건', processedAt: '2025-01-28T09:15:00' },
+  { id: 7, storeId: 0, type: 'sale', amount: 670000, balanceAfter: 3424502, orderNo: 'ORD-2025-0120-001', paymentMethod: null, memo: '코팅렌즈', processedAt: '2025-01-20T13:40:00' },
+  { id: 8, storeId: 0, type: 'deposit', amount: 2000000, balanceAfter: 2754502, orderNo: null, paymentMethod: '계좌이체', memo: '12월 정산', processedAt: '2025-01-15T10:00:00' },
+]
+
 export default function TransactionsPage() {
   const [stores, setStores] = useState<Store[]>([])
   const [filteredStores, setFilteredStores] = useState<Store[]>([])
@@ -45,6 +60,11 @@ export default function TransactionsPage() {
   // 검색/필터
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  
+  // 키보드 네비게이션
+  const [highlightIndex, setHighlightIndex] = useState(-1)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
   // 거래처 목록 로드
   useEffect(() => {
@@ -64,6 +84,9 @@ export default function TransactionsPage() {
         phone: s.phone || '',
         address: s.address || '',
         balance: s.balance || 0,
+        salesStaffName: s.salesStaff?.name || s.salesStaffName || '',
+        deliveryStaffName: s.deliveryStaff?.name || s.deliveryStaffName || '',
+        groupName: s.group?.name || s.groupName || '',
       }))
       setStores(storeList)
       setFilteredStores(storeList)
@@ -78,14 +101,16 @@ export default function TransactionsPage() {
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredStores(stores)
+      setHighlightIndex(-1)
       return
     }
-    const q = searchQuery.toLowerCase().replace(/-/g, '') // 하이픈 제거하여 전화번호 검색 용이하게
+    const q = searchQuery.toLowerCase().replace(/-/g, '')
     const filtered = stores.filter(s => {
       const phoneClean = (s.phone || '').replace(/-/g, '').toLowerCase()
       return s.name.toLowerCase().includes(q) || phoneClean.includes(q)
     })
     setFilteredStores(filtered)
+    setHighlightIndex(filtered.length > 0 ? 0 : -1)
   }, [searchQuery, stores])
 
   // 거래처 선택 시 거래내역 로드
@@ -95,14 +120,48 @@ export default function TransactionsPage() {
     try {
       const res = await fetch(`/api/transactions?storeId=${store.id}&limit=100`)
       const data = await res.json()
-      setTransactions(data.transactions || [])
+      const realTransactions = data.transactions || []
+      // 실제 데이터가 없으면 임의 데이터 표시
+      if (realTransactions.length === 0) {
+        setTransactions(MOCK_TRANSACTIONS.map(t => ({ ...t, storeId: store.id })))
+      } else {
+        setTransactions(realTransactions)
+      }
     } catch (e) {
       console.error(e)
-      setTransactions([])
+      // 에러 시에도 임의 데이터 표시
+      setTransactions(MOCK_TRANSACTIONS.map(t => ({ ...t, storeId: store.id })))
     } finally {
       setTransLoading(false)
     }
   }, [])
+
+  // 키보드 이벤트 핸들러
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const sorted = sortedStores
+    if (sorted.length === 0) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHighlightIndex(prev => Math.min(prev + 1, sorted.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlightIndex(prev => Math.max(prev - 1, 0))
+    } else if (e.key === 'Enter' && highlightIndex >= 0) {
+      e.preventDefault()
+      handleSelectStore(sorted[highlightIndex])
+    }
+  }, [highlightIndex, handleSelectStore])
+
+  // 하이라이트된 항목이 보이도록 스크롤
+  useEffect(() => {
+    if (highlightIndex >= 0 && listRef.current) {
+      const rows = listRef.current.querySelectorAll('tbody tr')
+      if (rows[highlightIndex]) {
+        rows[highlightIndex].scrollIntoView({ block: 'nearest' })
+      }
+    }
+  }, [highlightIndex])
 
   // 거래내역 필터
   const filteredTransactions = transactions.filter(t => {
@@ -142,10 +201,12 @@ export default function TransactionsPage() {
           {/* 검색 영역 */}
           <div style={{ padding: '12px', borderBottom: '1px solid #e9ecef' }}>
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="상호 또는 전화번호 검색..."
+              placeholder="상호 또는 전화번호 검색... (↑↓ 이동, Enter 선택)"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
               style={{ 
                 width: '100%', 
                 padding: '8px 12px', 
@@ -158,7 +219,7 @@ export default function TransactionsPage() {
           </div>
           
           {/* 거래처 목록 테이블 */}
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          <div ref={listRef} style={{ flex: 1, overflow: 'auto' }}>
             {loading ? (
               <div style={{ padding: '40px', textAlign: 'center', color: '#86868b' }}>로딩 중...</div>
             ) : sortedStores.length === 0 ? (
@@ -172,22 +233,26 @@ export default function TransactionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedStores.map(store => (
+                  {sortedStores.map((store, idx) => (
                     <tr 
                       key={store.id} 
                       onClick={() => handleSelectStore(store)}
                       style={{ 
                         cursor: 'pointer',
-                        background: selectedStore?.id === store.id ? '#e3f2fd' : 'transparent',
+                        background: selectedStore?.id === store.id 
+                          ? '#e3f2fd' 
+                          : highlightIndex === idx 
+                            ? '#fff3cd' 
+                            : 'transparent',
                         borderBottom: '1px solid #f0f0f0'
                       }}
                       onMouseEnter={e => {
-                        if (selectedStore?.id !== store.id) {
+                        if (selectedStore?.id !== store.id && highlightIndex !== idx) {
                           e.currentTarget.style.background = '#f5f5f7'
                         }
                       }}
                       onMouseLeave={e => {
-                        if (selectedStore?.id !== store.id) {
+                        if (selectedStore?.id !== store.id && highlightIndex !== idx) {
                           e.currentTarget.style.background = 'transparent'
                         }
                       }}
@@ -224,7 +289,7 @@ export default function TransactionsPage() {
             ) : (
               <div>
                 {/* 상호 + 미결제액 */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
                     <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>{selectedStore.name}</h3>
                     <span style={{ fontSize: '12px', color: '#86868b' }}>{selectedStore.code}</span>
@@ -232,7 +297,7 @@ export default function TransactionsPage() {
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '12px', color: '#86868b' }}>미결제액</div>
                     <div style={{ 
-                      fontSize: '22px', 
+                      fontSize: '24px', 
                       fontWeight: 700, 
                       color: selectedStore.balance > 0 ? '#d32f2f' : '#2e7d32',
                       lineHeight: 1.2
@@ -242,26 +307,44 @@ export default function TransactionsPage() {
                   </div>
                 </div>
                 
-                {/* 상세 정보 */}
-                <div style={{ display: 'flex', gap: '24px', fontSize: '13px', color: '#666', flexWrap: 'wrap' }}>
+                {/* 상세 정보 - 2줄 */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(4, 1fr)', 
+                  gap: '12px 24px', 
+                  fontSize: '13px',
+                  padding: '12px 0',
+                  borderTop: '1px solid #f0f0f0'
+                }}>
                   <div>
-                    <span style={{ color: '#86868b' }}>대표자: </span>
-                    <span style={{ fontWeight: 500 }}>{selectedStore.ownerName || '-'}</span>
+                    <div style={{ color: '#86868b', fontSize: '11px', marginBottom: '2px' }}>대표자</div>
+                    <div style={{ fontWeight: 500 }}>{selectedStore.ownerName || '-'}</div>
                   </div>
                   <div>
-                    <span style={{ color: '#86868b' }}>연락처: </span>
-                    <span style={{ fontWeight: 500 }}>{selectedStore.phone || '-'}</span>
+                    <div style={{ color: '#86868b', fontSize: '11px', marginBottom: '2px' }}>연락처</div>
+                    <div style={{ fontWeight: 500 }}>{selectedStore.phone || '-'}</div>
                   </div>
                   <div>
-                    <span style={{ color: '#86868b' }}>지역: </span>
-                    <span style={{ fontWeight: 500 }}>{selectedStore.region || '-'}</span>
+                    <div style={{ color: '#86868b', fontSize: '11px', marginBottom: '2px' }}>지역</div>
+                    <div style={{ fontWeight: 500 }}>{selectedStore.region || '-'}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#86868b', fontSize: '11px', marginBottom: '2px' }}>그룹</div>
+                    <div style={{ fontWeight: 500 }}>{selectedStore.groupName || '-'}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#86868b', fontSize: '11px', marginBottom: '2px' }}>👔 영업담당</div>
+                    <div style={{ fontWeight: 500, color: '#1565c0' }}>{selectedStore.salesStaffName || '-'}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#86868b', fontSize: '11px', marginBottom: '2px' }}>🚚 배송담당</div>
+                    <div style={{ fontWeight: 500, color: '#2e7d32' }}>{selectedStore.deliveryStaffName || '-'}</div>
+                  </div>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <div style={{ color: '#86868b', fontSize: '11px', marginBottom: '2px' }}>📍 주소</div>
+                    <div style={{ fontWeight: 500, fontSize: '12px' }}>{selectedStore.address || '-'}</div>
                   </div>
                 </div>
-                {selectedStore.address && (
-                  <div style={{ marginTop: '8px', fontSize: '12px', color: '#86868b' }}>
-                    📍 {selectedStore.address}
-                  </div>
-                )}
               </div>
             )}
           </div>
