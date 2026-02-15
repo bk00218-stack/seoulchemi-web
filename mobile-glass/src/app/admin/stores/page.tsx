@@ -402,7 +402,7 @@ export default function StoresPage() {
             <col style={{ width: '60px' }} />
             <col style={{ width: '140px' }} />
             <col style={{ width: '60px' }} />
-            <col style={{ width: '110px' }} />
+            <col style={{ width: '95px' }} />
             <col style={{ width: 'auto' }} />
             <col style={{ width: '70px' }} />
             <col style={{ width: '70px' }} />
