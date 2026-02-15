@@ -490,14 +490,15 @@ export default function StoresPage() {
                       style={{
                         position: 'absolute',
                         right: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: '6px',
+                        top: '25%',
+                        height: '50%',
+                        width: '5px',
                         cursor: 'col-resize',
-                        background: 'transparent',
+                        borderRight: '2px solid #d0d0d0',
+                        transition: 'border-color 0.15s',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#007aff33')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#007aff')}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#d0d0d0')}
                     />
                   )}
                 </th>
