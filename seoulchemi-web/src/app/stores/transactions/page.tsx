@@ -32,9 +32,6 @@ interface Store {
   billingDay: number | null
   lastPaymentAt: string | null
   discountRate: number
-  // 레티나
-  retinaCode: string
-  retinaJoined: boolean
   // 상태
   status: string
   memo: string
@@ -119,9 +116,6 @@ export default function TransactionsPage() {
         billingDay: s.billingDay || null,
         lastPaymentAt: s.lastPaymentAt || null,
         discountRate: s.discountRate || 0,
-        // 레티나
-        retinaCode: s.retinaCode || '',
-        retinaJoined: s.retinaJoined || false,
         // 상태
         status: s.status || 'active',
         memo: s.memo || '',
@@ -314,7 +308,6 @@ export default function TransactionsPage() {
                     <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>{selectedStore.name}</h3>
                     <div style={{ fontSize: '11px', color: '#86868b', marginTop: '2px' }}>
                       {selectedStore.code}
-                      {selectedStore.retinaJoined && <span style={{ marginLeft: '8px', color: '#1565c0' }}>🔗 레티나</span>}
                       {selectedStore.status === 'suspended' && <span style={{ marginLeft: '8px', color: '#d32f2f' }}>⚠️ 거래정지</span>}
                       {selectedStore.status === 'caution' && <span style={{ marginLeft: '8px', color: '#e65100' }}>⚠️ 주의</span>}
                     </div>
@@ -367,11 +360,10 @@ export default function TransactionsPage() {
                     </div>
                   )}
                   
-                  {/* 레티나/최근입금 */}
-                  {(selectedStore.retinaCode || selectedStore.lastPaymentAt) && (
-                    <div style={{ gridColumn: 'span 3', display: 'flex', gap: '16px' }}>
-                      {selectedStore.retinaCode && <span><span style={{ color: '#999' }}>레티나:</span> {selectedStore.retinaCode}</span>}
-                      {selectedStore.lastPaymentAt && <span><span style={{ color: '#999' }}>최근입금:</span> {new Date(selectedStore.lastPaymentAt).toLocaleDateString('ko-KR')}</span>}
+                  {/* 최근입금 */}
+                  {selectedStore.lastPaymentAt && (
+                    <div style={{ gridColumn: 'span 3' }}>
+                      <span style={{ color: '#999' }}>최근입금:</span> {new Date(selectedStore.lastPaymentAt).toLocaleDateString('ko-KR')}
                     </div>
                   )}
                   

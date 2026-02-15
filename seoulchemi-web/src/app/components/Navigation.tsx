@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 
-// 메뉴 구조 정의 (레티나 관리자 시스템 기반)
+// 메뉴 구조 정의
 export const menuStructure = {
   order: {
     label: '주문',
