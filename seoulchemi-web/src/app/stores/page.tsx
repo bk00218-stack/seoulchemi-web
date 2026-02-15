@@ -554,10 +554,10 @@ export default function StoresPage() {
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
                 <td style={{ padding: '6px 4px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
-                <td style={{ padding: '6px 4px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>
-                  <Link href={`/stores/${store.id}`} style={{ color: 'inherit', textDecoration: 'none' }} prefetch={true}>
+                <td style={{ padding: '6px 4px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }} onClick={() => openModal(store)}>
+                  <span style={{ color: '#007aff' }}>
                     {store.name}
-                  </Link>
+                  </span>
                 </td>
                 <td style={{ padding: '6px 4px', fontSize: '12px' }}>{store.ownerName}</td>
                 <td style={{ padding: '6px 4px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
