@@ -12,7 +12,7 @@ export async function GET(
     const { id } = await params
     const storeId = parseInt(id)
     
-    const [store, brandDiscounts, productDiscounts, productPrices, brands, products] = await Promise.all([
+    const [store, brandDiscounts, productLineDiscounts, productDiscounts, productPrices, brands, productLines, products] = await Promise.all([
       prisma.store.findUnique({
         where: { id: storeId },
         select: { id: true, name: true, code: true, discountRate: true }
@@ -20,6 +20,15 @@ export async function GET(
       prisma.storeBrandDiscount.findMany({
         where: { storeId },
         include: { brand: { select: { id: true, name: true } } }
+      }),
+      prisma.storeProductLineDiscount.findMany({
+        where: { storeId },
+        include: { 
+          productLine: { 
+            select: { id: true, name: true, brandId: true },
+            include: { brand: { select: { id: true, name: true } } }
+          } 
+        }
       }),
       prisma.storeProductDiscount.findMany({
         where: { storeId },
@@ -32,6 +41,11 @@ export async function GET(
       prisma.brand.findMany({
         where: { isActive: true },
         orderBy: { displayOrder: 'asc' }
+      }),
+      prisma.productLine.findMany({
+        where: { isActive: true },
+        include: { brand: { select: { id: true, name: true } } },
+        orderBy: [{ brand: { displayOrder: 'asc' } }, { displayOrder: 'asc' }]
       }),
       prisma.product.findMany({
         where: { isActive: true },
@@ -47,9 +61,11 @@ export async function GET(
     return NextResponse.json({
       store,
       brandDiscounts,
+      productLineDiscounts,
       productDiscounts,
       productPrices,
       brands,
+      productLines,
       products
     })
   } catch (error) {
@@ -88,7 +104,7 @@ export async function POST(
   try {
     const { id } = await params
     const storeId = parseInt(id)
-    const { type, brandId, productId, discountRate, specialPrice } = await request.json()
+    const { type, brandId, productLineId, productId, discountRate, specialPrice } = await request.json()
 
     let result
 
@@ -98,6 +114,13 @@ export async function POST(
         where: { storeId_brandId: { storeId, brandId } },
         update: { discountRate },
         create: { storeId, brandId, discountRate }
+      })
+    } else if (type === 'product_line') {
+      // 품목별 할인율
+      result = await prisma.storeProductLineDiscount.upsert({
+        where: { storeId_productLineId: { storeId, productLineId } },
+        update: { discountRate },
+        create: { storeId, productLineId, discountRate }
       })
     } else if (type === 'product_discount') {
       // 상품별 할인율
@@ -139,6 +162,10 @@ export async function DELETE(
     if (type === 'brand') {
       await prisma.storeBrandDiscount.delete({
         where: { storeId_brandId: { storeId, brandId: targetId } }
+      })
+    } else if (type === 'product_line') {
+      await prisma.storeProductLineDiscount.delete({
+        where: { storeId_productLineId: { storeId, productLineId: targetId } }
       })
     } else if (type === 'product_discount') {
       await prisma.storeProductDiscount.delete({

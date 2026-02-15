@@ -10,6 +10,13 @@ interface Brand {
   name: string
 }
 
+interface ProductLine {
+  id: number
+  name: string
+  brandId: number
+  brand: { id: number; name: string }
+}
+
 interface Product {
   id: number
   name: string
@@ -22,6 +29,13 @@ interface BrandDiscount {
   brandId: number
   discountRate: number
   brand: { id: number; name: string }
+}
+
+interface ProductLineDiscount {
+  id: number
+  productLineId: number
+  discountRate: number
+  productLine: ProductLine
 }
 
 interface ProductDiscount {
@@ -41,9 +55,11 @@ interface ProductPrice {
 interface StoreDiscountData {
   store: { id: number; name: string; code: string; discountRate: number }
   brandDiscounts: BrandDiscount[]
+  productLineDiscounts: ProductLineDiscount[]
   productDiscounts: ProductDiscount[]
   productPrices: ProductPrice[]
   brands: Brand[]
+  productLines: ProductLine[]
   products: Product[]
 }
 
@@ -53,11 +69,13 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
   const [data, setData] = useState<StoreDiscountData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'brand' | 'product_discount' | 'product_price'>('brand')
+  const [activeTab, setActiveTab] = useState<'brand' | 'product_line' | 'product_discount' | 'product_price'>('brand')
   
   // 새 항목 추가용
   const [newBrandId, setNewBrandId] = useState<number>(0)
   const [newBrandRate, setNewBrandRate] = useState<number>(0)
+  const [newProductLineId, setNewProductLineId] = useState<number>(0)
+  const [newProductLineRate, setNewProductLineRate] = useState<number>(0)
   const [newProductId, setNewProductId] = useState<number>(0)
   const [newProductRate, setNewProductRate] = useState<number>(0)
   const [newPriceProductId, setNewPriceProductId] = useState<number>(0)
@@ -108,6 +126,8 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       // Reset forms
       setNewBrandId(0)
       setNewBrandRate(0)
+      setNewProductLineId(0)
+      setNewProductLineRate(0)
       setNewProductId(0)
       setNewProductRate(0)
       setNewPriceProductId(0)
@@ -151,10 +171,11 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
     )
   }
 
-  const { store, brandDiscounts, productDiscounts, productPrices, brands, products } = data
+  const { store, brandDiscounts, productLineDiscounts, productDiscounts, productPrices, brands, productLines, products } = data
 
-  // 이미 설정된 브랜드/상품 제외
+  // 이미 설정된 브랜드/품목/상품 제외
   const availableBrands = brands.filter(b => !brandDiscounts.find(bd => bd.brandId === b.id))
+  const availableProductLines = productLines.filter(pl => !productLineDiscounts.find(pld => pld.productLineId === pl.id))
   const availableProductsForDiscount = products.filter(p => !productDiscounts.find(pd => pd.productId === p.id))
   const availableProductsForPrice = products.filter(p => !productPrices.find(pp => pp.productId === p.id))
 
@@ -185,7 +206,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
         fontSize: '14px',
         border: '1px solid #ffc107'
       }}>
-        <strong>📌 가격 적용 우선순위:</strong> 특수단가 → 브랜드별 할인 → 상품별 할인 → 기본할인율 → 정가
+        <strong>📌 가격 적용 우선순위:</strong> 특수단가 → 상품별 할인 → 품목별 할인 → 브랜드별 할인 → 기본할인율 → 정가
       </div>
 
       {/* 기본 할인율 */}
@@ -227,9 +248,10 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       </div>
 
       {/* 탭 */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {[
           { key: 'brand', label: '브랜드별 할인', count: brandDiscounts.length },
+          { key: 'product_line', label: '품목별 할인', count: productLineDiscounts.length },
           { key: 'product_discount', label: '상품별 할인', count: productDiscounts.length },
           { key: 'product_price', label: '특수단가', count: productPrices.length }
         ].map(tab => (
@@ -324,6 +346,89 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                       <td style={{ padding: '12px', textAlign: 'center' }}>
                         <button
                           onClick={() => deleteDiscount('brand', bd.brandId)}
+                          style={{ background: '#ff3b30', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          삭제
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
+        )}
+
+        {activeTab === 'product_line' && (
+          <>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>품목별 할인율</h3>
+            <p style={{ color: '#86868b', fontSize: '13px', marginBottom: '16px' }}>
+              품목(블루라이트, 누진다초점, 변색 등) 단위로 할인율을 설정합니다.
+            </p>
+            
+            {/* 추가 폼 */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: '#f5f5f7', borderRadius: '8px' }}>
+              <select
+                value={newProductLineId}
+                onChange={(e) => setNewProductLineId(parseInt(e.target.value))}
+                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef' }}
+              >
+                <option value={0}>품목 선택</option>
+                {availableProductLines.map(pl => (
+                  <option key={pl.id} value={pl.id}>[{pl.brand.name}] {pl.name}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                placeholder="할인율"
+                value={newProductLineRate || ''}
+                onChange={(e) => setNewProductLineRate(parseFloat(e.target.value) || 0)}
+                style={{ width: '100px', padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef', textAlign: 'right' }}
+              />
+              <span style={{ alignSelf: 'center' }}>%</span>
+              <button
+                onClick={() => newProductLineId && addDiscount('product_line', { productLineId: newProductLineId, discountRate: newProductLineRate })}
+                disabled={!newProductLineId || saving}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: newProductLineId ? '#007aff' : '#ccc',
+                  color: '#fff',
+                  fontWeight: 500,
+                  cursor: newProductLineId ? 'pointer' : 'not-allowed'
+                }}
+              >
+                추가
+              </button>
+            </div>
+
+            {/* 목록 */}
+            {productLineDiscounts.length === 0 ? (
+              <p style={{ color: '#86868b', textAlign: 'center', padding: '40px' }}>설정된 품목별 할인이 없습니다</p>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #e9ecef' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>브랜드</th>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>품목</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>할인율</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500, width: '80px' }}>삭제</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {productLineDiscounts.map(pld => (
+                    <tr key={pld.id} style={{ borderBottom: '1px solid #f5f5f7' }}>
+                      <td style={{ padding: '12px', color: '#86868b' }}>{pld.productLine.brand.name}</td>
+                      <td style={{ padding: '12px' }}>{pld.productLine.name}</td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <span style={{ background: '#e3f2fd', color: '#1565c0', padding: '4px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 500 }}>
+                          {pld.discountRate}%
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <button
+                          onClick={() => deleteDiscount('product_line', pld.productLineId)}
                           style={{ background: '#ff3b30', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                         >
                           삭제
