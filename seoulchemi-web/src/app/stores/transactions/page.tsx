@@ -189,15 +189,16 @@ export default function TransactionsPage() {
         <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>가맹점 거래내역</h2>
       </div>
 
-      {/* 3컬럼 레이아웃: 2:1:1 */}
+      {/* 3컬럼 레이아웃: 1:1:1 */}
       <div style={{ display: 'flex', gap: '12px', height: 'calc(100vh - 140px)', minHeight: '500px' }}>
         
-        {/* 좌측 (2): 검색/목록 + 거래처 정보 */}
-        <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+        {/* 좌측 (1): 검색/목록 + 거래처 정보 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0 }}>
           
-          {/* 검색/목록 */}
+          {/* 검색/목록 - 높이 축소 */}
           <div style={{ 
-            flex: 1,
+            height: '180px',
+            flexShrink: 0,
             background: '#fff', 
             borderRadius: '10px', 
             boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
@@ -247,9 +248,9 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          {/* 거래처 정보 */}
+          {/* 거래처 정보 - 나머지 공간 전부 사용 */}
           <div style={{ 
-            height: '200px', flexShrink: 0,
+            flex: 1,
             background: '#fff', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
             padding: '12px 14px', overflow: 'auto', position: 'relative'
           }}>
