@@ -41,11 +41,11 @@ interface RecentOrder {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  pending: { label: '대기', color: '#ff9500', bg: '#fff3e0' },
-  confirmed: { label: '확정', color: '#007aff', bg: '#e3f2fd' },
-  processing: { label: '처리중', color: '#9c27b0', bg: '#f3e5f5' },
+  pending: { label: '?��?, color: '#ff9500', bg: '#fff3e0' },
+  confirmed: { label: '?�정', color: '#007aff', bg: '#e3f2fd' },
+  processing: { label: '처리�?, color: '#9c27b0', bg: '#f3e5f5' },
   shipped: { label: '출고', color: '#2196f3', bg: '#e3f2fd' },
-  delivered: { label: '배송완료', color: '#34c759', bg: '#e8f5e9' },
+  delivered: { label: '배송?�료', color: '#34c759', bg: '#e8f5e9' },
   cancelled: { label: '취소', color: '#ff3b30', bg: '#ffebee' },
 }
 
@@ -74,7 +74,7 @@ export default function StoreDetailPage() {
         const data = await res.json()
         setStore(data)
       } else {
-        router.push('/admin/stores')
+        router.push('/stores')
       }
     } catch (error) {
       console.error('Failed to fetch store:', error)
@@ -103,7 +103,7 @@ export default function StoreDetailPage() {
     return (
       <AdminLayout activeMenu="stores">
         <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
-          로딩 중...
+          로딩 �?..
         </div>
       </AdminLayout>
     )
@@ -113,7 +113,7 @@ export default function StoreDetailPage() {
     return (
       <AdminLayout activeMenu="stores">
         <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
-          가맹점을 찾을 수 없습니다
+          가맹점??찾을 ???�습?�다
         </div>
       </AdminLayout>
     )
@@ -121,11 +121,11 @@ export default function StoreDetailPage() {
 
   return (
     <AdminLayout activeMenu="stores">
-      {/* 헤더 */}
+      {/* ?�더 */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
           <button
-            onClick={() => router.push('/admin/stores')}
+            onClick={() => router.push('/stores')}
             style={{
               padding: '6px 12px',
               borderRadius: '6px',
@@ -135,7 +135,7 @@ export default function StoreDetailPage() {
               fontSize: '13px'
             }}
           >
-            ← 목록
+            ??목록
           </button>
           <span style={{ 
             padding: '4px 10px', 
@@ -155,7 +155,7 @@ export default function StoreDetailPage() {
             background: store.isActive ? '#e8f5e9' : '#f5f5f7',
             color: store.isActive ? '#34c759' : '#86868b'
           }}>
-            {store.isActive ? '활성' : '비활성'}
+            {store.isActive ? '?�성' : '비활??}
           </span>
         </div>
         
@@ -170,7 +170,7 @@ export default function StoreDetailPage() {
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <Link
-              href={`/admin/stores/${store.id}/discounts`}
+              href={`/stores/${store.id}/discounts`}
               style={{
                 padding: '8px 16px',
                 borderRadius: '6px',
@@ -181,7 +181,7 @@ export default function StoreDetailPage() {
                 color: '#1d1d1f'
               }}
             >
-              💰 할인 설정
+              ?�� ?�인 ?�정
             </Link>
             <button
               onClick={() => setShowEditModal(true)}
@@ -196,65 +196,65 @@ export default function StoreDetailPage() {
                 cursor: 'pointer'
               }}
             >
-              수정
+              ?�정
             </button>
           </div>
         </div>
       </div>
 
-      {/* 통계 카드 */}
+      {/* ?�계 카드 */}
       <StatCardGrid>
         <StatCard 
-          label="총 주문" 
+          label="�?주문" 
           value={store.totalOrders} 
-          unit="건" 
-          icon="📦"
+          unit="�? 
+          icon="?��"
         />
         <StatCard 
-          label="총 매출" 
+          label="�?매출" 
           value={formatCurrency(store.totalSales)} 
-          unit="원" 
-          icon="💰"
+          unit="?? 
+          icon="?��"
         />
         <StatCard 
-          label="미수금" 
+          label="미수�? 
           value={formatCurrency(store.outstandingAmount)} 
-          unit="원" 
-          icon="💳"
+          unit="?? 
+          icon="?��"
           highlight={store.outstandingAmount > 0}
         />
         <StatCard 
-          label="신용한도" 
+          label="?�용?�도" 
           value={formatCurrency(store.creditLimit)} 
-          unit="원" 
-          icon="📊"
+          unit="?? 
+          icon="?��"
         />
       </StatCardGrid>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
-        {/* 기본 정보 */}
+        {/* 기본 ?�보 */}
         <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>기본 정보</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>기본 ?�보</h2>
           
           <div style={{ display: 'grid', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>대표자</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>?�?�자</span>
               <span style={{ fontWeight: 500 }}>{store.ownerName || '-'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>전화</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>?�화</span>
               <span style={{ fontFamily: 'monospace' }}>{store.phone || '-'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>핸드폰</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>?�드??/span>
               <span style={{ fontFamily: 'monospace' }}>{store.mobile || '-'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>이메일</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>?�메??/span>
               <span>{store.email || '-'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>사업자번호</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>?�업?�번??/span>
               <span style={{ fontFamily: 'monospace' }}>{store.bizNo || '-'}</span>
             </div>
             <div>
@@ -264,25 +264,25 @@ export default function StoreDetailPage() {
           </div>
         </div>
 
-        {/* 결제 정보 */}
+        {/* 결제 ?�보 */}
         <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>결제 정보</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>결제 ?�보</h2>
           
           <div style={{ display: 'grid', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#86868b', fontSize: '14px' }}>결제기한</span>
-              <span style={{ fontWeight: 500 }}>{store.paymentTermDays}일</span>
+              <span style={{ fontWeight: 500 }}>{store.paymentTermDays}??/span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>청구일</span>
-              <span>{store.billingDay ? `매월 ${store.billingDay}일` : '-'}</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>�?��??/span>
+              <span>{store.billingDay ? `매월 ${store.billingDay}?? : '-'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>담당자</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>?�당??/span>
               <span>{store.salesRepName || '-'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>배송담당</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>배송?�당</span>
               <span>{store.deliveryContact || '-'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -295,14 +295,14 @@ export default function StoreDetailPage() {
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>등록일</span>
+              <span style={{ color: '#86868b', fontSize: '14px' }}>?�록??/span>
               <span>{new Date(store.createdAt).toLocaleDateString('ko-KR')}</span>
             </div>
           </div>
 
           {store.outstandingAmount > 0 && (
             <Link
-              href={`/admin/stores/receivables/transactions?storeId=${store.id}`}
+              href={`/stores/receivables/transactions?storeId=${store.id}`}
               style={{
                 display: 'block',
                 marginTop: '20px',
@@ -316,7 +316,7 @@ export default function StoreDetailPage() {
                 fontSize: '14px'
               }}
             >
-              미수금 내역 보기 →
+              미수�??�역 보기 ??
             </Link>
           )}
         </div>
@@ -330,23 +330,23 @@ export default function StoreDetailPage() {
             href={`/admin/orders?storeId=${store.id}`}
             style={{ color: '#007aff', fontSize: '13px', textDecoration: 'none' }}
           >
-            전체 보기 →
+            ?�체 보기 ??
           </Link>
         </div>
 
         {recentOrders.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>
-            주문 내역이 없습니다
+            주문 ?�역???�습?�다
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #e9ecef' }}>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>주문번호</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>상품</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>?�품</th>
                 <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>금액</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>상태</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>주문일</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>?�태</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>주문??/th>
               </tr>
             </thead>
             <tbody>
@@ -363,10 +363,10 @@ export default function StoreDetailPage() {
                       </Link>
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px' }}>
-                      {order.itemCount}개
+                      {order.itemCount}�?
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 500 }}>
-                      {formatCurrency(order.totalAmount)}원
+                      {formatCurrency(order.totalAmount)}??
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                       <span style={{
@@ -391,7 +391,7 @@ export default function StoreDetailPage() {
         )}
       </div>
 
-      {/* 빠른 액션 */}
+      {/* 빠른 ?�션 */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(4, 1fr)', 
@@ -409,11 +409,11 @@ export default function StoreDetailPage() {
             color: '#1d1d1f'
           }}
         >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>📦</div>
-          <div style={{ fontSize: '13px', fontWeight: 500 }}>새 주문</div>
+          <div style={{ fontSize: '24px', marginBottom: '8px' }}>?��</div>
+          <div style={{ fontSize: '13px', fontWeight: 500 }}>??주문</div>
         </Link>
         <Link
-          href={`/admin/stores/receivables/deposit?storeId=${store.id}`}
+          href={`/stores/receivables/deposit?storeId=${store.id}`}
           style={{
             padding: '16px',
             borderRadius: '12px',
@@ -423,11 +423,11 @@ export default function StoreDetailPage() {
             color: '#1d1d1f'
           }}
         >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>💳</div>
-          <div style={{ fontSize: '13px', fontWeight: 500 }}>입금 처리</div>
+          <div style={{ fontSize: '24px', marginBottom: '8px' }}>?��</div>
+          <div style={{ fontSize: '13px', fontWeight: 500 }}>?�금 처리</div>
         </Link>
         <Link
-          href={`/admin/stores/${store.id}/discounts`}
+          href={`/stores/${store.id}/discounts`}
           style={{
             padding: '16px',
             borderRadius: '12px',
@@ -437,8 +437,8 @@ export default function StoreDetailPage() {
             color: '#1d1d1f'
           }}
         >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>💰</div>
-          <div style={{ fontSize: '13px', fontWeight: 500 }}>할인 설정</div>
+          <div style={{ fontSize: '24px', marginBottom: '8px' }}>?��</div>
+          <div style={{ fontSize: '13px', fontWeight: 500 }}>?�인 ?�정</div>
         </Link>
         <button
           onClick={() => window.print()}
@@ -451,8 +451,8 @@ export default function StoreDetailPage() {
             textAlign: 'center'
           }}
         >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>🖨️</div>
-          <div style={{ fontSize: '13px', fontWeight: 500 }}>인쇄</div>
+          <div style={{ fontSize: '24px', marginBottom: '8px' }}>?���?/div>
+          <div style={{ fontSize: '13px', fontWeight: 500 }}>?�쇄</div>
         </button>
       </div>
     </AdminLayout>

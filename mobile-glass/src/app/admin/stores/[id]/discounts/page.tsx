@@ -54,7 +54,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<'brand' | 'product_discount' | 'product_price'>('brand')
   
-  // 새 항목 추가용
+  // ????�� 추�???
   const [newBrandId, setNewBrandId] = useState<number>(0)
   const [newBrandRate, setNewBrandRate] = useState<number>(0)
   const [newProductId, setNewProductId] = useState<number>(0)
@@ -73,7 +73,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       setData(await res.json())
     } catch (error) {
       console.error('Failed:', error)
-      alert('데이터를 불러오는데 실패했습니다')
+      alert('?�이?��? 불러?�는???�패?�습?�다')
     } finally {
       setLoading(false)
     }
@@ -89,7 +89,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       })
       loadData()
     } catch (error) {
-      alert('저장 실패')
+      alert('?�???�패')
     } finally {
       setSaving(false)
     }
@@ -112,21 +112,21 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       setNewPriceProductId(0)
       setNewSpecialPrice(0)
     } catch (error) {
-      alert('저장 실패')
+      alert('?�???�패')
     } finally {
       setSaving(false)
     }
   }
 
   const deleteDiscount = async (type: string, targetId: number) => {
-    if (!confirm('삭제하시겠습니까?')) return
+    if (!confirm('??��?�시겠습?�까?')) return
     try {
       await fetch(`/api/stores/${id}/discounts?type=${type}&targetId=${targetId}`, {
         method: 'DELETE'
       })
       loadData()
     } catch (error) {
-      alert('삭제 실패')
+      alert('??�� ?�패')
     }
   }
 
@@ -134,7 +134,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
     return (
       <AdminLayout activeMenu="stores">
         <div style={{ display: 'flex', justifyContent: 'center', padding: '100px' }}>
-          로딩 중...
+          로딩 �?..
         </div>
       </AdminLayout>
     )
@@ -144,7 +144,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
     return (
       <AdminLayout activeMenu="stores">
         <div style={{ textAlign: 'center', padding: '100px' }}>
-          거래처를 찾을 수 없습니다
+          거래처�? 찾을 ???�습?�다
         </div>
       </AdminLayout>
     )
@@ -152,30 +152,30 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
 
   const { store, brandDiscounts, productDiscounts, productPrices, brands, products } = data
 
-  // 이미 설정된 브랜드/상품 제외
+  // ?��? ?�정??브랜???�품 ?�외
   const availableBrands = brands.filter(b => !brandDiscounts.find(bd => bd.brandId === b.id))
   const availableProductsForDiscount = products.filter(p => !productDiscounts.find(pd => pd.productId === p.id))
   const availableProductsForPrice = products.filter(p => !productPrices.find(pp => pp.productId === p.id))
 
   return (
     <AdminLayout activeMenu="stores">
-      {/* 헤더 */}
+      {/* ?�더 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
         <button
           onClick={() => router.back()}
           style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}
         >
-          ←
+          ??
         </button>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 600, margin: 0 }}>
             {store.name} <span style={{ color: '#86868b', fontWeight: 400 }}>({store.code})</span>
           </h2>
-          <p style={{ color: '#86868b', fontSize: '14px', margin: '4px 0 0' }}>할인 설정</p>
+          <p style={{ color: '#86868b', fontSize: '14px', margin: '4px 0 0' }}>?�인 ?�정</p>
         </div>
       </div>
 
-      {/* 가격 적용 우선순위 안내 */}
+      {/* 가�??�용 ?�선?�위 ?�내 */}
       <div style={{ 
         background: '#fff3cd', 
         borderRadius: '8px', 
@@ -184,10 +184,10 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
         fontSize: '14px',
         border: '1px solid #ffc107'
       }}>
-        <strong>📌 가격 적용 우선순위:</strong> 특수단가 → 브랜드별 할인 → 상품별 할인 → 기본할인율 → 정가
+        <strong>?�� 가�??�용 ?�선?�위:</strong> ?�수?��? ??브랜?�별 ?�인 ???�품�??�인 ??기본?�인?????��?
       </div>
 
-      {/* 기본 할인율 */}
+      {/* 기본 ?�인??*/}
       <div style={{ 
         background: '#fff', 
         borderRadius: '12px', 
@@ -195,7 +195,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
         marginBottom: '24px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
       }}>
-        <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>기본 할인율</h3>
+        <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>기본 ?�인??/h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <input
             type="number"
@@ -220,17 +220,17 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
           />
           <span style={{ fontSize: '16px' }}>%</span>
           <span style={{ color: '#86868b', fontSize: '13px' }}>
-            (모든 상품에 기본 적용)
+            (모든 ?�품??기본 ?�용)
           </span>
         </div>
       </div>
 
-      {/* 탭 */}
+      {/* ??*/}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         {[
-          { key: 'brand', label: '브랜드별 할인', count: brandDiscounts.length },
-          { key: 'product_discount', label: '상품별 할인', count: productDiscounts.length },
-          { key: 'product_price', label: '특수단가', count: productPrices.length }
+          { key: 'brand', label: '브랜?�별 ?�인', count: brandDiscounts.length },
+          { key: 'product_discount', label: '?�품�??�인', count: productDiscounts.length },
+          { key: 'product_price', label: '?�수?��?', count: productPrices.length }
         ].map(tab => (
           <button
             key={tab.key}
@@ -251,7 +251,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
         ))}
       </div>
 
-      {/* 탭 컨텐츠 */}
+      {/* ??컨텐�?*/}
       <div style={{ 
         background: '#fff', 
         borderRadius: '12px', 
@@ -260,23 +260,23 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       }}>
         {activeTab === 'brand' && (
           <>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>브랜드별 할인율</h3>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>브랜?�별 ?�인??/h3>
             
-            {/* 추가 폼 */}
+            {/* 추�? ??*/}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: '#f5f5f7', borderRadius: '8px' }}>
               <select
                 value={newBrandId}
                 onChange={(e) => setNewBrandId(parseInt(e.target.value))}
                 style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef' }}
               >
-                <option value={0}>브랜드 선택</option>
+                <option value={0}>브랜???�택</option>
                 {availableBrands.map(b => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
               </select>
               <input
                 type="number"
-                placeholder="할인율"
+                placeholder="?�인??
                 value={newBrandRate || ''}
                 onChange={(e) => setNewBrandRate(parseFloat(e.target.value) || 0)}
                 style={{ width: '100px', padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef', textAlign: 'right' }}
@@ -295,20 +295,20 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                   cursor: newBrandId ? 'pointer' : 'not-allowed'
                 }}
               >
-                추가
+                추�?
               </button>
             </div>
 
             {/* 목록 */}
             {brandDiscounts.length === 0 ? (
-              <p style={{ color: '#86868b', textAlign: 'center', padding: '40px' }}>설정된 브랜드별 할인이 없습니다</p>
+              <p style={{ color: '#86868b', textAlign: 'center', padding: '40px' }}>?�정??브랜?�별 ?�인???�습?�다</p>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #e9ecef' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>브랜드</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>할인율</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500, width: '80px' }}>삭제</th>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>브랜??/th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>?�인??/th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500, width: '80px' }}>??��</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -325,7 +325,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                           onClick={() => deleteDiscount('brand', bd.brandId)}
                           style={{ background: '#ff3b30', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                         >
-                          삭제
+                          ??��
                         </button>
                       </td>
                     </tr>
@@ -338,23 +338,23 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
 
         {activeTab === 'product_discount' && (
           <>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>상품별 할인율</h3>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>?�품�??�인??/h3>
             
-            {/* 추가 폼 */}
+            {/* 추�? ??*/}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: '#f5f5f7', borderRadius: '8px' }}>
               <select
                 value={newProductId}
                 onChange={(e) => setNewProductId(parseInt(e.target.value))}
                 style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef' }}
               >
-                <option value={0}>상품 선택</option>
+                <option value={0}>?�품 ?�택</option>
                 {availableProductsForDiscount.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.sellingPrice.toLocaleString()}원)</option>
+                  <option key={p.id} value={p.id}>{p.name} ({p.sellingPrice.toLocaleString()}??</option>
                 ))}
               </select>
               <input
                 type="number"
-                placeholder="할인율"
+                placeholder="?�인??
                 value={newProductRate || ''}
                 onChange={(e) => setNewProductRate(parseFloat(e.target.value) || 0)}
                 style={{ width: '100px', padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef', textAlign: 'right' }}
@@ -373,22 +373,22 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                   cursor: newProductId ? 'pointer' : 'not-allowed'
                 }}
               >
-                추가
+                추�?
               </button>
             </div>
 
             {/* 목록 */}
             {productDiscounts.length === 0 ? (
-              <p style={{ color: '#86868b', textAlign: 'center', padding: '40px' }}>설정된 상품별 할인이 없습니다</p>
+              <p style={{ color: '#86868b', textAlign: 'center', padding: '40px' }}>?�정???�품�??�인???�습?�다</p>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #e9ecef' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>상품</th>
-                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>정가</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>할인율</th>
-                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>할인가</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500, width: '80px' }}>삭제</th>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>?�품</th>
+                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>?��?</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>?�인??/th>
+                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>?�인가</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500, width: '80px' }}>??��</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -397,19 +397,19 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                     return (
                       <tr key={pd.id} style={{ borderBottom: '1px solid #f5f5f7' }}>
                         <td style={{ padding: '12px' }}>{pd.product.name}</td>
-                        <td style={{ padding: '12px', textAlign: 'right', color: '#86868b' }}>{pd.product.sellingPrice.toLocaleString()}원</td>
+                        <td style={{ padding: '12px', textAlign: 'right', color: '#86868b' }}>{pd.product.sellingPrice.toLocaleString()}??/td>
                         <td style={{ padding: '12px', textAlign: 'center' }}>
                           <span style={{ background: '#fff3e0', color: '#e65100', padding: '4px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 500 }}>
                             {pd.discountRate}%
                           </span>
                         </td>
-                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 600, color: '#007aff' }}>{discountedPrice.toLocaleString()}원</td>
+                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 600, color: '#007aff' }}>{discountedPrice.toLocaleString()}??/td>
                         <td style={{ padding: '12px', textAlign: 'center' }}>
                           <button
                             onClick={() => deleteDiscount('product_discount', pd.productId)}
                             style={{ background: '#ff3b30', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                           >
-                            삭제
+                            ??��
                           </button>
                         </td>
                       </tr>
@@ -423,12 +423,12 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
 
         {activeTab === 'product_price' && (
           <>
-            <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>상품별 특수단가</h3>
+            <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>?�품�??�수?��?</h3>
             <p style={{ color: '#86868b', fontSize: '13px', marginBottom: '16px' }}>
-              특수단가가 설정된 상품은 다른 할인과 관계없이 이 가격이 적용됩니다.
+              ?�수?��?가 ?�정???�품?� ?�른 ?�인�?관계없????가격이 ?�용?�니??
             </p>
             
-            {/* 추가 폼 */}
+            {/* 추�? ??*/}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', padding: '16px', background: '#f5f5f7', borderRadius: '8px' }}>
               <select
                 value={newPriceProductId}
@@ -440,19 +440,19 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                 }}
                 style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef' }}
               >
-                <option value={0}>상품 선택</option>
+                <option value={0}>?�품 ?�택</option>
                 {availableProductsForPrice.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} (정가: {p.sellingPrice.toLocaleString()}원)</option>
+                  <option key={p.id} value={p.id}>{p.name} (?��?: {p.sellingPrice.toLocaleString()}??</option>
                 ))}
               </select>
               <input
                 type="number"
-                placeholder="특수단가"
+                placeholder="?�수?��?"
                 value={newSpecialPrice || ''}
                 onChange={(e) => setNewSpecialPrice(parseInt(e.target.value) || 0)}
                 style={{ width: '120px', padding: '10px', borderRadius: '6px', border: '1px solid #e9ecef', textAlign: 'right' }}
               />
-              <span style={{ alignSelf: 'center' }}>원</span>
+              <span style={{ alignSelf: 'center' }}>??/span>
               <button
                 onClick={() => newPriceProductId && addDiscount('product_price', { productId: newPriceProductId, specialPrice: newSpecialPrice })}
                 disabled={!newPriceProductId || saving}
@@ -466,22 +466,22 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                   cursor: newPriceProductId ? 'pointer' : 'not-allowed'
                 }}
               >
-                추가
+                추�?
               </button>
             </div>
 
             {/* 목록 */}
             {productPrices.length === 0 ? (
-              <p style={{ color: '#86868b', textAlign: 'center', padding: '40px' }}>설정된 특수단가가 없습니다</p>
+              <p style={{ color: '#86868b', textAlign: 'center', padding: '40px' }}>?�정???�수?��?가 ?�습?�다</p>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #e9ecef' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>상품</th>
-                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>정가</th>
-                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>특수단가</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>할인액</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500, width: '80px' }}>삭제</th>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 500 }}>?�품</th>
+                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>?��?</th>
+                    <th style={{ padding: '12px', textAlign: 'right', fontWeight: 500 }}>?�수?��?</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500 }}>?�인??/th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 500, width: '80px' }}>??��</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -491,11 +491,11 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                     return (
                       <tr key={pp.id} style={{ borderBottom: '1px solid #f5f5f7' }}>
                         <td style={{ padding: '12px' }}>{pp.product.name}</td>
-                        <td style={{ padding: '12px', textAlign: 'right', color: '#86868b', textDecoration: 'line-through' }}>{pp.product.sellingPrice.toLocaleString()}원</td>
-                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 600, color: '#ff3b30' }}>{pp.specialPrice.toLocaleString()}원</td>
+                        <td style={{ padding: '12px', textAlign: 'right', color: '#86868b', textDecoration: 'line-through' }}>{pp.product.sellingPrice.toLocaleString()}??/td>
+                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 600, color: '#ff3b30' }}>{pp.specialPrice.toLocaleString()}??/td>
                         <td style={{ padding: '12px', textAlign: 'center' }}>
                           <span style={{ background: '#ffebee', color: '#c62828', padding: '4px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 500 }}>
-                            -{discount.toLocaleString()}원 ({discountRate}%)
+                            -{discount.toLocaleString()}??({discountRate}%)
                           </span>
                         </td>
                         <td style={{ padding: '12px', textAlign: 'center' }}>
@@ -503,7 +503,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
                             onClick={() => deleteDiscount('product_price', pp.productId)}
                             style={{ background: '#ff3b30', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                           >
-                            삭제
+                            ??��
                           </button>
                         </td>
                       </tr>

@@ -582,7 +582,7 @@ export default function StoresPage() {
             ) : data.length === 0 ? (
               <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
             ) : data.map(store => (
-              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0', background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', cursor: 'pointer' }} onClick={() => router.push(`/admin/stores/${store.id}`)} onMouseEnter={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fafafa' }} onMouseLeave={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fff' }}>
+              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0', background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', cursor: 'pointer' }} onClick={() => router.push(`/stores/${store.id}`)} onMouseEnter={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fafafa' }} onMouseLeave={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fff' }}>
                 <td style={{ padding: '10px 8px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
@@ -598,7 +598,7 @@ export default function StoresPage() {
                     <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100', whiteSpace: 'nowrap' }}>
                       {store.isActive ? '활성' : '비활성'}
                     </span>
-                    <button onClick={() => router.push(`/admin/stores/${store.id}/discounts`)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>할인</button>
+                    <button onClick={() => router.push(`/stores/${store.id}/discounts`)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>할인</button>
                     <button onClick={() => openModal(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>수정</button>
                     <button onClick={() => handleDeleteClick(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>삭제</button>
                   </div>
