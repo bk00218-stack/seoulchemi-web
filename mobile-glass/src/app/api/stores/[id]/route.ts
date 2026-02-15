@@ -172,7 +172,7 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/stores/[id] - 거래처 비활성화
+// DELETE /api/stores/[id] - 거래처 삭제
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -185,15 +185,31 @@ export async function DELETE(
       return NextResponse.json({ error: '잘못된 거래처 ID입니다.' }, { status: 400 })
     }
     
-    // 실제 삭제 대신 비활성화
-    const store = await prisma.store.update({
-      where: { id: storeId },
-      data: { isActive: false },
+    // 주문 내역 확인
+    const orderCount = await prisma.order.count({
+      where: { storeId }
     })
     
-    return NextResponse.json({ success: true, message: '거래처가 비활성화되었습니다.', store })
-  } catch (error) {
-    console.error('Failed to deactivate store:', error)
-    return NextResponse.json({ error: '거래처 비활성화에 실패했습니다.' }, { status: 500 })
+    if (orderCount > 0) {
+      return NextResponse.json({ 
+        error: `이 가맹점에 ${orderCount}건의 주문 내역이 있어 삭제할 수 없습니다. 비활성화를 이용해주세요.` 
+      }, { status: 400 })
+    }
+    
+    // 주문 내역이 없으면 실제 삭제
+    await prisma.store.delete({
+      where: { id: storeId }
+    })
+    
+    return NextResponse.json({ success: true, message: '가맹점이 삭제되었습니다.' })
+  } catch (error: any) {
+    console.error('Failed to delete store:', error)
+    // 외래키 제약 오류 처리
+    if (error.code === 'P2003') {
+      return NextResponse.json({ 
+        error: '이 가맹점과 연결된 데이터가 있어 삭제할 수 없습니다. 비활성화를 이용해주세요.' 
+      }, { status: 400 })
+    }
+    return NextResponse.json({ error: '거래처 삭제에 실패했습니다.' }, { status: 500 })
   }
 }

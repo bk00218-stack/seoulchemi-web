@@ -6,6 +6,7 @@ import { AdminLayout } from '../../components/Navigation'
 import DataTable, { StatusBadge, Column } from '../../components/DataTable'
 import SearchFilter, { FilterButtonGroup, OutlineButton, PrimaryButton } from '../../components/SearchFilter'
 import StatCard, { StatCardGrid } from '../../components/StatCard'
+import ConfirmDeleteModal from '../../components/ConfirmDeleteModal'
 import { downloadExcel, ExcelColumn } from '@/lib/excel'
 
 interface OrderItem {
@@ -60,6 +61,11 @@ export default function OrdersPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  
+  // 삭제 모달 관련 state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'bulk'; id?: number; orderNo?: string }>({ type: 'bulk' })
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -152,6 +158,58 @@ export default function OrdersPage() {
     alert(`${exportData.length}건이 다운로드되었습니다.`)
   }
 
+  // 개별 삭제 시작
+  const handleDeleteSingle = (order: OrderItem) => {
+    setDeleteTarget({ type: 'single', id: order.id, orderNo: order.orderNo })
+    setDeleteModalOpen(true)
+  }
+
+  // 일괄 삭제 시작
+  const handleDeleteBulk = () => {
+    if (selectedIds.size === 0) {
+      alert('삭제할 주문을 선택해주세요.')
+      return
+    }
+    setDeleteTarget({ type: 'bulk' })
+    setDeleteModalOpen(true)
+  }
+
+  // 실제 삭제 처리
+  const handleDeleteConfirm = async () => {
+    setDeleteLoading(true)
+    try {
+      if (deleteTarget.type === 'single' && deleteTarget.id) {
+        const res = await fetch(`/api/orders/${deleteTarget.id}`, { method: 'DELETE' })
+        const json = await res.json()
+        if (!res.ok) {
+          alert(json.error || '삭제에 실패했습니다.')
+          return
+        }
+        alert('주문이 삭제되었습니다.')
+      } else {
+        // 일괄 삭제
+        const res = await fetch('/api/orders/bulk-delete', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderIds: Array.from(selectedIds) }),
+        })
+        const json = await res.json()
+        if (!res.ok) {
+          alert(json.error || '삭제에 실패했습니다.')
+          return
+        }
+        alert(`${selectedIds.size}건의 주문이 삭제되었습니다.`)
+        setSelectedIds(new Set())
+      }
+      setDeleteModalOpen(false)
+      fetchData()
+    } catch (error) {
+      alert('삭제 중 오류가 발생했습니다.')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
   const columns: Column<OrderItem>[] = [
     { key: 'orderNo', label: '주문번호', render: (v) => (
       <span style={{ fontWeight: 500, color: '#007aff' }}>{v as string}</span>
@@ -176,6 +234,23 @@ export default function OrdersPage() {
     { key: 'status', label: '상태', render: (v) => <StatusBadge status={v as string} /> },
     { key: 'orderedAt', label: '주문일시', render: (v) => (
       <span style={{ color: '#86868b', fontSize: '12px' }}>{v as string}</span>
+    )},
+    { key: 'actions', label: '관리', width: '70px', align: 'center', render: (_, row) => (
+      <button
+        onClick={(e) => { e.stopPropagation(); handleDeleteSingle(row); }}
+        style={{
+          padding: '4px 8px',
+          borderRadius: '4px',
+          background: '#ffebee',
+          color: '#c62828',
+          border: 'none',
+          fontSize: '11px',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        삭제
+      </button>
     )},
   ]
 
@@ -341,9 +416,31 @@ export default function OrdersPage() {
             >
               완료처리
             </button>
+            <div style={{ width: '1px', height: '24px', background: '#e9ecef', margin: '0 8px' }} />
+            <button 
+              onClick={handleDeleteBulk}
+              style={{ padding: '8px 16px', borderRadius: '6px', background: '#ff3b30', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+            >
+              🗑️ 삭제
+            </button>
           </div>
         </div>
       )}
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title={deleteTarget.type === 'single' ? '주문 삭제' : '일괄 삭제'}
+        message={
+          deleteTarget.type === 'single'
+            ? `주문번호 "${deleteTarget.orderNo}"을(를) 삭제하시겠습니까?\n삭제된 주문은 복구할 수 없으며, 관련 미수금 내역도 함께 삭제됩니다.`
+            : `선택한 ${selectedIds.size}건의 주문을 삭제하시겠습니까?\n삭제된 주문은 복구할 수 없으며, 관련 미수금 내역도 함께 삭제됩니다.`
+        }
+        confirmText="삭제"
+        loading={deleteLoading}
+      />
     </AdminLayout>
   )
 }

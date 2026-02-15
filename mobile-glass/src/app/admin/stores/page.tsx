@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AdminLayout } from '../../components/Navigation'
 import { OutlineButton } from '../../components/SearchFilter'
+import ConfirmDeleteModal from '../../components/ConfirmDeleteModal'
 
 interface Store {
   id: number
@@ -81,6 +82,11 @@ export default function StoresPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [groups, setGroups] = useState<StoreGroup[]>([])
   const [bulkGroupId, setBulkGroupId] = useState<number | null>(null)
+  
+  // 삭제 모달 관련 state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'bulk'; store?: Store }>({ type: 'bulk' })
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     fetch('/api/store-groups')
@@ -162,15 +168,38 @@ export default function StoresPage() {
     setSaving(false)
   }
 
-  const handleDelete = async (store: Store) => {
-    if (!confirm(`'${store.name}'을(를) 삭제하시겠습니까?`)) return
+  const handleDeleteClick = (store: Store) => {
+    setDeleteTarget({ type: 'single', store })
+    setDeleteModalOpen(true)
+  }
+  
+  const handleDeleteConfirm = async () => {
+    setDeleteLoading(true)
     try {
-      const res = await fetch(`/api/stores/${store.id}`, { method: 'DELETE' })
-      const json = await res.json()
-      if (json.error) { alert(json.error); return }
-      alert(json.message)
+      if (deleteTarget.type === 'single' && deleteTarget.store) {
+        const res = await fetch(`/api/stores/${deleteTarget.store.id}`, { method: 'DELETE' })
+        const json = await res.json()
+        if (json.error) { alert(json.error); return }
+        alert(json.message || '삭제되었습니다.')
+      } else {
+        // 일괄 삭제
+        const res = await fetch('/api/stores/bulk-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: Array.from(selectedIds), action: 'delete' }),
+        })
+        const json = await res.json()
+        if (json.error) { alert(json.error); return }
+        alert(json.message || '삭제되었습니다.')
+        setSelectedIds(new Set())
+      }
+      setDeleteModalOpen(false)
       fetchData()
-    } catch (error) { alert('삭제에 실패했습니다.') }
+    } catch (error) {
+      alert('삭제에 실패했습니다.')
+    } finally {
+      setDeleteLoading(false)
+    }
   }
 
   // 일괄 작업 함수들
@@ -193,8 +222,9 @@ export default function StoresPage() {
   }
 
   const handleBulkDelete = () => {
-    if (!confirm(`선택한 ${selectedIds.size}개 가맹점을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return
-    handleBulkAction('delete')
+    if (selectedIds.size === 0) { alert('선택된 가맹점이 없습니다.'); return }
+    setDeleteTarget({ type: 'bulk' })
+    setDeleteModalOpen(true)
   }
 
   const handleBulkSetGroup = () => {
@@ -422,7 +452,7 @@ export default function StoresPage() {
                     </span>
                     <button onClick={() => router.push(`/admin/stores/${store.id}/discounts`)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>할인</button>
                     <button onClick={() => openModal(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>수정</button>
-                    <button onClick={() => handleDelete(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>삭제</button>
+                    <button onClick={() => handleDeleteClick(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>삭제</button>
                   </div>
                 </td>
               </tr>
@@ -546,6 +576,21 @@ export default function StoresPage() {
           </div>
         </div>
       )}
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title={deleteTarget.type === 'single' ? '가맹점 삭제' : '일괄 삭제'}
+        message={
+          deleteTarget.type === 'single'
+            ? `'${deleteTarget.store?.name}'을(를) 삭제하시겠습니까?\n해당 가맹점의 주문 내역이 있으면 삭제할 수 없습니다.`
+            : `선택한 ${selectedIds.size}개 가맹점을 삭제하시겠습니까?\n주문 내역이 있는 가맹점은 삭제할 수 없습니다.`
+        }
+        confirmText="삭제"
+        loading={deleteLoading}
+      />
     </AdminLayout>
   )
 }

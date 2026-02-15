@@ -19,6 +19,23 @@ export async function POST(request: Request) {
     
     switch (action) {
       case 'delete':
+        // 주문 내역이 있는 가맹점 확인
+        const storesWithOrders = await prisma.store.findMany({
+          where: { 
+            id: { in: ids },
+            orders: { some: {} }
+          },
+          select: { id: true, name: true }
+        })
+        
+        if (storesWithOrders.length > 0) {
+          const names = storesWithOrders.slice(0, 3).map(s => s.name).join(', ')
+          const more = storesWithOrders.length > 3 ? ` 외 ${storesWithOrders.length - 3}개` : ''
+          return NextResponse.json({
+            error: `주문 내역이 있는 가맹점이 포함되어 있습니다: ${names}${more}\n비활성화를 이용해주세요.`
+          }, { status: 400 })
+        }
+        
         // 일괄 삭제
         result = await prisma.store.deleteMany({
           where: { id: { in: ids } }
