@@ -82,8 +82,11 @@ export default function StoresPage() {
   const [searchOwner, setSearchOwner] = useState('')
   const [searchPhone, setSearchPhone] = useState('')
   const [searchAddress, setSearchAddress] = useState('')
+  const [searchSalesRep, setSearchSalesRep] = useState('')
+  const [searchDelivery, setSearchDelivery] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const [groups, setGroups] = useState<StoreGroup[]>([])
   const [bulkGroupId, setBulkGroupId] = useState<number | null>(null)
   
@@ -108,8 +111,13 @@ export default function StoresPage() {
       params.set('page', String(page))
       params.set('limit', '50')
       if (filter !== 'all') params.set('status', filter)
-      const searchTerms = [searchCode, searchName, searchOwner, searchPhone, searchAddress].filter(Boolean).join(' ')
-      if (searchTerms) params.set('search', searchTerms)
+      if (searchCode) params.set('groupName', searchCode)
+      if (searchName) params.set('name', searchName)
+      if (searchOwner) params.set('ownerName', searchOwner)
+      if (searchPhone) params.set('phone', searchPhone)
+      if (searchAddress) params.set('address', searchAddress)
+      if (searchSalesRep) params.set('salesRepName', searchSalesRep)
+      if (searchDelivery) params.set('deliveryContact', searchDelivery)
       
       const res = await fetch(`/api/stores?${params}`)
       const json = await res.json()
@@ -119,11 +127,12 @@ export default function StoresPage() {
       setData(json.stores)
       setStats(json.stats)
       setTotalPages(json.pagination.totalPages)
+      setTotalCount(json.pagination.total)
     } catch (error) {
       console.error('Failed to fetch stores:', error)
     }
     setLoading(false)
-  }, [filter, searchCode, searchName, searchOwner, searchPhone, searchAddress, page])
+  }, [filter, searchCode, searchName, searchOwner, searchPhone, searchAddress, searchSalesRep, searchDelivery, page])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -397,7 +406,7 @@ export default function StoresPage() {
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>안경원명</th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>대표자</th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>연락처</th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>주소</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', maxWidth: '150px' }}>주소</th>
               <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>영업담당</th>
               <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>배송담당</th>
               <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>관리</th>
@@ -421,12 +430,18 @@ export default function StoresPage() {
                 <input type="text" placeholder="연락처" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '6px 4px' }}>
+              <td style={{ padding: '6px 4px', maxWidth: '120px' }}>
                 <input type="text" placeholder="주소" value={searchAddress} onChange={(e) => setSearchAddress(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '6px 4px' }}></td>
-              <td style={{ padding: '6px 4px' }}></td>
+              <td style={{ padding: '6px 4px' }}>
+                <input type="text" placeholder="영업담당" value={searchSalesRep} onChange={(e) => setSearchSalesRep(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
+              </td>
+              <td style={{ padding: '6px 4px' }}>
+                <input type="text" placeholder="배송담당" value={searchDelivery} onChange={(e) => setSearchDelivery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
+              </td>
               <td style={{ padding: '6px 8px', textAlign: 'center' }}>
                 <button onClick={handleSearch} style={{ padding: '5px 10px', borderRadius: '4px', background: '#007aff', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>검색</button>
               </td>
@@ -446,7 +461,7 @@ export default function StoresPage() {
                 <td style={{ padding: '10px 8px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.name}</td>
                 <td style={{ padding: '10px 8px', fontSize: '12px' }}>{store.ownerName}</td>
                 <td style={{ padding: '10px 8px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
-                <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.address}</td>
+                <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>{store.address}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', color: store.salesRepName ? '#333' : '#ccc' }}>{store.salesRepName || '-'}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
                 <td style={{ padding: '10px 8px' }}>
@@ -467,15 +482,41 @@ export default function StoresPage() {
           
       {/* 페이지네이션 */}
       {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-            style={{ padding: '8px 14px', borderRadius: '6px', background: page === 1 ? '#f5f5f7' : '#fff', color: page === 1 ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === 1 ? 'default' : 'pointer', fontSize: '13px' }}>
-            ← 이전
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px', marginTop: '16px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '12px', color: '#86868b', marginRight: '12px' }}>
+            총 {totalCount.toLocaleString()}건 ({page}/{totalPages} 페이지)
+          </span>
+          <button onClick={() => setPage(1)} disabled={page === 1}
+            style={{ padding: '6px 10px', borderRadius: '6px', background: page === 1 ? '#f5f5f7' : '#fff', color: page === 1 ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === 1 ? 'default' : 'pointer', fontSize: '12px' }}>
+            ⟪
           </button>
-          <span style={{ padding: '8px 16px', color: '#666', fontSize: '13px' }}>{page} / {totalPages}</span>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            style={{ padding: '6px 10px', borderRadius: '6px', background: page === 1 ? '#f5f5f7' : '#fff', color: page === 1 ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === 1 ? 'default' : 'pointer', fontSize: '12px' }}>
+            ◂
+          </button>
+          {(() => {
+            const pages = []
+            let start = Math.max(1, page - 2)
+            let end = Math.min(totalPages, page + 2)
+            if (page <= 3) end = Math.min(5, totalPages)
+            if (page >= totalPages - 2) start = Math.max(1, totalPages - 4)
+            for (let i = start; i <= end; i++) {
+              pages.push(
+                <button key={i} onClick={() => setPage(i)}
+                  style={{ padding: '6px 12px', borderRadius: '6px', background: i === page ? '#007aff' : '#fff', color: i === page ? '#fff' : '#333', border: '1px solid #e9ecef', cursor: 'pointer', fontSize: '12px', fontWeight: i === page ? 600 : 400, minWidth: '36px' }}>
+                  {i}
+                </button>
+              )
+            }
+            return pages
+          })()}
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-            style={{ padding: '8px 14px', borderRadius: '6px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '13px' }}>
-            다음 →
+            style={{ padding: '6px 10px', borderRadius: '6px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '12px' }}>
+            ▸
+          </button>
+          <button onClick={() => setPage(totalPages)} disabled={page === totalPages}
+            style={{ padding: '6px 10px', borderRadius: '6px', background: page === totalPages ? '#f5f5f7' : '#fff', color: page === totalPages ? '#c5c5c7' : '#007aff', border: '1px solid #e9ecef', cursor: page === totalPages ? 'default' : 'pointer', fontSize: '12px' }}>
+            ⟫
           </button>
         </div>
       )}

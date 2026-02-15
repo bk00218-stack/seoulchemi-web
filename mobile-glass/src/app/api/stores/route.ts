@@ -11,6 +11,15 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
     
+    // 개별 필터
+    const nameFilter = searchParams.get('name')
+    const ownerNameFilter = searchParams.get('ownerName')
+    const phoneFilter = searchParams.get('phone')
+    const addressFilter = searchParams.get('address')
+    const salesRepFilter = searchParams.get('salesRepName')
+    const deliveryFilter = searchParams.get('deliveryContact')
+    const groupNameFilter = searchParams.get('groupName')
+    
     const where: any = {}
     
     // 상태 필터
@@ -20,12 +29,38 @@ export async function GET(request: Request) {
       where.isActive = false
     }
     
-    // 그룹 필터
+    // 그룹 필터 (ID)
     if (groupId) {
       where.groupId = parseInt(groupId)
     }
     
-    // 검색
+    // 개별 필드 검색
+    if (nameFilter) {
+      where.name = { contains: nameFilter }
+    }
+    if (ownerNameFilter) {
+      where.ownerName = { contains: ownerNameFilter }
+    }
+    if (phoneFilter) {
+      where.phone = { contains: phoneFilter }
+    }
+    if (addressFilter) {
+      where.address = { contains: addressFilter }
+    }
+    if (salesRepFilter) {
+      where.salesRepName = { contains: salesRepFilter }
+    }
+    if (deliveryFilter) {
+      where.OR = [
+        { deliveryContact: { contains: deliveryFilter } },
+        { deliveryStaff: { name: { contains: deliveryFilter } } }
+      ]
+    }
+    if (groupNameFilter) {
+      where.group = { name: { contains: groupNameFilter } }
+    }
+    
+    // 일반 검색 (기존 호환)
     if (search) {
       where.OR = [
         { name: { contains: search } },
