@@ -650,14 +650,30 @@ model BrandDiscount {
 model Notice {
   id            Int       @id @default(autoincrement())
   title         String    // 제목
-  content       String    // 내용
+  content       String?   // 내용 (텍스트)
   type          String    @default("notice") // notice, event, urgent
+  
+  // 표시 설정
+  displayType   String    @default("popup") // popup(팝업), banner(배너), both(둘다)
+  imageUrl      String?   // 팝업/배너 이미지 URL
+  linkUrl       String?   // 클릭시 이동 URL
+  
+  // 노출 설정
   isImportant   Boolean   @default(false) // 중요 공지
   isPinned      Boolean   @default(false) // 상단 고정
-  viewCount     Int       @default(0)     // 조회수
+  showOnce      Boolean   @default(false) // 하루동안 안보기 옵션
+  
+  // 기간 설정
   startDate     DateTime? // 게시 시작일
   endDate       DateTime? // 게시 종료일
   isActive      Boolean   @default(true)
+  
+  // 통계
+  viewCount     Int       @default(0)     // 조회수
+  clickCount    Int       @default(0)     // 클릭수
+  
+  // 작성자
+  authorName    String?   // 작성자명
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

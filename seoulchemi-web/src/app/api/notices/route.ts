@@ -1,66 +1,95 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// 공지사항 목록 조회
+// GET /api/notices - 공지사항 목록
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search') || ''
-    const type = searchParams.get('type') || ''
+    const activeOnly = searchParams.get('active') === 'true'
+    const displayType = searchParams.get('displayType') // popup, banner
+    
+    const where: any = {}
+    
+    if (activeOnly) {
+      where.isActive = true
+      where.OR = [
+        { startDate: null },
+        { startDate: { lte: new Date() } }
+      ]
+      where.AND = [
+        {
+          OR: [
+            { endDate: null },
+            { endDate: { gte: new Date() } }
+          ]
+        }
+      ]
+    }
+    
+    if (displayType) {
+      where.displayType = { in: [displayType, 'both'] }
+    }
     
     const notices = await prisma.notice.findMany({
-      where: {
-        ...(search && {
-          OR: [
-            { title: { contains: search } },
-            { content: { contains: search } }
-          ]
-        }),
-        ...(type && { type })
-      },
+      where,
       orderBy: [
         { isPinned: 'desc' },
         { createdAt: 'desc' }
       ]
     })
     
-    // 통계
-    const stats = {
-      total: notices.length,
-      notice: notices.filter(n => n.type === 'notice').length,
-      event: notices.filter(n => n.type === 'event').length,
-      urgent: notices.filter(n => n.type === 'urgent').length,
-      pinned: notices.filter(n => n.isPinned).length
-    }
-    
-    return NextResponse.json({ notices, stats })
+    return NextResponse.json({ notices })
   } catch (error) {
-    console.error('Error fetching notices:', error)
-    return NextResponse.json({ error: 'Failed to fetch notices' }, { status: 500 })
+    console.error('Failed to fetch notices:', error)
+    return NextResponse.json({ error: '공지사항을 불러오는데 실패했습니다.' }, { status: 500 })
   }
 }
 
-// 공지사항 생성
+// POST /api/notices - 공지사항 등록
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    const {
+      title,
+      content,
+      type,
+      displayType,
+      imageUrl,
+      linkUrl,
+      isImportant,
+      isPinned,
+      showOnce,
+      startDate,
+      endDate,
+      isActive,
+      authorName
+    } = body
+    
+    if (!title) {
+      return NextResponse.json({ error: '제목은 필수입니다.' }, { status: 400 })
+    }
     
     const notice = await prisma.notice.create({
       data: {
-        title: body.title,
-        content: body.content,
-        type: body.type || 'notice',
-        isImportant: body.isImportant || false,
-        isPinned: body.isPinned || false,
-        startDate: body.startDate ? new Date(body.startDate) : null,
-        endDate: body.endDate ? new Date(body.endDate) : null,
-        isActive: body.isActive ?? true
+        title,
+        content: content || null,
+        type: type || 'notice',
+        displayType: displayType || 'popup',
+        imageUrl: imageUrl || null,
+        linkUrl: linkUrl || null,
+        isImportant: isImportant || false,
+        isPinned: isPinned || false,
+        showOnce: showOnce || false,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+        isActive: isActive !== false,
+        authorName: authorName || null,
       }
     })
     
-    return NextResponse.json(notice)
+    return NextResponse.json({ notice })
   } catch (error) {
-    console.error('Error creating notice:', error)
-    return NextResponse.json({ error: 'Failed to create notice' }, { status: 500 })
+    console.error('Failed to create notice:', error)
+    return NextResponse.json({ error: '공지사항 등록에 실패했습니다.' }, { status: 500 })
   }
 }
