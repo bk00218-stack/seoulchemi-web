@@ -122,6 +122,11 @@ export default function StoresPage() {
   const [bulkUploadPreview, setBulkUploadPreview] = useState<any[]>([])
   const [bulkUploading, setBulkUploading] = useState(false)
   const [bulkUploadResult, setBulkUploadResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null)
+  
+  // 다운로드 모달
+  const [showDownloadModal, setShowDownloadModal] = useState(false)
+  const [downloadColumns, setDownloadColumns] = useState<Set<string>>(new Set(['code', 'name', 'phone', 'address', 'isActive']))
+  const [downloading, setDownloading] = useState(false)
 
   // 컬럼 너비 조절 기능
   const defaultColWidths = [40, 60, 160, 60, 100, 250, 80, 80, 200]
@@ -489,77 +494,71 @@ export default function StoresPage() {
     URL.revokeObjectURL(url)
   }
 
-  // 엑셀 다운로드 (전체 정보)
-  const handleExcelDownload = async () => {
-    try {
-      // 현재 필터 조건으로 전체 데이터 가져오기
-      const params = new URLSearchParams()
-      params.set('limit', '10000') // 전체
-      params.set('export', 'true') // 전체 필드 요청
-      if (filter !== 'all') params.set('status', filter)
-      if (searchRef.current.code) params.set('groupName', searchRef.current.code)
-      if (searchRef.current.name) params.set('name', searchRef.current.name)
-      if (searchRef.current.owner) params.set('ownerName', searchRef.current.owner)
-      if (searchRef.current.phone) params.set('phone', searchRef.current.phone)
-      if (searchRef.current.address) params.set('address', searchRef.current.address)
-      if (searchRef.current.salesRep) params.set('salesRepName', searchRef.current.salesRep)
-      if (searchRef.current.delivery) params.set('deliveryContact', searchRef.current.delivery)
-      
-      const res = await fetch(`/api/stores?${params}`)
-      const json = await res.json()
-      
-      console.log('Download response:', json)
-      
-      if (json.error) {
-        alert('다운로드 오류: ' + json.error)
-        return
-      }
-      
-      if (!json.stores || json.stores.length === 0) {
-        alert('다운로드할 데이터가 없습니다. (총 ' + (json.pagination?.total || 0) + '건)')
-        return
-      }
+  // 다운로드 컬럼 옵션
+  const downloadColumnOptions = [
+    { key: 'code', label: '코드' },
+    { key: 'groupName', label: '그룹' },
+    { key: 'name', label: '안경원명' },
+    { key: 'ownerName', label: '대표자' },
+    { key: 'phone', label: '전화' },
+    { key: 'address', label: '주소' },
+    { key: 'salesRepName', label: '영업담당' },
+    { key: 'deliveryStaffName', label: '배송담당' },
+    { key: 'isActive', label: '상태' },
+    { key: 'createdAt', label: '등록일' },
+  ]
 
-      // CSV 생성 (모든 정보 포함)
-      const headers = [
-        '코드', '그룹', '안경원명', '거래처유형', '대표자', 
-        '전화', '배송연락처', '이메일',
-        '주소', '배송주소',
-        '사업자등록번호', '업태', '업종',
-        '영업담당', '배송담당', 
-        '기본할인율(%)', '결제기한(일)', '청구일',
-        '초기미수금', '미수금잔액',
-        '상태', '등록일'
-      ]
-      const rows = json.stores.map((store: any) => [
-        store.code || '',
-        store.groupName || '',
-        store.name || '',
-        store.storeType || '',
-        store.ownerName || '',
-        store.phone || '',
-        store.deliveryPhone || store.deliveryContact || '',
-        store.email || '',
-        store.address || '',
-        store.deliveryAddress || '',
-        store.businessRegNo || '',
-        store.businessType || '',
-        store.businessCategory || '',
-        store.salesRepName || store.salesStaffName || '',
-        store.deliveryStaffName || '',
-        store.discountRate || 0,
-        store.paymentTermDays || 30,
-        store.billingDay || '',
-        store.initialReceivables || 0,
-        store.outstandingAmount || 0,
-        store.isActive ? '활성' : '비활성',
-        store.createdAt ? store.createdAt.split('T')[0] : ''
-      ])
+  // 다운로드 컬럼 토글
+  const toggleDownloadColumn = (key: string) => {
+    const newSet = new Set(downloadColumns)
+    if (newSet.has(key)) newSet.delete(key)
+    else newSet.add(key)
+    setDownloadColumns(newSet)
+  }
+
+  // 전체 선택/해제
+  const toggleAllDownloadColumns = () => {
+    if (downloadColumns.size === downloadColumnOptions.length) {
+      setDownloadColumns(new Set())
+    } else {
+      setDownloadColumns(new Set(downloadColumnOptions.map(c => c.key)))
+    }
+  }
+
+  // CSV 다운로드 실행
+  const executeDownload = () => {
+    if (downloadColumns.size === 0) {
+      alert('다운로드할 항목을 선택해주세요.')
+      return
+    }
+    
+    if (data.length === 0) {
+      alert('다운로드할 데이터가 없습니다.')
+      return
+    }
+
+    setDownloading(true)
+    
+    try {
+      // 선택된 컬럼만 헤더로
+      const selectedCols = downloadColumnOptions.filter(c => downloadColumns.has(c.key))
+      const headers = selectedCols.map(c => c.label)
+      
+      // 데이터 행 생성
+      const rows = data.map(store => {
+        return selectedCols.map(col => {
+          const val = (store as any)[col.key]
+          if (col.key === 'isActive') return val ? '활성' : '비활성'
+          if (col.key === 'ownerName' && val === '-') return ''
+          if (col.key === 'phone' && val === '-') return ''
+          return val || ''
+        })
+      })
 
       // BOM + CSV
       const csvContent = '\uFEFF' + [
         headers.join(','),
-        ...rows.map((row: (string|number)[]) => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
       ].join('\n')
 
       // 다운로드
@@ -572,9 +571,13 @@ export default function StoresPage() {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
+      
+      setShowDownloadModal(false)
     } catch (error) {
       console.error('Download failed:', error)
       alert('다운로드에 실패했습니다.')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -620,7 +623,7 @@ export default function StoresPage() {
           <button onClick={resetColWidths} style={{ padding: '6px 12px', fontSize: '12px', color: '#86868b', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} title="컬럼 너비 초기화">
             ↺ <span>초기화</span>
           </button>
-          <button onClick={handleExcelDownload} style={{ padding: '6px 12px', fontSize: '12px', color: '#2e7d32', background: '#e8f5e9', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
+          <button onClick={() => setShowDownloadModal(true)} style={{ padding: '6px 12px', fontSize: '12px', color: '#2e7d32', background: '#e8f5e9', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
             <span style={{ fontSize: '14px' }}>⬇</span> 다운로드
           </button>
           <button onClick={() => setShowBulkUploadModal(true)} style={{ padding: '6px 12px', fontSize: '12px', color: '#1565c0', background: '#e3f2fd', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
@@ -999,6 +1002,85 @@ export default function StoresPage() {
         confirmText="삭제"
         loading={deleteLoading}
       />
+
+      {/* 다운로드 모달 */}
+      {showDownloadModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '400px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>⬇ 다운로드</h3>
+              <button onClick={() => setShowDownloadModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>×</button>
+            </div>
+            
+            {/* 안내 */}
+            <div style={{ background: '#e8f5e9', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#2e7d32' }}>
+              현재 화면에 표시된 <strong>{data.length}건</strong>을 다운로드합니다.
+            </div>
+            
+            {/* 컬럼 선택 */}
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ fontSize: '14px', fontWeight: 500 }}>다운로드 항목 선택</span>
+                <button 
+                  onClick={toggleAllDownloadColumns}
+                  style={{ fontSize: '12px', color: '#007aff', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  {downloadColumns.size === downloadColumnOptions.length ? '전체 해제' : '전체 선택'}
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {downloadColumnOptions.map(col => (
+                  <label 
+                    key={col.key} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      padding: '8px 12px', 
+                      borderRadius: '6px', 
+                      background: downloadColumns.has(col.key) ? '#e3f2fd' : '#f5f5f7',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      transition: 'background 0.15s'
+                    }}
+                  >
+                    <input 
+                      type="checkbox" 
+                      checked={downloadColumns.has(col.key)}
+                      onChange={() => toggleDownloadColumn(col.key)}
+                      style={{ accentColor: '#007aff' }}
+                    />
+                    {col.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            
+            {/* 버튼 */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowDownloadModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>
+                취소
+              </button>
+              <button 
+                onClick={executeDownload} 
+                disabled={downloadColumns.size === 0 || downloading}
+                style={{ 
+                  padding: '10px 24px', 
+                  borderRadius: '8px', 
+                  background: downloadColumns.size > 0 && !downloading ? '#2e7d32' : '#ccc', 
+                  color: '#fff', 
+                  border: 'none', 
+                  fontSize: '14px', 
+                  fontWeight: 500, 
+                  cursor: downloadColumns.size > 0 && !downloading ? 'pointer' : 'not-allowed' 
+                }}
+              >
+                {downloading ? '다운로드 중...' : `CSV 다운로드 (${downloadColumns.size}개 항목)`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 일괄 등록 모달 */}
       {showBulkUploadModal && (
