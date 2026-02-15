@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Layout from '../components/Layout'
 import { STORES_SIDEBAR } from '../constants/sidebar'
-import { OutlineButton } from '../components/SearchFilter'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
 import TableSkeleton from '../components/TableSkeleton'
 
@@ -383,6 +382,66 @@ export default function StoresPage() {
     else setSelectedIds(new Set(data.map(d => d.id)))
   }
 
+  // 엑셀 다운로드
+  const handleExcelDownload = async () => {
+    try {
+      // 현재 필터 조건으로 전체 데이터 가져오기
+      const params = new URLSearchParams()
+      params.set('limit', '10000') // 전체
+      if (filter !== 'all') params.set('status', filter)
+      if (searchRef.current.code) params.set('groupName', searchRef.current.code)
+      if (searchRef.current.name) params.set('name', searchRef.current.name)
+      if (searchRef.current.owner) params.set('ownerName', searchRef.current.owner)
+      if (searchRef.current.phone) params.set('phone', searchRef.current.phone)
+      if (searchRef.current.address) params.set('address', searchRef.current.address)
+      if (searchRef.current.salesRep) params.set('salesRepName', searchRef.current.salesRep)
+      if (searchRef.current.delivery) params.set('deliveryContact', searchRef.current.delivery)
+      
+      const res = await fetch(`/api/stores?${params}`)
+      const json = await res.json()
+      
+      if (!json.stores || json.stores.length === 0) {
+        alert('다운로드할 데이터가 없습니다.')
+        return
+      }
+
+      // CSV 생성
+      const headers = ['코드', '그룹', '안경원명', '대표자', '연락처', '주소', '영업담당', '배송담당', '상태', '등록일']
+      const rows = json.stores.map((store: Store) => [
+        store.code,
+        store.groupName || '',
+        store.name,
+        store.ownerName || '',
+        store.phone || '',
+        store.address || '',
+        store.salesRepName || '',
+        store.deliveryStaffName || store.deliveryContact || '',
+        store.isActive ? '활성' : '비활성',
+        store.createdAt ? store.createdAt.split('T')[0] : ''
+      ])
+
+      // BOM + CSV
+      const csvContent = '\uFEFF' + [
+        headers.join(','),
+        ...rows.map((row: string[]) => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n')
+
+      // 다운로드
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `가맹점_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('다운로드에 실패했습니다.')
+    }
+  }
+
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
       {/* 헤더 + 통계 + 필터 통합 */}
@@ -422,10 +481,12 @@ export default function StoresPage() {
             </button>
           ))}
           <div style={{ width: '1px', height: '20px', background: '#e0e0e0', margin: '0 4px' }} />
-          <button onClick={resetColWidths} style={{ padding: '6px 10px', fontSize: '11px', color: '#86868b', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer' }} title="컬럼 너비 초기화">
-            ↺
+          <button onClick={resetColWidths} style={{ padding: '6px 12px', fontSize: '12px', color: '#86868b', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} title="컬럼 너비 초기화">
+            ↺ <span>초기화</span>
           </button>
-          <OutlineButton onClick={() => alert('엑셀 다운로드 - 준비 중')}>📥</OutlineButton>
+          <button onClick={handleExcelDownload} style={{ padding: '6px 12px', fontSize: '12px', color: '#1d1d1f', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            📥 <span>다운로드</span>
+          </button>
           <button onClick={() => openModal(null)} style={{ padding: '6px 14px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
             + 등록
           </button>
