@@ -99,21 +99,27 @@ export async function POST(request: Request) {
       }
     }
     
-    // 주문번호 생성 (ORD-YYYYMMDD-NNN 형식)
+    // 주문번호 생성 (월+순번: 021, 022... 매월 리셋)
     const today = new Date()
-    const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
-    const prefix = `ORD-${dateStr}`
+    const month = String(today.getMonth() + 1).padStart(2, '0') // "02"
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+    const nextMonthStart = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+    
+    // 이번 달 주문 중 가장 큰 번호 찾기
     const lastOrder = await prisma.order.findFirst({
-      where: { orderNo: { startsWith: prefix } },
+      where: { 
+        orderNo: { startsWith: month },
+        orderedAt: { gte: monthStart, lt: nextMonthStart }
+      },
       orderBy: { orderNo: 'desc' }
     })
     
     let seq = 1
-    if (lastOrder) {
-      const lastSeq = parseInt(lastOrder.orderNo.split('-').pop() || '0')
+    if (lastOrder && lastOrder.orderNo.length >= 3) {
+      const lastSeq = parseInt(lastOrder.orderNo.slice(2)) || 0
       seq = lastSeq + 1
     }
-    const orderNo = `${prefix}-${String(seq).padStart(3, '0')}`
+    const orderNo = `${month}${seq}` // "021", "022"...
     
     // 트랜잭션으로 주문 생성
     const order = await prisma.$transaction(async (tx) => {

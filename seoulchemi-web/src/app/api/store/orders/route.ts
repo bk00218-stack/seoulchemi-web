@@ -18,18 +18,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '가맹점을 찾을 수 없습니다' }, { status: 400 })
     }
 
-    // 주문번호 생성
+    // 주문번호 생성 (월+순번: 021, 022... 매월 리셋)
     const today = new Date()
-    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
-    const count = await prisma.order.count({
-      where: {
-        createdAt: {
-          gte: new Date(today.setHours(0, 0, 0, 0)),
-          lt: new Date(today.setHours(23, 59, 59, 999))
-        }
-      }
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+    const nextMonthStart = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+    
+    const lastOrder = await prisma.order.findFirst({
+      where: { 
+        orderNo: { startsWith: month },
+        orderedAt: { gte: monthStart, lt: nextMonthStart }
+      },
+      orderBy: { orderNo: 'desc' }
     })
-    const orderNo = `ORD-${dateStr}-${String(count + 1).padStart(3, '0')}`
+    
+    let seq = 1
+    if (lastOrder && lastOrder.orderNo.length >= 3) {
+      const lastSeq = parseInt(lastOrder.orderNo.slice(2)) || 0
+      seq = lastSeq + 1
+    }
+    const orderNo = `${month}${seq}`
 
     // 총 금액 계산
     let totalAmount = 0
