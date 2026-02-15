@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AdminLayout } from '../../components/Navigation'
 import { OutlineButton } from '../../components/SearchFilter'
 import ConfirmDeleteModal from '../../components/ConfirmDeleteModal'
+import TableSkeleton from '../../components/TableSkeleton'
 
 interface Store {
   id: number
@@ -562,7 +563,22 @@ export default function StoresPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>로딩 중...</td></tr>
+              // 스켈레톤 로딩
+              Array.from({ length: 10 }).map((_, idx) => (
+                <tr key={`skeleton-${idx}`} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                  {Array.from({ length: 9 }).map((_, colIdx) => (
+                    <td key={colIdx} style={{ padding: '14px 8px' }}>
+                      <div style={{
+                        height: '14px',
+                        background: 'linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%)',
+                        backgroundSize: '200% 100%',
+                        animation: 'shimmer 1.5s infinite',
+                        borderRadius: '4px',
+                      }} />
+                    </td>
+                  ))}
+                </tr>
+              ))
             ) : data.length === 0 ? (
               <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
             ) : data.map(store => (
@@ -749,6 +765,14 @@ export default function StoresPage() {
         confirmText="삭제"
         loading={deleteLoading}
       />
+
+      {/* 스켈레톤 애니메이션 */}
+      <style jsx global>{`
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
     </AdminLayout>
   )
 }

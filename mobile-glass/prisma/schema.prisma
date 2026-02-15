@@ -228,6 +228,11 @@ model Store {
   @@index([groupId])
   @@index([deliveryStaffId])
   @@index([salesStaffId])
+  @@index([name])
+  @@index([isActive])
+  @@index([salesRepName])
+  @@index([deliveryContact])
+  @@index([isActive, name])
 }
 
 // 주문 테이블
