@@ -482,7 +482,20 @@ export default function StoresPage() {
                 <input type="checkbox" checked={selectedIds.size === data.length && data.length > 0} onChange={toggleSelectAll} />
               </th>
               {['그룹', '안경원명', '대표자', '연락처', '주소', '영업담당', '배송담당', '관리'].map((label, i) => (
-                <th key={label} style={{ padding: '12px 8px', textAlign: i >= 5 && i <= 6 ? 'center' : 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', position: 'relative', userSelect: 'none' }}>
+                <th key={label} style={{ 
+                  padding: '12px 8px', 
+                  textAlign: i >= 5 && i <= 6 ? 'center' : 'left', 
+                  fontSize: '14px', 
+                  fontWeight: 600, 
+                  color: '#1d1d1f', 
+                  whiteSpace: 'nowrap', 
+                  position: i === 7 ? 'sticky' : 'relative', 
+                  right: i === 7 ? 0 : undefined,
+                  background: i === 7 ? '#f8f9fa' : undefined,
+                  boxShadow: i === 7 ? '-2px 0 4px rgba(0,0,0,0.1)' : undefined,
+                  zIndex: i === 7 ? 10 : undefined,
+                  userSelect: 'none' 
+                }}>
                   {label}
                   {i < 7 && (
                     <div
@@ -542,7 +555,7 @@ export default function StoresPage() {
                   />
                 </td>
               ))}
-              <td style={{ padding: '6px 8px', textAlign: 'center' }}>
+              <td style={{ padding: '6px 8px', textAlign: 'center', position: 'sticky', right: 0, background: '#f1f3f4', boxShadow: '-2px 0 4px rgba(0,0,0,0.1)', zIndex: 10 }}>
                 <button onClick={handleSearch} style={{ padding: '5px 10px', borderRadius: '4px', background: '#007aff', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>검색</button>
               </td>
             </tr>
@@ -564,7 +577,7 @@ export default function StoresPage() {
                 <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '120px', maxWidth: '120px' }}>{store.address}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', color: store.salesRepName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '80px' }}>{store.salesRepName || '-'}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '80px' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
-                <td style={{ padding: '10px 8px' }}>
+                <td style={{ padding: '10px 8px', position: 'sticky', right: 0, background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', boxShadow: '-2px 0 4px rgba(0,0,0,0.1)', zIndex: 5 }}>
                   <div style={{ display: 'flex', flexDirection: 'row', gap: '3px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
                     <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100', whiteSpace: 'nowrap' }}>
                       {store.isActive ? '활성' : '비활성'}
