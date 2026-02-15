@@ -83,7 +83,7 @@ const DEFAULT_VISIBLE_FIELDS = ['ownerName', 'phone', 'salesStaffName', 'deliver
 const MOCK_TRANSACTIONS: Transaction[] = [
   { 
     id: 1, storeId: 0, type: 'sale', amount: 1250000, balanceAfter: 5504502, 
-    orderNo: 'ORD-2025-0215-001', paymentMethod: null, memo: null, processedAt: '2025-02-15T10:30:00',
+    orderNo: '025', paymentMethod: null, memo: null, processedAt: '2025-02-15T10:30:00',
     items: [
       { brand: '에실로', product: '바리락스 XR', qty: 2, sph: '-3.00', cyl: '-0.75', axis: '180', add: '+2.00', price: 450000 },
       { brand: '호야', product: '누진 라이프스타일3', qty: 2, sph: '-2.50', cyl: '-0.50', axis: '90', add: '+1.75', price: 380000 },
@@ -98,7 +98,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
   { 
     id: 3, storeId: 0, type: 'sale', amount: 890000, balanceAfter: 5504502, 
-    orderNo: 'ORD-2025-0208-003', paymentMethod: null, memo: null, processedAt: '2025-02-08T11:45:00',
+    orderNo: '018', paymentMethod: null, memo: null, processedAt: '2025-02-08T11:45:00',
     items: [
       { brand: '에실로', product: '바리락스 피지오', qty: 2, sph: '-2.00', add: '+2.25', price: 520000 },
       { brand: '호야', product: '블루컷 코팅', qty: 2, sph: '-1.50', cyl: '-0.25', axis: '180', price: 370000 },
@@ -106,7 +106,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
   { 
     id: 4, storeId: 0, type: 'return', amount: 150000, balanceAfter: 4614502, 
-    orderNo: 'ORD-2025-0205-002', paymentMethod: null, memo: '불량 교환', processedAt: '2025-02-05T16:00:00',
+    orderNo: '012', paymentMethod: null, memo: '불량 교환', processedAt: '2025-02-05T16:00:00',
     items: [
       { brand: '케미', product: '단초점 1.60', qty: 2, sph: '-2.00', price: 150000 },
     ]
@@ -117,7 +117,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
   { 
     id: 6, storeId: 0, type: 'sale', amount: 2340000, balanceAfter: 5764502, 
-    orderNo: 'ORD-2025-0128-005', paymentMethod: null, memo: null, processedAt: '2025-01-28T09:15:00',
+    orderNo: '156', paymentMethod: null, memo: null, processedAt: '2025-01-28T09:15:00',
     items: [
       { brand: '호야', product: '누진 아이디', qty: 4, sph: '-3.50', add: '+2.00', price: 980000 },
       { brand: '에실로', product: '아이젠 360', qty: 2, sph: '-1.75', cyl: '-0.50', axis: '90', price: 420000 },
@@ -128,7 +128,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
   { 
     id: 7, storeId: 0, type: 'sale', amount: 670000, balanceAfter: 3424502, 
-    orderNo: 'ORD-2025-0120-001', paymentMethod: null, memo: null, processedAt: '2025-01-20T13:40:00',
+    orderNo: '142', paymentMethod: null, memo: null, processedAt: '2025-01-20T13:40:00',
     items: [
       { brand: '케미', product: 'UV코팅 1.60', qty: 4, sph: '-1.25', price: 280000 },
       { brand: '호야', product: '블루컷', qty: 2, sph: '-0.50', price: 220000 },
