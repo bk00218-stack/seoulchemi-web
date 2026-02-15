@@ -613,11 +613,11 @@ export default function StoresPage() {
           <button onClick={resetColWidths} style={{ padding: '6px 12px', fontSize: '12px', color: '#86868b', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} title="컬럼 너비 초기화">
             ↺ <span>초기화</span>
           </button>
-          <button onClick={handleExcelDownload} style={{ padding: '6px 12px', fontSize: '12px', color: '#1d1d1f', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            📥 <span>다운로드</span>
+          <button onClick={handleExcelDownload} style={{ padding: '6px 12px', fontSize: '12px', color: '#2e7d32', background: '#e8f5e9', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
+            <span style={{ fontSize: '14px' }}>⬇</span> 내보내기
           </button>
-          <button onClick={() => setShowBulkUploadModal(true)} style={{ padding: '6px 12px', fontSize: '12px', color: '#1d1d1f', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            📤 <span>일괄등록</span>
+          <button onClick={() => setShowBulkUploadModal(true)} style={{ padding: '6px 12px', fontSize: '12px', color: '#1565c0', background: '#e3f2fd', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
+            <span style={{ fontSize: '14px' }}>⬆</span> 가져오기
           </button>
           <button onClick={() => openModal(null)} style={{ padding: '6px 14px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
             + 등록
