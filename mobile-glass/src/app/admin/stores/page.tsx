@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AdminLayout } from '../../components/Navigation'
 import DataTable, { StatusBadge, Column } from '../../components/DataTable'
-import SearchFilter, { FilterButtonGroup, OutlineButton } from '../../components/SearchFilter'
+import { OutlineButton } from '../../components/SearchFilter'
 
 interface Store {
   id: number
@@ -61,43 +61,6 @@ const initialFormData: FormData = {
   isActive: true,
 }
 
-// 컴팩트 통계 바
-const CompactStatBar = ({ stats }: { stats: Stats }) => (
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '24px',
-    padding: '12px 20px',
-    background: '#fff',
-    borderRadius: '10px',
-    marginBottom: '16px',
-    flexWrap: 'wrap'
-  }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{ fontSize: '18px' }}>🏪</span>
-      <span style={{ color: '#86868b', fontSize: '13px' }}>전체</span>
-      <span style={{ fontWeight: 600, fontSize: '16px', color: '#1d1d1f' }}>{stats.total.toLocaleString()}</span>
-    </div>
-    <div style={{ width: '1px', height: '20px', background: '#e5e5e5' }} />
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34c759' }} />
-      <span style={{ color: '#86868b', fontSize: '13px' }}>활성</span>
-      <span style={{ fontWeight: 600, fontSize: '15px', color: '#34c759' }}>{stats.active.toLocaleString()}</span>
-    </div>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff9500' }} />
-      <span style={{ color: '#86868b', fontSize: '13px' }}>비활성</span>
-      <span style={{ fontWeight: 600, fontSize: '15px', color: '#ff9500' }}>{stats.inactive.toLocaleString()}</span>
-    </div>
-    <div style={{ width: '1px', height: '20px', background: '#e5e5e5' }} />
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{ fontSize: '14px' }}>✨</span>
-      <span style={{ color: '#86868b', fontSize: '13px' }}>이번달 신규</span>
-      <span style={{ fontWeight: 600, fontSize: '15px', color: '#007aff' }}>{stats.newThisMonth}</span>
-    </div>
-  </div>
-)
-
 export default function StoresPage() {
   const router = useRouter()
   const [filter, setFilter] = useState('all')
@@ -109,7 +72,9 @@ export default function StoresPage() {
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, inactive: 0, newThisMonth: 0 })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [search, setSearch] = useState('')
+  const [searchCode, setSearchCode] = useState('')
+  const [searchName, setSearchName] = useState('')
+  const [searchOwner, setSearchOwner] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [groups, setGroups] = useState<StoreGroup[]>([])
@@ -133,7 +98,10 @@ export default function StoresPage() {
       params.set('page', String(page))
       params.set('limit', '50')
       if (filter !== 'all') params.set('status', filter)
-      if (search) params.set('search', search)
+      
+      // 통합 검색어 생성
+      const searchTerms = [searchCode, searchName, searchOwner].filter(Boolean).join(' ')
+      if (searchTerms) params.set('search', searchTerms)
       
       const res = await fetch(`/api/stores?${params}`)
       const json = await res.json()
@@ -150,7 +118,7 @@ export default function StoresPage() {
       console.error('Failed to fetch stores:', error)
     }
     setLoading(false)
-  }, [filter, search, page])
+  }, [filter, searchCode, searchName, searchOwner, page])
 
   useEffect(() => {
     fetchData()
@@ -240,53 +208,40 @@ export default function StoresPage() {
 
   const columns: Column<Store>[] = [
     { key: 'code', label: '코드', width: '80px', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#86868b' }}>{v as string}</span>
+      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#666' }}>{v as string}</span>
     )},
     { key: 'name', label: '안경원명', render: (v) => (
       <span style={{ fontWeight: 500 }}>{v as string}</span>
     )},
     { key: 'ownerName', label: '대표자', width: '80px' },
     { key: 'phone', label: '연락처', width: '120px', render: (v) => (
-      <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{v as string}</span>
+      <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{v as string}</span>
     )},
     { key: 'address', label: '주소', render: (v) => (
-      <span style={{ fontSize: '12px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', maxWidth: '250px' }}>{v as string}</span>
+      <span style={{ fontSize: '12px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', maxWidth: '200px' }}>{v as string}</span>
     )},
-    { key: 'orderCount', label: '주문', width: '60px', align: 'center', render: (v) => (
-      <span style={{ 
-        color: (v as number) > 0 ? '#007aff' : '#c5c5c7',
-        fontSize: '13px',
-        fontWeight: 500
-      }}>
-        {v as number}
-      </span>
+    { key: 'orderCount', label: '주문', width: '50px', align: 'center', render: (v) => (
+      <span style={{ color: (v as number) > 0 ? '#007aff' : '#ccc', fontSize: '13px', fontWeight: 500 }}>{v as number}</span>
     )},
-    { key: 'lastOrderDate', label: '최근주문', width: '90px', render: (v) => (
-      v ? (
-        <span style={{ color: '#1d1d1f', fontSize: '12px' }}>{v as string}</span>
-      ) : (
-        <span style={{ color: '#c5c5c7', fontSize: '12px' }}>-</span>
-      )
+    { key: 'lastOrderDate', label: '최근주문', width: '85px', render: (v) => (
+      v ? <span style={{ fontSize: '11px' }}>{v as string}</span> : <span style={{ color: '#ccc', fontSize: '11px' }}>-</span>
     )},
-    { key: 'isActive', label: '상태', width: '60px', render: (v) => (
-      <span style={{
-        display: 'inline-block',
-        padding: '2px 8px',
-        borderRadius: '10px',
-        fontSize: '11px',
-        fontWeight: 500,
-        background: v ? '#e8f5e9' : '#fff3e0',
-        color: v ? '#2e7d32' : '#e65100'
-      }}>
-        {v ? '활성' : '비활성'}
-      </span>
-    )},
-    { key: 'id', label: '', width: '140px', align: 'center', render: (_, row) => (
-      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+    { key: 'id', label: '', width: '200px', align: 'center', render: (_, row) => (
+      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', alignItems: 'center' }}>
+        <span style={{
+          padding: '3px 8px',
+          borderRadius: '10px',
+          fontSize: '11px',
+          fontWeight: 500,
+          background: row.isActive ? '#e8f5e9' : '#fff3e0',
+          color: row.isActive ? '#2e7d32' : '#e65100'
+        }}>
+          {row.isActive ? '활성' : '비활성'}
+        </span>
         <button
           onClick={() => router.push(`/admin/stores/${row.id}/discounts`)}
           style={{
-            padding: '4px 8px',
+            padding: '3px 8px',
             borderRadius: '4px',
             background: '#fff3e0',
             color: '#e65100',
@@ -300,7 +255,7 @@ export default function StoresPage() {
         <button
           onClick={() => openModal(row)}
           style={{
-            padding: '4px 8px',
+            padding: '3px 8px',
             borderRadius: '4px',
             background: '#e3f2fd',
             color: '#1976d2',
@@ -314,7 +269,7 @@ export default function StoresPage() {
         <button
           onClick={() => handleDelete(row)}
           style={{
-            padding: '4px 8px',
+            padding: '3px 8px',
             borderRadius: '4px',
             background: '#ffebee',
             color: '#c62828',
@@ -331,123 +286,176 @@ export default function StoresPage() {
 
   return (
     <AdminLayout activeMenu="stores">
-      {/* 헤더 + 검색 + 버튼을 한 줄에 */}
+      {/* 헤더 - 꽉 차게 */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        marginBottom: '12px',
-        flexWrap: 'wrap',
-        gap: '12px'
+        marginBottom: '16px'
       }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1d1d1f', margin: 0 }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', margin: 0 }}>
           가맹점 관리
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="text"
-            placeholder="검색 (이름, 코드, 연락처)"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              border: '1px solid #e5e5e5',
-              fontSize: '13px',
-              width: '200px'
-            }}
-          />
-          <button
-            onClick={handleSearch}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              background: '#f5f5f7',
-              border: 'none',
-              fontSize: '13px',
-              cursor: 'pointer'
-            }}
-          >
-            🔍
-          </button>
           <OutlineButton onClick={() => alert('엑셀 다운로드 - 준비 중')}>📥 엑셀</OutlineButton>
           <button
             onClick={() => openModal(null)}
             style={{
-              padding: '8px 14px',
+              padding: '10px 16px',
               borderRadius: '8px',
               background: '#007aff',
               color: '#fff',
               border: 'none',
-              fontSize: '13px',
+              fontSize: '14px',
               fontWeight: 500,
               cursor: 'pointer'
             }}
           >
-            + 등록
+            + 가맹점 등록
           </button>
         </div>
       </div>
 
-      {/* 컴팩트 통계 바 + 필터 */}
+      {/* 통계 카드 - 크기 키움 */}
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '10px 16px',
-        background: '#fff',
-        borderRadius: '10px',
-        marginBottom: '12px',
-        flexWrap: 'wrap',
-        gap: '12px'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '16px',
+        marginBottom: '16px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '16px' }}>🏪</span>
-            <span style={{ color: '#86868b', fontSize: '12px' }}>전체</span>
-            <span style={{ fontWeight: 600, fontSize: '15px' }}>{stats.total.toLocaleString()}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34c759' }} />
-            <span style={{ color: '#86868b', fontSize: '12px' }}>활성</span>
-            <span style={{ fontWeight: 500, fontSize: '14px', color: '#34c759' }}>{stats.active.toLocaleString()}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ff9500' }} />
-            <span style={{ color: '#86868b', fontSize: '12px' }}>비활성</span>
-            <span style={{ fontWeight: 500, fontSize: '14px', color: '#ff9500' }}>{stats.inactive}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px' }}>✨</span>
-            <span style={{ color: '#86868b', fontSize: '12px' }}>신규</span>
-            <span style={{ fontWeight: 500, fontSize: '14px', color: '#007aff' }}>{stats.newThisMonth}</span>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '28px' }}>🏪</span>
+            <div>
+              <div style={{ color: '#86868b', fontSize: '13px', marginBottom: '4px' }}>전체 가맹점</div>
+              <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d1d1f' }}>{stats.total.toLocaleString()}</div>
+            </div>
           </div>
         </div>
-        
-        <div style={{ display: 'flex', gap: '4px' }}>
-          {[
-            { label: '전체', value: 'all' },
-            { label: '활성', value: 'active' },
-            { label: '비활성', value: 'inactive' },
-          ].map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => { setFilter(opt.value); setPage(1); }}
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '28px' }}>✅</span>
+            <div>
+              <div style={{ color: '#86868b', fontSize: '13px', marginBottom: '4px' }}>활성</div>
+              <div style={{ fontSize: '24px', fontWeight: 700, color: '#34c759' }}>{stats.active.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '28px' }}>⏸️</span>
+            <div>
+              <div style={{ color: '#86868b', fontSize: '13px', marginBottom: '4px' }}>비활성</div>
+              <div style={{ fontSize: '24px', fontWeight: 700, color: '#ff9500' }}>{stats.inactive.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '28px' }}>✨</span>
+            <div>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', marginBottom: '4px' }}>이번달 신규</div>
+              <div style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>{stats.newThisMonth.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 필터 + 검색 */}
+      <div style={{
+        background: '#fff',
+        borderRadius: '12px',
+        padding: '16px 20px',
+        marginBottom: '16px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          {/* 필터 버튼 */}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[
+              { label: `전체 (${stats.total})`, value: 'all' },
+              { label: `활성 (${stats.active})`, value: 'active' },
+              { label: `비활성 (${stats.inactive})`, value: 'inactive' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => { setFilter(opt.value); setPage(1); }}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  background: filter === opt.value ? '#007aff' : '#f5f5f7',
+                  color: filter === opt.value ? '#fff' : '#666'
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          
+          {/* 검색 필드 - 코드/안경원명/대표자 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="text"
+              placeholder="코드"
+              value={searchCode}
+              onChange={(e) => setSearchCode(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               style={{
-                padding: '6px 12px',
-                borderRadius: '6px',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid #e5e5e5',
+                fontSize: '13px',
+                width: '80px'
+              }}
+            />
+            <input
+              type="text"
+              placeholder="안경원명"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid #e5e5e5',
+                fontSize: '13px',
+                width: '120px'
+              }}
+            />
+            <input
+              type="text"
+              placeholder="대표자"
+              value={searchOwner}
+              onChange={(e) => setSearchOwner(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid #e5e5e5',
+                fontSize: '13px',
+                width: '80px'
+              }}
+            />
+            <button
+              onClick={handleSearch}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                background: '#007aff',
+                color: '#fff',
                 border: 'none',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: 500,
-                cursor: 'pointer',
-                background: filter === opt.value ? '#007aff' : '#f5f5f7',
-                color: filter === opt.value ? '#fff' : '#666'
+                cursor: 'pointer'
               }}
             >
-              {opt.label}
+              검색
             </button>
-          ))}
+          </div>
         </div>
       </div>
 
@@ -479,7 +487,7 @@ export default function StoresPage() {
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
                 style={{
-                  padding: '6px 12px',
+                  padding: '8px 14px',
                   borderRadius: '6px',
                   background: page === 1 ? '#f5f5f7' : '#fff',
                   color: page === 1 ? '#c5c5c7' : '#007aff',
@@ -488,11 +496,11 @@ export default function StoresPage() {
                   fontSize: '13px'
                 }}
               >
-                ←
+                ← 이전
               </button>
               <span style={{ 
-                padding: '6px 12px', 
-                color: '#86868b',
+                padding: '8px 16px', 
+                color: '#666',
                 fontSize: '13px'
               }}>
                 {page} / {totalPages}
@@ -501,7 +509,7 @@ export default function StoresPage() {
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 style={{
-                  padding: '6px 12px',
+                  padding: '8px 14px',
                   borderRadius: '6px',
                   background: page === totalPages ? '#f5f5f7' : '#fff',
                   color: page === totalPages ? '#c5c5c7' : '#007aff',
@@ -510,7 +518,7 @@ export default function StoresPage() {
                   fontSize: '13px'
                 }}
               >
-                →
+                다음 →
               </button>
             </div>
           )}
