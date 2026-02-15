@@ -37,6 +37,11 @@ interface StoreGroup {
   name: string
 }
 
+interface Staff {
+  id: number
+  name: string
+}
+
 interface FormData {
   code: string
   name: string
@@ -44,12 +49,17 @@ interface FormData {
   phone: string
   mobile: string
   address: string
-  paymentTermDays: number
+  storeType: string
+  businessType: string
+  businessCategory: string
+  businessNumber: string
+  email: string
   billingDay: number | null
   groupId: number | null
-  salesRepName: string
-  deliveryContact: string
+  salesStaffId: number | null
+  deliveryStaffId: number | null
   isActive: boolean
+  createdAt: string
 }
 
 const initialFormData: FormData = {
@@ -59,12 +69,17 @@ const initialFormData: FormData = {
   phone: '',
   mobile: '',
   address: '',
-  paymentTermDays: 30,
+  storeType: '소매',
+  businessType: '',
+  businessCategory: '',
+  businessNumber: '',
+  email: '',
   billingDay: null,
   groupId: null,
-  salesRepName: '',
-  deliveryContact: '',
+  salesStaffId: null,
+  deliveryStaffId: null,
   isActive: true,
+  createdAt: '',
 }
 
 export default function StoresPage() {
@@ -90,6 +105,8 @@ export default function StoresPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [groups, setGroups] = useState<StoreGroup[]>([])
+  const [salesStaffList, setSalesStaffList] = useState<Staff[]>([])
+  const [deliveryStaffList, setDeliveryStaffList] = useState<Staff[]>([])
   const [bulkGroupId, setBulkGroupId] = useState<number | null>(null)
   
   // 삭제 모달 관련 state
@@ -98,7 +115,7 @@ export default function StoresPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   // 컬럼 너비 조절 기능
-  const defaultColWidths = [40, 60, 160, 60, 100, 250, 80, 80, 170]
+  const defaultColWidths = [40, 60, 160, 60, 100, 250, 80, 80, 200]
   const colNames = ['checkbox', 'group', 'name', 'owner', 'phone', 'address', 'salesRep', 'delivery', 'actions']
   const [colWidths, setColWidths] = useState<number[]>(defaultColWidths)
   const resizingCol = useRef<number | null>(null)
@@ -171,6 +188,20 @@ export default function StoresPage() {
         if (Array.isArray(data)) setGroups(data)
       })
       .catch(err => console.error('Failed to fetch groups:', err))
+    
+    fetch('/api/sales-staff')
+      .then(res => res.json())
+      .then(data => {
+        if (data.salesStaff && Array.isArray(data.salesStaff)) setSalesStaffList(data.salesStaff)
+      })
+      .catch(err => console.error('Failed to fetch sales staff:', err))
+    
+    fetch('/api/delivery-staff')
+      .then(res => res.json())
+      .then(data => {
+        if (data.deliveryStaff && Array.isArray(data.deliveryStaff)) setDeliveryStaffList(data.deliveryStaff)
+      })
+      .catch(err => console.error('Failed to fetch delivery staff:', err))
   }, [])
 
   // 검색 파라미터를 ref로 관리 (타이핑할 때마다 API 호출 방지)
@@ -229,16 +260,21 @@ export default function StoresPage() {
         phone: store.phone === '-' ? '' : store.phone,
         mobile: store.mobile || '',
         address: store.address === '-' ? '' : store.address,
-        paymentTermDays: store.paymentTermDays || 30,
+        storeType: store.storeType || '소매',
+        businessType: store.businessType || '',
+        businessCategory: store.businessCategory || '',
+        businessNumber: store.businessNumber || store.businessRegNo || '',
+        email: store.email || '',
         billingDay: store.billingDay || null,
         groupId: store.groupId || null,
-        salesRepName: store.salesRepName || '',
-        deliveryContact: store.deliveryContact || '',
+        salesStaffId: store.salesStaffId || null,
+        deliveryStaffId: store.deliveryStaffId || null,
         isActive: store.isActive,
+        createdAt: store.createdAt || '',
       })
     } else {
       setEditingStore(null)
-      setFormData(initialFormData)
+      setFormData({ ...initialFormData, createdAt: new Date().toISOString().split('T')[0] })
     }
     setShowModal(true)
   }
@@ -351,9 +387,9 @@ export default function StoresPage() {
           <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1d1d1f', margin: 0 }}>가맹점</h2>
           {/* 인라인 통계 */}
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', fontSize: '13px', color: '#666' }}>
-            <span>🏪 <strong style={{ color: '#1d1d1f' }}>{stats.total.toLocaleString()}</strong></span>
-            <span>✅ <strong style={{ color: '#34c759' }}>{stats.active.toLocaleString()}</strong></span>
-            <span>⏸️ <strong style={{ color: '#ff9500' }}>{stats.inactive.toLocaleString()}</strong></span>
+            <span>🏪 전체 <strong style={{ color: '#1d1d1f' }}>{stats.total.toLocaleString()}</strong></span>
+            <span>✅ 활성 <strong style={{ color: '#34c759' }}>{stats.active.toLocaleString()}</strong></span>
+            <span>⏸️ 비활성 <strong style={{ color: '#ff9500' }}>{stats.inactive.toLocaleString()}</strong></span>
             <span style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '2px 8px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}>✨ 신규 {stats.newThisMonth}</span>
           </div>
         </div>
@@ -431,27 +467,27 @@ export default function StoresPage() {
                 <input type="checkbox" checked={selectedIds.size === data.length && data.length > 0} onChange={toggleSelectAll} />
               </th>
               {[
-                { label: '그룹', placeholder: '그룹', value: searchCode, onChange: setSearchCode, align: 'left' },
-                { label: '안경원명', placeholder: '이름', value: searchName, onChange: setSearchName, align: 'left' },
-                { label: '대표자', placeholder: '대표자', value: searchOwner, onChange: setSearchOwner, align: 'left' },
-                { label: '연락처', placeholder: '전화', value: searchPhone, onChange: setSearchPhone, align: 'left' },
-                { label: '주소', placeholder: '주소', value: searchAddress, onChange: setSearchAddress, align: 'left' },
-                { label: '영업', placeholder: '영업', value: searchSalesRep, onChange: setSearchSalesRep, align: 'center' },
-                { label: '배송', placeholder: '배송', value: searchDelivery, onChange: setSearchDelivery, align: 'center' },
+                { label: '그룹', placeholder: '그룹', value: searchCode, onChange: setSearchCode },
+                { label: '안경원명', placeholder: '이름', value: searchName, onChange: setSearchName },
+                { label: '대표자', placeholder: '대표자', value: searchOwner, onChange: setSearchOwner },
+                { label: '연락처', placeholder: '전화', value: searchPhone, onChange: setSearchPhone },
+                { label: '주소', placeholder: '주소', value: searchAddress, onChange: setSearchAddress },
+                { label: '영업', placeholder: '영업', value: searchSalesRep, onChange: setSearchSalesRep },
+                { label: '배송', placeholder: '배송', value: searchDelivery, onChange: setSearchDelivery },
               ].map((field, i) => (
                 <th key={field.label} style={{ 
-                  padding: '6px 4px', 
-                  textAlign: field.align as any, 
-                  fontSize: '12px', 
-                  fontWeight: 500, 
-                  color: '#666', 
+                  padding: '8px 4px', 
+                  textAlign: 'center', 
+                  fontSize: '14px', 
+                  fontWeight: 600, 
+                  color: '#1d1d1f', 
                   whiteSpace: 'nowrap', 
                   position: 'relative',
                   verticalAlign: 'middle',
                   userSelect: 'none' 
                 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ color: '#1d1d1f', fontWeight: 600 }}>{field.label}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                    <span style={{ color: '#1d1d1f', fontWeight: 600, fontSize: '14px' }}>{field.label}</span>
                     <input 
                       type="text" 
                       placeholder={field.placeholder}
@@ -461,7 +497,7 @@ export default function StoresPage() {
                       style={{ width: '100%', padding: '4px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px', fontWeight: 400 }} 
                     />
                   </div>
-                  {i < 6 && (
+                  {i < 7 && (
                     <div
                       onMouseDown={(e) => handleResizeStart(e, i + 1)}
                       style={{
@@ -480,9 +516,9 @@ export default function StoresPage() {
                   )}
                 </th>
               ))}
-              <th style={{ padding: '6px 8px', textAlign: 'center', position: 'sticky', right: 0, background: '#f8f9fa', boxShadow: '-2px 0 4px rgba(0,0,0,0.08)', zIndex: 10, verticalAlign: 'middle' }}>
+              <th style={{ padding: '8px 8px', textAlign: 'center', position: 'sticky', right: 0, background: '#f8f9fa', boxShadow: '-2px 0 4px rgba(0,0,0,0.08)', zIndex: 10, verticalAlign: 'middle' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                  <span style={{ color: '#1d1d1f', fontWeight: 600, fontSize: '12px' }}>관리</span>
+                  <span style={{ color: '#1d1d1f', fontWeight: 600, fontSize: '14px' }}>관리</span>
                   <button onClick={handleSearch} style={{ padding: '4px 10px', borderRadius: '4px', background: '#007aff', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}>🔍</button>
                 </div>
               </th>
@@ -521,13 +557,13 @@ export default function StoresPage() {
                 <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '11px', color: store.salesRepName ? '#333' : '#ccc', whiteSpace: 'nowrap' }}>{store.salesRepName || '-'}</td>
                 <td style={{ padding: '6px 4px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
                 <td style={{ padding: '6px 4px', position: 'sticky', right: 0, background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', boxShadow: '-2px 0 4px rgba(0,0,0,0.08)', zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
-                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
-                    <span style={{ padding: '2px 5px', borderRadius: '6px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100' }}>
-                      {store.isActive ? '✓' : '⏸'}
+                  <div style={{ display: 'flex', flexDirection: 'row', gap: '3px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
+                    <span style={{ padding: '2px 6px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100' }}>
+                      {store.isActive ? '활성' : '비활'}
                     </span>
-                    <button onClick={() => router.push(`/stores/${store.id}/discounts`)} style={{ padding: '2px 5px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '10px', cursor: 'pointer' }}>%</button>
-                    <button onClick={() => openModal(store)} style={{ padding: '2px 5px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '10px', cursor: 'pointer' }}>✎</button>
-                    <button onClick={() => handleDeleteClick(store)} style={{ padding: '2px 5px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '10px', cursor: 'pointer' }}>×</button>
+                    <button onClick={() => router.push(`/stores/${store.id}/discounts`)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#fff3e0', color: '#e65100', border: 'none', fontSize: '11px', cursor: 'pointer' }}>할인</button>
+                    <button onClick={() => openModal(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#e3f2fd', color: '#1976d2', border: 'none', fontSize: '11px', cursor: 'pointer' }}>수정</button>
+                    <button onClick={() => handleDeleteClick(store)} style={{ padding: '2px 6px', borderRadius: '4px', background: '#ffebee', color: '#c62828', border: 'none', fontSize: '11px', cursor: 'pointer' }}>삭제</button>
                   </div>
                 </td>
               </tr>
@@ -596,71 +632,141 @@ export default function StoresPage() {
       {/* 등록/수정 모달 */}
       {showModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '520px', maxHeight: '80vh', overflow: 'auto' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>{editingStore ? '가맹점 수정' : '가맹점 등록'}</h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px', color: '#86868b' }}>가맹점 코드</label>
-                <input type="text" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder="자동생성" disabled={!!editingStore}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px', background: editingStore ? '#f5f5f7' : '#fff' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>안경원명 <span style={{ color: '#ff3b30' }}>*</span></label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
-              </div>
+          <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', width: '680px', maxHeight: '90vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e9ecef', paddingBottom: '12px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>{editingStore ? '가맹점 수정' : '가맹점 등록'}</h3>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#999' }}>×</button>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>대표자</label>
-                <input type="text" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
+            {/* 기본 정보 */}
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#007aff', marginBottom: '8px' }}>📋 기본 정보</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>코드</label>
+                  <input type="text" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder="자동" disabled={!!editingStore}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px', background: editingStore ? '#f5f5f7' : '#fff' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>안경원명 <span style={{ color: '#ff3b30' }}>*</span></label>
+                  <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>거래처 유형</label>
+                  <select value={formData.storeType} onChange={(e) => setFormData({ ...formData, storeType: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }}>
+                    <option value="소매">소매</option>
+                    <option value="도매">도매</option>
+                    <option value="공장">공장</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>전화</label>
-                <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="02-000-0000"
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>대표자</label>
+                  <input type="text" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>전화</label>
+                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="02-000-0000"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>핸드폰</label>
+                  <input type="tel" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} placeholder="010-0000-0000"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>이메일</label>
+                  <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>핸드폰</label>
-                <input type="tel" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} placeholder="010-0000-0000"
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
+            {/* 사업자 정보 */}
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#007aff', marginBottom: '8px' }}>🏢 사업자 정보</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>사업자등록번호</label>
+                  <input type="text" value={formData.businessNumber} onChange={(e) => setFormData({ ...formData, businessNumber: e.target.value })} placeholder="000-00-00000"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>업태</label>
+                  <input type="text" value={formData.businessCategory} onChange={(e) => setFormData({ ...formData, businessCategory: e.target.value })} placeholder="도소매"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>업종</label>
+                  <input type="text" value={formData.businessType} onChange={(e) => setFormData({ ...formData, businessType: e.target.value })} placeholder="안경"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>그룹</label>
-                <select value={formData.groupId || ''} onChange={(e) => setFormData({ ...formData, groupId: e.target.value ? parseInt(e.target.value) : null })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}>
-                  <option value="">선택 안함</option>
-                  {groups.map(group => (<option key={group.id} value={group.id}>{group.name}</option>))}
-                </select>
+                <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>주소</label>
+                <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
               </div>
-            </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>주소</label>
-              <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }} />
             </div>
 
+            {/* 거래 정보 */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>상태</label>
-              <select value={formData.isActive ? 'active' : 'inactive'} onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'active' })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}>
-                <option value="active">활성</option>
-                <option value="inactive">비활성</option>
-              </select>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#007aff', marginBottom: '8px' }}>🤝 거래 정보</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '8px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>그룹</label>
+                  <select value={formData.groupId || ''} onChange={(e) => setFormData({ ...formData, groupId: e.target.value ? parseInt(e.target.value) : null })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }}>
+                    <option value="">선택</option>
+                    {groups.map(group => (<option key={group.id} value={group.id}>{group.name}</option>))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>영업담당</label>
+                  <select value={formData.salesStaffId || ''} onChange={(e) => setFormData({ ...formData, salesStaffId: e.target.value ? parseInt(e.target.value) : null })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }}>
+                    <option value="">선택</option>
+                    {salesStaffList.map(staff => (<option key={staff.id} value={staff.id}>{staff.name}</option>))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>배송담당</label>
+                  <select value={formData.deliveryStaffId || ''} onChange={(e) => setFormData({ ...formData, deliveryStaffId: e.target.value ? parseInt(e.target.value) : null })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }}>
+                    <option value="">선택</option>
+                    {deliveryStaffList.map(staff => (<option key={staff.id} value={staff.id}>{staff.name}</option>))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>청구일</label>
+                  <input type="number" min="1" max="31" value={formData.billingDay || ''} onChange={(e) => setFormData({ ...formData, billingDay: e.target.value ? parseInt(e.target.value) : null })} placeholder="일"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#86868b', marginBottom: '3px' }}>상태</label>
+                  <select value={formData.isActive ? 'active' : 'inactive'} onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'active' })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e9ecef', fontSize: '12px' }}>
+                    <option value="active">활성</option>
+                    <option value="inactive">비활성</option>
+                  </select>
+                </div>
+              </div>
+              {formData.createdAt && (
+                <div style={{ marginTop: '8px', fontSize: '11px', color: '#86868b' }}>
+                  등록일: {formData.createdAt.split('T')[0]}
+                </div>
+              )}
             </div>
             
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid #e9ecef', paddingTop: '12px' }}>
               <button onClick={() => setShowModal(false)} disabled={saving}
-                style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
+                style={{ padding: '8px 16px', borderRadius: '6px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '13px', cursor: 'pointer' }}>취소</button>
               <button onClick={handleSave} disabled={saving}
-                style={{ padding: '10px 24px', borderRadius: '8px', background: saving ? '#86868b' : '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: saving ? 'default' : 'pointer' }}>
+                style={{ padding: '8px 20px', borderRadius: '6px', background: saving ? '#86868b' : '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: saving ? 'default' : 'pointer' }}>
                 {saving ? '저장 중...' : '저장'}
               </button>
             </div>

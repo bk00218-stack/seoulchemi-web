@@ -55,6 +55,7 @@ export async function GET(
         },
         group: { select: { id: true, name: true } },
         deliveryStaff: { select: { id: true, name: true, phone: true } },
+        salesStaff: { select: { id: true, name: true, phone: true } },
         _count: {
           select: { orders: true, transactions: true }
         }
@@ -106,10 +107,12 @@ export async function PATCH(
       businessType,
       businessCategory,
       businessRegNo,
+      businessNumber, // alias for businessRegNo
       groupId,
       email,
       memo,
       status,
+      salesStaffId,
       deliveryStaffId,
       outstandingAmount,
       billingDay,
@@ -155,11 +158,12 @@ export async function PATCH(
         // 신규 필드
         businessType,
         businessCategory,
-        businessRegNo,
+        businessRegNo: businessRegNo || businessNumber,
         groupId: groupId !== undefined ? (groupId ? parseInt(String(groupId)) : null) : undefined,
         email,
         memo,
         status,
+        salesStaffId: salesStaffId !== undefined ? (salesStaffId ? parseInt(String(salesStaffId)) : null) : undefined,
         deliveryStaffId: deliveryStaffId !== undefined ? (deliveryStaffId ? parseInt(String(deliveryStaffId)) : null) : undefined,
         outstandingAmount: outstandingAmount !== undefined ? parseInt(String(outstandingAmount)) : undefined,
       },

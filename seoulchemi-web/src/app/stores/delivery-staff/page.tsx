@@ -50,6 +50,13 @@ export default function StaffManagementPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   
+  // 마이그레이션 상태
+  const [migrating, setMigrating] = useState(false)
+  const [migrationStatus, setMigrationStatus] = useState<{
+    stores: { withSalesRepName: number; withSalesStaffId: number; withDeliveryContact: number; withDeliveryStaffId: number };
+    staff: { salesStaff: number; deliveryStaff: number };
+  } | null>(null)
+  
   // 폼 상태 (탭별로 다름)
   const [staffForm, setStaffForm] = useState({ name: '', phone: '', areaCode: '' })
   const [groupForm, setGroupForm] = useState({ name: '', description: '', discountRate: 0, storeType: 'normal' })
@@ -58,7 +65,68 @@ export default function StaffManagementPage() {
     fetchGroups()
     fetchDeliveryStaff()
     fetchSalesStaff()
+    checkMigrationStatus()
   }, [])
+
+  async function checkMigrationStatus() {
+    try {
+      const res = await fetch('/api/migrate-staff')
+      const data = await res.json()
+      if (data.stores) {
+        setMigrationStatus(data)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  async function handleMigration() {
+    // 마이그레이션할 데이터가 있는지 확인
+    if (migrationStatus) {
+      const unmigrated = 
+        (migrationStatus.stores.withSalesRepName - migrationStatus.stores.withSalesStaffId) +
+        (migrationStatus.stores.withDeliveryContact - migrationStatus.stores.withDeliveryStaffId)
+      
+      if (unmigrated <= 0) {
+        alert('마이그레이션할 데이터가 없습니다. 이미 모두 연결되어 있습니다.')
+        return
+      }
+    }
+
+    if (!confirm('기존 가맹점의 영업담당/배송담당 데이터를 가져와 담당자로 생성합니다.\n\n계속하시겠습니까?')) return
+
+    try {
+      setMigrating(true)
+      const res = await fetch('/api/migrate-staff', { method: 'POST' })
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(data.error || '마이그레이션 실패')
+        return
+      }
+
+      const result = data.results
+      alert(
+        `✅ 마이그레이션 완료!\n\n` +
+        `📋 영업담당:\n` +
+        `  - 신규 생성: ${result.salesStaff.created}명\n` +
+        `  - 거래처 연결: ${result.salesStaff.storesLinked}개\n\n` +
+        `📋 배송담당:\n` +
+        `  - 신규 생성: ${result.deliveryStaff.created}명\n` +
+        `  - 거래처 연결: ${result.deliveryStaff.storesLinked}개`
+      )
+
+      // 데이터 새로고침
+      fetchDeliveryStaff()
+      fetchSalesStaff()
+      checkMigrationStatus()
+    } catch (e) {
+      console.error(e)
+      alert('마이그레이션 실패')
+    } finally {
+      setMigrating(false)
+    }
+  }
 
   async function fetchGroups() {
     try {
@@ -277,6 +345,32 @@ export default function StaffManagementPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
+          {/* 마이그레이션 버튼 - 미연결 데이터가 있을 때만 표시 */}
+          {migrationStatus && (
+            (migrationStatus.stores.withSalesRepName > migrationStatus.stores.withSalesStaffId ||
+             migrationStatus.stores.withDeliveryContact > migrationStatus.stores.withDeliveryStaffId) ? (
+              <button 
+                style={{ ...btnStyle, background: '#2196f3', color: '#fff', border: 'none' }}
+                onClick={handleMigration}
+                disabled={migrating}
+              >
+                {migrating ? '처리중...' : '📥 기존 데이터 가져오기'}
+              </button>
+            ) : (
+              <span style={{ 
+                padding: '8px 12px', 
+                fontSize: 12, 
+                color: '#4caf50', 
+                background: '#e8f5e9', 
+                borderRadius: 6,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4
+              }}>
+                ✅ 마이그레이션 완료
+              </span>
+            )
+          )}
           <button 
             style={{ ...btnStyle, background: '#ff9800', color: '#fff', border: 'none' }}
             onClick={() => { resetForm(); setShowModal(true); }}

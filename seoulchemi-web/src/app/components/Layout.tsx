@@ -623,7 +623,11 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                 whiteSpace: 'nowrap'
               }}>{menu.title}</div>
               {menu.items.map(item => {
-                const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+                // 정확히 일치하거나, 하위 경로이면서 다른 메뉴의 정확한 경로가 아닐 때만 활성화
+                const exactMatch = pathname === item.href
+                const isSubPath = item.href !== '/' && pathname.startsWith(item.href + '/')
+                const otherMenuExactMatch = menu.items.some(other => other.href !== item.href && pathname === other.href)
+                const isActive = exactMatch || (isSubPath && !otherMenuExactMatch)
                 const currentIndex = sidebarItemIndex++
                 return (
                   <Link
