@@ -81,18 +81,6 @@ export default function StaffManagementPage() {
   }
 
   async function handleMigration() {
-    // 마이그레이션할 데이터가 있는지 확인
-    if (migrationStatus) {
-      const unmigrated = 
-        (migrationStatus.stores.withSalesRepName - migrationStatus.stores.withSalesStaffId) +
-        (migrationStatus.stores.withDeliveryContact - migrationStatus.stores.withDeliveryStaffId)
-      
-      if (unmigrated <= 0) {
-        alert('마이그레이션할 데이터가 없습니다. 이미 모두 연결되어 있습니다.')
-        return
-      }
-    }
-
     if (!confirm('기존 가맹점의 영업담당/배송담당 데이터를 가져와 담당자로 생성합니다.\n\n계속하시겠습니까?')) return
 
     try {
@@ -106,15 +94,22 @@ export default function StaffManagementPage() {
       }
 
       const result = data.results
-      alert(
-        `✅ 마이그레이션 완료!\n\n` +
-        `📋 영업담당:\n` +
-        `  - 신규 생성: ${result.salesStaff.created}명\n` +
-        `  - 거래처 연결: ${result.salesStaff.storesLinked}개\n\n` +
-        `📋 배송담당:\n` +
-        `  - 신규 생성: ${result.deliveryStaff.created}명\n` +
-        `  - 거래처 연결: ${result.deliveryStaff.storesLinked}개`
-      )
+      const totalCreated = result.salesStaff.created + result.deliveryStaff.created
+      const totalLinked = result.salesStaff.storesLinked + result.deliveryStaff.storesLinked
+
+      if (totalCreated === 0 && totalLinked === 0) {
+        alert('마이그레이션할 데이터가 없습니다.\n이미 모두 연결되어 있습니다.')
+      } else {
+        alert(
+          `✅ 마이그레이션 완료!\n\n` +
+          `📋 영업담당:\n` +
+          `  - 신규 생성: ${result.salesStaff.created}명\n` +
+          `  - 거래처 연결: ${result.salesStaff.storesLinked}개\n\n` +
+          `📋 배송담당:\n` +
+          `  - 신규 생성: ${result.deliveryStaff.created}명\n` +
+          `  - 거래처 연결: ${result.deliveryStaff.storesLinked}개`
+        )
+      }
 
       // 데이터 새로고침
       fetchDeliveryStaff()
@@ -345,32 +340,14 @@ export default function StaffManagementPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          {/* 마이그레이션 버튼 - 미연결 데이터가 있을 때만 표시 */}
-          {migrationStatus && (
-            (migrationStatus.stores.withSalesRepName > migrationStatus.stores.withSalesStaffId ||
-             migrationStatus.stores.withDeliveryContact > migrationStatus.stores.withDeliveryStaffId) ? (
-              <button 
-                style={{ ...btnStyle, background: '#2196f3', color: '#fff', border: 'none' }}
-                onClick={handleMigration}
-                disabled={migrating}
-              >
-                {migrating ? '처리중...' : '📥 기존 데이터 가져오기'}
-              </button>
-            ) : (
-              <span style={{ 
-                padding: '8px 12px', 
-                fontSize: 12, 
-                color: '#4caf50', 
-                background: '#e8f5e9', 
-                borderRadius: 6,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4
-              }}>
-                ✅ 마이그레이션 완료
-              </span>
-            )
-          )}
+          {/* 마이그레이션 버튼 */}
+          <button 
+            style={{ ...btnStyle, background: '#2196f3', color: '#fff', border: 'none' }}
+            onClick={handleMigration}
+            disabled={migrating}
+          >
+            {migrating ? '처리중...' : '📥 기존 데이터 가져오기'}
+          </button>
           <button 
             style={{ ...btnStyle, background: '#ff9800', color: '#fff', border: 'none' }}
             onClick={() => { resetForm(); setShowModal(true); }}
