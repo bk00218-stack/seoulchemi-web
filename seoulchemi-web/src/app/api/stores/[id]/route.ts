@@ -67,9 +67,12 @@ export async function GET(
     }
     
     return NextResponse.json({ store })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch store:', error)
-    return NextResponse.json({ error: '거래처 정보를 불러오는데 실패했습니다.' }, { status: 500 })
+    return NextResponse.json({ 
+      error: '거래처 정보를 불러오는데 실패했습니다.',
+      details: error?.message || String(error)
+    }, { status: 500 })
   }
 }
 
