@@ -350,7 +350,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* 중앙: 거래내역 목록 (테이블 형태) */}
-        <div style={{ flex: 1.5, minWidth: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        <div style={{ flex: 1.2, minWidth: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid #e9ecef', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '14px', fontWeight: 600 }}>📋 거래내역</span>
@@ -430,7 +430,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* 우측: 세부내역 */}
-        <div style={{ flex: 0.8, minWidth: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        <div style={{ flex: 0.9, minWidth: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
           padding: '14px', overflow: 'auto' }}>
           <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>📄 세부내역</div>
           
