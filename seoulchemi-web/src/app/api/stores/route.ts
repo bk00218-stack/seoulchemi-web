@@ -215,9 +215,15 @@ export async function GET(request: Request) {
         totalDepositsThisMonth,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch stores:', error)
-    return NextResponse.json({ error: '가맹점 목록을 불러오는데 실패했습니다.' }, { status: 500 })
+    return NextResponse.json({ 
+      error: '가맹점 목록을 불러오는데 실패했습니다.', 
+      detail: error?.message || String(error),
+      stores: [],
+      pagination: { page: 1, limit: 50, total: 0, totalPages: 0 },
+      stats: { total: 0, active: 0, inactive: 0, newThisMonth: 0 }
+    }, { status: 500 })
   }
 }
 

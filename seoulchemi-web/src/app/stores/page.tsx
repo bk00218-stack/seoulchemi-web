@@ -508,8 +508,15 @@ export default function StoresPage() {
       const res = await fetch(`/api/stores?${params}`)
       const json = await res.json()
       
+      console.log('Download response:', json)
+      
+      if (json.error) {
+        alert('다운로드 오류: ' + json.error)
+        return
+      }
+      
       if (!json.stores || json.stores.length === 0) {
-        alert('다운로드할 데이터가 없습니다.')
+        alert('다운로드할 데이터가 없습니다. (총 ' + (json.pagination?.total || 0) + '건)')
         return
       }
 
@@ -614,10 +621,10 @@ export default function StoresPage() {
             ↺ <span>초기화</span>
           </button>
           <button onClick={handleExcelDownload} style={{ padding: '6px 12px', fontSize: '12px', color: '#2e7d32', background: '#e8f5e9', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
-            <span style={{ fontSize: '14px' }}>⬇</span> 내보내기
+            <span style={{ fontSize: '14px' }}>⬇</span> 다운로드
           </button>
           <button onClick={() => setShowBulkUploadModal(true)} style={{ padding: '6px 12px', fontSize: '12px', color: '#1565c0', background: '#e3f2fd', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 500 }}>
-            <span style={{ fontSize: '14px' }}>⬆</span> 가져오기
+            <span style={{ fontSize: '14px' }}>⬆</span> 일괄등록
           </button>
           <button onClick={() => openModal(null)} style={{ padding: '6px 14px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
             + 등록
