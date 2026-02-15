@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     const groupId = searchParams.get('groupId')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
+    const isExport = searchParams.get('export') === 'true'
     
     // 개별 필터
     const nameFilter = searchParams.get('name')
@@ -87,10 +88,42 @@ export async function GET(request: Request) {
       // 필터된 개수
       prisma.store.count({ where }),
       
-      // 목록 조회 (최소한의 include만)
+      // 목록 조회 (export일 때는 전체 필드)
       prisma.store.findMany({
         where,
-        select: {
+        select: isExport ? {
+          id: true,
+          code: true,
+          name: true,
+          ownerName: true,
+          phone: true,
+          address: true,
+          isActive: true,
+          salesRepName: true,
+          deliveryContact: true,
+          deliveryPhone: true,
+          deliveryAddress: true,
+          paymentTermDays: true,
+          billingDay: true,
+          groupId: true,
+          salesStaffId: true,
+          deliveryStaffId: true,
+          outstandingAmount: true,
+          initialReceivables: true,
+          discountRate: true,
+          storeType: true,
+          businessType: true,
+          businessCategory: true,
+          businessRegNo: true,
+          email: true,
+          memo: true,
+          areaCode: true,
+          creditLimit: true,
+          createdAt: true,
+          group: { select: { id: true, name: true } },
+          deliveryStaff: { select: { id: true, name: true } },
+          salesStaff: { select: { id: true, name: true } },
+        } : {
           id: true,
           code: true,
           name: true,
@@ -133,7 +166,7 @@ export async function GET(request: Request) {
     const totalDepositsThisMonth = 0
     
     return NextResponse.json({
-      stores: stores.map(store => ({
+      stores: stores.map((store: any) => ({
         id: store.id,
         code: store.code,
         name: store.name,
@@ -141,11 +174,22 @@ export async function GET(request: Request) {
         phone: store.phone || '-',
         deliveryPhone: store.deliveryPhone || null,
         deliveryContact: store.deliveryContact || null,
+        deliveryAddress: store.deliveryAddress || null,
         salesRepName: store.salesRepName || store.salesStaff?.name || null,
         outstandingAmount: store.outstandingAmount || 0,
+        initialReceivables: store.initialReceivables || 0,
         address: store.address || null,
         paymentTermDays: store.paymentTermDays || 30,
         billingDay: store.billingDay || null,
+        discountRate: store.discountRate || 0,
+        storeType: store.storeType || null,
+        businessType: store.businessType || null,
+        businessCategory: store.businessCategory || null,
+        businessRegNo: store.businessRegNo || null,
+        email: store.email || null,
+        memo: store.memo || null,
+        areaCode: store.areaCode || null,
+        creditLimit: store.creditLimit || 0,
         isActive: store.isActive,
         groupId: store.groupId,
         groupName: store.group?.name || null,

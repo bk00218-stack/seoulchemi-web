@@ -12,7 +12,11 @@ export async function GET(
     const { id } = await params
     const storeId = parseInt(id)
     
-    const [store, brandDiscounts, productLineDiscounts, productDiscounts, productPrices, brands, productLines, products] = await Promise.all([
+    // 품목별 할인 테이블이 아직 마이그레이션 안됐을 수 있으므로 try-catch
+    let productLineDiscounts: any[] = []
+    let productLines: any[] = []
+    
+    const [store, brandDiscounts, productDiscounts, productPrices, brands, products] = await Promise.all([
       prisma.store.findUnique({
         where: { id: storeId },
         select: { id: true, name: true, code: true, discountRate: true }
@@ -20,15 +24,6 @@ export async function GET(
       prisma.storeBrandDiscount.findMany({
         where: { storeId },
         include: { brand: { select: { id: true, name: true } } }
-      }),
-      prisma.storeProductLineDiscount.findMany({
-        where: { storeId },
-        include: { 
-          productLine: { 
-            select: { id: true, name: true, brandId: true },
-            include: { brand: { select: { id: true, name: true } } }
-          } 
-        }
       }),
       prisma.storeProductDiscount.findMany({
         where: { storeId },
@@ -42,17 +37,33 @@ export async function GET(
         where: { isActive: true },
         orderBy: { displayOrder: 'asc' }
       }),
-      prisma.productLine.findMany({
-        where: { isActive: true },
-        include: { brand: { select: { id: true, name: true } } },
-        orderBy: [{ brand: { displayOrder: 'asc' } }, { displayOrder: 'asc' }]
-      }),
       prisma.product.findMany({
         where: { isActive: true },
         select: { id: true, name: true, brandId: true, sellingPrice: true },
         orderBy: { name: 'asc' }
       })
     ])
+    
+    // 품목별 할인 테이블 조회 시도 (없으면 빈 배열)
+    try {
+      productLineDiscounts = await (prisma as any).storeProductLineDiscount.findMany({
+        where: { storeId },
+        include: { 
+          productLine: { 
+            select: { id: true, name: true, brandId: true },
+            include: { brand: { select: { id: true, name: true } } }
+          } 
+        }
+      })
+      productLines = await prisma.productLine.findMany({
+        where: { isActive: true },
+        include: { brand: { select: { id: true, name: true } } },
+        orderBy: [{ brand: { displayOrder: 'asc' } }, { displayOrder: 'asc' }]
+      })
+    } catch (e) {
+      // 테이블이 아직 없으면 무시
+      console.log('StoreProductLineDiscount table not yet migrated')
+    }
 
     if (!store) {
       return NextResponse.json({ error: '거래처를 찾을 수 없습니다' }, { status: 404 })

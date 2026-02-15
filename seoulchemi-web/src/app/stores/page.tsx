@@ -382,12 +382,13 @@ export default function StoresPage() {
     else setSelectedIds(new Set(data.map(d => d.id)))
   }
 
-  // 엑셀 다운로드
+  // 엑셀 다운로드 (전체 정보)
   const handleExcelDownload = async () => {
     try {
       // 현재 필터 조건으로 전체 데이터 가져오기
       const params = new URLSearchParams()
       params.set('limit', '10000') // 전체
+      params.set('export', 'true') // 전체 필드 요청
       if (filter !== 'all') params.set('status', filter)
       if (searchRef.current.code) params.set('groupName', searchRef.current.code)
       if (searchRef.current.name) params.set('name', searchRef.current.name)
@@ -405,17 +406,38 @@ export default function StoresPage() {
         return
       }
 
-      // CSV 생성
-      const headers = ['코드', '그룹', '안경원명', '대표자', '연락처', '주소', '영업담당', '배송담당', '상태', '등록일']
-      const rows = json.stores.map((store: Store) => [
-        store.code,
+      // CSV 생성 (모든 정보 포함)
+      const headers = [
+        '코드', '그룹', '안경원명', '거래처유형', '대표자', 
+        '전화', '배송연락처', '이메일',
+        '주소', '배송주소',
+        '사업자등록번호', '업태', '업종',
+        '영업담당', '배송담당', 
+        '기본할인율(%)', '결제기한(일)', '청구일',
+        '초기미수금', '미수금잔액',
+        '상태', '등록일'
+      ]
+      const rows = json.stores.map((store: any) => [
+        store.code || '',
         store.groupName || '',
-        store.name,
+        store.name || '',
+        store.storeType || '',
         store.ownerName || '',
         store.phone || '',
+        store.deliveryPhone || store.deliveryContact || '',
+        store.email || '',
         store.address || '',
-        store.salesRepName || '',
-        store.deliveryStaffName || store.deliveryContact || '',
+        store.deliveryAddress || '',
+        store.businessRegNo || '',
+        store.businessType || '',
+        store.businessCategory || '',
+        store.salesRepName || store.salesStaffName || '',
+        store.deliveryStaffName || '',
+        store.discountRate || 0,
+        store.paymentTermDays || 30,
+        store.billingDay || '',
+        store.initialReceivables || 0,
+        store.outstandingAmount || 0,
         store.isActive ? '활성' : '비활성',
         store.createdAt ? store.createdAt.split('T')[0] : ''
       ])
@@ -423,7 +445,7 @@ export default function StoresPage() {
       // BOM + CSV
       const csvContent = '\uFEFF' + [
         headers.join(','),
-        ...rows.map((row: string[]) => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        ...rows.map((row: (string|number)[]) => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
       ].join('\n')
 
       // 다운로드
