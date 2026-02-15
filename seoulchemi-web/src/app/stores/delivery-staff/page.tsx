@@ -41,6 +41,11 @@ export default function StaffManagementPage() {
   // 폼
   const [staffForm, setStaffForm] = useState({ name: '', phone: '', areaCode: '' })
   const [groupForm, setGroupForm] = useState({ name: '', description: '', discountRate: 0, storeType: 'normal' })
+  
+  // 일괄등록 모달
+  const [bulkType, setBulkType] = useState<'group' | 'delivery' | 'sales' | null>(null)
+  const [bulkFile, setBulkFile] = useState<File | null>(null)
+  const [bulkUploading, setBulkUploading] = useState(false)
 
   useEffect(() => {
     Promise.all([fetchGroups(), fetchDeliveryStaff(), fetchSalesStaff()])
@@ -139,6 +144,98 @@ export default function StaffManagementPage() {
     }
   }
 
+  // 다운로드
+  function handleDownload(type: 'group' | 'delivery' | 'sales') {
+    let headers: string[], rows: string[][]
+    
+    if (type === 'group') {
+      headers = ['그룹명', '설명', '할인율(%)', '타입', '거래처수']
+      rows = groups.map(g => [g.name, g.description || '', String(g.discountRate), g.storeType, String(g.storeCount)])
+    } else if (type === 'delivery') {
+      headers = ['담당자명', '연락처', '담당지역', '거래처수']
+      rows = deliveryStaff.map(s => [s.name, s.phone || '', s.areaCode || '', String(s.storeCount)])
+    } else {
+      headers = ['담당자명', '연락처', '담당지역', '거래처수']
+      rows = salesStaff.map(s => [s.name, s.phone || '', s.areaCode || '', String(s.storeCount)])
+    }
+    
+    const csvContent = '\uFEFF' + [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    const filename = type === 'group' ? '그룹' : type === 'delivery' ? '배송담당' : '영업담당'
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // 일괄등록 파일 처리
+  async function handleBulkUpload() {
+    if (!bulkFile || !bulkType) return
+    
+    setBulkUploading(true)
+    try {
+      const text = await bulkFile.text()
+      const lines = text.split('\n').filter(l => l.trim())
+      if (lines.length < 2) { alert('데이터가 없습니다.'); return }
+      
+      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+      const items = []
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values: string[] = []
+        let current = '', inQuotes = false
+        for (const char of lines[i]) {
+          if (char === '"') inQuotes = !inQuotes
+          else if (char === ',' && !inQuotes) { values.push(current.trim()); current = '' }
+          else current += char
+        }
+        values.push(current.trim())
+        
+        if (bulkType === 'group') {
+          if (values[0]) items.push({ name: values[0], description: values[1] || '', discountRate: parseFloat(values[2]) || 0, storeType: values[3] || 'normal' })
+        } else {
+          if (values[0]) items.push({ name: values[0], phone: values[1] || '', areaCode: values[2] || '' })
+        }
+      }
+      
+      if (items.length === 0) { alert('등록할 데이터가 없습니다.'); return }
+      
+      const endpoint = bulkType === 'group' ? 'store-groups' : bulkType === 'delivery' ? 'delivery-staff' : 'sales-staff'
+      let success = 0, failed = 0
+      
+      for (const item of items) {
+        try {
+          const res = await fetch(`/api/${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+          })
+          if (res.ok) success++
+          else failed++
+        } catch { failed++ }
+      }
+      
+      alert(`등록 완료: ${success}건 성공, ${failed}건 실패`)
+      setBulkType(null)
+      setBulkFile(null)
+      
+      if (bulkType === 'group') fetchGroups()
+      else if (bulkType === 'delivery') fetchDeliveryStaff()
+      else fetchSalesStaff()
+    } catch (e) {
+      alert('파일 처리 실패')
+    } finally {
+      setBulkUploading(false)
+    }
+  }
+
   async function handleDelete(type: 'group' | 'delivery' | 'sales', id: number) {
     const label = type === 'group' ? '그룹' : type === 'delivery' ? '배송담당자' : '영업담당자'
     if (!confirm(`이 ${label}을(를) 삭제하시겠습니까?`)) return
@@ -224,10 +321,14 @@ export default function StaffManagementPage() {
           <div style={columnStyle}>
             <div style={headerStyle}>
               <div>
-                <span style={{ fontSize: '16px', fontWeight: 600 }}>📁 그룹</span>
-                <span style={{ marginLeft: '8px', fontSize: '13px', color: '#86868b' }}>{groups.length}개</span>
+                <span style={{ fontSize: '15px', fontWeight: 600 }}>📁 그룹</span>
+                <span style={{ marginLeft: '6px', fontSize: '12px', color: '#86868b' }}>{groups.length}</span>
               </div>
-              <button style={addBtnStyle} onClick={() => openModal('group')}>+ 추가</button>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button onClick={() => handleDownload('group')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇</button>
+                <button onClick={() => setBulkType('group')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆</button>
+                <button style={addBtnStyle} onClick={() => openModal('group')}>+</button>
+              </div>
             </div>
             <div style={listStyle}>
               {groups.length === 0 ? (
@@ -261,10 +362,14 @@ export default function StaffManagementPage() {
           <div style={columnStyle}>
             <div style={headerStyle}>
               <div>
-                <span style={{ fontSize: '16px', fontWeight: 600 }}>🚚 배송담당</span>
-                <span style={{ marginLeft: '8px', fontSize: '13px', color: '#86868b' }}>{deliveryStaff.length}명</span>
+                <span style={{ fontSize: '15px', fontWeight: 600 }}>🚚 배송담당</span>
+                <span style={{ marginLeft: '6px', fontSize: '12px', color: '#86868b' }}>{deliveryStaff.length}</span>
               </div>
-              <button style={addBtnStyle} onClick={() => openModal('delivery')}>+ 추가</button>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button onClick={() => handleDownload('delivery')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇</button>
+                <button onClick={() => setBulkType('delivery')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆</button>
+                <button style={addBtnStyle} onClick={() => openModal('delivery')}>+</button>
+              </div>
             </div>
             <div style={listStyle}>
               {deliveryStaff.length === 0 ? (
@@ -298,10 +403,14 @@ export default function StaffManagementPage() {
           <div style={columnStyle}>
             <div style={headerStyle}>
               <div>
-                <span style={{ fontSize: '16px', fontWeight: 600 }}>👔 영업담당</span>
-                <span style={{ marginLeft: '8px', fontSize: '13px', color: '#86868b' }}>{salesStaff.length}명</span>
+                <span style={{ fontSize: '15px', fontWeight: 600 }}>👔 영업담당</span>
+                <span style={{ marginLeft: '6px', fontSize: '12px', color: '#86868b' }}>{salesStaff.length}</span>
               </div>
-              <button style={addBtnStyle} onClick={() => openModal('sales')}>+ 추가</button>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button onClick={() => handleDownload('sales')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇</button>
+                <button onClick={() => setBulkType('sales')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆</button>
+                <button style={addBtnStyle} onClick={() => openModal('sales')}>+</button>
+              </div>
             </div>
             <div style={listStyle}>
               {salesStaff.length === 0 ? (
@@ -434,6 +543,45 @@ export default function StaffManagementPage() {
                 style={{ padding: '10px 24px', borderRadius: '8px', background: saving ? '#ccc' : '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer' }}
               >
                 {saving ? '저장 중...' : editingId ? '수정' : '추가'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 일괄등록 모달 */}
+      {bulkType && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '450px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>
+                ⬆ {bulkType === 'group' ? '그룹' : bulkType === 'delivery' ? '배송담당' : '영업담당'} 일괄등록
+              </h3>
+              <button onClick={() => { setBulkType(null); setBulkFile(null); }} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>×</button>
+            </div>
+
+            <div style={{ background: '#f0f7ff', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '12px', color: '#1565c0' }}>
+              <strong>CSV 형식:</strong><br/>
+              {bulkType === 'group' 
+                ? '그룹명, 설명, 할인율(%), 타입' 
+                : '담당자명, 연락처, 담당지역'}
+            </div>
+
+            <div style={{ border: '2px dashed #e0e0e0', borderRadius: '8px', padding: '20px', textAlign: 'center', marginBottom: '16px', background: '#fafafa' }}>
+              <input type="file" accept=".csv" onChange={e => setBulkFile(e.target.files?.[0] || null)} style={{ display: 'none' }} id="bulk-staff-input" />
+              <label htmlFor="bulk-staff-input" style={{ cursor: 'pointer' }}>
+                {bulkFile ? (
+                  <div><span style={{ fontSize: '14px', fontWeight: 500 }}>📄 {bulkFile.name}</span></div>
+                ) : (
+                  <div><span style={{ fontSize: '28px' }}>📁</span><p style={{ margin: '8px 0 0', color: '#86868b', fontSize: '13px' }}>CSV 파일 선택</p></div>
+                )}
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => { setBulkType(null); setBulkFile(null); }} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
+              <button onClick={handleBulkUpload} disabled={!bulkFile || bulkUploading} style={{ padding: '10px 24px', borderRadius: '8px', background: bulkFile && !bulkUploading ? '#007aff' : '#ccc', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: bulkFile && !bulkUploading ? 'pointer' : 'not-allowed' }}>
+                {bulkUploading ? '등록 중...' : '일괄 등록'}
               </button>
             </div>
           </div>
