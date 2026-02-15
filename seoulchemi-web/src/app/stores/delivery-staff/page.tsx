@@ -325,9 +325,9 @@ export default function StaffManagementPage() {
                 <span style={{ marginLeft: '6px', fontSize: '12px', color: '#86868b' }}>{groups.length}</span>
               </div>
               <div style={{ display: 'flex', gap: '4px' }}>
-                <button onClick={() => handleDownload('group')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇</button>
-                <button onClick={() => setBulkType('group')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆</button>
-                <button style={addBtnStyle} onClick={() => openModal('group')}>+</button>
+                <button onClick={() => handleDownload('group')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇ 다운</button>
+                <button onClick={() => setBulkType('group')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆ 등록</button>
+                <button style={addBtnStyle} onClick={() => openModal('group')}>+ 추가</button>
               </div>
             </div>
             <div style={listStyle}>
@@ -366,9 +366,9 @@ export default function StaffManagementPage() {
                 <span style={{ marginLeft: '6px', fontSize: '12px', color: '#86868b' }}>{deliveryStaff.length}</span>
               </div>
               <div style={{ display: 'flex', gap: '4px' }}>
-                <button onClick={() => handleDownload('delivery')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇</button>
-                <button onClick={() => setBulkType('delivery')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆</button>
-                <button style={addBtnStyle} onClick={() => openModal('delivery')}>+</button>
+                <button onClick={() => handleDownload('delivery')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇ 다운</button>
+                <button onClick={() => setBulkType('delivery')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆ 등록</button>
+                <button style={addBtnStyle} onClick={() => openModal('delivery')}>+ 추가</button>
               </div>
             </div>
             <div style={listStyle}>
@@ -407,9 +407,9 @@ export default function StaffManagementPage() {
                 <span style={{ marginLeft: '6px', fontSize: '12px', color: '#86868b' }}>{salesStaff.length}</span>
               </div>
               <div style={{ display: 'flex', gap: '4px' }}>
-                <button onClick={() => handleDownload('sales')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇</button>
-                <button onClick={() => setBulkType('sales')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆</button>
-                <button style={addBtnStyle} onClick={() => openModal('sales')}>+</button>
+                <button onClick={() => handleDownload('sales')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e8f5e9', color: '#2e7d32', cursor: 'pointer' }}>⬇ 다운</button>
+                <button onClick={() => setBulkType('sales')} style={{ padding: '4px 8px', fontSize: '10px', borderRadius: '4px', border: 'none', background: '#e3f2fd', color: '#1565c0', cursor: 'pointer' }}>⬆ 등록</button>
+                <button style={addBtnStyle} onClick={() => openModal('sales')}>+ 추가</button>
               </div>
             </div>
             <div style={listStyle}>
