@@ -17,6 +17,10 @@ interface Store {
   orderCount: number
   lastOrderDate: string | null
   createdAt: string
+  groupName: string | null
+  salesRepName: string | null
+  deliveryContact: string | null
+  deliveryStaffName: string | null
 }
 
 interface Stats {
@@ -389,20 +393,20 @@ export default function StoresPage() {
               <th style={{ padding: '12px 8px', textAlign: 'center' }}>
                 <input type="checkbox" checked={selectedIds.size === data.length && data.length > 0} onChange={toggleSelectAll} />
               </th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>코드</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>그룹</th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>안경원명</th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>대표자</th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>연락처</th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>주소</th>
-              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>주문</th>
-              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>최근주문</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>영업담당</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>배송담당</th>
               <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>관리</th>
             </tr>
             {/* 검색 필터 */}
             <tr style={{ background: '#f1f3f4', borderBottom: '1px solid #e9ecef' }}>
               <td style={{ padding: '6px 4px' }}></td>
               <td style={{ padding: '6px 4px' }}>
-                <input type="text" placeholder="코드" value={searchCode} onChange={(e) => setSearchCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                <input type="text" placeholder="그룹" value={searchCode} onChange={(e) => setSearchCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
               <td style={{ padding: '6px 4px' }}>
@@ -438,13 +442,13 @@ export default function StoresPage() {
                 <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
-                <td style={{ padding: '10px 8px', fontSize: '11px', fontFamily: 'monospace', color: '#666' }}>{store.code}</td>
+                <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
                 <td style={{ padding: '10px 8px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.name}</td>
                 <td style={{ padding: '10px 8px', fontSize: '12px' }}>{store.ownerName}</td>
                 <td style={{ padding: '10px 8px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
                 <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.address}</td>
-                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: 500, color: store.orderCount > 0 ? '#007aff' : '#ccc' }}>{store.orderCount}</td>
-                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '10px', color: store.lastOrderDate ? '#333' : '#ccc', whiteSpace: 'nowrap' }}>{store.lastOrderDate || '-'}</td>
+                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', color: store.salesRepName ? '#333' : '#ccc' }}>{store.salesRepName || '-'}</td>
+                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
                 <td style={{ padding: '10px 8px' }}>
                   <div style={{ display: 'flex', flexDirection: 'row', gap: '3px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
                     <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100', whiteSpace: 'nowrap' }}>
