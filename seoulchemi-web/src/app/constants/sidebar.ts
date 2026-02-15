@@ -68,6 +68,7 @@ export const STORES_SIDEBAR: SidebarMenu[] = [
     items: [
       { label: '가맹점 관리', href: '/stores' },
       { label: '담당자 관리', href: '/stores/delivery-staff' },
+      { label: '가맹점 거래내역', href: '/stores/transactions' },
       { label: '가맹점 공지사항', href: '/stores/notices' },
     ]
   },
