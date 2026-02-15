@@ -582,8 +582,8 @@ export default function StoresPage() {
             ) : data.length === 0 ? (
               <tr><td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: '#86868b' }}>등록된 가맹점이 없습니다</td></tr>
             ) : data.map(store => (
-              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0', background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff' }} onMouseEnter={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fafafa' }} onMouseLeave={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fff' }}>
-                <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+              <tr key={store.id} style={{ borderBottom: '1px solid #f0f0f0', background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', cursor: 'pointer' }} onClick={() => router.push(`/admin/stores/${store.id}`)} onMouseEnter={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fafafa' }} onMouseLeave={(e) => { if (!selectedIds.has(store.id)) e.currentTarget.style.background = '#fff' }}>
+                <td style={{ padding: '10px 8px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
                 <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
@@ -593,7 +593,7 @@ export default function StoresPage() {
                 <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '120px', maxWidth: '120px' }}>{store.address}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', color: store.salesRepName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '80px' }}>{store.salesRepName || '-'}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '80px' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
-                <td style={{ padding: '10px 8px', position: 'sticky', right: 0, background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', boxShadow: '-2px 0 4px rgba(0,0,0,0.1)', zIndex: 5 }}>
+                <td style={{ padding: '10px 8px', position: 'sticky', right: 0, background: selectedIds.has(store.id) ? '#e3f2fd' : '#fff', boxShadow: '-2px 0 4px rgba(0,0,0,0.1)', zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
                   <div style={{ display: 'flex', flexDirection: 'row', gap: '3px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
                     <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100', whiteSpace: 'nowrap' }}>
                       {store.isActive ? '활성' : '비활성'}
