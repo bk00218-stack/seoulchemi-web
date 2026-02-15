@@ -356,35 +356,27 @@ export default function StoresPage() {
         </div>
       </div>
 
-      {/* 통계 카드 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
-        <div style={{ background: '#fff', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '22px' }}>🏪</span>
-          <div>
-            <div style={{ color: '#86868b', fontSize: '12px' }}>전체</div>
-            <div style={{ fontSize: '20px', fontWeight: 700 }}>{stats.total.toLocaleString()}</div>
-          </div>
+      {/* 통계 카드 - 컴팩트 */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '14px' }}>🏪</span>
+          <span style={{ color: '#86868b', fontSize: '12px' }}>전체</span>
+          <span style={{ fontSize: '14px', fontWeight: 600 }}>{stats.total.toLocaleString()}</span>
         </div>
-        <div style={{ background: '#fff', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '22px' }}>✅</span>
-          <div>
-            <div style={{ color: '#86868b', fontSize: '12px' }}>활성</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: '#34c759' }}>{stats.active.toLocaleString()}</div>
-          </div>
+        <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '14px' }}>✅</span>
+          <span style={{ color: '#86868b', fontSize: '12px' }}>활성</span>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: '#34c759' }}>{stats.active.toLocaleString()}</span>
         </div>
-        <div style={{ background: '#fff', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '22px' }}>⏸️</span>
-          <div>
-            <div style={{ color: '#86868b', fontSize: '12px' }}>비활성</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: '#ff9500' }}>{stats.inactive.toLocaleString()}</div>
-          </div>
+        <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '14px' }}>⏸️</span>
+          <span style={{ color: '#86868b', fontSize: '12px' }}>비활성</span>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: '#ff9500' }}>{stats.inactive.toLocaleString()}</span>
         </div>
-        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '10px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '22px' }}>✨</span>
-          <div>
-            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px' }}>이번달 신규</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>{stats.newThisMonth.toLocaleString()}</div>
-          </div>
+        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '6px', padding: '6px 12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '14px' }}>✨</span>
+          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px' }}>신규</span>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{stats.newThisMonth.toLocaleString()}</span>
         </div>
       </div>
 
