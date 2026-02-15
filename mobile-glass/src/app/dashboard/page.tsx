@@ -1,10 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-} from 'recharts'
 import Layout from '../components/Layout'
 import { ORDER_SIDEBAR } from '../constants/sidebar'
 
@@ -139,13 +135,6 @@ export default function DashboardPage() {
     }
   }
 
-  const chartData = data?.chart.daily.map(d => ({
-    ...d,
-    date: d.date.slice(5), // MM-DD 형식
-    매출: d.revenue,
-    주문: d.orders
-  })) || []
-
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       {loading && !data ? (
@@ -232,111 +221,26 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* 차트 영역 */}
+      {/* 기간 통계 카드 */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
         gap: '16px'
       }}>
-        {/* 매출 추이 */}
-        <div style={{
-          background: '#fff',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
-            📈 매출 추이
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#667eea" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#667eea" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-200)" />
-              <XAxis dataKey="date" stroke="var(--text-tertiary)" fontSize={12} />
-              <YAxis stroke="var(--text-tertiary)" fontSize={12} tickFormatter={(v) => formatCurrency(v)} />
-              <Tooltip 
-                formatter={(value: number) => [`${formatNumber(value)}원`, '매출']}
-                contentStyle={{ borderRadius: '8px', border: '1px solid var(--gray-200)' }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="매출" 
-                stroke="#667eea" 
-                strokeWidth={2}
-                fillOpacity={1} 
-                fill="url(#colorRevenue)" 
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* 주문 수 추이 */}
-        <div style={{
-          background: '#fff',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
-            📊 주문 수 추이
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-200)" />
-              <XAxis dataKey="date" stroke="var(--text-tertiary)" fontSize={12} />
-              <YAxis stroke="var(--text-tertiary)" fontSize={12} />
-              <Tooltip 
-                formatter={(value: number) => [`${value}건`, '주문']}
-                contentStyle={{ borderRadius: '8px', border: '1px solid var(--gray-200)' }}
-              />
-              <Bar 
-                dataKey="주문" 
-                fill="#10b981" 
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* 기간 요약 */}
-      <div style={{
-        marginTop: '24px',
-        background: '#fff',
-        borderRadius: '16px',
-        padding: '24px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--text-primary)' }}>
-          📋 {data.period.days}일 요약
-        </h3>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '24px'
-        }}>
-          <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>총 주문</p>
-            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatNumber(data.period.orders)}건</p>
-          </div>
-          <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>총 매출</p>
-            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatNumber(data.period.revenue)}원</p>
-          </div>
-          <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>일평균 주문</p>
-            <p style={{ fontSize: '24px', fontWeight: 600 }}>{data.period.avgOrdersPerDay}건</p>
-          </div>
-          <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>일평균 매출</p>
-            <p style={{ fontSize: '24px', fontWeight: 600 }}>{formatCurrency(data.period.avgRevenuePerDay)}원</p>
-          </div>
-        </div>
+        <StatCard
+          title="기간 총 주문"
+          value={`${formatNumber(data.period.orders)}건`}
+          subValue={`일평균 ${data.period.avgOrdersPerDay}건`}
+          icon="📊"
+          color="#8b5cf6"
+        />
+        <StatCard
+          title="기간 총 매출"
+          value={`${formatCurrency(data.period.revenue)}원`}
+          subValue={`일평균 ${formatCurrency(data.period.avgRevenuePerDay)}원`}
+          icon="📈"
+          color="#06b6d4"
+        />
       </div>
       </div>
       )}
