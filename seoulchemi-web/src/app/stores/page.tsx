@@ -115,6 +115,13 @@ export default function StoresPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'bulk'; store?: Store }>({ type: 'bulk' })
   const [deleteLoading, setDeleteLoading] = useState(false)
+  
+  // 일괄 등록 모달
+  const [showBulkUploadModal, setShowBulkUploadModal] = useState(false)
+  const [bulkUploadFile, setBulkUploadFile] = useState<File | null>(null)
+  const [bulkUploadPreview, setBulkUploadPreview] = useState<any[]>([])
+  const [bulkUploading, setBulkUploading] = useState(false)
+  const [bulkUploadResult, setBulkUploadResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null)
 
   // 컬럼 너비 조절 기능
   const defaultColWidths = [40, 60, 160, 60, 100, 250, 80, 80, 200]
@@ -382,6 +389,106 @@ export default function StoresPage() {
     else setSelectedIds(new Set(data.map(d => d.id)))
   }
 
+  // CSV 파일 파싱
+  const parseCSV = (text: string) => {
+    const lines = text.split('\n').filter(line => line.trim())
+    if (lines.length < 2) return []
+    
+    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+    const rows = []
+    
+    for (let i = 1; i < lines.length; i++) {
+      const values: string[] = []
+      let current = ''
+      let inQuotes = false
+      
+      for (const char of lines[i]) {
+        if (char === '"') {
+          inQuotes = !inQuotes
+        } else if (char === ',' && !inQuotes) {
+          values.push(current.trim())
+          current = ''
+        } else {
+          current += char
+        }
+      }
+      values.push(current.trim())
+      
+      const row: any = {}
+      headers.forEach((header, idx) => {
+        row[header] = values[idx] || ''
+      })
+      rows.push(row)
+    }
+    return rows
+  }
+
+  // 파일 선택 핸들러
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setBulkUploadFile(file)
+    setBulkUploadResult(null)
+    
+    const text = await file.text()
+    const parsed = parseCSV(text)
+    setBulkUploadPreview(parsed.slice(0, 5)) // 미리보기 5개만
+  }
+
+  // 일괄 등록 실행
+  const handleBulkUpload = async () => {
+    if (!bulkUploadFile) return
+    
+    setBulkUploading(true)
+    setBulkUploadResult(null)
+    
+    try {
+      const text = await bulkUploadFile.text()
+      const rows = parseCSV(text)
+      
+      const res = await fetch('/api/stores/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stores: rows })
+      })
+      
+      const result = await res.json()
+      setBulkUploadResult(result)
+      
+      if (result.success > 0) {
+        fetchData() // 목록 새로고침
+      }
+    } catch (error) {
+      setBulkUploadResult({ success: 0, failed: 0, errors: ['파일 처리 중 오류가 발생했습니다.'] })
+    } finally {
+      setBulkUploading(false)
+    }
+  }
+
+  // 샘플 CSV 다운로드
+  const downloadSampleCSV = () => {
+    const headers = ['안경원명', '대표자', '전화', '주소', '사업자등록번호', '업태', '업종', '이메일', '그룹명', '거래처유형']
+    const sample = [
+      ['테스트안경원', '홍길동', '02-1234-5678', '서울시 강남구 테헤란로 123', '123-45-67890', '도소매', '안경', 'test@example.com', '', '소매']
+    ]
+    
+    const csvContent = '\uFEFF' + [
+      headers.join(','),
+      ...sample.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = '가맹점_일괄등록_양식.csv'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   // 엑셀 다운로드 (전체 정보)
   const handleExcelDownload = async () => {
     try {
@@ -508,6 +615,9 @@ export default function StoresPage() {
           </button>
           <button onClick={handleExcelDownload} style={{ padding: '6px 12px', fontSize: '12px', color: '#1d1d1f', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
             📥 <span>다운로드</span>
+          </button>
+          <button onClick={() => setShowBulkUploadModal(true)} style={{ padding: '6px 12px', fontSize: '12px', color: '#1d1d1f', background: '#f5f5f7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            📤 <span>일괄등록</span>
           </button>
           <button onClick={() => openModal(null)} style={{ padding: '6px 14px', borderRadius: '6px', background: '#007aff', color: '#fff', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
             + 등록
@@ -882,6 +992,128 @@ export default function StoresPage() {
         confirmText="삭제"
         loading={deleteLoading}
       />
+
+      {/* 일괄 등록 모달 */}
+      {showBulkUploadModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '600px', maxHeight: '80vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>📤 가맹점 일괄 등록</h3>
+              <button onClick={() => { setShowBulkUploadModal(false); setBulkUploadFile(null); setBulkUploadPreview([]); setBulkUploadResult(null); }} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>×</button>
+            </div>
+            
+            {/* 안내 */}
+            <div style={{ background: '#f0f7ff', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#1976d2' }}>
+              <p style={{ margin: '0 0 8px' }}>📋 <strong>CSV 파일로 가맹점을 일괄 등록합니다.</strong></p>
+              <p style={{ margin: 0, color: '#666' }}>필수 컬럼: 안경원명 | 선택: 대표자, 전화, 주소, 사업자등록번호, 업태, 업종, 이메일, 그룹명, 거래처유형</p>
+            </div>
+            
+            {/* 샘플 다운로드 */}
+            <button onClick={downloadSampleCSV} style={{ padding: '8px 16px', borderRadius: '6px', background: '#e8f5e9', color: '#2e7d32', border: 'none', fontSize: '13px', cursor: 'pointer', marginBottom: '16px' }}>
+              📥 샘플 양식 다운로드
+            </button>
+            
+            {/* 파일 선택 */}
+            <div style={{ border: '2px dashed #e0e0e0', borderRadius: '8px', padding: '24px', textAlign: 'center', marginBottom: '16px', background: '#fafafa' }}>
+              <input 
+                type="file" 
+                accept=".csv" 
+                onChange={handleFileSelect}
+                style={{ display: 'none' }}
+                id="bulk-upload-input"
+              />
+              <label htmlFor="bulk-upload-input" style={{ cursor: 'pointer' }}>
+                {bulkUploadFile ? (
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', margin: '0 0 4px' }}>📄 {bulkUploadFile.name}</p>
+                    <p style={{ fontSize: '12px', color: '#86868b', margin: 0 }}>클릭하여 다른 파일 선택</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p style={{ fontSize: '32px', margin: '0 0 8px' }}>📁</p>
+                    <p style={{ fontSize: '14px', color: '#86868b', margin: 0 }}>CSV 파일을 선택하세요</p>
+                  </div>
+                )}
+              </label>
+            </div>
+            
+            {/* 미리보기 */}
+            {bulkUploadPreview.length > 0 && (
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ fontSize: '13px', fontWeight: 500, marginBottom: '8px' }}>미리보기 (처음 5개)</p>
+                <div style={{ overflow: 'auto', maxHeight: '150px', border: '1px solid #e9ecef', borderRadius: '6px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                    <thead>
+                      <tr style={{ background: '#f5f5f7' }}>
+                        {Object.keys(bulkUploadPreview[0]).slice(0, 5).map(key => (
+                          <th key={key} style={{ padding: '6px 8px', textAlign: 'left', fontWeight: 500, whiteSpace: 'nowrap' }}>{key}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkUploadPreview.map((row, idx) => (
+                        <tr key={idx} style={{ borderTop: '1px solid #e9ecef' }}>
+                          {Object.values(row).slice(0, 5).map((val, i) => (
+                            <td key={i} style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>{String(val)}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            
+            {/* 결과 */}
+            {bulkUploadResult && (
+              <div style={{ 
+                background: bulkUploadResult.success > 0 ? '#e8f5e9' : '#ffebee', 
+                borderRadius: '8px', 
+                padding: '12px 16px', 
+                marginBottom: '16px',
+                fontSize: '13px'
+              }}>
+                <p style={{ margin: '0 0 4px', fontWeight: 500 }}>
+                  {bulkUploadResult.success > 0 ? '✅' : '❌'} 등록 완료: {bulkUploadResult.success}건 성공, {bulkUploadResult.failed}건 실패
+                </p>
+                {bulkUploadResult.errors.length > 0 && (
+                  <ul style={{ margin: '8px 0 0', paddingLeft: '20px', color: '#c62828' }}>
+                    {bulkUploadResult.errors.slice(0, 5).map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                    {bulkUploadResult.errors.length > 5 && (
+                      <li>...외 {bulkUploadResult.errors.length - 5}건</li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            )}
+            
+            {/* 버튼 */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => { setShowBulkUploadModal(false); setBulkUploadFile(null); setBulkUploadPreview([]); setBulkUploadResult(null); }} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>
+                닫기
+              </button>
+              <button 
+                onClick={handleBulkUpload} 
+                disabled={!bulkUploadFile || bulkUploading}
+                style={{ 
+                  padding: '10px 24px', 
+                  borderRadius: '8px', 
+                  background: bulkUploadFile && !bulkUploading ? '#007aff' : '#ccc', 
+                  color: '#fff', 
+                  border: 'none', 
+                  fontSize: '14px', 
+                  fontWeight: 500, 
+                  cursor: bulkUploadFile && !bulkUploading ? 'pointer' : 'not-allowed' 
+                }}
+              >
+                {bulkUploading ? '등록 중...' : '일괄 등록'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 스켈레톤 애니메이션 */}
       <style jsx global>{`
