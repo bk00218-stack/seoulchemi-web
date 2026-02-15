@@ -1,12 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Layout, { btnStyle, cardStyle, selectStyle, inputStyle } from '../../components/Layout'
+import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
 
 const AREA_CODES = ['서울', '경기', '인천', '강원', '충북', '충남', '대전', '세종', '전북', '전남', '광주', '경북', '경남', '대구', '울산', '부산', '제주']
-
-type TabType = 'group' | 'delivery' | 'sales'
 
 interface StoreGroup {
   id: number
@@ -16,7 +14,6 @@ interface StoreGroup {
   storeType: string
   isActive: boolean
   storeCount: number
-  createdAt: string
 }
 
 interface Staff {
@@ -26,113 +23,36 @@ interface Staff {
   areaCode: string | null
   isActive: boolean
   storeCount: number
-  createdAt: string
 }
 
+type ModalType = 'group' | 'delivery' | 'sales' | null
+
 export default function StaffManagementPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('group')
-  
-  // 그룹 상태
   const [groups, setGroups] = useState<StoreGroup[]>([])
-  const [groupsLoading, setGroupsLoading] = useState(true)
-  
-  // 배송담당 상태
   const [deliveryStaff, setDeliveryStaff] = useState<Staff[]>([])
-  const [deliveryLoading, setDeliveryLoading] = useState(true)
-  
-  // 영업담당 상태
   const [salesStaff, setSalesStaff] = useState<Staff[]>([])
-  const [salesLoading, setSalesLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   
-  // 모달 상태
-  const [showModal, setShowModal] = useState(false)
-  const [saving, setSaving] = useState(false)
+  // 모달
+  const [modalType, setModalType] = useState<ModalType>(null)
   const [editingId, setEditingId] = useState<number | null>(null)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState(false)
   
-  // 마이그레이션 상태
-  const [migrating, setMigrating] = useState(false)
-  const [migrationStatus, setMigrationStatus] = useState<{
-    stores: { withSalesRepName: number; withSalesStaffId: number; withDeliveryContact: number; withDeliveryStaffId: number };
-    staff: { salesStaff: number; deliveryStaff: number };
-  } | null>(null)
-  
-  // 폼 상태 (탭별로 다름)
+  // 폼
   const [staffForm, setStaffForm] = useState({ name: '', phone: '', areaCode: '' })
   const [groupForm, setGroupForm] = useState({ name: '', description: '', discountRate: 0, storeType: 'normal' })
 
   useEffect(() => {
-    fetchGroups()
-    fetchDeliveryStaff()
-    fetchSalesStaff()
-    checkMigrationStatus()
+    Promise.all([fetchGroups(), fetchDeliveryStaff(), fetchSalesStaff()])
+      .finally(() => setLoading(false))
   }, [])
-
-  async function checkMigrationStatus() {
-    try {
-      const res = await fetch('/api/migrate-staff')
-      const data = await res.json()
-      if (data.stores) {
-        setMigrationStatus(data)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  async function handleMigration() {
-    if (!confirm('기존 가맹점의 영업담당/배송담당 데이터를 가져와 담당자로 생성합니다.\n\n계속하시겠습니까?')) return
-
-    try {
-      setMigrating(true)
-      const res = await fetch('/api/migrate-staff', { method: 'POST' })
-      const data = await res.json()
-
-      if (!res.ok) {
-        alert(data.error || '마이그레이션 실패')
-        return
-      }
-
-      const result = data.results
-      const totalCreated = result.salesStaff.created + result.deliveryStaff.created
-      const totalLinked = result.salesStaff.storesLinked + result.deliveryStaff.storesLinked
-
-      if (totalCreated === 0 && totalLinked === 0) {
-        alert('마이그레이션할 데이터가 없습니다.\n이미 모두 연결되어 있습니다.')
-      } else {
-        alert(
-          `✅ 마이그레이션 완료!\n\n` +
-          `📋 영업담당:\n` +
-          `  - 신규 생성: ${result.salesStaff.created}명\n` +
-          `  - 거래처 연결: ${result.salesStaff.storesLinked}개\n\n` +
-          `📋 배송담당:\n` +
-          `  - 신규 생성: ${result.deliveryStaff.created}명\n` +
-          `  - 거래처 연결: ${result.deliveryStaff.storesLinked}개`
-        )
-      }
-
-      // 데이터 새로고침
-      fetchDeliveryStaff()
-      fetchSalesStaff()
-      checkMigrationStatus()
-    } catch (e) {
-      console.error(e)
-      alert('마이그레이션 실패')
-    } finally {
-      setMigrating(false)
-    }
-  }
 
   async function fetchGroups() {
     try {
       const res = await fetch('/api/store-groups')
       const data = await res.json()
       setGroups(data || [])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setGroupsLoading(false)
-    }
+    } catch (e) { console.error(e) }
   }
 
   async function fetchDeliveryStaff() {
@@ -140,11 +60,7 @@ export default function StaffManagementPage() {
       const res = await fetch('/api/delivery-staff')
       const data = await res.json()
       setDeliveryStaff(data.deliveryStaff || [])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setDeliveryLoading(false)
-    }
+    } catch (e) { console.error(e) }
   }
 
   async function fetchSalesStaff() {
@@ -152,48 +68,45 @@ export default function StaffManagementPage() {
       const res = await fetch('/api/sales-staff')
       const data = await res.json()
       setSalesStaff(data.salesStaff || [])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setSalesLoading(false)
+    } catch (e) { console.error(e) }
+  }
+
+  function openModal(type: ModalType, item?: StoreGroup | Staff) {
+    setModalType(type)
+    if (item) {
+      setEditingId(item.id)
+      if (type === 'group') {
+        const g = item as StoreGroup
+        setGroupForm({ name: g.name, description: g.description || '', discountRate: g.discountRate, storeType: g.storeType })
+      } else {
+        const s = item as Staff
+        setStaffForm({ name: s.name, phone: s.phone || '', areaCode: s.areaCode || '' })
+      }
+    } else {
+      setEditingId(null)
+      setStaffForm({ name: '', phone: '', areaCode: '' })
+      setGroupForm({ name: '', description: '', discountRate: 0, storeType: 'normal' })
     }
   }
 
-  function resetForm() {
-    setStaffForm({ name: '', phone: '', areaCode: '' })
-    setGroupForm({ name: '', description: '', discountRate: 0, storeType: 'normal' })
-    setErrors({})
+  function closeModal() {
+    setModalType(null)
     setEditingId(null)
   }
 
-  function validateForm() {
-    const newErrors: Record<string, string> = {}
-    if (activeTab === 'group') {
-      if (!groupForm.name.trim()) newErrors.name = '그룹명은 필수입니다.'
-    } else {
-      if (!staffForm.name.trim()) newErrors.name = '담당자명은 필수입니다.'
-      if (staffForm.phone && !/^[\d-]+$/.test(staffForm.phone)) {
-        newErrors.phone = '올바른 전화번호 형식이 아닙니다.'
-      }
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   async function handleSubmit() {
-    if (!validateForm()) return
+    if (modalType === 'group' && !groupForm.name.trim()) { alert('그룹명을 입력해주세요.'); return }
+    if (modalType !== 'group' && !staffForm.name.trim()) { alert('담당자명을 입력해주세요.'); return }
 
+    setSaving(true)
     try {
-      setSaving(true)
-      let url: string
-      let method: string
-      let body: Record<string, unknown>
+      let url: string, method: string, body: any
 
-      if (activeTab === 'group') {
+      if (modalType === 'group') {
         url = editingId ? `/api/store-groups/${editingId}` : '/api/store-groups'
         method = editingId ? 'PUT' : 'POST'
         body = groupForm
-      } else if (activeTab === 'delivery') {
+      } else if (modalType === 'delivery') {
         url = editingId ? `/api/delivery-staff/${editingId}` : '/api/delivery-staff'
         method = editingId ? 'PUT' : 'POST'
         body = staffForm
@@ -202,400 +115,351 @@ export default function StaffManagementPage() {
         method = editingId ? 'PUT' : 'POST'
         body = staffForm
       }
-      
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
 
-      const data = await res.json()
-
       if (!res.ok) {
-        alert(data.error || '저장에 실패했습니다.')
+        const data = await res.json()
+        alert(data.error || '저장 실패')
         return
       }
 
-      alert(editingId ? '수정되었습니다.' : '등록되었습니다.')
-      setShowModal(false)
-      resetForm()
-      
-      if (activeTab === 'group') fetchGroups()
-      else if (activeTab === 'delivery') fetchDeliveryStaff()
+      closeModal()
+      if (modalType === 'group') fetchGroups()
+      else if (modalType === 'delivery') fetchDeliveryStaff()
       else fetchSalesStaff()
     } catch (e) {
-      console.error(e)
-      alert('저장에 실패했습니다.')
+      alert('저장 실패')
     } finally {
       setSaving(false)
     }
   }
 
-  function handleEditGroup(group: StoreGroup) {
-    setGroupForm({
-      name: group.name,
-      description: group.description || '',
-      discountRate: group.discountRate,
-      storeType: group.storeType,
-    })
-    setEditingId(group.id)
-    setShowModal(true)
-  }
-
-  function handleEditStaff(staff: Staff) {
-    setStaffForm({
-      name: staff.name,
-      phone: staff.phone || '',
-      areaCode: staff.areaCode || '',
-    })
-    setEditingId(staff.id)
-    setShowModal(true)
-  }
-
-  async function handleDelete(id: number) {
-    const label = activeTab === 'group' ? '그룹' : activeTab === 'delivery' ? '배송담당자' : '영업담당자'
-    if (!confirm(`이 ${label}을(를) 비활성화하시겠습니까?`)) return
+  async function handleDelete(type: 'group' | 'delivery' | 'sales', id: number) {
+    const label = type === 'group' ? '그룹' : type === 'delivery' ? '배송담당자' : '영업담당자'
+    if (!confirm(`이 ${label}을(를) 삭제하시겠습니까?`)) return
 
     try {
-      const endpoint = activeTab === 'group' ? 'store-groups' : activeTab === 'delivery' ? 'delivery-staff' : 'sales-staff'
+      const endpoint = type === 'group' ? 'store-groups' : type === 'delivery' ? 'delivery-staff' : 'sales-staff'
       const res = await fetch(`/api/${endpoint}/${id}`, { method: 'DELETE' })
-      const data = await res.json()
-
       if (!res.ok) {
-        alert(data.error || '비활성화에 실패했습니다.')
+        const data = await res.json()
+        alert(data.error || '삭제 실패')
         return
       }
-
-      alert('비활성화되었습니다.')
-      if (activeTab === 'group') fetchGroups()
-      else if (activeTab === 'delivery') fetchDeliveryStaff()
+      if (type === 'group') fetchGroups()
+      else if (type === 'delivery') fetchDeliveryStaff()
       else fetchSalesStaff()
     } catch (e) {
-      console.error(e)
-      alert('비활성화에 실패했습니다.')
+      alert('삭제 실패')
     }
   }
 
-  const labelStyle: React.CSSProperties = {
-    fontSize: 13,
-    fontWeight: 500,
-    color: '#333',
-    marginBottom: 6,
-    display: 'block',
+  const columnStyle: React.CSSProperties = {
+    flex: 1,
+    background: '#fff',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   }
 
-  const fieldGroupStyle: React.CSSProperties = {
-    marginBottom: 16,
+  const headerStyle: React.CSSProperties = {
+    padding: '16px 20px',
+    borderBottom: '1px solid #e9ecef',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    background: '#f8f9fa'
   }
 
-  const errorStyle: React.CSSProperties = {
-    fontSize: 11,
-    color: '#f44336',
-    marginTop: 4,
+  const listStyle: React.CSSProperties = {
+    flex: 1,
+    overflow: 'auto',
+    padding: '8px'
   }
 
-  const tabStyle = (isActive: boolean): React.CSSProperties => ({
-    padding: '12px 24px',
-    fontSize: 14,
-    fontWeight: isActive ? 600 : 400,
-    border: 'none',
-    borderBottom: isActive ? '3px solid #5d7a5d' : '3px solid transparent',
-    background: 'transparent',
+  const itemStyle: React.CSSProperties = {
+    padding: '12px 16px',
+    borderRadius: '8px',
+    marginBottom: '6px',
+    background: '#fff',
+    border: '1px solid #e9ecef',
     cursor: 'pointer',
-    color: isActive ? '#5d7a5d' : '#666',
-    transition: 'all 0.2s',
-  })
-
-  const getTabTitle = () => {
-    switch (activeTab) {
-      case 'group': return '그룹'
-      case 'delivery': return '배송담당자'
-      case 'sales': return '영업담당자'
-    }
+    transition: 'all 0.15s'
   }
 
-  const getTabIcon = () => {
-    switch (activeTab) {
-      case 'group': return '📁'
-      case 'delivery': return '🚚'
-      case 'sales': return '👔'
-    }
+  const addBtnStyle: React.CSSProperties = {
+    padding: '6px 12px',
+    borderRadius: '6px',
+    border: 'none',
+    background: '#007aff',
+    color: '#fff',
+    fontSize: '12px',
+    fontWeight: 500,
+    cursor: 'pointer'
   }
 
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
       {/* 헤더 */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: 15,
-        paddingBottom: 10,
-        borderBottom: '2px solid #5d7a5d'
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>담당자/그룹 관리</h1>
-          <p style={{ fontSize: 12, color: '#666', margin: '4px 0 0' }}>
-            그룹, 배송담당, 영업담당 관리
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          {/* 마이그레이션 버튼 */}
-          <button 
-            style={{ ...btnStyle, background: '#2196f3', color: '#fff', border: 'none' }}
-            onClick={handleMigration}
-            disabled={migrating}
-          >
-            {migrating ? '처리중...' : '📥 기존 데이터 가져오기'}
-          </button>
-          <button 
-            style={{ ...btnStyle, background: '#ff9800', color: '#fff', border: 'none' }}
-            onClick={() => { resetForm(); setShowModal(true); }}
-          >
-            + {getTabTitle()} 추가
-          </button>
-        </div>
+      <div style={{ marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>담당자 관리</h2>
+        <p style={{ fontSize: '13px', color: '#86868b', margin: '4px 0 0' }}>그룹, 배송담당, 영업담당을 관리합니다</p>
       </div>
 
-      {/* 탭 */}
-      <div style={{ 
-        display: 'flex', 
-        borderBottom: '1px solid #e0e0e0',
-        marginBottom: 15,
-        background: '#fff'
-      }}>
-        <button style={tabStyle(activeTab === 'group')} onClick={() => setActiveTab('group')}>
-          📁 그룹 ({groups.length})
-        </button>
-        <button style={tabStyle(activeTab === 'delivery')} onClick={() => setActiveTab('delivery')}>
-          🚚 배송담당 ({deliveryStaff.length})
-        </button>
-        <button style={tabStyle(activeTab === 'sales')} onClick={() => setActiveTab('sales')}>
-          👔 영업담당 ({salesStaff.length})
-        </button>
-      </div>
-
-      {/* 요약 카드 */}
-      {activeTab === 'group' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 15 }}>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>전체 그룹</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>{groups.length}개</div>
-          </div>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #4caf50' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>연결된 거래처</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#4caf50' }}>{groups.reduce((sum, g) => sum + (g.storeCount || 0), 0)}개</div>
-          </div>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #ff9800' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>평균 할인율</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#ff9800' }}>
-              {groups.length > 0 ? (groups.reduce((sum, g) => sum + g.discountRate, 0) / groups.length).toFixed(1) : 0}%
-            </div>
-          </div>
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px', color: '#86868b' }}>
+          로딩 중...
         </div>
-      )}
-      
-      {(activeTab === 'delivery' || activeTab === 'sales') && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 15 }}>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #5d7a5d' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>전체 담당자</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#5d7a5d' }}>
-              {(activeTab === 'delivery' ? deliveryStaff : salesStaff).length}명
+      ) : (
+        /* 3단 컬럼 */
+        <div style={{ display: 'flex', gap: '16px', height: 'calc(100vh - 180px)' }}>
+          {/* 그룹 */}
+          <div style={columnStyle}>
+            <div style={headerStyle}>
+              <div>
+                <span style={{ fontSize: '16px', fontWeight: 600 }}>📁 그룹</span>
+                <span style={{ marginLeft: '8px', fontSize: '13px', color: '#86868b' }}>{groups.length}개</span>
+              </div>
+              <button style={addBtnStyle} onClick={() => openModal('group')}>+ 추가</button>
             </div>
-          </div>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #4caf50' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>담당 거래처</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#4caf50' }}>
-              {(activeTab === 'delivery' ? deliveryStaff : salesStaff).reduce((sum, s) => sum + s.storeCount, 0)}개
-            </div>
-          </div>
-          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, padding: '15px 20px', borderLeft: '4px solid #ff9800' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>평균 담당</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#ff9800' }}>
-              {(() => {
-                const list = activeTab === 'delivery' ? deliveryStaff : salesStaff
-                return list.length > 0 ? Math.round(list.reduce((sum, s) => sum + s.storeCount, 0) / list.length) : 0
-              })()}개
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 테이블 */}
-      <div style={{ ...cardStyle, flex: 1, overflow: 'hidden' }}>
-        <div style={{ overflow: 'auto', height: '100%' }}>
-          {activeTab === 'group' ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
-                <tr>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>그룹명</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>설명</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>할인율</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>타입</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>거래처수</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>액션</th>
-                </tr>
-              </thead>
-              <tbody>
-                {groupsLoading ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>로딩 중...</td></tr>
-                ) : groups.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
-                    <div style={{ fontSize: 36, marginBottom: 10 }}>📁</div>
-                    등록된 그룹이 없습니다
-                  </td></tr>
-                ) : groups.map((group, index) => (
-                  <tr key={group.id} style={{ background: index % 2 === 0 ? '#fff' : '#fafafa' }}>
-                    <td style={{ padding: '12px', fontSize: 13, fontWeight: 500 }}>{group.name}</td>
-                    <td style={{ padding: '12px', fontSize: 12, color: '#666' }}>{group.description || '-'}</td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, background: '#eef4ee', color: '#5d7a5d' }}>
-                        {group.discountRate}%
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center', fontSize: 12 }}>{group.storeType}</td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, background: group.storeCount > 0 ? '#e8f5e9' : '#f5f5f5', color: group.storeCount > 0 ? '#4caf50' : '#999' }}>
+            <div style={listStyle}>
+              {groups.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>등록된 그룹이 없습니다</div>
+              ) : groups.map(group => (
+                <div 
+                  key={group.id} 
+                  style={itemStyle}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f8f9fa'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{group.name}</div>
+                      <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>
+                        {group.description || '설명 없음'} • 할인 {group.discountRate}%
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ 
+                        padding: '2px 8px', 
+                        borderRadius: '10px', 
+                        fontSize: '11px', 
+                        background: group.storeCount > 0 ? '#e8f5e9' : '#f5f5f5',
+                        color: group.storeCount > 0 ? '#2e7d32' : '#999'
+                      }}>
                         {group.storeCount}개
                       </span>
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, marginRight: 6 }} onClick={() => handleEditGroup(group)}>수정</button>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: '#f8f9fa', color: '#868e96' }} onClick={() => handleDelete(group.id)}>비활성화</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#f8f9fa' }}>
-                <tr>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>담당자명</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>연락처</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>담당지역</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>담당 거래처</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>상태</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontSize: 12, fontWeight: 600, borderBottom: '1px solid #ddd' }}>액션</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(activeTab === 'delivery' ? deliveryLoading : salesLoading) ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>로딩 중...</td></tr>
-                ) : (activeTab === 'delivery' ? deliveryStaff : salesStaff).length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
-                    <div style={{ fontSize: 36, marginBottom: 10 }}>{getTabIcon()}</div>
-                    등록된 {getTabTitle()}가 없습니다
-                  </td></tr>
-                ) : (activeTab === 'delivery' ? deliveryStaff : salesStaff).map((staff, index) => (
-                  <tr key={staff.id} style={{ background: index % 2 === 0 ? '#fff' : '#fafafa' }}>
-                    <td style={{ padding: '12px', fontSize: 13, fontWeight: 500 }}>{staff.name}</td>
-                    <td style={{ padding: '12px', fontSize: 12 }}>{staff.phone || '-'}</td>
-                    <td style={{ padding: '12px', fontSize: 12 }}>
-                      {staff.areaCode ? (
-                        <span style={{ padding: '3px 8px', borderRadius: 4, fontSize: 11, background: '#eef4ee', color: '#5d7a5d' }}>{staff.areaCode}</span>
-                      ) : '-'}
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: staff.storeCount > 0 ? '#e8f5e9' : '#f5f5f5', color: staff.storeCount > 0 ? '#4caf50' : '#999' }}>
-                        {staff.storeCount}개
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, background: staff.isActive ? '#e8f5e9' : '#f5f5f5', color: staff.isActive ? '#4caf50' : '#999' }}>
-                        {staff.isActive ? '활성' : '비활성'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, marginRight: 6 }} onClick={() => handleEditStaff(staff)}>수정</button>
-                      <button style={{ ...btnStyle, padding: '4px 10px', fontSize: 11, background: '#f8f9fa', color: '#868e96' }} onClick={() => handleDelete(staff.id)}>비활성화</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                    <button onClick={() => openModal('group', group)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
+                    <button onClick={() => handleDelete('group', group.id)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 배송담당 */}
+          <div style={columnStyle}>
+            <div style={headerStyle}>
+              <div>
+                <span style={{ fontSize: '16px', fontWeight: 600 }}>🚚 배송담당</span>
+                <span style={{ marginLeft: '8px', fontSize: '13px', color: '#86868b' }}>{deliveryStaff.length}명</span>
+              </div>
+              <button style={addBtnStyle} onClick={() => openModal('delivery')}>+ 추가</button>
+            </div>
+            <div style={listStyle}>
+              {deliveryStaff.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>등록된 배송담당이 없습니다</div>
+              ) : deliveryStaff.map(staff => (
+                <div 
+                  key={staff.id} 
+                  style={itemStyle}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f8f9fa'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{staff.name}</div>
+                      <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>
+                        {staff.phone || '연락처 없음'} {staff.areaCode && `• ${staff.areaCode}`}
+                      </div>
+                    </div>
+                    <span style={{ 
+                      padding: '2px 8px', 
+                      borderRadius: '10px', 
+                      fontSize: '11px', 
+                      background: staff.storeCount > 0 ? '#e3f2fd' : '#f5f5f5',
+                      color: staff.storeCount > 0 ? '#1565c0' : '#999'
+                    }}>
+                      {staff.storeCount}개
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                    <button onClick={() => openModal('delivery', staff)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
+                    <button onClick={() => handleDelete('delivery', staff.id)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 영업담당 */}
+          <div style={columnStyle}>
+            <div style={headerStyle}>
+              <div>
+                <span style={{ fontSize: '16px', fontWeight: 600 }}>👔 영업담당</span>
+                <span style={{ marginLeft: '8px', fontSize: '13px', color: '#86868b' }}>{salesStaff.length}명</span>
+              </div>
+              <button style={addBtnStyle} onClick={() => openModal('sales')}>+ 추가</button>
+            </div>
+            <div style={listStyle}>
+              {salesStaff.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>등록된 영업담당이 없습니다</div>
+              ) : salesStaff.map(staff => (
+                <div 
+                  key={staff.id} 
+                  style={itemStyle}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f8f9fa'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{staff.name}</div>
+                      <div style={{ fontSize: '12px', color: '#86868b', marginTop: '2px' }}>
+                        {staff.phone || '연락처 없음'} {staff.areaCode && `• ${staff.areaCode}`}
+                      </div>
+                    </div>
+                    <span style={{ 
+                      padding: '2px 8px', 
+                      borderRadius: '10px', 
+                      fontSize: '11px', 
+                      background: staff.storeCount > 0 ? '#fff3e0' : '#f5f5f5',
+                      color: staff.storeCount > 0 ? '#e65100' : '#999'
+                    }}>
+                      {staff.storeCount}개
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                    <button onClick={() => openModal('sales', staff)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #e9ecef', background: '#fff', cursor: 'pointer' }}>수정</button>
+                    <button onClick={() => handleDelete('sales', staff.id)} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px', border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', cursor: 'pointer' }}>삭제</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 모달 */}
-      {showModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }} onClick={() => setShowModal(false)}>
-          <div style={{ background: '#fff', borderRadius: 12, width: '90%', maxWidth: 450, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
-            {/* 모달 헤더 */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
-                {getTabIcon()} {editingId ? `${getTabTitle()} 수정` : `${getTabTitle()} 추가`}
-              </h2>
-              <button style={{ border: 'none', background: 'none', fontSize: 24, cursor: 'pointer', color: '#868e96', padding: 4 }} onClick={() => setShowModal(false)}>×</button>
+      {modalType && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '400px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>
+                {modalType === 'group' ? '📁 그룹' : modalType === 'delivery' ? '🚚 배송담당' : '👔 영업담당'} {editingId ? '수정' : '추가'}
+              </h3>
+              <button onClick={closeModal} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>×</button>
             </div>
-            
-            {/* 모달 바디 */}
-            <div style={{ padding: 24 }}>
-              {activeTab === 'group' ? (
-                <>
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>그룹명 *</label>
-                    <input type="text" style={{ ...inputStyle, width: '100%', borderColor: errors.name ? '#f44336' : undefined }}
-                      value={groupForm.name} onChange={e => setGroupForm({ ...groupForm, name: e.target.value })} placeholder="VIP 그룹" />
-                    {errors.name && <div style={errorStyle}>{errors.name}</div>}
+
+            {modalType === 'group' ? (
+              <>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>그룹명 *</label>
+                  <input 
+                    type="text" 
+                    value={groupForm.name} 
+                    onChange={e => setGroupForm({ ...groupForm, name: e.target.value })}
+                    placeholder="VIP, 도매 등"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  />
+                </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>설명</label>
+                  <input 
+                    type="text" 
+                    value={groupForm.description} 
+                    onChange={e => setGroupForm({ ...groupForm, description: e.target.value })}
+                    placeholder="그룹 설명"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>할인율 (%)</label>
+                    <input 
+                      type="number" 
+                      value={groupForm.discountRate} 
+                      onChange={e => setGroupForm({ ...groupForm, discountRate: parseFloat(e.target.value) || 0 })}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                    />
                   </div>
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>설명</label>
-                    <input type="text" style={{ ...inputStyle, width: '100%' }}
-                      value={groupForm.description} onChange={e => setGroupForm({ ...groupForm, description: e.target.value })} placeholder="그룹 설명" />
-                  </div>
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <div style={{ ...fieldGroupStyle, flex: 1 }}>
-                      <label style={labelStyle}>할인율 (%)</label>
-                      <input type="number" style={{ ...inputStyle, width: '100%' }}
-                        value={groupForm.discountRate} onChange={e => setGroupForm({ ...groupForm, discountRate: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                    <div style={{ ...fieldGroupStyle, flex: 1 }}>
-                      <label style={labelStyle}>타입</label>
-                      <select style={{ ...selectStyle, width: '100%' }}
-                        value={groupForm.storeType} onChange={e => setGroupForm({ ...groupForm, storeType: e.target.value })}>
-                        <option value="normal">일반</option>
-                        <option value="vip">VIP</option>
-                        <option value="wholesale">도매</option>
-                      </select>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>담당자명 *</label>
-                    <input type="text" style={{ ...inputStyle, width: '100%', borderColor: errors.name ? '#f44336' : undefined }}
-                      value={staffForm.name} onChange={e => setStaffForm({ ...staffForm, name: e.target.value })} placeholder="홍길동" />
-                    {errors.name && <div style={errorStyle}>{errors.name}</div>}
-                  </div>
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>연락처</label>
-                    <input type="text" style={{ ...inputStyle, width: '100%', borderColor: errors.phone ? '#f44336' : undefined }}
-                      value={staffForm.phone} onChange={e => setStaffForm({ ...staffForm, phone: e.target.value })} placeholder="010-1234-5678" />
-                    {errors.phone && <div style={errorStyle}>{errors.phone}</div>}
-                  </div>
-                  <div style={fieldGroupStyle}>
-                    <label style={labelStyle}>담당지역</label>
-                    <select style={{ ...selectStyle, width: '100%' }}
-                      value={staffForm.areaCode} onChange={e => setStaffForm({ ...staffForm, areaCode: e.target.value })}>
-                      <option value="">선택</option>
-                      {AREA_CODES.map(area => <option key={area} value={area}>{area}</option>)}
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>타입</label>
+                    <select 
+                      value={groupForm.storeType} 
+                      onChange={e => setGroupForm({ ...groupForm, storeType: e.target.value })}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                    >
+                      <option value="normal">일반</option>
+                      <option value="vip">VIP</option>
+                      <option value="wholesale">도매</option>
                     </select>
                   </div>
-                </>
-              )}
-            </div>
-            
-            {/* 모달 푸터 */}
-            <div style={{ padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button style={{ ...btnStyle, minWidth: 80 }} onClick={() => setShowModal(false)}>취소</button>
-              <button style={{ ...btnStyle, background: '#5d7a5d', border: 'none', color: '#fff', minWidth: 100 }} onClick={handleSubmit} disabled={saving}>
-                {saving ? '저장 중...' : editingId ? '수정' : '등록'}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>담당자명 *</label>
+                  <input 
+                    type="text" 
+                    value={staffForm.name} 
+                    onChange={e => setStaffForm({ ...staffForm, name: e.target.value })}
+                    placeholder="홍길동"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  />
+                </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>연락처</label>
+                  <input 
+                    type="text" 
+                    value={staffForm.phone} 
+                    onChange={e => setStaffForm({ ...staffForm, phone: e.target.value })}
+                    placeholder="010-1234-5678"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  />
+                </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>담당지역</label>
+                  <select 
+                    value={staffForm.areaCode} 
+                    onChange={e => setStaffForm({ ...staffForm, areaCode: e.target.value })}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e9ecef', fontSize: '14px' }}
+                  >
+                    <option value="">선택</option>
+                    {AREA_CODES.map(area => <option key={area} value={area}>{area}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={closeModal} style={{ padding: '10px 20px', borderRadius: '8px', background: '#f5f5f7', color: '#1d1d1f', border: 'none', fontSize: '14px', cursor: 'pointer' }}>취소</button>
+              <button 
+                onClick={handleSubmit} 
+                disabled={saving}
+                style={{ padding: '10px 24px', borderRadius: '8px', background: saving ? '#ccc' : '#007aff', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer' }}
+              >
+                {saving ? '저장 중...' : editingId ? '수정' : '추가'}
               </button>
             </div>
           </div>
