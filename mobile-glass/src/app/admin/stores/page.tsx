@@ -415,12 +415,12 @@ export default function StoresPage() {
                 <input type="checkbox" checked={selectedIds.size === data.length && data.length > 0} onChange={toggleSelectAll} />
               </th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>그룹</th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>안경원명</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '140px' }}>안경원명</th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>대표자</th>
               <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>연락처</th>
-              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '80px' }}>주소</th>
-              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '100px' }}>영업담당</th>
-              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', minWidth: '90px' }}>배송담당</th>
+              <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '120px' }}>주소</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '70px' }}>영업담당</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', width: '70px' }}>배송담당</th>
               <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap' }}>관리</th>
             </tr>
             {/* 검색 필터 */}
@@ -430,7 +430,7 @@ export default function StoresPage() {
                 <input type="text" placeholder="그룹" value={searchCode} onChange={(e) => setSearchCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '6px 4px' }}>
+              <td style={{ padding: '6px 4px', width: '140px' }}>
                 <input type="text" placeholder="안경원명" value={searchName} onChange={(e) => setSearchName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
@@ -442,15 +442,15 @@ export default function StoresPage() {
                 <input type="text" placeholder="연락처" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '6px 4px', width: '80px' }}>
+              <td style={{ padding: '6px 4px', width: '120px' }}>
                 <input type="text" placeholder="주소" value={searchAddress} onChange={(e) => setSearchAddress(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '6px 4px', width: '100px' }}>
+              <td style={{ padding: '6px 4px', width: '70px' }}>
                 <input type="text" placeholder="영업" value={searchSalesRep} onChange={(e) => setSearchSalesRep(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
-              <td style={{ padding: '6px 4px', minWidth: '70px' }}>
+              <td style={{ padding: '6px 4px', width: '70px' }}>
                 <input type="text" placeholder="배송" value={searchDelivery} onChange={(e) => setSearchDelivery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{ width: '100%', padding: '5px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px' }} />
               </td>
@@ -470,12 +470,12 @@ export default function StoresPage() {
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
                 <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
-                <td style={{ padding: '10px 8px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store.name}</td>
+                <td style={{ padding: '10px 8px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '140px', maxWidth: '140px' }}>{store.name}</td>
                 <td style={{ padding: '10px 8px', fontSize: '12px' }}>{store.ownerName}</td>
                 <td style={{ padding: '10px 8px', fontSize: '11px', fontFamily: 'monospace' }}>{store.phone}</td>
-                <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '80px', maxWidth: '80px' }}>{store.address}</td>
-                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', color: store.salesRepName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '100px' }}>{store.salesRepName || '-'}</td>
-                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap', minWidth: '90px' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
+                <td style={{ padding: '10px 8px', fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '120px', maxWidth: '120px' }}>{store.address}</td>
+                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', color: store.salesRepName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '70px' }}>{store.salesRepName || '-'}</td>
+                <td style={{ padding: '10px 8px', textAlign: 'center', fontSize: '11px', color: store.deliveryContact || store.deliveryStaffName ? '#333' : '#ccc', whiteSpace: 'nowrap', width: '70px' }}>{store.deliveryStaffName || store.deliveryContact || '-'}</td>
                 <td style={{ padding: '10px 8px' }}>
                   <div style={{ display: 'flex', flexDirection: 'row', gap: '3px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap' }}>
                     <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: 500, background: store.isActive ? '#e8f5e9' : '#fff3e0', color: store.isActive ? '#2e7d32' : '#e65100', whiteSpace: 'nowrap' }}>
