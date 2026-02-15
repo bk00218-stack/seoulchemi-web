@@ -554,8 +554,8 @@ export default function StoresPage() {
                   <input type="checkbox" checked={selectedIds.has(store.id)} onChange={() => toggleSelect(store.id)} />
                 </td>
                 <td style={{ padding: '6px 4px', fontSize: '11px', color: '#666' }}>{store.groupName || '-'}</td>
-                <td style={{ padding: '6px 4px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  <Link href={`/stores/${store.id}`} style={{ color: '#007aff', textDecoration: 'none' }} prefetch={true}>
+                <td style={{ padding: '6px 4px', fontWeight: 500, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>
+                  <Link href={`/stores/${store.id}`} style={{ color: 'inherit', textDecoration: 'none' }} prefetch={true}>
                     {store.name}
                   </Link>
                 </td>
