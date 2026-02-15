@@ -125,6 +125,7 @@ export async function GET(request: Request) {
     ])
 
     // 미수금 관련 통계는 별도 (필요시에만)
+    const outstandingStoresCount = 0
     const totalOutstanding = 0
     const totalDepositsThisMonth = 0
     
