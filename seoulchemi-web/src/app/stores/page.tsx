@@ -497,7 +497,7 @@ export default function StoresPage() {
                       value={field.value} 
                       onChange={(e) => field.onChange(e.target.value)} 
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      style={{ width: '100%', padding: '4px 6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '11px', fontWeight: 400, textAlign: 'center' }} 
+                      style={{ width: '100%', padding: '4px 6px', borderRadius: '4px', border: '2px solid #007aff', fontSize: '11px', fontWeight: 400, textAlign: 'center', background: '#f8faff' }} 
                     />
                   </div>
                   {i < 7 && (

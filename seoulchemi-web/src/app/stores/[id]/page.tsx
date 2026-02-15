@@ -4,50 +4,39 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
-import StatCard, { StatCardGrid } from '../../components/StatCard'
 import Link from 'next/link'
 
-interface Store {
+interface StoreGroup {
   id: number
+  name: string
+}
+
+interface Staff {
+  id: number
+  name: string
+}
+
+interface FormData {
   code: string
   name: string
-  ownerName: string | null
-  phone: string | null
-  mobile: string | null
-  address: string | null
-  bizNo: string | null
-  email: string | null
-  paymentTermDays: number
+  ownerName: string
+  phone: string
+  mobile: string
+  address: string
+  storeType: string
+  businessType: string
+  businessCategory: string
+  businessNumber: string
+  email: string
   billingDay: number | null
-  creditLimit: number
   groupId: number | null
-  groupName: string | null
-  salesRepName: string | null
-  deliveryContact: string | null
+  salesStaffId: number | null
+  deliveryStaffId: number | null
   isActive: boolean
-  createdAt: string
+  initialReceivables: number
   outstandingAmount: number
-  totalOrders: number
-  totalSales: number
-  lastOrderAt: string | null
-}
-
-interface RecentOrder {
-  id: number
-  orderNo: string
-  totalAmount: number
-  status: string
-  createdAt: string
-  itemCount: number
-}
-
-const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  pending: { label: '대기', color: '#ff9500', bg: '#fff3e0' },
-  confirmed: { label: '확정', color: '#007aff', bg: '#e3f2fd' },
-  processing: { label: '처리중', color: '#9c27b0', bg: '#f3e5f5' },
-  shipped: { label: '출고', color: '#2196f3', bg: '#e3f2fd' },
-  delivered: { label: '배송완료', color: '#34c759', bg: '#e8f5e9' },
-  cancelled: { label: '취소', color: '#ff3b30', bg: '#ffebee' },
+  creditLimit: number
+  paymentTermDays: number
 }
 
 export default function StoreDetailPage() {
@@ -55,49 +44,167 @@ export default function StoreDetailPage() {
   const router = useRouter()
   const storeId = params.id as string
   
-  const [store, setStore] = useState<Store | null>(null)
-  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([])
   const [loading, setLoading] = useState(true)
-  const [showEditModal, setShowEditModal] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [groups, setGroups] = useState<StoreGroup[]>([])
+  const [salesStaffList, setSalesStaffList] = useState<Staff[]>([])
+  const [deliveryStaffList, setDeliveryStaffList] = useState<Staff[]>([])
+  
+  const [formData, setFormData] = useState<FormData>({
+    code: '',
+    name: '',
+    ownerName: '',
+    phone: '',
+    mobile: '',
+    address: '',
+    storeType: '소매',
+    businessType: '',
+    businessCategory: '',
+    businessNumber: '',
+    email: '',
+    billingDay: null,
+    groupId: null,
+    salesStaffId: null,
+    deliveryStaffId: null,
+    isActive: true,
+    initialReceivables: 0,
+    outstandingAmount: 0,
+    creditLimit: 0,
+    paymentTermDays: 30,
+  })
+  
+  const [originalData, setOriginalData] = useState<FormData | null>(null)
+  const [stats, setStats] = useState({ totalOrders: 0, totalSales: 0, lastOrderAt: null as string | null })
 
   useEffect(() => {
     if (storeId) {
       fetchStore()
-      fetchRecentOrders()
+      fetchDropdowns()
     }
   }, [storeId])
+
+  const fetchDropdowns = async () => {
+    try {
+      const [groupsRes, salesRes, deliveryRes] = await Promise.all([
+        fetch('/api/store-groups'),
+        fetch('/api/sales-staff'),
+        fetch('/api/delivery-staff'),
+      ])
+      
+      const groupsData = await groupsRes.json()
+      const salesData = await salesRes.json()
+      const deliveryData = await deliveryRes.json()
+      
+      if (Array.isArray(groupsData)) setGroups(groupsData)
+      if (salesData.salesStaff) setSalesStaffList(salesData.salesStaff)
+      if (deliveryData.deliveryStaff) setDeliveryStaffList(deliveryData.deliveryStaff)
+    } catch (e) {
+      console.error('Failed to fetch dropdowns:', e)
+    }
+  }
 
   const fetchStore = async () => {
     try {
       const res = await fetch(`/api/stores/${storeId}`)
       if (res.ok) {
         const data = await res.json()
-        setStore(data)
+        const store = data.store || data
+        
+        const newFormData: FormData = {
+          code: store.code || '',
+          name: store.name || '',
+          ownerName: store.ownerName || '',
+          phone: store.phone || '',
+          mobile: store.deliveryPhone || '',
+          address: store.address || '',
+          storeType: store.storeType || '소매',
+          businessType: store.businessType || '',
+          businessCategory: store.businessCategory || '',
+          businessNumber: store.businessRegNo || '',
+          email: store.email || '',
+          billingDay: store.billingDay || null,
+          groupId: store.groupId || null,
+          salesStaffId: store.salesStaffId || null,
+          deliveryStaffId: store.deliveryStaffId || null,
+          isActive: store.isActive ?? true,
+          initialReceivables: store.initialReceivables || 0,
+          outstandingAmount: store.outstandingAmount || 0,
+          creditLimit: store.creditLimit || 0,
+          paymentTermDays: store.paymentTermDays || 30,
+        }
+        
+        setFormData(newFormData)
+        setOriginalData(newFormData)
+        setStats({
+          totalOrders: store._count?.orders || 0,
+          totalSales: store.totalSales || 0,
+          lastOrderAt: store.lastOrderAt || null,
+        })
       } else {
         router.push('/stores')
       }
     } catch (error) {
       console.error('Failed to fetch store:', error)
+      router.push('/stores')
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchRecentOrders = async () => {
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      alert('안경원명을 입력해주세요.')
+      return
+    }
+    
+    setSaving(true)
     try {
-      const res = await fetch(`/api/orders?storeId=${storeId}&limit=5`)
+      const res = await fetch(`/api/stores/${storeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      
       if (res.ok) {
+        alert('저장되었습니다.')
+        setOriginalData(formData)
+        setIsEditing(false)
+      } else {
         const data = await res.json()
-        setRecentOrders(data.orders || [])
+        alert(data.error || '저장에 실패했습니다.')
       }
-    } catch (error) {
-      console.error('Failed to fetch orders:', error)
+    } catch (e) {
+      console.error(e)
+      alert('저장에 실패했습니다.')
+    } finally {
+      setSaving(false)
     }
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR').format(amount)
+  const handleCancel = () => {
+    if (originalData) {
+      setFormData(originalData)
+    }
+    setIsEditing(false)
+  }
+
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('ko-KR').format(amount)
+
+  const inputStyle = {
+    width: '100%',
+    padding: '8px 10px',
+    borderRadius: '6px',
+    border: '1px solid #e9ecef',
+    fontSize: '13px',
+    background: isEditing ? '#fff' : '#f8f9fa',
+  }
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '12px',
+    color: '#86868b',
+    marginBottom: '4px',
   }
 
   if (loading) {
@@ -110,21 +217,18 @@ export default function StoreDetailPage() {
     )
   }
 
-  if (!store) {
-    return (
-      <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
-        <div style={{ textAlign: 'center', padding: '60px', color: '#86868b' }}>
-          가맹점을 찾을 수 없습니다
-        </div>
-      </Layout>
-    )
-  }
-
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
       {/* 헤더 */}
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '20px',
+        paddingBottom: '16px',
+        borderBottom: '2px solid #5d7a5d'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             onClick={() => router.push('/stores')}
             style={{
@@ -138,6 +242,9 @@ export default function StoreDetailPage() {
           >
             ← 목록
           </button>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, margin: 0 }}>
+            {formData.name || '거래처 상세'}
+          </h1>
           <span style={{ 
             padding: '4px 10px', 
             background: '#f5f5f7', 
@@ -146,46 +253,70 @@ export default function StoreDetailPage() {
             fontFamily: 'monospace',
             color: '#86868b'
           }}>
-            {store.code}
+            {formData.code}
           </span>
           <span style={{
             padding: '4px 10px',
             borderRadius: '6px',
             fontSize: '12px',
             fontWeight: 500,
-            background: store.isActive ? '#e8f5e9' : '#f5f5f7',
-            color: store.isActive ? '#34c759' : '#86868b'
+            background: formData.isActive ? '#e8f5e9' : '#f5f5f7',
+            color: formData.isActive ? '#34c759' : '#86868b'
           }}>
-            {store.isActive ? '활성' : '비활성'}
+            {formData.isActive ? '활성' : '비활성'}
           </span>
         </div>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 4px' }}>{store.name}</h1>
-            {store.groupName && (
-              <span style={{ fontSize: '14px', color: '#86868b' }}>
-                그룹: {store.groupName}
-              </span>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Link
-              href={`/stores/${store.id}/discounts`}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '6px',
-                border: '1px solid #e9ecef',
-                background: '#fff',
-                fontSize: '13px',
-                textDecoration: 'none',
-                color: '#1d1d1f'
-              }}
-            >
-              💰 할인 설정
-            </Link>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Link
+            href={`/stores/${storeId}/discounts`}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: '1px solid #e9ecef',
+              background: '#fff',
+              fontSize: '13px',
+              textDecoration: 'none',
+              color: '#1d1d1f'
+            }}
+          >
+            💰 할인 설정
+          </Link>
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleCancel}
+                disabled={saving}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: '1px solid #e9ecef',
+                  background: '#f5f5f7',
+                  fontSize: '13px',
+                  cursor: 'pointer'
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{
+                  padding: '8px 20px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: saving ? '#86868b' : '#34c759',
+                  color: '#fff',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  cursor: saving ? 'default' : 'pointer'
+                }}
+              >
+                {saving ? '저장 중...' : '💾 저장'}
+              </button>
+            </>
+          ) : (
             <button
-              onClick={() => setShowEditModal(true)}
+              onClick={() => setIsEditing(true)}
               style={{
                 padding: '8px 16px',
                 borderRadius: '6px',
@@ -197,264 +328,203 @@ export default function StoreDetailPage() {
                 cursor: 'pointer'
               }}
             >
-              수정
+              ✏️ 수정
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 통계 카드 */}
-      <StatCardGrid>
-        <StatCard 
-          label="총 주문" 
-          value={store.totalOrders} 
-          unit="건" 
-          icon="📦"
-        />
-        <StatCard 
-          label="총 매출" 
-          value={formatCurrency(store.totalSales)} 
-          unit="원" 
-          icon="💰"
-        />
-        <StatCard 
-          label="미수금" 
-          value={formatCurrency(store.outstandingAmount)} 
-          unit="원" 
-          icon="💳"
-          highlight={store.outstandingAmount > 0}
-        />
-        <StatCard 
-          label="신용한도" 
-          value={formatCurrency(store.creditLimit)} 
-          unit="원" 
-          icon="📊"
-        />
-      </StatCardGrid>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
-        {/* 기본 정보 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>기본 정보</h2>
-          
-          <div style={{ display: 'grid', gap: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>대표자</span>
-              <span style={{ fontWeight: 500 }}>{store.ownerName || '-'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>전화</span>
-              <span style={{ fontFamily: 'monospace' }}>{store.phone || '-'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>핸드폰</span>
-              <span style={{ fontFamily: 'monospace' }}>{store.mobile || '-'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>이메일</span>
-              <span>{store.email || '-'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>사업자번호</span>
-              <span style={{ fontFamily: 'monospace' }}>{store.bizNo || '-'}</span>
-            </div>
-            <div>
-              <span style={{ color: '#86868b', fontSize: '14px', display: 'block', marginBottom: '4px' }}>주소</span>
-              <span style={{ fontSize: '14px' }}>{store.address || '-'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 결제 정보 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px' }}>결제 정보</h2>
-          
-          <div style={{ display: 'grid', gap: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>결제기한</span>
-              <span style={{ fontWeight: 500 }}>{store.paymentTermDays}일</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>청구일</span>
-              <span>{store.billingDay ? `매월 ${store.billingDay}일` : '-'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>담당자</span>
-              <span>{store.salesRepName || '-'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>배송담당</span>
-              <span>{store.deliveryContact || '-'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>최근 주문</span>
-              <span>
-                {store.lastOrderAt 
-                  ? new Date(store.lastOrderAt).toLocaleDateString('ko-KR') 
-                  : '-'
-                }
-              </span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#86868b', fontSize: '14px' }}>등록일</span>
-              <span>{new Date(store.createdAt).toLocaleDateString('ko-KR')}</span>
-            </div>
-          </div>
-
-          {store.outstandingAmount > 0 && (
-            <Link
-              href={`/stores/receivables/transactions?storeId=${store.id}`}
-              style={{
-                display: 'block',
-                marginTop: '20px',
-                padding: '12px',
-                borderRadius: '8px',
-                background: '#fff3e0',
-                textAlign: 'center',
-                textDecoration: 'none',
-                color: '#ff9500',
-                fontWeight: 500,
-                fontSize: '14px'
-              }}
-            >
-              미수금 내역 보기 →
-            </Link>
           )}
         </div>
       </div>
 
-      {/* 최근 주문 */}
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', marginTop: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>최근 주문</h2>
-          <Link
-            href={`/admin/orders?storeId=${store.id}`}
-            style={{ color: '#007aff', fontSize: '13px', textDecoration: 'none' }}
-          >
-            전체 보기 →
-          </Link>
+      {/* 통계 요약 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+        <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px', padding: '15px 20px', borderLeft: '4px solid #007aff' }}>
+          <div style={{ fontSize: '12px', color: '#666' }}>총 주문</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#007aff' }}>{stats.totalOrders}건</div>
         </div>
-
-        {recentOrders.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>
-            주문 내역이 없습니다
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e9ecef' }}>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>주문번호</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>상품</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>금액</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>상태</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#86868b' }}>주문일</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentOrders.map(order => {
-                const statusInfo = STATUS_LABELS[order.status] || { label: order.status, color: '#666', bg: '#f5f5f7' }
-                return (
-                  <tr key={order.id} style={{ borderBottom: '1px solid #f5f5f7' }}>
-                    <td style={{ padding: '12px 16px' }}>
-                      <Link
-                        href={`/admin/orders?orderNo=${order.orderNo}`}
-                        style={{ color: '#007aff', textDecoration: 'none', fontFamily: 'monospace', fontSize: '13px' }}
-                      >
-                        {order.orderNo}
-                      </Link>
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px' }}>
-                      {order.itemCount}개
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 500 }}>
-                      {formatCurrency(order.totalAmount)}원
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                      <span style={{
-                        padding: '4px 10px',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        color: statusInfo.color,
-                        background: statusInfo.bg
-                      }}>
-                        {statusInfo.label}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '13px', color: '#86868b' }}>
-                      {new Date(order.createdAt).toLocaleDateString('ko-KR')}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
+        <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px', padding: '15px 20px', borderLeft: '4px solid #34c759' }}>
+          <div style={{ fontSize: '12px', color: '#666' }}>총 매출</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#34c759' }}>{formatCurrency(stats.totalSales)}원</div>
+        </div>
+        <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px', padding: '15px 20px', borderLeft: '4px solid #ff9500' }}>
+          <div style={{ fontSize: '12px', color: '#666' }}>미수금</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#ff9500' }}>{formatCurrency(formData.outstandingAmount)}원</div>
+        </div>
+        <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px', padding: '15px 20px', borderLeft: '4px solid #9c27b0' }}>
+          <div style={{ fontSize: '12px', color: '#666' }}>신용한도</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#9c27b0' }}>{formatCurrency(formData.creditLimit)}원</div>
+        </div>
       </div>
 
-      {/* 빠른 액션 */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(4, 1fr)', 
-        gap: '12px', 
-        marginTop: '24px' 
-      }}>
-        <Link
-          href={`/admin/orders/new?storeId=${store.id}`}
-          style={{
-            padding: '16px',
-            borderRadius: '12px',
-            background: '#fff',
-            textDecoration: 'none',
-            textAlign: 'center',
-            color: '#1d1d1f'
-          }}
-        >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>📦</div>
-          <div style={{ fontSize: '13px', fontWeight: 500 }}>새 주문</div>
-        </Link>
-        <Link
-          href={`/stores/receivables/deposit?storeId=${store.id}`}
-          style={{
-            padding: '16px',
-            borderRadius: '12px',
-            background: '#fff',
-            textDecoration: 'none',
-            textAlign: 'center',
-            color: '#1d1d1f'
-          }}
-        >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>💳</div>
-          <div style={{ fontSize: '13px', fontWeight: 500 }}>입금 처리</div>
-        </Link>
-        <Link
-          href={`/stores/${store.id}/discounts`}
-          style={{
-            padding: '16px',
-            borderRadius: '12px',
-            background: '#fff',
-            textDecoration: 'none',
-            textAlign: 'center',
-            color: '#1d1d1f'
-          }}
-        >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>💰</div>
-          <div style={{ fontSize: '13px', fontWeight: 500 }}>할인 설정</div>
-        </Link>
-        <button
-          onClick={() => window.print()}
-          style={{
-            padding: '16px',
-            borderRadius: '12px',
-            background: '#fff',
-            border: 'none',
-            cursor: 'pointer',
-            textAlign: 'center'
-          }}
-        >
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>🖨️</div>
-          <div style={{ fontSize: '13px', fontWeight: 500 }}>인쇄</div>
-        </button>
+      {/* 폼 영역 */}
+      <div style={{ background: '#fff', borderRadius: '12px', padding: '24px' }}>
+        
+        {/* 기본 정보 */}
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#007aff', marginBottom: '12px', padding: '8px 0', borderBottom: '2px solid #007aff' }}>
+            📋 기본 정보
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div>
+              <label style={labelStyle}>코드</label>
+              <input type="text" value={formData.code} disabled
+                style={{ ...inputStyle, background: '#f5f5f7' }} />
+            </div>
+            <div>
+              <label style={labelStyle}>안경원명 <span style={{ color: '#ff3b30' }}>*</span></label>
+              <input type="text" value={formData.name} 
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                disabled={!isEditing}
+                style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>거래처 유형</label>
+              <select value={formData.storeType} 
+                onChange={(e) => setFormData({ ...formData, storeType: e.target.value })}
+                disabled={!isEditing}
+                style={inputStyle}>
+                <option value="소매">소매</option>
+                <option value="도매">도매</option>
+                <option value="공장">공장</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={labelStyle}>대표자</label>
+              <input type="text" value={formData.ownerName}
+                onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
+                disabled={!isEditing}
+                style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>전화</label>
+              <input type="tel" value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                disabled={!isEditing}
+                placeholder="02-000-0000"
+                style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>핸드폰</label>
+              <input type="tel" value={formData.mobile}
+                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                disabled={!isEditing}
+                placeholder="010-0000-0000"
+                style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>이메일</label>
+              <input type="email" value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={!isEditing}
+                placeholder="email@example.com"
+                style={inputStyle} />
+            </div>
+          </div>
+        </div>
+
+        {/* 사업자 정보 */}
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#ff9500', marginBottom: '12px', padding: '8px 0', borderBottom: '2px solid #ff9500' }}>
+            🏢 사업자 정보
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div>
+              <label style={labelStyle}>사업자등록번호</label>
+              <input type="text" value={formData.businessNumber}
+                onChange={(e) => setFormData({ ...formData, businessNumber: e.target.value })}
+                disabled={!isEditing}
+                placeholder="000-00-00000"
+                style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>업태</label>
+              <input type="text" value={formData.businessCategory}
+                onChange={(e) => setFormData({ ...formData, businessCategory: e.target.value })}
+                disabled={!isEditing}
+                placeholder="도소매"
+                style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>업종</label>
+              <input type="text" value={formData.businessType}
+                onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
+                disabled={!isEditing}
+                placeholder="안경"
+                style={inputStyle} />
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>주소</label>
+            <input type="text" value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              disabled={!isEditing}
+              style={inputStyle} />
+          </div>
+        </div>
+
+        {/* 거래 정보 */}
+        <div>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#34c759', marginBottom: '12px', padding: '8px 0', borderBottom: '2px solid #34c759' }}>
+            🤝 거래 정보
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={labelStyle}>그룹</label>
+              <select value={formData.groupId || ''} 
+                onChange={(e) => setFormData({ ...formData, groupId: e.target.value ? parseInt(e.target.value) : null })}
+                disabled={!isEditing}
+                style={inputStyle}>
+                <option value="">선택</option>
+                {groups.map(group => (<option key={group.id} value={group.id}>{group.name}</option>))}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>영업담당</label>
+              <select value={formData.salesStaffId || ''} 
+                onChange={(e) => setFormData({ ...formData, salesStaffId: e.target.value ? parseInt(e.target.value) : null })}
+                disabled={!isEditing}
+                style={inputStyle}>
+                <option value="">선택</option>
+                {salesStaffList.map(staff => (<option key={staff.id} value={staff.id}>{staff.name}</option>))}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>배송담당</label>
+              <select value={formData.deliveryStaffId || ''} 
+                onChange={(e) => setFormData({ ...formData, deliveryStaffId: e.target.value ? parseInt(e.target.value) : null })}
+                disabled={!isEditing}
+                style={inputStyle}>
+                <option value="">선택</option>
+                {deliveryStaffList.map(staff => (<option key={staff.id} value={staff.id}>{staff.name}</option>))}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>청구일</label>
+              <input type="number" min="1" max="31" value={formData.billingDay || ''}
+                onChange={(e) => setFormData({ ...formData, billingDay: e.target.value ? parseInt(e.target.value) : null })}
+                disabled={!isEditing}
+                placeholder="일"
+                style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>결제기한</label>
+              <input type="number" min="0" value={formData.paymentTermDays}
+                onChange={(e) => setFormData({ ...formData, paymentTermDays: parseInt(e.target.value) || 0 })}
+                disabled={!isEditing}
+                style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>상태</label>
+              <select value={formData.isActive ? 'active' : 'inactive'} 
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'active' })}
+                disabled={!isEditing}
+                style={inputStyle}>
+                <option value="active">활성</option>
+                <option value="inactive">비활성</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
     </Layout>
   )
