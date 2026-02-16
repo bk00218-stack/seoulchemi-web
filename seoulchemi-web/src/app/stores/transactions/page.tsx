@@ -99,8 +99,8 @@ function ShipmentSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
   const [searchParams, setSearchParams] = useState({
     dateFrom: '',
     dateTo: '',
-    brand: '',
-    product: '',
+    brandId: '',
+    productId: '',
     sph: '',
     cyl: '',
     store: ''
@@ -108,6 +108,26 @@ function ShipmentSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
   const [results, setResults] = useState<ShipmentSearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
+  const [brands, setBrands] = useState<{id: number, name: string}[]>([])
+  const [products, setProducts] = useState<{id: number, name: string, brandId: number}[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<{id: number, name: string, brandId: number}[]>([])
+
+  // 브랜드/상품 목록 로드
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/brands?limit=100').then(r => r.json()).then(data => setBrands(data.brands || []))
+      fetch('/api/products?limit=1000').then(r => r.json()).then(data => setProducts(data.products || []))
+    }
+  }, [isOpen])
+
+  // 브랜드 선택 시 상품 필터링
+  useEffect(() => {
+    if (searchParams.brandId) {
+      setFilteredProducts(products.filter(p => p.brandId === parseInt(searchParams.brandId)))
+    } else {
+      setFilteredProducts(products)
+    }
+  }, [searchParams.brandId, products])
 
   const handleSearch = async () => {
     setLoading(true)
@@ -116,8 +136,8 @@ function ShipmentSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
       const params = new URLSearchParams()
       if (searchParams.dateFrom) params.set('dateFrom', searchParams.dateFrom)
       if (searchParams.dateTo) params.set('dateTo', searchParams.dateTo)
-      if (searchParams.brand) params.set('brand', searchParams.brand)
-      if (searchParams.product) params.set('product', searchParams.product)
+      if (searchParams.brandId) params.set('brandId', searchParams.brandId)
+      if (searchParams.productId) params.set('productId', searchParams.productId)
       if (searchParams.sph) params.set('sph', searchParams.sph)
       if (searchParams.cyl) params.set('cyl', searchParams.cyl)
       if (searchParams.store) params.set('store', searchParams.store)
@@ -139,7 +159,7 @@ function ShipmentSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
   }
 
   const resetSearch = () => {
-    setSearchParams({ dateFrom: '', dateTo: '', brand: '', product: '', sph: '', cyl: '', store: '' })
+    setSearchParams({ dateFrom: '', dateTo: '', brandId: '', productId: '', sph: '', cyl: '', store: '' })
     setResults([])
     setSearched(false)
   }
@@ -171,13 +191,19 @@ function ShipmentSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>브랜드</label>
-              <input type="text" placeholder="예: 케미, 에실로" value={searchParams.brand} onChange={e => setSearchParams(p => ({ ...p, brand: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+              <select value={searchParams.brandId} onChange={e => setSearchParams(p => ({ ...p, brandId: e.target.value, productId: '' }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box', background: '#fff' }}>
+                <option value="">전체</option>
+                {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>상품명</label>
-              <input type="text" placeholder="예: 1.56, 바리락스" value={searchParams.product} onChange={e => setSearchParams(p => ({ ...p, product: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>상품</label>
+              <select value={searchParams.productId} onChange={e => setSearchParams(p => ({ ...p, productId: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box', background: '#fff' }}>
+                <option value="">전체</option>
+                {filteredProducts.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>SPH</label>
@@ -190,8 +216,8 @@ function ShipmentSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>가맹점</label>
-              <input type="text" placeholder="가맹점명 검색" value={searchParams.store} onChange={e => setSearchParams(p => ({ ...p, store: e.target.value }))}
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>가맹점 (상호/전화번호)</label>
+              <input type="text" placeholder="상호 또는 전화번호" value={searchParams.store} onChange={e => setSearchParams(p => ({ ...p, store: e.target.value }))}
                 style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>

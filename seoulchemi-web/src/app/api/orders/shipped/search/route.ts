@@ -7,8 +7,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const dateFrom = searchParams.get('dateFrom')
     const dateTo = searchParams.get('dateTo')
-    const brand = searchParams.get('brand')
-    const product = searchParams.get('product')
+    const brandId = searchParams.get('brandId')
+    const productId = searchParams.get('productId')
     const sph = searchParams.get('sph')
     const cyl = searchParams.get('cyl')
     const store = searchParams.get('store')
@@ -31,32 +31,31 @@ export async function GET(request: Request) {
       }
     }
 
-    // 가맹점 필터
+    // 가맹점 필터 (상호 또는 전화번호)
     if (store) {
+      const storeQuery = store.replace(/-/g, '')
       where.store = {
-        name: { contains: store, mode: 'insensitive' }
+        OR: [
+          { name: { contains: store, mode: 'insensitive' } },
+          { phone: { contains: storeQuery } }
+        ]
       }
     }
 
-    // 아이템 조건 (브랜드, 상품명, SPH, CYL)
+    // 아이템 조건 (브랜드ID, 상품ID, SPH, CYL)
     const itemsWhere: any = {}
     let hasItemFilter = false
 
-    if (brand) {
+    if (brandId) {
       itemsWhere.product = {
         ...itemsWhere.product,
-        brand: {
-          name: { contains: brand, mode: 'insensitive' }
-        }
+        brandId: parseInt(brandId)
       }
       hasItemFilter = true
     }
 
-    if (product) {
-      itemsWhere.product = {
-        ...itemsWhere.product,
-        name: { contains: product, mode: 'insensitive' }
-      }
+    if (productId) {
+      itemsWhere.productId = parseInt(productId)
       hasItemFilter = true
     }
 
@@ -79,7 +78,7 @@ export async function GET(request: Request) {
       where,
       include: {
         store: {
-          select: { id: true, name: true, code: true }
+          select: { id: true, name: true, code: true, phone: true }
         },
         items: {
           where: hasItemFilter ? itemsWhere : undefined,
@@ -100,9 +99,9 @@ export async function GET(request: Request) {
     const results = orders.flatMap(order => 
       order.items
         .filter(item => {
-          // 아이템 필터 다시 적용 (중복 체크)
-          if (brand && !item.product.brand.name.toLowerCase().includes(brand.toLowerCase())) return false
-          if (product && !item.product.name.toLowerCase().includes(product.toLowerCase())) return false
+          // 아이템 필터 다시 적용
+          if (brandId && item.product.brandId !== parseInt(brandId)) return false
+          if (productId && item.productId !== parseInt(productId)) return false
           if (sph && item.sph && !item.sph.includes(sph)) return false
           if (cyl && item.cyl && !item.cyl.includes(cyl)) return false
           return true
@@ -112,6 +111,7 @@ export async function GET(request: Request) {
           orderNo: order.orderNo,
           storeName: order.store.name,
           storeCode: order.store.code,
+          storePhone: order.store.phone,
           brandName: item.product.brand.name,
           productName: item.product.name,
           sph: item.sph,
