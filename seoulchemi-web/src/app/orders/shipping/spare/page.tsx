@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, KeyboardEvent } from 'react'
 import Layout from '../../../components/Layout'
 import { ORDER_SIDEBAR } from '../../../constants/sidebar'
 
@@ -45,7 +45,7 @@ interface Filters {
   deliveryStaffs: FilterOption[]
 }
 
-type FilterType = 'supplier' | 'store' | 'group' | 'salesStaff' | 'deliveryStaff'
+type FilterType = 'store' | 'deliveryStaff' | 'group' | 'salesStaff' | 'supplier'
 
 export default function SpareShipmentPage() {
   const [orders, setOrders] = useState<SpareOrder[]>([])
@@ -58,11 +58,21 @@ export default function SpareShipmentPage() {
   })
   const [loading, setLoading] = useState(true)
   const [shipping, setShipping] = useState(false)
-  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set()) // itemId 기준
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
 
   // 필터 상태
-  const [activeFilter, setActiveFilter] = useState<FilterType>('supplier')
+  const [activeFilter, setActiveFilter] = useState<FilterType>('store')
   const [selectedFilterId, setSelectedFilterId] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // 키보드 네비게이션
+  const [focusedFilterIndex, setFocusedFilterIndex] = useState<number>(-1)
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
+  const [focusArea, setFocusArea] = useState<'filter' | 'table'>('filter')
+  
+  const filterListRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLTableSectionElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   // 데이터 로드
   const loadOrders = useCallback(async () => {
@@ -128,11 +138,24 @@ export default function SpareShipmentPage() {
   const handleFilterTypeChange = (type: FilterType) => {
     setActiveFilter(type)
     setSelectedFilterId(null)
+    setSearchQuery('')
+    setFocusedFilterIndex(-1)
+  }
+
+  // 검색 필터링
+  const getFilteredList = () => {
+    const list = getFilterList()
+    if (!searchQuery.trim()) return list
+    const query = searchQuery.toLowerCase()
+    return list.filter(item => 
+      item.name.toLowerCase().includes(query) ||
+      (item.code && item.code.toLowerCase().includes(query))
+    )
   }
 
   // 필터 아이템별 집계
   const getFilterStats = () => {
-    const list = getFilterList()
+    const list = getFilteredList()
     return list.map(item => {
       let count = 0
       let amount = 0
@@ -206,11 +229,94 @@ export default function SpareShipmentPage() {
       ).join('\n')}`)
 
       setSelectedItems(new Set())
-      loadOrders() // 새로고침
+      loadOrders()
     } catch (error: any) {
       alert(`❌ 출고 실패: ${error.message}`)
     } finally {
       setShipping(false)
+    }
+  }
+
+  // 키보드 핸들러 - 필터 리스트
+  const handleFilterKeyDown = (e: KeyboardEvent) => {
+    const stats = getFilterStats()
+    const maxIndex = stats.length // +1 for "전체"
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setFocusedFilterIndex(prev => Math.min(prev + 1, maxIndex - 1))
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setFocusedFilterIndex(prev => Math.max(prev - 1, -1))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (focusedFilterIndex === -1) {
+          setSelectedFilterId(null)
+        } else if (stats[focusedFilterIndex]) {
+          setSelectedFilterId(stats[focusedFilterIndex].id)
+        }
+        // 오른쪽 테이블로 포커스 이동
+        setFocusArea('table')
+        setFocusedRowIndex(0)
+        tableRef.current?.focus()
+        break
+      case 'Tab':
+        if (!e.shiftKey) {
+          e.preventDefault()
+          setFocusArea('table')
+          setFocusedRowIndex(0)
+          tableRef.current?.focus()
+        }
+        break
+    }
+  }
+
+  // 키보드 핸들러 - 테이블
+  const handleTableKeyDown = (e: KeyboardEvent) => {
+    const maxIndex = orders.length - 1
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setFocusedRowIndex(prev => Math.min(prev + 1, maxIndex))
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setFocusedRowIndex(prev => Math.max(prev - 1, 0))
+        break
+      case ' ':
+      case 'Space':
+        e.preventDefault()
+        if (orders[focusedRowIndex]) {
+          toggleSelect(orders[focusedRowIndex].itemId)
+        }
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (orders[focusedRowIndex]) {
+          toggleSelect(orders[focusedRowIndex].itemId)
+        }
+        break
+      case 'a':
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault()
+          toggleSelectAll()
+        }
+        break
+      case 'Tab':
+        if (e.shiftKey) {
+          e.preventDefault()
+          setFocusArea('filter')
+          filterListRef.current?.focus()
+        }
+        break
+      case 'Escape':
+        setFocusArea('filter')
+        filterListRef.current?.focus()
+        break
     }
   }
 
@@ -221,12 +327,14 @@ export default function SpareShipmentPage() {
 
   const filterStats = getFilterStats()
   const filterLabels: Record<FilterType, string> = {
-    supplier: '매입처별',
     store: '가맹점별',
+    deliveryStaff: '배송담당별',
     group: '그룹별',
     salesStaff: '영업담당별',
-    deliveryStaff: '배송담당별'
+    supplier: '매입처별'
   }
+
+  const filterOrder: FilterType[] = ['store', 'deliveryStaff', 'group', 'salesStaff', 'supplier']
 
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
@@ -255,7 +363,7 @@ export default function SpareShipmentPage() {
             </span>
           </h1>
           <p style={{ fontSize: 12, color: '#666', margin: '4px 0 0' }}>
-            여벌 주문건 출고 전용 (개별 아이템 선택 가능)
+            여벌 주문건 출고 전용 (개별 아이템 선택 가능) · <kbd style={{ background: '#eee', padding: '1px 4px', borderRadius: 2, fontSize: 10 }}>↑↓</kbd> 이동 <kbd style={{ background: '#eee', padding: '1px 4px', borderRadius: 2, fontSize: 10 }}>Enter</kbd> 선택/이동 <kbd style={{ background: '#eee', padding: '1px 4px', borderRadius: 2, fontSize: 10 }}>Space</kbd> 체크
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -270,7 +378,7 @@ export default function SpareShipmentPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 15, height: 'calc(100vh - 180px)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 15, height: 'calc(100vh - 180px)' }}>
         
         {/* 왼쪽: 필터 패널 */}
         <div style={{ 
@@ -288,7 +396,7 @@ export default function SpareShipmentPage() {
             padding: '8px 10px',
             background: '#5d7a5d',
           }}>
-            {(Object.keys(filterLabels) as FilterType[]).map(type => (
+            {filterOrder.map(type => (
               <button
                 key={type}
                 onClick={() => handleFilterTypeChange(type)}
@@ -307,18 +415,48 @@ export default function SpareShipmentPage() {
               </button>
             ))}
           </div>
+
+          {/* 검색 입력 */}
+          <div style={{ padding: '8px 10px', borderBottom: '1px solid #ddd', background: '#fff' }}>
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  setFocusArea('filter')
+                  setFocusedFilterIndex(-1)
+                  filterListRef.current?.focus()
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '6px 10px',
+                border: '1px solid #ddd',
+                borderRadius: 4,
+                fontSize: 12,
+                outline: 'none'
+              }}
+            />
+          </div>
           
           {/* 전체 보기 */}
           <div
-            onClick={() => setSelectedFilterId(null)}
+            onClick={() => { setSelectedFilterId(null); setFocusedFilterIndex(-1) }}
+            tabIndex={0}
             style={{
               padding: '12px 15px',
               borderBottom: '1px solid #ddd',
               cursor: 'pointer',
-              background: selectedFilterId === null ? '#eef4ee' : '#fff',
+              background: selectedFilterId === null ? '#eef4ee' : (focusArea === 'filter' && focusedFilterIndex === -1 ? '#e3e8e3' : '#fff'),
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              outline: focusArea === 'filter' && focusedFilterIndex === -1 ? '2px solid #5d7a5d' : 'none',
+              outlineOffset: -2
             }}
           >
             <div>
@@ -333,24 +471,32 @@ export default function SpareShipmentPage() {
           </div>
           
           {/* 필터 항목 목록 */}
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          <div 
+            ref={filterListRef}
+            tabIndex={0}
+            onKeyDown={handleFilterKeyDown}
+            onFocus={() => setFocusArea('filter')}
+            style={{ flex: 1, overflow: 'auto', outline: 'none' }}
+          >
             {filterStats.length === 0 ? (
               <div style={{ padding: 20, textAlign: 'center', color: '#999', fontSize: 12 }}>
-                해당 필터에 대기 주문이 없습니다
+                {searchQuery ? '검색 결과가 없습니다' : '해당 필터에 대기 주문이 없습니다'}
               </div>
             ) : (
-              filterStats.map(item => (
+              filterStats.map((item, index) => (
                 <div
                   key={item.id}
-                  onClick={() => setSelectedFilterId(item.id)}
+                  onClick={() => { setSelectedFilterId(item.id); setFocusedFilterIndex(index) }}
                   style={{
                     padding: '10px 15px',
                     borderBottom: '1px solid #eee',
                     cursor: 'pointer',
-                    background: selectedFilterId === item.id ? '#eef4ee' : '#fff',
+                    background: selectedFilterId === item.id ? '#eef4ee' : (focusArea === 'filter' && focusedFilterIndex === index ? '#e3e8e3' : '#fff'),
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    outline: focusArea === 'filter' && focusedFilterIndex === index ? '2px solid #5d7a5d' : 'none',
+                    outlineOffset: -2
                   }}
                 >
                   <div>
@@ -390,7 +536,7 @@ export default function SpareShipmentPage() {
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
-                  <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #ddd' }}>
+                  <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #ddd', position: 'sticky', top: 0 }}>
                     <th style={{ padding: '8px 10px', textAlign: 'center', width: 30 }}>
                       <input 
                         type="checkbox" 
@@ -408,20 +554,30 @@ export default function SpareShipmentPage() {
                     <th style={{ padding: '8px 10px', textAlign: 'left' }}>그룹</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {orders.map(order => (
+                <tbody
+                  ref={tableRef}
+                  tabIndex={0}
+                  onKeyDown={handleTableKeyDown}
+                  onFocus={() => setFocusArea('table')}
+                  style={{ outline: 'none' }}
+                >
+                  {orders.map((order, index) => (
                     <tr 
                       key={order.itemId}
+                      onClick={() => toggleSelect(order.itemId)}
                       style={{ 
                         borderBottom: '1px solid #eee',
-                        background: selectedItems.has(order.itemId) ? '#f0f7f0' : undefined
+                        background: selectedItems.has(order.itemId) ? '#f0f7f0' : (focusArea === 'table' && focusedRowIndex === index ? '#e8f0e8' : undefined),
+                        cursor: 'pointer',
+                        outline: focusArea === 'table' && focusedRowIndex === index ? '2px solid #5d7a5d' : 'none',
+                        outlineOffset: -2
                       }}
                     >
                       <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                         <input 
                           type="checkbox" 
                           checked={selectedItems.has(order.itemId)}
-                          onChange={() => toggleSelect(order.itemId)}
+                          onChange={(e) => { e.stopPropagation(); toggleSelect(order.itemId) }}
                         />
                       </td>
                       <td style={{ padding: '8px 10px' }}>

@@ -58,40 +58,80 @@ export async function GET(request: Request) {
       }
     }
 
-    const orders = await prisma.order.findMany({
-      where,
-      include: {
-        store: {
-          select: { 
-            id: true, 
-            name: true, 
-            code: true,
-            groupId: true,
-            salesStaffId: true,
-            deliveryStaffId: true,
-            group: { select: { id: true, name: true } },
-            salesStaff: { select: { id: true, name: true } },
-            deliveryStaff: { select: { id: true, name: true } }
-          }
-        },
-        items: {
-          include: {
-            product: {
-              include: {
-                brand: {
-                  include: {
-                    supplier: {
-                      select: { id: true, name: true }
+    // 병렬로 주문과 필터 목록 조회 (성능 최적화)
+    const [orders, suppliers, stores, groups, salesStaffs, deliveryStaffs] = await Promise.all([
+      // 주문 조회
+      prisma.order.findMany({
+        where,
+        include: {
+          store: {
+            select: { 
+              id: true, 
+              name: true, 
+              code: true,
+              groupId: true,
+              salesStaffId: true,
+              deliveryStaffId: true,
+              group: { select: { id: true, name: true } },
+              salesStaff: { select: { id: true, name: true } },
+              deliveryStaff: { select: { id: true, name: true } }
+            }
+          },
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  brandId: true,
+                  brand: {
+                    select: {
+                      id: true,
+                      name: true,
+                      supplierId: true,
+                      supplier: { select: { id: true, name: true } }
                     }
                   }
                 }
               }
             }
           }
-        }
-      },
-      orderBy: { orderedAt: 'asc' }
-    })
+        },
+        orderBy: { orderedAt: 'asc' }
+      }),
+      // 매입처 (브랜드가 연결된 것만)
+      prisma.supplier.findMany({
+        where: { isActive: true, brands: { some: {} } },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' }
+      }),
+      // 가맹점 - 출고 대기 주문에서 직접 추출 (더 빠름)
+      prisma.$queryRaw<{id: number, name: string, code: string}[]>`
+        SELECT DISTINCT s.id, s.name, s.code 
+        FROM "Store" s 
+        INNER JOIN "Order" o ON o."storeId" = s.id 
+        WHERE o.status = 'pending' AND o."orderType" = 'stock' AND s."isActive" = true
+        ORDER BY s.name
+      `,
+      // 그룹
+      prisma.storeGroup.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' }
+      }),
+      // 영업담당
+      prisma.salesStaff.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' }
+      }),
+      // 배송담당
+      prisma.deliveryStaff.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' }
+      })
+    ])
 
     // 플랫하게 변환 (아이템 단위로) - 개별 선택 가능하도록
     const flatOrders = orders.flatMap(order => 
@@ -124,43 +164,6 @@ export async function GET(request: Request) {
         status: order.status
       }))
     )
-
-    // 필터 목록 조회
-    const [suppliers, stores, groups, salesStaffs, deliveryStaffs] = await Promise.all([
-      // 매입처 (브랜드가 연결된 것만)
-      prisma.supplier.findMany({
-        where: { isActive: true, brands: { some: {} } },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' }
-      }),
-      // 가맹점 (대기 주문이 있는 것만)
-      prisma.store.findMany({
-        where: {
-          isActive: true,
-          orders: { some: { status: 'pending', orderType: 'stock' } }
-        },
-        select: { id: true, name: true, code: true },
-        orderBy: { name: 'asc' }
-      }),
-      // 그룹
-      prisma.storeGroup.findMany({
-        where: { isActive: true },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' }
-      }),
-      // 영업담당
-      prisma.salesStaff.findMany({
-        where: { isActive: true },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' }
-      }),
-      // 배송담당
-      prisma.deliveryStaff.findMany({
-        where: { isActive: true },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' }
-      })
-    ])
 
     return NextResponse.json({
       orders: flatOrders,
