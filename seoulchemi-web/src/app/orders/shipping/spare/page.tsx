@@ -111,7 +111,7 @@ export default function SpareShipmentPage() {
     checkbox: 36,
     store: 130,
     date: 90,
-    product: 0,
+    product: 250,
     sph: 60,
     cyl: 60,
     qty: 45,
@@ -476,7 +476,7 @@ export default function SpareShipmentPage() {
                     </th>
                     <th style={{ width: columnWidths.store, padding: '8px 8px', textAlign: 'left', position: 'relative' }}>가맹점<ColumnResizer column="store" /></th>
                     <th style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', position: 'relative' }}>날짜<ColumnResizer column="date" /></th>
-                    <th style={{ padding: '8px 8px', textAlign: 'left', position: 'relative' }}>브랜드 / 상품명</th>
+                    <th style={{ width: columnWidths.product || 'auto', padding: '8px 8px', textAlign: 'left', position: 'relative' }}>브랜드 / 상품명<ColumnResizer column="product" /></th>
                     <th style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>SPH<ColumnResizer column="sph" /></th>
                     <th style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>CYL<ColumnResizer column="cyl" /></th>
                     <th style={{ width: columnWidths.qty, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>수량<ColumnResizer column="qty" /></th>
@@ -527,7 +527,7 @@ export default function SpareShipmentPage() {
                       <td style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', fontSize: 12, color: '#666' }}>
                         {new Date(order.orderedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
                       </td>
-                      <td style={{ padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td style={{ width: columnWidths.product, padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 3, background: '#eef4ee', fontSize: 12, marginRight: 6, color: '#5d7a5d', fontWeight: 500 }}>{order.brandName}</span>
                         <span>{order.productName}</span>
                       </td>
