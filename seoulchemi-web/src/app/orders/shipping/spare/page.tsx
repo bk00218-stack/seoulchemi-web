@@ -348,8 +348,6 @@ export default function SpareShipmentPage() {
       // 출고 완료된 주문 ID 추출
       const shippedOrderIds = data.shipped.map((s: any) => s.orderId)
       
-      alert(`✅ ${data.shipped.length}건 출고 완료!`)
-      
       // 거래명세표 자동 출력
       if (shippedOrderIds.length > 0) {
         await printInvoice(shippedOrderIds)
@@ -358,7 +356,7 @@ export default function SpareShipmentPage() {
       setSelectedItems(new Set())
       loadOrders()
     } catch (error: any) {
-      alert(`❌ 출고 실패: ${error.message}`)
+      alert(`출고 실패: ${error.message}`)
     } finally {
       setShipping(false)
     }
