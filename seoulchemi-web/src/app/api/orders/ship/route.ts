@@ -175,8 +175,18 @@ export async function GET(request: Request) {
       where.orderType = orderType
     }
 
-    // supplierId로 필터링 (브랜드의 supplierId)
-    // 이건 좀 복잡해서 나중에 구현
+    // supplierId로 필터링 - 브랜드의 supplierId 기준
+    if (supplierId && supplierId !== 'all') {
+      where.items = {
+        some: {
+          product: {
+            brand: {
+              supplierId: parseInt(supplierId)
+            }
+          }
+        }
+      }
+    }
 
     const orders = await prisma.order.findMany({
       where,
@@ -189,7 +199,12 @@ export async function GET(request: Request) {
             product: {
               include: {
                 brand: {
-                  select: { id: true, name: true }
+                  select: { id: true, name: true, supplierId: true },
+                  include: {
+                    supplier: {
+                      select: { id: true, name: true }
+                    }
+                  }
                 }
               }
             }
@@ -212,7 +227,8 @@ export async function GET(request: Request) {
         productName: item.product.name,
         brandId: item.product.brandId,
         brandName: item.product.brand.name,
-        supplierId: null, // TODO: Brand에 supplierId 추가 필요
+        supplierId: item.product.brand.supplierId,
+        supplierName: item.product.brand.supplier?.name || null,
         sph: item.sph,
         cyl: item.cyl,
         quantity: item.quantity,
@@ -224,9 +240,15 @@ export async function GET(request: Request) {
       }))
     )
 
-    // TODO: 매입처별 집계 (Brand에 supplierId 추가 필요)
-    // 현재는 매입처 기능 미구현
-    const suppliers: { id: number; name: string }[] = []
+    // 매입처 목록 조회 (브랜드에 연결된 것만)
+    const suppliers = await prisma.supplier.findMany({
+      where: {
+        isActive: true,
+        brands: { some: {} } // 브랜드가 연결된 매입처만
+      },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' }
+    })
 
     return NextResponse.json({
       orders: flatOrders,

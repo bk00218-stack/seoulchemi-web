@@ -30,6 +30,8 @@ model Brand {
   id            Int       @id @default(autoincrement())
   categoryId    Int?      // 대분류 연결
   category      MainCategory? @relation(fields: [categoryId], references: [id])
+  supplierId    Int?      // 매입처 연결
+  supplier      Supplier? @relation(fields: [supplierId], references: [id])
   name          String    // 브랜드명 (케미, 하이텍, 진명 등)
   stockManage   String?   // 출고 관리 (바코드, 미사용)
   canExchange   Boolean   @default(false) // 교환 가능 여부
@@ -45,6 +47,7 @@ model Brand {
 
   @@unique([categoryId, name]) // 같은 대분류 내 브랜드명 중복 불가
   @@index([categoryId])
+  @@index([supplierId])
 }
 
 // ===== 품목 (Product Line) =====
@@ -545,6 +548,7 @@ model Supplier {
   updatedAt     DateTime  @updatedAt
   
   purchases     Purchase[]
+  brands        Brand[]
 }
 
 // 매입 테이블
