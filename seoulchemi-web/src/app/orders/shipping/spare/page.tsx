@@ -321,16 +321,26 @@ export default function SpareShipmentPage() {
   const handleShipping = async () => {
     console.log('🚀 handleShipping called, selectedItems:', selectedItems.size)
     if (selectedItems.size === 0) { alert('출고할 주문을 선택해주세요.'); return }
-    if (!confirm(`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`)) return
+    
+    const confirmed = confirm(`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`)
+    console.log('📋 Confirm result:', confirmed)
+    if (!confirmed) {
+      console.log('❌ User cancelled')
+      return
+    }
 
+    console.log('✅ Starting API call...')
     try {
       setShipping(true)
+      console.log('📡 Fetching /api/orders/ship/spare with itemIds:', Array.from(selectedItems))
       const res = await fetch('/api/orders/ship/spare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemIds: Array.from(selectedItems) })
       })
+      console.log('📥 Response status:', res.status, res.ok)
       const data = await res.json()
+      console.log('📥 Response data:', data)
       if (!res.ok) throw new Error(data.error || '출고 처리 실패')
 
       // 출고 완료된 주문 ID 추출
