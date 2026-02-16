@@ -59,6 +59,7 @@ interface ColumnWidths {
   qty: number
   price: number
   delivery: number
+  actions: number
 }
 
 interface ColumnFilters {
@@ -83,6 +84,10 @@ export default function SpareShipmentPage() {
   const [shipping, setShipping] = useState(false)
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
   const [showConfirm, setShowConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteItemId, setDeleteItemId] = useState<number | null>(null)
+  const [editingCell, setEditingCell] = useState<{ itemId: number; field: 'quantity' | 'totalPrice' } | null>(null)
+  const [editValue, setEditValue] = useState('')
 
   // 필터 상태
   const [activeFilter, setActiveFilter] = useState<FilterType>('store')
@@ -114,12 +119,13 @@ export default function SpareShipmentPage() {
     checkbox: 36,
     store: 130,
     date: 110,
-    product: 250,
+    product: 220,
     sph: 60,
     cyl: 60,
-    qty: 45,
+    qty: 55,
     price: 75,
-    delivery: 80
+    delivery: 70,
+    actions: 40
   })
   const [resizingColumn, setResizingColumn] = useState<keyof ColumnWidths | null>(null)
   const [startX, setStartX] = useState(0)
@@ -128,7 +134,6 @@ export default function SpareShipmentPage() {
   const filterListRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLTableSectionElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const shipButtonRef = useRef<HTMLButtonElement>(null)
 
   // 데이터 로드
   const loadOrders = useCallback(async () => {
@@ -359,6 +364,73 @@ export default function SpareShipmentPage() {
     }
   }
 
+  // 셀 편집 시작
+  const startEditing = (itemId: number, field: 'quantity' | 'totalPrice', currentValue: number) => {
+    setEditingCell({ itemId, field })
+    setEditValue(String(currentValue))
+  }
+
+  // 셀 편집 저장
+  const saveEdit = async () => {
+    if (!editingCell) return
+    
+    const { itemId, field } = editingCell
+    let value = parseFloat(editValue)
+    
+    if (isNaN(value) || value < 0) {
+      setEditingCell(null)
+      return
+    }
+    
+    // 수량은 0.5 단위로 반올림
+    if (field === 'quantity') {
+      value = Math.round(value * 2) / 2
+      if (value < 0.5) value = 0.5
+    }
+    
+    try {
+      const res = await fetch(`/api/orders/items/${itemId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value })
+      })
+      if (!res.ok) throw new Error('수정 실패')
+      loadOrders()
+    } catch (error) {
+      alert('수정에 실패했습니다.')
+    }
+    setEditingCell(null)
+  }
+
+  // 셀 편집 취소
+  const cancelEdit = () => {
+    setEditingCell(null)
+    setEditValue('')
+  }
+
+  // 삭제 확인 모달 열기
+  const confirmDelete = (itemId: number) => {
+    setDeleteItemId(itemId)
+    setShowDeleteConfirm(true)
+  }
+
+  // 아이템 삭제 실행
+  const executeDelete = async () => {
+    if (!deleteItemId) return
+    setShowDeleteConfirm(false)
+    
+    try {
+      const res = await fetch(`/api/orders/items/${deleteItemId}`, {
+        method: 'DELETE'
+      })
+      if (!res.ok) throw new Error('삭제 실패')
+      loadOrders()
+    } catch (error) {
+      alert('삭제에 실패했습니다.')
+    }
+    setDeleteItemId(null)
+  }
+
   // 키보드 핸들러
   const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     const stats = getFilterStats()
@@ -534,6 +606,7 @@ export default function SpareShipmentPage() {
                     <th style={{ width: columnWidths.qty, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>수량<ColumnResizer column="qty" /></th>
                     <th style={{ width: columnWidths.price, padding: '8px 6px', textAlign: 'right', position: 'relative' }}>금액<ColumnResizer column="price" /></th>
                     <th style={{ width: columnWidths.delivery, padding: '8px 8px', textAlign: 'left', position: 'relative' }}>배송담당<ColumnResizer column="delivery" /></th>
+                    <th style={{ width: columnWidths.actions, padding: '8px 4px', textAlign: 'center' }}></th>
                   </tr>
                   {/* 검색 필터 행 */}
                   <tr style={{ background: '#f0f0f0', borderBottom: '1px solid #ddd', position: 'sticky', top: 37, zIndex: 2 }}>
@@ -564,6 +637,7 @@ export default function SpareShipmentPage() {
                       <input type="text" placeholder="검색" value={columnFilters.delivery} onChange={(e) => updateColumnFilter('delivery', e.target.value)}
                         style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box' }} />
                     </th>
+                    <th style={{ padding: '4px' }}></th>
                   </tr>
                 </thead>
                 <tbody ref={tableRef} tabIndex={0} onKeyDown={handleTableKeyDown} onFocus={() => setFocusArea('table')} style={{ outline: 'none' }}>
@@ -583,11 +657,67 @@ export default function SpareShipmentPage() {
                         <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 3, background: '#eef4ee', fontSize: 12, marginRight: 6, color: '#5d7a5d', fontWeight: 500 }}>{order.brandName}</span>
                         <span>{order.productName}</span>
                       </td>
-                      <td style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12 }}>{order.sph || '-'}</td>
-                      <td style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12 }}>{order.cyl || '-'}</td>
-                      <td style={{ width: columnWidths.qty, padding: '8px 4px', textAlign: 'center', fontWeight: 600 }}>{order.quantity}</td>
-                      <td style={{ width: columnWidths.price, padding: '8px 6px', textAlign: 'right', fontWeight: 500 }}>{order.totalPrice.toLocaleString()}</td>
+                      <td style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{order.sph || '-'}</td>
+                      <td style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{order.cyl || '-'}</td>
+                      <td style={{ width: columnWidths.qty, padding: '4px 2px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        {editingCell?.itemId === order.itemId && editingCell?.field === 'quantity' ? (
+                          <input
+                            type="number"
+                            step="0.5"
+                            min="0.5"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={saveEdit}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') cancelEdit(); }}
+                            autoFocus
+                            style={{ width: '100%', padding: '4px', border: '1px solid #5d7a5d', borderRadius: 3, fontSize: 12, textAlign: 'center', boxSizing: 'border-box' }}
+                          />
+                        ) : (
+                          <span 
+                            onClick={() => startEditing(order.itemId, 'quantity', order.quantity)}
+                            style={{ cursor: 'pointer', padding: '4px 6px', borderRadius: 3, fontWeight: 600, display: 'inline-block', minWidth: 30 }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#e8f0e8'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {order.quantity}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ width: columnWidths.price, padding: '4px 2px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                        {editingCell?.itemId === order.itemId && editingCell?.field === 'totalPrice' ? (
+                          <input
+                            type="number"
+                            min="0"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={saveEdit}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') cancelEdit(); }}
+                            autoFocus
+                            style={{ width: '100%', padding: '4px', border: '1px solid #5d7a5d', borderRadius: 3, fontSize: 12, textAlign: 'right', boxSizing: 'border-box' }}
+                          />
+                        ) : (
+                          <span 
+                            onClick={() => startEditing(order.itemId, 'totalPrice', order.totalPrice)}
+                            style={{ cursor: 'pointer', padding: '4px 6px', borderRadius: 3, fontWeight: 500, display: 'inline-block' }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#e8f0e8'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {order.totalPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </td>
                       <td style={{ width: columnWidths.delivery, padding: '8px 8px', fontSize: 12, color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.deliveryStaffName || '-'}</td>
+                      <td style={{ width: columnWidths.actions, padding: '4px 2px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => confirmDelete(order.itemId)}
+                          style={{ padding: '2px 6px', border: 'none', background: 'transparent', color: '#999', cursor: 'pointer', fontSize: 14 }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = '#dc2626' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = '#999' }}
+                          title="삭제"
+                        >
+                          ✕
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -604,7 +734,7 @@ export default function SpareShipmentPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setColumnFilters({ store: '', date: '', product: '', sph: '', cyl: '', delivery: '' })} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 12 }}>필터 초기화</button>
               <button onClick={() => setSelectedItems(new Set())} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>선택 해제</button>
-              <button ref={shipButtonRef} onClick={() => { console.log('🔘 Button clicked!'); handleShipping(); }} disabled={selectedItems.size === 0 || shipping}
+              <button onClick={handleShipping} disabled={selectedItems.size === 0 || shipping}
                 style={{ padding: '8px 20px', border: 'none', borderRadius: 4, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
                 {shipping ? '처리 중...' : `출고 (F2)`}
               </button>
@@ -613,15 +743,27 @@ export default function SpareShipmentPage() {
         </div>
       </div>
 
-      {/* 출고 확인 팝업 */}
+      {/* 출고 확인 모달 */}
       <ConfirmDialog
         isOpen={showConfirm}
-        message={`${selectedItems.size}건을 출고할까요?`}
+        title="출고 확인"
+        message={`${selectedItems.size}건을 출고 처리하시겠습니까?`}
         confirmText="출고"
         cancelText="취소"
         onConfirm={executeShipping}
         onCancel={() => setShowConfirm(false)}
-        anchorRef={shipButtonRef}
+      />
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="삭제 확인"
+        message="이 주문 아이템을 삭제하시겠습니까?"
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+        onConfirm={executeDelete}
+        onCancel={() => { setShowDeleteConfirm(false); setDeleteItemId(null); }}
       />
     </Layout>
   )
