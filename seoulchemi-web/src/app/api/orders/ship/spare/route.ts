@@ -106,8 +106,8 @@ export async function GET(request: Request) {
         orderBy: { name: 'asc' }
       }),
       // 가맹점 - 출고 대기 주문에서 직접 추출 (더 빠름)
-      prisma.$queryRaw<{id: number, name: string, code: string}[]>`
-        SELECT DISTINCT s.id, s.name, s.code 
+      prisma.$queryRaw<{id: number, name: string, code: string, phone: string | null}[]>`
+        SELECT DISTINCT s.id, s.name, s.code, s.phone 
         FROM "Store" s 
         INNER JOIN "Order" o ON o."storeId" = s.id 
         WHERE o.status = 'pending' AND o."orderType" = 'stock' AND s."isActive" = true

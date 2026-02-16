@@ -35,6 +35,7 @@ interface FilterOption {
   id: number
   name: string
   code?: string
+  phone?: string
 }
 
 interface Filters {
@@ -110,7 +111,7 @@ export default function SpareShipmentPage() {
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>({
     checkbox: 36,
     store: 130,
-    date: 90,
+    date: 110,
     product: 250,
     sph: 60,
     cyl: 60,
@@ -156,12 +157,24 @@ export default function SpareShipmentPage() {
 
   useEffect(() => { loadOrders() }, [loadOrders])
 
+  // F2 단축키 - 출고 처리
+  useEffect(() => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'F2' && selectedItems.size > 0 && !shipping) {
+        e.preventDefault()
+        handleShipping()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedItems, shipping])
+
   // 컬럼 필터링된 주문
   const getFilteredOrders = () => {
     return orders.filter(order => {
       if (columnFilters.store && !order.storeName.toLowerCase().includes(columnFilters.store.toLowerCase())) return false
       if (columnFilters.date) {
-        const dateStr = new Date(order.orderedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
+        const dateStr = new Date(order.orderedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
         if (!dateStr.includes(columnFilters.date)) return false
       }
       if (columnFilters.product) {
@@ -241,11 +254,16 @@ export default function SpareShipmentPage() {
     setFocusedFilterIndex(-1)
   }
 
+  // 검색 필터링 - 이름, 코드, 전화번호 모두 검색
   const getFilteredList = () => {
     const list = getFilterList()
     if (!searchQuery.trim()) return list
-    const query = searchQuery.toLowerCase()
-    return list.filter(item => item.name.toLowerCase().includes(query) || (item.code && item.code.toLowerCase().includes(query)))
+    const query = searchQuery.toLowerCase().replace(/-/g, '')
+    return list.filter(item => 
+      item.name.toLowerCase().includes(query) || 
+      (item.code && item.code.toLowerCase().includes(query)) ||
+      (item.phone && item.phone.replace(/-/g, '').includes(query))
+    )
   }
 
   const getFilterStats = () => {
@@ -282,6 +300,23 @@ export default function SpareShipmentPage() {
     setSelectedItems(newSet)
   }
 
+  // 거래명세표 출력
+  const printInvoice = async (orderIds: number[]) => {
+    try {
+      // 프린터 설정 가져오기
+      const settingsRes = await fetch('/api/settings/printer')
+      const settings = settingsRes.ok ? await settingsRes.json() : {}
+      
+      // 각 주문별로 거래명세표 출력
+      for (const orderId of orderIds) {
+        const printUrl = `/orders/${orderId}/print?type=invoice&printer=${encodeURIComponent(settings.invoicePrinter || '')}`
+        window.open(printUrl, '_blank', 'width=800,height=600')
+      }
+    } catch (error) {
+      console.error('Failed to print invoice:', error)
+    }
+  }
+
   const handleShipping = async () => {
     if (selectedItems.size === 0) { alert('출고할 주문을 선택해주세요.'); return }
     if (!confirm(`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`)) return
@@ -296,8 +331,16 @@ export default function SpareShipmentPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '출고 처리 실패')
 
-      alert(`✅ ${data.shipped.length}건 출고 완료!\n\n${data.shipped.map((s: any) => 
-        `• ${s.storeName} (${s.orderNo}) - ${s.shippingAmount.toLocaleString()}원`).join('\n')}`)
+      // 출고 완료된 주문 ID 추출
+      const shippedOrderIds = data.shipped.map((s: any) => s.orderId)
+      
+      alert(`✅ ${data.shipped.length}건 출고 완료!`)
+      
+      // 거래명세표 자동 출력
+      if (shippedOrderIds.length > 0) {
+        await printInvoice(shippedOrderIds)
+      }
+
       setSelectedItems(new Set())
       loadOrders()
     } catch (error: any) {
@@ -410,7 +453,7 @@ export default function SpareShipmentPage() {
           <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>
             <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10 }}>↑↓</kbd> 이동 
             <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>Enter</kbd> 선택+다음
-            <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>Space</kbd> 체크
+            <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>F2</kbd> 출고
           </p>
         </div>
         <span style={{ fontSize: 13, color: '#666' }}>
@@ -431,7 +474,7 @@ export default function SpareShipmentPage() {
             ))}
           </div>
           <div style={{ padding: '8px 10px', borderBottom: '1px solid #ddd', background: '#fff' }}>
-            <input ref={searchInputRef} type="text" placeholder={`${filterLabels[activeFilter]} 검색...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleSearchKeyDown} onFocus={() => setFocusArea('search')}
+            <input ref={searchInputRef} type="text" placeholder={`${filterLabels[activeFilter]} 또는 전화번호 검색...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleSearchKeyDown} onFocus={() => setFocusArea('search')}
               style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
           <div onClick={() => { setSelectedFilterId(null); setFocusedFilterIndex(-1) }}
@@ -524,8 +567,8 @@ export default function SpareShipmentPage() {
                       <td style={{ width: columnWidths.store, padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
                         {order.storeName}
                       </td>
-                      <td style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', fontSize: 12, color: '#666' }}>
-                        {new Date(order.orderedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
+                      <td style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', fontSize: 11, color: '#666' }}>
+                        {new Date(order.orderedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </td>
                       <td style={{ width: columnWidths.product, padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 3, background: '#eef4ee', fontSize: 12, marginRight: 6, color: '#5d7a5d', fontWeight: 500 }}>{order.brandName}</span>
@@ -554,7 +597,7 @@ export default function SpareShipmentPage() {
               <button onClick={() => setSelectedItems(new Set())} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>선택 해제</button>
               <button onClick={handleShipping} disabled={selectedItems.size === 0 || shipping}
                 style={{ padding: '8px 20px', border: 'none', borderRadius: 4, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
-                {shipping ? '처리 중...' : `출고 처리 (${selectedItems.size}건)`}
+                {shipping ? '처리 중...' : `출고 (F2)`}
               </button>
             </div>
           </div>
