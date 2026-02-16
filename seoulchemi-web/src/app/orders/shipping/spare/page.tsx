@@ -50,12 +50,22 @@ type FilterType = 'store' | 'deliveryStaff' | 'group' | 'salesStaff' | 'supplier
 interface ColumnWidths {
   checkbox: number
   store: number
+  date: number
   product: number
   sph: number
   cyl: number
   qty: number
   price: number
   delivery: number
+}
+
+interface ColumnFilters {
+  store: string
+  date: string
+  product: string
+  sph: string
+  cyl: string
+  delivery: string
 }
 
 export default function SpareShipmentPage() {
@@ -76,27 +86,37 @@ export default function SpareShipmentPage() {
   const [selectedFilterId, setSelectedFilterId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // 컬럼별 검색 필터
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
+    store: '',
+    date: '',
+    product: '',
+    sph: '',
+    cyl: '',
+    delivery: ''
+  })
+
   // 키보드 네비게이션
   const [focusedFilterIndex, setFocusedFilterIndex] = useState<number>(-1)
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [focusArea, setFocusArea] = useState<'search' | 'filter' | 'table'>('search')
   
-  // 리사이즈 - 좌우 패널
+  // 리사이즈
   const [leftPanelWidth, setLeftPanelWidth] = useState(300)
   const [isResizing, setIsResizing] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const tableContainerRef = useRef<HTMLDivElement>(null)
   
   // 컬럼 너비
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>({
     checkbox: 36,
-    store: 150,
-    product: 0, // flex
-    sph: 65,
-    cyl: 65,
-    qty: 50,
-    price: 80,
-    delivery: 85
+    store: 130,
+    date: 90,
+    product: 0,
+    sph: 60,
+    cyl: 60,
+    qty: 45,
+    price: 75,
+    delivery: 80
   })
   const [resizingColumn, setResizingColumn] = useState<keyof ColumnWidths | null>(null)
   const [startX, setStartX] = useState(0)
@@ -114,21 +134,11 @@ export default function SpareShipmentPage() {
       
       if (selectedFilterId !== null) {
         switch (activeFilter) {
-          case 'supplier':
-            params.set('supplierId', String(selectedFilterId))
-            break
-          case 'store':
-            params.set('storeId', String(selectedFilterId))
-            break
-          case 'group':
-            params.set('groupId', String(selectedFilterId))
-            break
-          case 'salesStaff':
-            params.set('salesStaffId', String(selectedFilterId))
-            break
-          case 'deliveryStaff':
-            params.set('deliveryStaffId', String(selectedFilterId))
-            break
+          case 'supplier': params.set('supplierId', String(selectedFilterId)); break
+          case 'store': params.set('storeId', String(selectedFilterId)); break
+          case 'group': params.set('groupId', String(selectedFilterId)); break
+          case 'salesStaff': params.set('salesStaffId', String(selectedFilterId)); break
+          case 'deliveryStaff': params.set('deliveryStaffId', String(selectedFilterId)); break
         }
       }
 
@@ -136,13 +146,7 @@ export default function SpareShipmentPage() {
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
       setOrders(data.orders || [])
-      setFilters(data.filters || {
-        suppliers: [],
-        stores: [],
-        groups: [],
-        salesStaffs: [],
-        deliveryStaffs: []
-      })
+      setFilters(data.filters || { suppliers: [], stores: [], groups: [], salesStaffs: [], deliveryStaffs: [] })
     } catch (error) {
       console.error('Failed to load orders:', error)
     } finally {
@@ -150,11 +154,30 @@ export default function SpareShipmentPage() {
     }
   }, [activeFilter, selectedFilterId])
 
-  useEffect(() => {
-    loadOrders()
-  }, [loadOrders])
+  useEffect(() => { loadOrders() }, [loadOrders])
 
-  // 패널 리사이즈 핸들러
+  // 컬럼 필터링된 주문
+  const getFilteredOrders = () => {
+    return orders.filter(order => {
+      if (columnFilters.store && !order.storeName.toLowerCase().includes(columnFilters.store.toLowerCase())) return false
+      if (columnFilters.date) {
+        const dateStr = new Date(order.orderedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
+        if (!dateStr.includes(columnFilters.date)) return false
+      }
+      if (columnFilters.product) {
+        const productStr = `${order.brandName} ${order.productName}`.toLowerCase()
+        if (!productStr.includes(columnFilters.product.toLowerCase())) return false
+      }
+      if (columnFilters.sph && order.sph && !order.sph.includes(columnFilters.sph)) return false
+      if (columnFilters.cyl && order.cyl && !order.cyl.includes(columnFilters.cyl)) return false
+      if (columnFilters.delivery && order.deliveryStaffName && !order.deliveryStaffName.toLowerCase().includes(columnFilters.delivery.toLowerCase())) return false
+      return true
+    })
+  }
+
+  const filteredOrders = getFilteredOrders()
+
+  // 리사이즈 핸들러
   const handlePanelMouseDown = (e: MouseEvent) => {
     e.preventDefault()
     setIsResizing('panel')
@@ -162,7 +185,6 @@ export default function SpareShipmentPage() {
     setStartWidth(leftPanelWidth)
   }
 
-  // 컬럼 리사이즈 핸들러
   const handleColumnMouseDown = (column: keyof ColumnWidths) => (e: MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -178,21 +200,13 @@ export default function SpareShipmentPage() {
         const newWidth = e.clientX - containerRect.left
         setLeftPanelWidth(Math.max(220, Math.min(450, newWidth)))
       }
-      
       if (resizingColumn) {
         const diff = e.clientX - startX
         const newWidth = Math.max(40, startWidth + diff)
-        setColumnWidths(prev => ({
-          ...prev,
-          [resizingColumn]: newWidth
-        }))
+        setColumnWidths(prev => ({ ...prev, [resizingColumn]: newWidth }))
       }
     }
-
-    const handleMouseUp = () => {
-      setIsResizing(null)
-      setResizingColumn(null)
-    }
+    const handleMouseUp = () => { setIsResizing(null); setResizingColumn(null) }
 
     if (isResizing || resizingColumn) {
       document.addEventListener('mousemove', handleMouseMove)
@@ -200,7 +214,6 @@ export default function SpareShipmentPage() {
       document.body.style.cursor = 'col-resize'
       document.body.style.userSelect = 'none'
     }
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
@@ -209,7 +222,7 @@ export default function SpareShipmentPage() {
     }
   }, [isResizing, resizingColumn, startX, startWidth])
 
-  // 필터 타입별 목록
+  // 필터 관련
   const getFilterList = (): FilterOption[] => {
     switch (activeFilter) {
       case 'supplier': return filters.suppliers
@@ -221,7 +234,6 @@ export default function SpareShipmentPage() {
     }
   }
 
-  // 필터 타입 변경
   const handleFilterTypeChange = (type: FilterType) => {
     setActiveFilter(type)
     setSelectedFilterId(null)
@@ -229,24 +241,17 @@ export default function SpareShipmentPage() {
     setFocusedFilterIndex(-1)
   }
 
-  // 검색 필터링
   const getFilteredList = () => {
     const list = getFilterList()
     if (!searchQuery.trim()) return list
     const query = searchQuery.toLowerCase()
-    return list.filter(item => 
-      item.name.toLowerCase().includes(query) ||
-      (item.code && item.code.toLowerCase().includes(query))
-    )
+    return list.filter(item => item.name.toLowerCase().includes(query) || (item.code && item.code.toLowerCase().includes(query)))
   }
 
-  // 필터 아이템별 집계
   const getFilterStats = () => {
     const list = getFilteredList()
     return list.map(item => {
-      let count = 0
-      let amount = 0
-      
+      let count = 0, amount = 0
       orders.forEach(order => {
         let matches = false
         switch (activeFilter) {
@@ -256,46 +261,30 @@ export default function SpareShipmentPage() {
           case 'salesStaff': matches = order.salesStaffId === item.id; break
           case 'deliveryStaff': matches = order.deliveryStaffId === item.id; break
         }
-        if (matches) {
-          count++
-          amount += order.totalPrice
-        }
+        if (matches) { count++; amount += order.totalPrice }
       })
-      
       return { ...item, count, amount }
     }).filter(s => s.count > 0)
   }
 
-  // 전체 선택/해제
   const toggleSelectAll = () => {
-    if (selectedItems.size === orders.length) {
+    if (selectedItems.size === filteredOrders.length) {
       setSelectedItems(new Set())
     } else {
-      setSelectedItems(new Set(orders.map(o => o.itemId)))
+      setSelectedItems(new Set(filteredOrders.map(o => o.itemId)))
     }
   }
 
-  // 개별 선택
   const toggleSelect = (itemId: number) => {
     const newSet = new Set(selectedItems)
-    if (newSet.has(itemId)) {
-      newSet.delete(itemId)
-    } else {
-      newSet.add(itemId)
-    }
+    if (newSet.has(itemId)) newSet.delete(itemId)
+    else newSet.add(itemId)
     setSelectedItems(newSet)
   }
 
-  // 출고 처리
   const handleShipping = async () => {
-    if (selectedItems.size === 0) {
-      alert('출고할 주문을 선택해주세요.')
-      return
-    }
-
-    if (!confirm(`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`)) {
-      return
-    }
+    if (selectedItems.size === 0) { alert('출고할 주문을 선택해주세요.'); return }
+    if (!confirm(`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`)) return
 
     try {
       setShipping(true)
@@ -304,17 +293,11 @@ export default function SpareShipmentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemIds: Array.from(selectedItems) })
       })
-
       const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || '출고 처리 실패')
-      }
+      if (!res.ok) throw new Error(data.error || '출고 처리 실패')
 
       alert(`✅ ${data.shipped.length}건 출고 완료!\n\n${data.shipped.map((s: any) => 
-        `• ${s.storeName} (${s.orderNo}) - ${s.shippingAmount.toLocaleString()}원`
-      ).join('\n')}`)
-
+        `• ${s.storeName} (${s.orderNo}) - ${s.shippingAmount.toLocaleString()}원`).join('\n')}`)
       setSelectedItems(new Set())
       loadOrders()
     } catch (error: any) {
@@ -324,7 +307,7 @@ export default function SpareShipmentPage() {
     }
   }
 
-  // 키보드 핸들러들
+  // 키보드 핸들러
   const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     const stats = getFilterStats()
     if (e.key === 'ArrowDown') {
@@ -344,71 +327,40 @@ export default function SpareShipmentPage() {
   const handleFilterKeyDown = (e: KeyboardEvent) => {
     const stats = getFilterStats()
     const maxIndex = stats.length - 1
-
     switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setFocusedFilterIndex(prev => Math.min(prev + 1, maxIndex))
-        break
+      case 'ArrowDown': e.preventDefault(); setFocusedFilterIndex(prev => Math.min(prev + 1, maxIndex)); break
       case 'ArrowUp':
         e.preventDefault()
-        if (focusedFilterIndex <= 0) {
-          setFocusArea('search')
-          setFocusedFilterIndex(-1)
-          searchInputRef.current?.focus()
-        } else {
-          setFocusedFilterIndex(prev => prev - 1)
-        }
+        if (focusedFilterIndex <= 0) { setFocusArea('search'); setFocusedFilterIndex(-1); searchInputRef.current?.focus() }
+        else setFocusedFilterIndex(prev => prev - 1)
         break
       case 'Enter':
       case 'ArrowRight':
         e.preventDefault()
-        if (e.key === 'Enter' && focusedFilterIndex >= 0 && stats[focusedFilterIndex]) {
-          setSelectedFilterId(stats[focusedFilterIndex].id)
-        }
-        setFocusArea('table')
-        setFocusedRowIndex(0)
+        if (e.key === 'Enter' && focusedFilterIndex >= 0 && stats[focusedFilterIndex]) setSelectedFilterId(stats[focusedFilterIndex].id)
+        setFocusArea('table'); setFocusedRowIndex(0)
         setTimeout(() => tableRef.current?.focus(), 100)
         break
-      case 'Escape':
-        setFocusArea('search')
-        searchInputRef.current?.focus()
-        break
+      case 'Escape': setFocusArea('search'); searchInputRef.current?.focus(); break
     }
   }
 
   const handleTableKeyDown = (e: KeyboardEvent) => {
-    const maxIndex = orders.length - 1
-
+    const maxIndex = filteredOrders.length - 1
     switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setFocusedRowIndex(prev => Math.min(prev + 1, maxIndex))
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setFocusedRowIndex(prev => Math.max(prev - 1, 0))
-        break
-      case ' ':
-        e.preventDefault()
-        if (orders[focusedRowIndex]) toggleSelect(orders[focusedRowIndex].itemId)
-        break
+      case 'ArrowDown': e.preventDefault(); setFocusedRowIndex(prev => Math.min(prev + 1, maxIndex)); break
+      case 'ArrowUp': e.preventDefault(); setFocusedRowIndex(prev => Math.max(prev - 1, 0)); break
+      case ' ': e.preventDefault(); if (filteredOrders[focusedRowIndex]) toggleSelect(filteredOrders[focusedRowIndex].itemId); break
       case 'Enter':
         e.preventDefault()
-        if (orders[focusedRowIndex]) {
-          toggleSelect(orders[focusedRowIndex].itemId)
+        if (filteredOrders[focusedRowIndex]) {
+          toggleSelect(filteredOrders[focusedRowIndex].itemId)
           if (focusedRowIndex < maxIndex) setFocusedRowIndex(prev => prev + 1)
         }
         break
-      case 'a':
-        if (e.ctrlKey || e.metaKey) { e.preventDefault(); toggleSelectAll() }
-        break
+      case 'a': if (e.ctrlKey || e.metaKey) { e.preventDefault(); toggleSelectAll() } break
       case 'Escape':
-      case 'ArrowLeft':
-        e.preventDefault()
-        setFocusArea('filter')
-        filterListRef.current?.focus()
-        break
+      case 'ArrowLeft': e.preventDefault(); setFocusArea('filter'); filterListRef.current?.focus(); break
     }
   }
 
@@ -422,71 +374,43 @@ export default function SpareShipmentPage() {
   useEffect(() => {
     if (focusArea === 'filter' && focusedFilterIndex >= 0) {
       const items = filterListRef.current?.children
-      if (items && items[focusedFilterIndex]) {
-        (items[focusedFilterIndex] as HTMLElement).scrollIntoView({ block: 'nearest' })
-      }
+      if (items && items[focusedFilterIndex]) (items[focusedFilterIndex] as HTMLElement).scrollIntoView({ block: 'nearest' })
     }
   }, [focusedFilterIndex, focusArea])
 
-  const selectedTotal = orders.filter(o => selectedItems.has(o.itemId)).reduce((sum, o) => sum + o.totalPrice, 0)
+  const selectedTotal = filteredOrders.filter(o => selectedItems.has(o.itemId)).reduce((sum, o) => sum + o.totalPrice, 0)
   const filterStats = getFilterStats()
-  
-  const filterLabels: Record<FilterType, string> = {
-    store: '가맹점', deliveryStaff: '배송담당', group: '그룹', salesStaff: '영업담당', supplier: '매입처'
-  }
+  const filterLabels: Record<FilterType, string> = { store: '가맹점', deliveryStaff: '배송담당', group: '그룹', salesStaff: '영업담당', supplier: '매입처' }
   const filterOrder: FilterType[] = ['store', 'deliveryStaff', 'group', 'salesStaff', 'supplier']
 
-  // 컬럼 리사이즈 핸들 컴포넌트
   const ColumnResizer = ({ column }: { column: keyof ColumnWidths }) => (
     <div
       onMouseDown={handleColumnMouseDown(column)}
-      style={{
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        bottom: 0,
-        width: 6,
-        cursor: 'col-resize',
-        background: resizingColumn === column ? '#5d7a5d' : 'transparent',
-        zIndex: 2
-      }}
+      style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 6, cursor: 'col-resize', background: resizingColumn === column ? '#5d7a5d' : 'transparent', zIndex: 2 }}
       onMouseEnter={(e) => { if (!resizingColumn) e.currentTarget.style.background = '#ccc' }}
       onMouseLeave={(e) => { if (!resizingColumn) e.currentTarget.style.background = 'transparent' }}
     />
   )
 
+  const updateColumnFilter = (key: keyof ColumnFilters, value: string) => {
+    setColumnFilters(prev => ({ ...prev, [key]: value }))
+  }
+
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       {/* 헤더 */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: 12,
-        paddingBottom: 10,
-        borderBottom: '2px solid #5d7a5d'
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingBottom: 10, borderBottom: '2px solid #5d7a5d' }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
             여벌 출고
-            <span style={{ 
-              fontSize: 12, 
-              background: '#eef4ee', 
-              color: '#5d7a5d',
-              padding: '3px 8px',
-              borderRadius: 4,
-              marginLeft: 10,
-              fontWeight: 500
-            }}>
-              {orders.length}건 대기
+            <span style={{ fontSize: 12, background: '#eef4ee', color: '#5d7a5d', padding: '3px 8px', borderRadius: 4, marginLeft: 10, fontWeight: 500 }}>
+              {filteredOrders.length}건 대기
             </span>
           </h1>
           <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>
             <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10 }}>↑↓</kbd> 이동 
             <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>Enter</kbd> 선택+다음
             <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>Space</kbd> 체크
-            <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>←</kbd> 필터로
-            <span style={{ marginLeft: 8, color: '#aaa' }}>| 컬럼 경계 드래그로 너비 조절</span>
           </p>
         </div>
         <span style={{ fontSize: 13, color: '#666' }}>
@@ -497,107 +421,47 @@ export default function SpareShipmentPage() {
       <div ref={containerRef} style={{ display: 'flex', height: 'calc(100vh - 170px)', userSelect: (isResizing || resizingColumn) ? 'none' : 'auto' }}>
         
         {/* 왼쪽: 필터 패널 */}
-        <div style={{ 
-          width: leftPanelWidth, minWidth: 220, maxWidth: 450,
-          background: '#f8f9fa', borderRadius: '8px 0 0 8px', border: '1px solid #ddd', borderRight: 'none',
-          overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0
-        }}>
-          {/* 필터 탭 */}
+        <div style={{ width: leftPanelWidth, minWidth: 220, maxWidth: 450, background: '#f8f9fa', borderRadius: '8px 0 0 8px', border: '1px solid #ddd', borderRight: 'none', overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 3, padding: '6px', background: '#5d7a5d' }}>
             {filterOrder.map(type => (
-              <button
-                key={type}
-                onClick={() => handleFilterTypeChange(type)}
-                style={{
-                  padding: '6px 4px', border: 'none', borderRadius: 4,
-                  background: activeFilter === type ? '#fff' : 'rgba(255,255,255,0.15)',
-                  color: activeFilter === type ? '#5d7a5d' : '#fff',
-                  fontSize: 12, cursor: 'pointer', fontWeight: activeFilter === type ? 600 : 400,
-                  textAlign: 'center', whiteSpace: 'nowrap'
-                }}
-              >
+              <button key={type} onClick={() => handleFilterTypeChange(type)}
+                style={{ padding: '6px 4px', border: 'none', borderRadius: 4, background: activeFilter === type ? '#fff' : 'rgba(255,255,255,0.15)', color: activeFilter === type ? '#5d7a5d' : '#fff', fontSize: 12, cursor: 'pointer', fontWeight: activeFilter === type ? 600 : 400, textAlign: 'center', whiteSpace: 'nowrap' }}>
                 {filterLabels[type]}
               </button>
             ))}
           </div>
-
-          {/* 검색 */}
           <div style={{ padding: '8px 10px', borderBottom: '1px solid #ddd', background: '#fff' }}>
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder={`${filterLabels[activeFilter]} 검색...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              onFocus={() => setFocusArea('search')}
-              style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-            />
+            <input ref={searchInputRef} type="text" placeholder={`${filterLabels[activeFilter]} 검색...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleSearchKeyDown} onFocus={() => setFocusArea('search')}
+              style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
-          
-          {/* 전체 */}
-          <div
-            onClick={() => { setSelectedFilterId(null); setFocusedFilterIndex(-1) }}
-            style={{
-              padding: '10px 14px', borderBottom: '1px solid #ddd', cursor: 'pointer',
-              background: selectedFilterId === null ? '#eef4ee' : '#fff',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>전체</div>
-              <div style={{ fontSize: 12, color: '#666' }}>{orders.length}건</div>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#5d7a5d' }}>
-              {orders.reduce((sum, o) => sum + o.totalPrice, 0).toLocaleString()}원
-            </div>
+          <div onClick={() => { setSelectedFilterId(null); setFocusedFilterIndex(-1) }}
+            style={{ padding: '10px 14px', borderBottom: '1px solid #ddd', cursor: 'pointer', background: selectedFilterId === null ? '#eef4ee' : '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div><div style={{ fontWeight: 600, fontSize: 14 }}>전체</div><div style={{ fontSize: 12, color: '#666' }}>{orders.length}건</div></div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#5d7a5d' }}>{orders.reduce((sum, o) => sum + o.totalPrice, 0).toLocaleString()}원</div>
           </div>
-          
-          {/* 필터 목록 */}
           <div ref={filterListRef} tabIndex={0} onKeyDown={handleFilterKeyDown} onFocus={() => setFocusArea('filter')} style={{ flex: 1, overflow: 'auto', outline: 'none' }}>
             {filterStats.length === 0 ? (
-              <div style={{ padding: 20, textAlign: 'center', color: '#999', fontSize: 13 }}>
-                {searchQuery ? '검색 결과 없음' : '대기 주문 없음'}
+              <div style={{ padding: 20, textAlign: 'center', color: '#999', fontSize: 13 }}>{searchQuery ? '검색 결과 없음' : '대기 주문 없음'}</div>
+            ) : filterStats.map((item, index) => (
+              <div key={item.id} onClick={() => { setSelectedFilterId(item.id); setFocusedFilterIndex(index) }}
+                style={{ padding: '10px 14px', borderBottom: '1px solid #eee', cursor: 'pointer', background: selectedFilterId === item.id ? '#eef4ee' : (focusArea === 'filter' && focusedFilterIndex === index ? '#e3e8e3' : '#fff'), display: 'flex', justifyContent: 'space-between', alignItems: 'center', outline: focusArea === 'filter' && focusedFilterIndex === index ? '2px solid #5d7a5d' : 'none', outlineOffset: -2 }}>
+                <div><div style={{ fontSize: 14 }}>{item.name}</div><div style={{ fontSize: 12, color: '#666' }}>{item.count}건</div></div>
+                <div style={{ fontSize: 12, color: '#5d7a5d', fontWeight: 500 }}>{item.amount.toLocaleString()}원</div>
               </div>
-            ) : (
-              filterStats.map((item, index) => (
-                <div
-                  key={item.id}
-                  onClick={() => { setSelectedFilterId(item.id); setFocusedFilterIndex(index) }}
-                  style={{
-                    padding: '10px 14px', borderBottom: '1px solid #eee', cursor: 'pointer',
-                    background: selectedFilterId === item.id ? '#eef4ee' : (focusArea === 'filter' && focusedFilterIndex === index ? '#e3e8e3' : '#fff'),
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    outline: focusArea === 'filter' && focusedFilterIndex === index ? '2px solid #5d7a5d' : 'none', outlineOffset: -2
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 14 }}>{item.name}</div>
-                    <div style={{ fontSize: 12, color: '#666' }}>{item.count}건</div>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#5d7a5d', fontWeight: 500 }}>{item.amount.toLocaleString()}원</div>
-                </div>
-              ))
-            )}
+            ))}
           </div>
         </div>
 
         {/* 패널 리사이즈 핸들 */}
-        <div
-          onMouseDown={handlePanelMouseDown}
-          style={{
-            width: 8, cursor: 'col-resize', background: isResizing === 'panel' ? '#5d7a5d' : 'transparent',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}
+        <div onMouseDown={handlePanelMouseDown} style={{ width: 8, cursor: 'col-resize', background: isResizing === 'panel' ? '#5d7a5d' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onMouseEnter={(e) => { if (!isResizing) e.currentTarget.style.background = '#e0e0e0' }}
-          onMouseLeave={(e) => { if (!isResizing) e.currentTarget.style.background = 'transparent' }}
-        >
+          onMouseLeave={(e) => { if (!isResizing) e.currentTarget.style.background = 'transparent' }}>
           <div style={{ width: 4, height: 40, background: '#ccc', borderRadius: 2 }} />
         </div>
 
         {/* 오른쪽: 테이블 */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div ref={tableContainerRef} style={{ flex: 1, overflow: 'auto', border: '1px solid #ddd', borderRadius: '0 8px 8px 0', background: '#fff' }}>
+          <div style={{ flex: 1, overflow: 'auto', border: '1px solid #ddd', borderRadius: '0 8px 8px 0', background: '#fff' }}>
             {loading ? (
               <div style={{ padding: 40, textAlign: 'center', color: '#666', fontSize: 14 }}>로딩 중...</div>
             ) : orders.length === 0 ? (
@@ -605,75 +469,73 @@ export default function SpareShipmentPage() {
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
                 <thead>
-                  <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #ddd', position: 'sticky', top: 0, zIndex: 1 }}>
-                    <th style={{ width: columnWidths.checkbox, padding: '10px 6px', textAlign: 'center', position: 'relative' }}>
-                      <input type="checkbox" checked={selectedItems.size === orders.length && orders.length > 0} onChange={toggleSelectAll} style={{ width: 16, height: 16 }} />
+                  {/* 컬럼 헤더 */}
+                  <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #ddd', position: 'sticky', top: 0, zIndex: 2 }}>
+                    <th style={{ width: columnWidths.checkbox, padding: '8px 4px', textAlign: 'center' }}>
+                      <input type="checkbox" checked={selectedItems.size === filteredOrders.length && filteredOrders.length > 0} onChange={toggleSelectAll} style={{ width: 16, height: 16 }} />
                     </th>
-                    <th style={{ width: columnWidths.store, padding: '10px 10px', textAlign: 'left', position: 'relative' }}>
-                      가맹점<ColumnResizer column="store" />
+                    <th style={{ width: columnWidths.store, padding: '8px 8px', textAlign: 'left', position: 'relative' }}>가맹점<ColumnResizer column="store" /></th>
+                    <th style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', position: 'relative' }}>날짜<ColumnResizer column="date" /></th>
+                    <th style={{ padding: '8px 8px', textAlign: 'left', position: 'relative' }}>브랜드 / 상품명</th>
+                    <th style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>SPH<ColumnResizer column="sph" /></th>
+                    <th style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>CYL<ColumnResizer column="cyl" /></th>
+                    <th style={{ width: columnWidths.qty, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>수량<ColumnResizer column="qty" /></th>
+                    <th style={{ width: columnWidths.price, padding: '8px 6px', textAlign: 'right', position: 'relative' }}>금액<ColumnResizer column="price" /></th>
+                    <th style={{ width: columnWidths.delivery, padding: '8px 8px', textAlign: 'left', position: 'relative' }}>배송담당<ColumnResizer column="delivery" /></th>
+                  </tr>
+                  {/* 검색 필터 행 */}
+                  <tr style={{ background: '#f0f0f0', borderBottom: '1px solid #ddd', position: 'sticky', top: 37, zIndex: 2 }}>
+                    <th style={{ padding: '4px' }}></th>
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="검색" value={columnFilters.store} onChange={(e) => updateColumnFilter('store', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box' }} />
                     </th>
-                    <th style={{ padding: '10px 10px', textAlign: 'left', position: 'relative' }}>
-                      브랜드 / 상품명
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="MM/DD" value={columnFilters.date} onChange={(e) => updateColumnFilter('date', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box', textAlign: 'center' }} />
                     </th>
-                    <th style={{ width: columnWidths.sph, padding: '10px 6px', textAlign: 'center', position: 'relative' }}>
-                      SPH<ColumnResizer column="sph" />
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="브랜드/상품 검색" value={columnFilters.product} onChange={(e) => updateColumnFilter('product', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box' }} />
                     </th>
-                    <th style={{ width: columnWidths.cyl, padding: '10px 6px', textAlign: 'center', position: 'relative' }}>
-                      CYL<ColumnResizer column="cyl" />
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="SPH" value={columnFilters.sph} onChange={(e) => updateColumnFilter('sph', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box', textAlign: 'center' }} />
                     </th>
-                    <th style={{ width: columnWidths.qty, padding: '10px 6px', textAlign: 'center', position: 'relative' }}>
-                      수량<ColumnResizer column="qty" />
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="CYL" value={columnFilters.cyl} onChange={(e) => updateColumnFilter('cyl', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box', textAlign: 'center' }} />
                     </th>
-                    <th style={{ width: columnWidths.price, padding: '10px 10px', textAlign: 'right', position: 'relative' }}>
-                      금액<ColumnResizer column="price" />
-                    </th>
-                    <th style={{ width: columnWidths.delivery, padding: '10px 10px', textAlign: 'left', position: 'relative' }}>
-                      배송담당<ColumnResizer column="delivery" />
+                    <th style={{ padding: '4px' }}></th>
+                    <th style={{ padding: '4px' }}></th>
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="검색" value={columnFilters.delivery} onChange={(e) => updateColumnFilter('delivery', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box' }} />
                     </th>
                   </tr>
                 </thead>
                 <tbody ref={tableRef} tabIndex={0} onKeyDown={handleTableKeyDown} onFocus={() => setFocusArea('table')} style={{ outline: 'none' }}>
-                  {orders.map((order, index) => (
-                    <tr 
-                      key={order.itemId}
-                      onClick={() => toggleSelect(order.itemId)}
-                      style={{ 
-                        borderBottom: '1px solid #eee',
-                        background: selectedItems.has(order.itemId) ? '#f0f7f0' : (focusArea === 'table' && focusedRowIndex === index ? '#e8f0e8' : undefined),
-                        cursor: 'pointer',
-                        outline: focusArea === 'table' && focusedRowIndex === index ? '2px solid #5d7a5d' : 'none', outlineOffset: -2
-                      }}
-                    >
-                      <td style={{ width: columnWidths.checkbox, padding: '10px 6px', textAlign: 'center' }}>
+                  {filteredOrders.map((order, index) => (
+                    <tr key={order.itemId} onClick={() => toggleSelect(order.itemId)}
+                      style={{ borderBottom: '1px solid #eee', background: selectedItems.has(order.itemId) ? '#f0f7f0' : (focusArea === 'table' && focusedRowIndex === index ? '#e8f0e8' : undefined), cursor: 'pointer', outline: focusArea === 'table' && focusedRowIndex === index ? '2px solid #5d7a5d' : 'none', outlineOffset: -2 }}>
+                      <td style={{ width: columnWidths.checkbox, padding: '8px 4px', textAlign: 'center' }}>
                         <input type="checkbox" checked={selectedItems.has(order.itemId)} onChange={(e) => { e.stopPropagation(); toggleSelect(order.itemId) }} style={{ width: 16, height: 16 }} />
                       </td>
-                      <td style={{ width: columnWidths.store, padding: '10px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <div style={{ fontWeight: 500, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis' }}>{order.storeName}</div>
-                        <div style={{ fontSize: 11, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {new Date(order.orderedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                        </div>
+                      <td style={{ width: columnWidths.store, padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                        {order.storeName}
                       </td>
-                      <td style={{ padding: '10px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 3, background: '#eef4ee', fontSize: 12, marginRight: 6, color: '#5d7a5d', fontWeight: 500 }}>
-                          {order.brandName}
-                        </span>
-                        <span style={{ fontSize: 13 }}>{order.productName}</span>
+                      <td style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', fontSize: 12, color: '#666' }}>
+                        {new Date(order.orderedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
                       </td>
-                      <td style={{ width: columnWidths.sph, padding: '10px 6px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12 }}>
-                        {order.sph || '-'}
+                      <td style={{ padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 3, background: '#eef4ee', fontSize: 12, marginRight: 6, color: '#5d7a5d', fontWeight: 500 }}>{order.brandName}</span>
+                        <span>{order.productName}</span>
                       </td>
-                      <td style={{ width: columnWidths.cyl, padding: '10px 6px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12 }}>
-                        {order.cyl || '-'}
-                      </td>
-                      <td style={{ width: columnWidths.qty, padding: '10px 6px', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>
-                        {order.quantity}
-                      </td>
-                      <td style={{ width: columnWidths.price, padding: '10px 10px', textAlign: 'right', fontWeight: 500, fontSize: 13 }}>
-                        {order.totalPrice.toLocaleString()}
-                      </td>
-                      <td style={{ width: columnWidths.delivery, padding: '10px 10px', fontSize: 12, color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {order.deliveryStaffName || '-'}
-                      </td>
+                      <td style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12 }}>{order.sph || '-'}</td>
+                      <td style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12 }}>{order.cyl || '-'}</td>
+                      <td style={{ width: columnWidths.qty, padding: '8px 4px', textAlign: 'center', fontWeight: 600 }}>{order.quantity}</td>
+                      <td style={{ width: columnWidths.price, padding: '8px 6px', textAlign: 'right', fontWeight: 500 }}>{order.totalPrice.toLocaleString()}</td>
+                      <td style={{ width: columnWidths.delivery, padding: '8px 8px', fontSize: 12, color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.deliveryStaffName || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -688,14 +550,10 @@ export default function SpareShipmentPage() {
               <span style={{ marginLeft: 10, color: '#5d7a5d', fontWeight: 600 }}>{selectedTotal.toLocaleString()}원</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setSelectedItems(new Set())} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>
-                선택 해제
-              </button>
-              <button
-                onClick={handleShipping}
-                disabled={selectedItems.size === 0 || shipping}
-                style={{ padding: '8px 20px', border: 'none', borderRadius: 4, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}
-              >
+              <button onClick={() => setColumnFilters({ store: '', date: '', product: '', sph: '', cyl: '', delivery: '' })} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 12 }}>필터 초기화</button>
+              <button onClick={() => setSelectedItems(new Set())} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>선택 해제</button>
+              <button onClick={handleShipping} disabled={selectedItems.size === 0 || shipping}
+                style={{ padding: '8px 20px', border: 'none', borderRadius: 4, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
                 {shipping ? '처리 중...' : `출고 처리 (${selectedItems.size}건)`}
               </button>
             </div>
