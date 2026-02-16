@@ -48,24 +48,48 @@ export async function POST(request: Request) {
         })
 
         // 2. 재고 차감 + 재고 이력 생성
-        // TODO: ProductOption 기반 재고 관리 (도수별 재고)
-        // 현재는 OrderItem에 productOptionId가 없어서 재고 차감 미구현
-        // 추후 ProductOption 연동 필요
         for (const item of order.items) {
+          // ProductOption 찾기 (productId + sph + cyl 매칭)
+          const productOption = await tx.productOption.findFirst({
+            where: {
+              productId: item.productId,
+              sph: item.sph || null,
+              cyl: item.cyl || null,
+              isActive: true
+            }
+          })
+
+          let beforeStock = 0
+          let afterStock = 0
+          let productOptionId: number | null = null
+
+          if (productOption) {
+            // 재고 차감
+            beforeStock = productOption.stock
+            afterStock = Math.max(0, beforeStock - item.quantity) // 음수 방지
+            productOptionId = productOption.id
+
+            await tx.productOption.update({
+              where: { id: productOption.id },
+              data: { stock: afterStock }
+            })
+          }
+
           // 재고 이력 기록 (InventoryTransaction)
           await tx.inventoryTransaction.create({
             data: {
               productId: item.productId,
+              productOptionId: productOptionId,
               type: 'out',
               reason: 'sale',
               quantity: -item.quantity, // 출고는 마이너스
-              beforeStock: 0, // TODO: 실제 재고 조회 필요
-              afterStock: 0,  // TODO: 실제 재고 조회 필요
+              beforeStock: beforeStock,
+              afterStock: afterStock,
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
               orderId: order.id,
               orderNo: order.orderNo,
-              memo: `출고: ${order.store.name}`,
+              memo: `출고: ${order.store.name}${!productOption ? ' (옵션없음)' : ''}`,
             }
           })
         }
