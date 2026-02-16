@@ -742,9 +742,9 @@ export default function SpareShipmentPage() {
               <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedItems.size}</strong>
               <span style={{ color: '#666' }}>건</span>
               <span style={{ color: '#999', margin: '0 4px' }}>/</span>
-              <span style={{ color: '#666' }}>(수량</span>
+              <span style={{ color: '#666' }}>수량</span>
               <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedQuantity}</strong>
-              <span style={{ color: '#666' }}>조)</span>
+              <span style={{ color: '#666' }}>조</span>
               <span style={{ color: '#999', margin: '0 4px' }}>/</span>
               <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedTotal.toLocaleString()}</strong>
               <span style={{ color: '#666' }}>원</span>
@@ -765,7 +765,7 @@ export default function SpareShipmentPage() {
       <ConfirmDialog
         isOpen={showConfirm}
         title="출고 확인"
-        message={`${selectedItems.size}건 / (수량 ${selectedQuantity}조) / ${selectedTotal.toLocaleString()}원\n\n출고 처리하시겠습니까?`}
+        message={`${selectedItems.size}건 / 수량 ${selectedQuantity}조 / ${selectedTotal.toLocaleString()}원\n\n출고 처리하시겠습니까?`}
         confirmText="출고"
         cancelText="취소"
         onConfirm={executeShipping}
