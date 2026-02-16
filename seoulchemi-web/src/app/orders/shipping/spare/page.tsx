@@ -650,7 +650,7 @@ export default function SpareShipmentPage() {
                       <td style={{ width: columnWidths.store, padding: '10px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         <div style={{ fontWeight: 500, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis' }}>{order.storeName}</div>
                         <div style={{ fontSize: 11, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {order.storeCode} · {new Date(order.orderedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          {new Date(order.orderedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </td>
                       <td style={{ padding: '10px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
