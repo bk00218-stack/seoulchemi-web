@@ -479,18 +479,20 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                   tabIndex={0}
                   onKeyDown={e => handleNavKeyDown(e, index)}
                   onFocus={() => setNavFocusIndex(index)}
+                  onBlur={() => setNavFocusIndex(-1)}
                   style={{
                     padding: '10px 20px',
                     borderRadius: 8,
                     fontSize: 15,
                     fontWeight: isActive ? 600 : 500,
-                    color: isActive ? '#fff' : '#495057',
-                    background: isActive ? '#5d7a5d' : 'transparent',
-                    boxShadow: isActive ? '0 2px 8px rgba(93, 122, 93, 0.3)' : 'none',
-                    transition: 'all 0.2s',
-                    outline: navFocusIndex === index ? '2px solid var(--primary)' : 'none',
-                    outlineOffset: 2,
-                    textDecoration: 'none'
+                    color: isActive ? '#fff' : navFocusIndex === index ? '#2d5a2d' : '#495057',
+                    background: isActive ? '#5d7a5d' : navFocusIndex === index ? '#e8f5e8' : 'transparent',
+                    boxShadow: isActive ? '0 2px 8px rgba(93, 122, 93, 0.3)' : 
+                               navFocusIndex === index ? '0 0 0 3px rgba(93, 122, 93, 0.4)' : 'none',
+                    transition: 'all 0.15s ease',
+                    outline: 'none',
+                    textDecoration: 'none',
+                    transform: navFocusIndex === index && !isActive ? 'scale(1.02)' : 'none'
                   }}
                   title={`Alt+${item.key}`}
                 >{item.label}</Link>
@@ -637,21 +639,23 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
                     tabIndex={0}
                     onKeyDown={e => handleSidebarKeyDown(e, currentIndex)}
                     onFocus={() => setSidebarFocusIndex(currentIndex)}
+                    onBlur={() => setSidebarFocusIndex(-1)}
                     style={{
                       display: 'block',
                       padding: '10px 14px',
                       margin: '2px 0',
                       borderRadius: 8,
                       fontSize: 15,
-                      color: isActive ? '#5d7a5d' : '#495057',
+                      color: isActive ? '#5d7a5d' : sidebarFocusIndex === currentIndex ? '#2d5a2d' : '#495057',
                       background: isActive ? '#eef4ee' : 
-                                  sidebarFocusIndex === currentIndex ? '#f1f3f5' : 'transparent',
-                      fontWeight: isActive ? 600 : 500,
-                      transition: 'all 0.15s',
-                      outline: sidebarFocusIndex === currentIndex ? '2px solid var(--primary)' : 'none',
-                      outlineOffset: -2,
+                                  sidebarFocusIndex === currentIndex ? '#e8f5e8' : 'transparent',
+                      fontWeight: isActive || sidebarFocusIndex === currentIndex ? 600 : 500,
+                      transition: 'all 0.15s ease',
+                      boxShadow: sidebarFocusIndex === currentIndex && !isActive ? '0 0 0 3px rgba(93, 122, 93, 0.35), inset 0 0 0 1px rgba(93, 122, 93, 0.2)' : 'none',
+                      outline: 'none',
                       whiteSpace: 'nowrap',
-                      textDecoration: 'none'
+                      textDecoration: 'none',
+                      transform: sidebarFocusIndex === currentIndex && !isActive ? 'translateX(4px)' : 'none'
                     }}
                   >{item.label}</Link>
                 )
