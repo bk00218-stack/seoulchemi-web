@@ -27,10 +27,11 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   const popupRef = useRef<HTMLDivElement>(null)
   const confirmButtonRef = useRef<HTMLButtonElement>(null)
-  const [position, setPosition] = useState<{ top: number; left: number; arrowLeft: number }>({ 
+  const [position, setPosition] = useState<{ top: number; left: number; arrowLeft: number; arrowOnTop: boolean }>({ 
     top: 0, 
     left: 0,
-    arrowLeft: 50 
+    arrowLeft: 50,
+    arrowOnTop: false
   })
 
   const updatePosition = useCallback(() => {
@@ -39,17 +40,19 @@ export default function ConfirmDialog({
     const anchor = anchorRef.current.getBoundingClientRect()
     const popup = popupRef.current.getBoundingClientRect()
     const padding = 12
-    const arrowHeight = 8
+    const arrowHeight = 10
 
-    // 버튼 위에 위치
-    let top = anchor.top - popup.height - arrowHeight - 4
-    let left = anchor.left + anchor.width / 2 - popup.width / 2
+    // 버튼 위에 위치 (스크롤 위치 반영)
+    let top = anchor.top + window.scrollY - popup.height - arrowHeight
+    let left = anchor.left + window.scrollX + anchor.width / 2 - popup.width / 2
     let arrowLeft = 50
+    let arrowOnTop = false // 화살표가 위에 있는지 (팝업이 아래로 갈 때)
 
     // 화면 왼쪽 벗어나면 조정
     if (left < padding) {
-      arrowLeft = ((anchor.left + anchor.width / 2 - padding) / popup.width) * 100
+      const oldLeft = left
       left = padding
+      arrowLeft = ((anchor.left + anchor.width / 2 - left) / popup.width) * 100
     }
 
     // 화면 오른쪽 벗어나면 조정
@@ -60,11 +63,17 @@ export default function ConfirmDialog({
     }
 
     // 화면 위쪽 벗어나면 버튼 아래로
-    if (top < padding) {
-      top = anchor.bottom + arrowHeight + 4
+    if (anchor.top - popup.height - arrowHeight < padding) {
+      top = anchor.bottom + window.scrollY + arrowHeight
+      arrowOnTop = true
     }
 
-    setPosition({ top, left, arrowLeft: Math.max(10, Math.min(90, arrowLeft)) })
+    setPosition({ 
+      top, 
+      left, 
+      arrowLeft: Math.max(15, Math.min(85, arrowLeft)),
+      arrowOnTop 
+    })
   }, [anchorRef])
 
   useEffect(() => {
@@ -212,9 +221,13 @@ export default function ConfirmDialog({
           </div>
         </div>
         
-        {/* 화살표 (아래 방향) */}
+        {/* 화살표 */}
         <div 
-          className="absolute -bottom-2 w-4 h-4 bg-white dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700 transform rotate-45"
+          className={`absolute w-4 h-4 bg-white dark:bg-gray-800 transform rotate-45 ${
+            position.arrowOnTop 
+              ? '-top-2 border-l border-t border-gray-200 dark:border-gray-700' 
+              : '-bottom-2 border-r border-b border-gray-200 dark:border-gray-700'
+          }`}
           style={{ left: `${position.arrowLeft}%`, marginLeft: -8 }}
         />
       </div>
