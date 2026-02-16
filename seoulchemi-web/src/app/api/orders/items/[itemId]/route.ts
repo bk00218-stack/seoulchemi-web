@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import prisma from '@/lib/prisma'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 // 아이템 수정 (수량, 금액)
 export async function PATCH(
@@ -9,11 +9,6 @@ export async function PATCH(
   { params }: { params: Promise<{ itemId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
-    }
-
     const { itemId } = await params
     const body = await request.json()
     const { quantity, totalPrice } = body
@@ -58,20 +53,10 @@ export async function DELETE(
   { params }: { params: Promise<{ itemId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
-    }
-
     const { itemId } = await params
 
     // 아이템 삭제
     await prisma.orderItem.delete({
-      where: { id: parseInt(itemId) }
-    })
-
-    // 해당 주문에 아이템이 없으면 주문도 삭제
-    const orderItem = await prisma.orderItem.findFirst({
       where: { id: parseInt(itemId) }
     })
 
