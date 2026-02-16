@@ -128,6 +128,7 @@ export default function SpareShipmentPage() {
   const filterListRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLTableSectionElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const shipButtonRef = useRef<HTMLButtonElement>(null)
 
   // 데이터 로드
   const loadOrders = useCallback(async () => {
@@ -603,7 +604,7 @@ export default function SpareShipmentPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setColumnFilters({ store: '', date: '', product: '', sph: '', cyl: '', delivery: '' })} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 12 }}>필터 초기화</button>
               <button onClick={() => setSelectedItems(new Set())} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>선택 해제</button>
-              <button onClick={() => { console.log('🔘 Button clicked!'); handleShipping(); }} disabled={selectedItems.size === 0 || shipping}
+              <button ref={shipButtonRef} onClick={() => { console.log('🔘 Button clicked!'); handleShipping(); }} disabled={selectedItems.size === 0 || shipping}
                 style={{ padding: '8px 20px', border: 'none', borderRadius: 4, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
                 {shipping ? '처리 중...' : `출고 (F2)`}
               </button>
@@ -612,15 +613,15 @@ export default function SpareShipmentPage() {
         </div>
       </div>
 
-      {/* 출고 확인 모달 */}
+      {/* 출고 확인 팝업 */}
       <ConfirmDialog
         isOpen={showConfirm}
-        title="출고 확인"
-        message={`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`}
+        message={`${selectedItems.size}건을 출고할까요?`}
         confirmText="출고"
         cancelText="취소"
         onConfirm={executeShipping}
         onCancel={() => setShowConfirm(false)}
+        anchorRef={shipButtonRef}
       />
     </Layout>
   )
