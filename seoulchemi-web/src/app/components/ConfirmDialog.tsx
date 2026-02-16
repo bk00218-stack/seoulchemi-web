@@ -49,37 +49,91 @@ export default function ConfirmDialog({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/50" 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+        }}
         onClick={onCancel}
       />
       
       {/* Dialog */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6 animate-in fade-in zoom-in-95 duration-150">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+      <div style={{
+        position: 'relative',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        maxWidth: 360,
+        width: '100%',
+        margin: '0 16px',
+        padding: 24
+      }}>
+        <h3 style={{
+          fontSize: 18,
+          fontWeight: 600,
+          color: '#111',
+          marginBottom: 8
+        }}>
           {title}
         </h3>
-        <p className="text-gray-600 dark:text-gray-300 mb-6 whitespace-pre-line">
+        <p style={{
+          color: '#666',
+          marginBottom: 24,
+          whiteSpace: 'pre-line',
+          lineHeight: 1.5
+        }}>
           {message}
         </p>
         
-        <div className="flex justify-end gap-3">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+            style={{
+              padding: '10px 18px',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#555',
+              backgroundColor: '#f3f4f6',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
           >
             {cancelText}
           </button>
           <button
             ref={confirmButtonRef}
             onClick={onConfirm}
-            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-              variant === 'danger'
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+            style={{
+              padding: '10px 18px',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#fff',
+              backgroundColor: variant === 'danger' ? '#dc2626' : '#2563eb',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = variant === 'danger' ? '#b91c1c' : '#1d4ed8'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = variant === 'danger' ? '#dc2626' : '#2563eb'}
           >
             {confirmText}
           </button>
