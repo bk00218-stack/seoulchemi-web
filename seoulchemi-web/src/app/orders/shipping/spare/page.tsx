@@ -502,7 +502,9 @@ export default function SpareShipmentPage() {
     }
   }, [focusedFilterIndex, focusArea])
 
-  const selectedTotal = filteredOrders.filter(o => selectedItems.has(o.itemId)).reduce((sum, o) => sum + o.totalPrice, 0)
+  const selectedOrders = filteredOrders.filter(o => selectedItems.has(o.itemId))
+  const selectedTotal = selectedOrders.reduce((sum, o) => sum + o.totalPrice, 0)
+  const selectedQuantity = selectedOrders.reduce((sum, o) => sum + o.quantity, 0)
   const filterStats = getFilterStats()
   const filterLabels: Record<FilterType, string> = { store: '가맹점', deliveryStaff: '배송담당', group: '그룹', salesStaff: '영업담당', supplier: '매입처' }
   const filterOrder: FilterType[] = ['store', 'deliveryStaff', 'group', 'salesStaff', 'supplier']
@@ -726,16 +728,34 @@ export default function SpareShipmentPage() {
           </div>
 
           {/* 하단 액션바 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderTop: '1px solid #ddd', marginTop: 10 }}>
-            <div style={{ fontSize: 14 }}>
-              선택: <strong>{selectedItems.size}</strong>건
-              <span style={{ marginLeft: 10, color: '#5d7a5d', fontWeight: 600 }}>{selectedTotal.toLocaleString()}원</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '2px solid #5d7a5d', marginTop: 10, background: selectedItems.size > 0 ? '#f0f7f0' : '#f8f9fa', borderRadius: '0 0 8px 0' }}>
+            <div style={{ 
+              fontSize: 15, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 8,
+              padding: '8px 16px',
+              background: selectedItems.size > 0 ? '#fff' : 'transparent',
+              borderRadius: 8,
+              border: selectedItems.size > 0 ? '2px solid #5d7a5d' : '2px solid transparent',
+              transition: 'all 0.2s'
+            }}>
+              <span style={{ color: '#666' }}>선택:</span>
+              <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedItems.size}</strong>
+              <span style={{ color: '#666' }}>건</span>
+              <span style={{ color: '#999', margin: '0 4px' }}>/</span>
+              <span style={{ color: '#666' }}>(수량</span>
+              <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedQuantity}</strong>
+              <span style={{ color: '#666' }}>조)</span>
+              <span style={{ color: '#999', margin: '0 4px' }}>/</span>
+              <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedTotal.toLocaleString()}</strong>
+              <span style={{ color: '#666' }}>원</span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setColumnFilters({ store: '', date: '', product: '', sph: '', cyl: '', delivery: '' })} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 12 }}>필터 초기화</button>
               <button onClick={() => setSelectedItems(new Set())} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>선택 해제</button>
               <button onClick={handleShipping} disabled={selectedItems.size === 0 || shipping}
-                style={{ padding: '8px 20px', border: 'none', borderRadius: 4, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
+                style={{ padding: '10px 24px', border: 'none', borderRadius: 6, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, boxShadow: selectedItems.size > 0 ? '0 2px 8px rgba(93, 122, 93, 0.3)' : 'none' }}>
                 {shipping ? '처리 중...' : `출고 (F2)`}
               </button>
             </div>
@@ -747,7 +767,7 @@ export default function SpareShipmentPage() {
       <ConfirmDialog
         isOpen={showConfirm}
         title="출고 확인"
-        message={`${selectedItems.size}건을 출고 처리하시겠습니까?`}
+        message={`${selectedItems.size}건 / (수량 ${selectedQuantity}조) / ${selectedTotal.toLocaleString()}원\n\n출고 처리하시겠습니까?`}
         confirmText="출고"
         cancelText="취소"
         onConfirm={executeShipping}
