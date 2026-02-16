@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, KeyboardEvent, MouseEvent } from 'react'
 import Layout from '../../../components/Layout'
 import { ORDER_SIDEBAR } from '../../../constants/sidebar'
+import ConfirmDialog from '../../../components/ConfirmDialog'
 
 interface SpareOrder {
   id: number
@@ -81,6 +82,7 @@ export default function SpareShipmentPage() {
   const [loading, setLoading] = useState(true)
   const [shipping, setShipping] = useState(false)
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
+  const [showConfirm, setShowConfirm] = useState(false)
 
   // 필터 상태
   const [activeFilter, setActiveFilter] = useState<FilterType>('store')
@@ -318,29 +320,23 @@ export default function SpareShipmentPage() {
     }
   }
 
-  const handleShipping = async () => {
-    console.log('🚀 handleShipping called, selectedItems:', selectedItems.size)
+  // 출고 확인 모달 표시
+  const handleShipping = () => {
     if (selectedItems.size === 0) { alert('출고할 주문을 선택해주세요.'); return }
-    
-    const confirmed = confirm(`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`)
-    console.log('📋 Confirm result:', confirmed)
-    if (!confirmed) {
-      console.log('❌ User cancelled')
-      return
-    }
+    setShowConfirm(true)
+  }
 
-    console.log('✅ Starting API call...')
+  // 실제 출고 실행
+  const executeShipping = async () => {
+    setShowConfirm(false)
     try {
       setShipping(true)
-      console.log('📡 Fetching /api/orders/ship/spare with itemIds:', Array.from(selectedItems))
       const res = await fetch('/api/orders/ship/spare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemIds: Array.from(selectedItems) })
       })
-      console.log('📥 Response status:', res.status, res.ok)
       const data = await res.json()
-      console.log('📥 Response data:', data)
       if (!res.ok) throw new Error(data.error || '출고 처리 실패')
 
       // 출고 완료된 주문 ID 추출
@@ -615,6 +611,17 @@ export default function SpareShipmentPage() {
           </div>
         </div>
       </div>
+
+      {/* 출고 확인 모달 */}
+      <ConfirmDialog
+        isOpen={showConfirm}
+        title="출고 확인"
+        message={`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`}
+        confirmText="출고"
+        cancelText="취소"
+        onConfirm={executeShipping}
+        onCancel={() => setShowConfirm(false)}
+      />
     </Layout>
   )
 }
