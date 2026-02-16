@@ -106,6 +106,7 @@ export const SETTINGS_SIDEBAR: SidebarMenu[] = [
     items: [
       { label: '회사정보', href: '/settings' },
       { label: '사용자 관리', href: '/settings/users' },
+      { label: '프린터 설정', href: '/settings/printer' },
     ]
   },
   {

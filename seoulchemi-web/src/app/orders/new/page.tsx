@@ -474,10 +474,15 @@ export default function NewOrderPage() {
       const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
       if (res.ok) {
         const data = await res.json()
-        // 자동 출력
+        // 프린터 설정 확인 후 자동 출력
         if (data.order?.id) {
           try {
-            await fetch('/api/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.order.id, type: 'shipping' }) })
+            const printerSettings = JSON.parse(localStorage.getItem('printerSettings') || '{}')
+            if (printerSettings.autoPrintOnOrder !== false) {
+              // 새 창에서 출고지시서 인쇄
+              const printWindow = window.open(`/orders/${data.order.id}/print`, '_blank', 'width=400,height=700')
+              if (printWindow) printWindow.focus()
+            }
           } catch (e) { console.error('출력 실패:', e) }
         }
         // 접수 완료 팝업 표시
