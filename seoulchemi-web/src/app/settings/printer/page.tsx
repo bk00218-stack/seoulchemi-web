@@ -8,11 +8,9 @@ interface PrinterSettings {
   // 출고지시서
   shippingSlipEnabled: boolean
   shippingSlipForm: string
-  shippingSlipPrinter: string
   // 거래명세표
   invoiceEnabled: boolean
   invoiceForm: string
-  invoicePrinter: string
   // 기타
   autoPrintOnOrder: boolean
 }
@@ -20,10 +18,8 @@ interface PrinterSettings {
 const DEFAULT_SETTINGS: PrinterSettings = {
   shippingSlipEnabled: true,
   shippingSlipForm: 'default',
-  shippingSlipPrinter: '',
   invoiceEnabled: true,
   invoiceForm: 'default',
-  invoicePrinter: '',
   autoPrintOnOrder: true,
 }
 
@@ -36,7 +32,6 @@ const FORM_OPTIONS = [
 export default function PrinterSettingsPage() {
   const [settings, setSettings] = useState<PrinterSettings>(DEFAULT_SETTINGS)
   const [saved, setSaved] = useState(false)
-  const [printers, setPrinters] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
   // 설정 로드
@@ -134,8 +129,8 @@ export default function PrinterSettingsPage() {
               </label>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
                   양식
                 </label>
@@ -149,25 +144,16 @@ export default function PrinterSettingsPage() {
                   ))}
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
-                  프린터
-                </label>
-                <input
-                  type="text"
-                  value={settings.shippingSlipPrinter}
-                  onChange={e => setSettings(prev => ({ ...prev, shippingSlipPrinter: e.target.value }))}
-                  placeholder="기본 프린터 사용"
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' }}
-                />
-              </div>
+              <button
+                onClick={() => handleTestPrint('shipping')}
+                style={{ padding: '10px 20px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}
+              >
+                🖨️ 테스트 인쇄
+              </button>
             </div>
-            <button
-              onClick={() => handleTestPrint('shipping')}
-              style={{ marginTop: 12, padding: '8px 16px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
-            >
-              테스트 인쇄
-            </button>
+            <p style={{ margin: '8px 0 0 0', fontSize: 12, color: '#6b7280' }}>
+              인쇄 시 브라우저 인쇄 대화상자에서 프린터를 선택합니다
+            </p>
           </section>
 
           {/* 거래명세표 설정 */}
@@ -187,8 +173,8 @@ export default function PrinterSettingsPage() {
               </label>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
                   양식
                 </label>
@@ -202,34 +188,25 @@ export default function PrinterSettingsPage() {
                   ))}
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
-                  프린터
-                </label>
-                <input
-                  type="text"
-                  value={settings.invoicePrinter}
-                  onChange={e => setSettings(prev => ({ ...prev, invoicePrinter: e.target.value }))}
-                  placeholder="기본 프린터 사용"
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' }}
-                />
-              </div>
+              <button
+                onClick={() => handleTestPrint('invoice')}
+                style={{ padding: '10px 20px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}
+              >
+                🖨️ 테스트 인쇄
+              </button>
             </div>
-            <button
-              onClick={() => handleTestPrint('invoice')}
-              style={{ marginTop: 12, padding: '8px 16px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
-            >
-              테스트 인쇄
-            </button>
+            <p style={{ margin: '8px 0 0 0', fontSize: 12, color: '#6b7280' }}>
+              인쇄 시 브라우저 인쇄 대화상자에서 프린터를 선택합니다
+            </p>
           </section>
 
           {/* 안내 */}
           <section style={{ marginBottom: 24 }}>
             <div style={{ padding: 16, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
               <p style={{ margin: 0, fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
-                💡 <strong>프린터 이름</strong>은 운영체제에 설치된 프린터 이름을 정확히 입력하세요.<br/>
-                비워두면 브라우저 기본 프린터를 사용합니다.<br/>
-                <span style={{ color: '#6b7280' }}>예: "Samsung M2020 Series", "HP LaserJet Pro"</span>
+                💡 <strong>인쇄 방식:</strong> 인쇄 버튼 클릭 시 브라우저 인쇄 대화상자가 열립니다.<br/>
+                원하는 프린터를 선택하고 인쇄 설정을 조정할 수 있습니다.<br/>
+                <span style={{ color: '#6b7280' }}>브라우저가 마지막으로 선택한 프린터를 기억합니다.</span>
               </p>
             </div>
           </section>
