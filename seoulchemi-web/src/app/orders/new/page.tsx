@@ -504,8 +504,8 @@ export default function NewOrderPage() {
     setOrderItems([])
     setMemo('')
     setGridFocus(null)
-    // 전체 주문내역 페이지로 이동
-    router.push('/orders/all')
+    // 여벌출고 페이지로 이동
+    router.push('/orders/shipping')
   }
 
   // 오른쪽 원시 SPH 000 행 비활성화 여부 체크
@@ -840,8 +840,8 @@ export default function NewOrderPage() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 32, width: 400, textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 40 }}>✓</div>
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#212529', marginBottom: 8 }}>접수 완료</h2>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>주문이 정상적으로 접수되었습니다.</p>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#212529', marginBottom: 8 }}>전송되었습니다</h2>
+            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>출고지시서가 자동 출력됩니다.</p>
             
             <div style={{ background: '#f9fafb', borderRadius: 12, padding: 20, marginBottom: 24, textAlign: 'left' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
@@ -870,7 +870,7 @@ export default function NewOrderPage() {
               onClick={handleCompleteClose}
               style={{ width: '100%', padding: '14px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
             >
-              전체 주문내역 보기
+              여벌출고 화면으로 이동
             </button>
           </div>
         </div>
