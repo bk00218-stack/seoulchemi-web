@@ -160,6 +160,7 @@ export default function SpareShipmentPage() {
   // F2 단축키 - 출고 처리
   useEffect(() => {
     const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      console.log('🔑 Key pressed:', e.key, 'selectedItems:', selectedItems.size, 'shipping:', shipping)
       if (e.key === 'F2' && selectedItems.size > 0 && !shipping) {
         e.preventDefault()
         handleShipping()
@@ -167,7 +168,7 @@ export default function SpareShipmentPage() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedItems, shipping])
+  }, [selectedItems.size, shipping])
 
   // 컬럼 필터링된 주문
   const getFilteredOrders = () => {
@@ -318,6 +319,7 @@ export default function SpareShipmentPage() {
   }
 
   const handleShipping = async () => {
+    console.log('🚀 handleShipping called, selectedItems:', selectedItems.size)
     if (selectedItems.size === 0) { alert('출고할 주문을 선택해주세요.'); return }
     if (!confirm(`${selectedItems.size}건의 아이템을 출고 처리하시겠습니까?`)) return
 
@@ -595,7 +597,7 @@ export default function SpareShipmentPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setColumnFilters({ store: '', date: '', product: '', sph: '', cyl: '', delivery: '' })} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 12 }}>필터 초기화</button>
               <button onClick={() => setSelectedItems(new Set())} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>선택 해제</button>
-              <button onClick={handleShipping} disabled={selectedItems.size === 0 || shipping}
+              <button onClick={() => { console.log('🔘 Button clicked!'); handleShipping(); }} disabled={selectedItems.size === 0 || shipping}
                 style={{ padding: '8px 20px', border: 'none', borderRadius: 4, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
                 {shipping ? '처리 중...' : `출고 (F2)`}
               </button>
