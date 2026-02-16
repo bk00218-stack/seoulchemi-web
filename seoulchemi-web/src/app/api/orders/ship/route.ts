@@ -199,7 +199,6 @@ export async function GET(request: Request) {
             product: {
               include: {
                 brand: {
-                  select: { id: true, name: true, supplierId: true },
                   include: {
                     supplier: {
                       select: { id: true, name: true }
