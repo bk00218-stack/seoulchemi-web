@@ -49,12 +49,23 @@ export default function PrintShippingSlipPage() {
       })
   }, [orderId])
 
-  // 데이터 로드 완료 후 자동 인쇄
+  // 데이터 로드 완료 후 자동 인쇄 + 인쇄 후 자동 닫기
   useEffect(() => {
     if (order && !loading) {
+      // 인쇄 후 창 닫기
+      const handleAfterPrint = () => {
+        window.close()
+      }
+      window.addEventListener('afterprint', handleAfterPrint)
+      
+      // 약간의 딜레이 후 인쇄 다이얼로그 열기
       setTimeout(() => {
         window.print()
-      }, 500)
+      }, 300)
+      
+      return () => {
+        window.removeEventListener('afterprint', handleAfterPrint)
+      }
     }
   }, [order, loading])
 
