@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, KeyboardEvent } from 'react'
+import { useState, useEffect, useCallback, useRef, KeyboardEvent, MouseEvent } from 'react'
 import Layout from '../../../components/Layout'
 import { ORDER_SIDEBAR } from '../../../constants/sidebar'
 
@@ -70,6 +70,11 @@ export default function SpareShipmentPage() {
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [focusArea, setFocusArea] = useState<'search' | 'filter' | 'table'>('search')
   
+  // 리사이즈
+  const [leftPanelWidth, setLeftPanelWidth] = useState(280)
+  const [isResizing, setIsResizing] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  
   const filterListRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLTableSectionElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -121,6 +126,35 @@ export default function SpareShipmentPage() {
   useEffect(() => {
     loadOrders()
   }, [loadOrders])
+
+  // 리사이즈 핸들러
+  const handleMouseDown = (e: MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: globalThis.MouseEvent) => {
+      if (!isResizing || !containerRef.current) return
+      const containerRect = containerRef.current.getBoundingClientRect()
+      const newWidth = e.clientX - containerRect.left
+      setLeftPanelWidth(Math.max(200, Math.min(400, newWidth)))
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+    }
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing])
 
   // 필터 타입별 목록
   const getFilterList = (): FilterOption[] => {
@@ -248,7 +282,6 @@ export default function SpareShipmentPage() {
       filterListRef.current?.focus()
     } else if (e.key === 'Enter' && stats.length > 0) {
       e.preventDefault()
-      // 첫 번째 결과 선택 후 테이블로 이동
       setSelectedFilterId(stats[0].id)
       setFocusArea('table')
       setFocusedRowIndex(0)
@@ -269,7 +302,6 @@ export default function SpareShipmentPage() {
       case 'ArrowUp':
         e.preventDefault()
         if (focusedFilterIndex <= 0) {
-          // 검색창으로 이동
           setFocusArea('search')
           setFocusedFilterIndex(-1)
           searchInputRef.current?.focus()
@@ -282,10 +314,15 @@ export default function SpareShipmentPage() {
         if (focusedFilterIndex >= 0 && stats[focusedFilterIndex]) {
           setSelectedFilterId(stats[focusedFilterIndex].id)
         }
-        // 오른쪽 테이블로 포커스 이동
         setFocusArea('table')
         setFocusedRowIndex(0)
         setTimeout(() => tableRef.current?.focus(), 100)
+        break
+      case 'ArrowRight':
+        e.preventDefault()
+        setFocusArea('table')
+        setFocusedRowIndex(0)
+        tableRef.current?.focus()
         break
       case 'Tab':
         if (!e.shiftKey) {
@@ -325,6 +362,10 @@ export default function SpareShipmentPage() {
         e.preventDefault()
         if (orders[focusedRowIndex]) {
           toggleSelect(orders[focusedRowIndex].itemId)
+          // 다음 행으로 이동
+          if (focusedRowIndex < maxIndex) {
+            setFocusedRowIndex(prev => prev + 1)
+          }
         }
         break
       case 'a':
@@ -357,6 +398,16 @@ export default function SpareShipmentPage() {
     }
   }, [focusedRowIndex, focusArea])
 
+  // 포커스된 필터가 보이도록 스크롤
+  useEffect(() => {
+    if (focusArea === 'filter' && focusedFilterIndex >= 0) {
+      const items = filterListRef.current?.children
+      if (items && items[focusedFilterIndex]) {
+        (items[focusedFilterIndex] as HTMLElement).scrollIntoView({ block: 'nearest' })
+      }
+    }
+  }, [focusedFilterIndex, focusArea])
+
   // 선택된 아이템 합계
   const selectedTotal = orders
     .filter(o => selectedItems.has(o.itemId))
@@ -380,60 +431,70 @@ export default function SpareShipmentPage() {
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        marginBottom: 15,
-        paddingBottom: 10,
+        marginBottom: 10,
+        paddingBottom: 8,
         borderBottom: '2px solid #5d7a5d'
       }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+          <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
             여벌 출고
             <span style={{ 
-              fontSize: 12, 
+              fontSize: 11, 
               background: '#eef4ee', 
               color: '#5d7a5d',
-              padding: '2px 8px',
+              padding: '2px 6px',
               borderRadius: 4,
-              marginLeft: 10,
+              marginLeft: 8,
               fontWeight: 500
             }}>
               {orders.length}건 대기
             </span>
           </h1>
-          <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>
-            <kbd style={{ background: '#eee', padding: '1px 4px', borderRadius: 2, fontSize: 10 }}>↑↓</kbd> 이동 
-            <kbd style={{ background: '#eee', padding: '1px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>Enter</kbd> 선택/이동 
-            <kbd style={{ background: '#eee', padding: '1px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>Space</kbd> 체크
-            <kbd style={{ background: '#eee', padding: '1px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>←/Esc</kbd> 필터로
+          <p style={{ fontSize: 10, color: '#888', margin: '2px 0 0' }}>
+            <kbd style={{ background: '#eee', padding: '1px 3px', borderRadius: 2, fontSize: 9 }}>↑↓</kbd> 이동 
+            <kbd style={{ background: '#eee', padding: '1px 3px', borderRadius: 2, fontSize: 9, marginLeft: 3 }}>Enter</kbd> 선택+다음
+            <kbd style={{ background: '#eee', padding: '1px 3px', borderRadius: 2, fontSize: 9, marginLeft: 3 }}>Space</kbd> 체크
+            <kbd style={{ background: '#eee', padding: '1px 3px', borderRadius: 2, fontSize: 9, marginLeft: 3 }}>←</kbd> 필터로
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <span style={{ fontSize: 13, color: '#666' }}>
-            {new Date().toLocaleDateString('ko-KR', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric',
-              weekday: 'long'
-            })}
-          </span>
-        </div>
+        <span style={{ fontSize: 12, color: '#666' }}>
+          {new Date().toLocaleDateString('ko-KR', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            weekday: 'long'
+          })}
+        </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 15, height: 'calc(100vh - 180px)' }}>
+      <div 
+        ref={containerRef}
+        style={{ 
+          display: 'flex', 
+          gap: 0, 
+          height: 'calc(100vh - 160px)',
+          userSelect: isResizing ? 'none' : 'auto'
+        }}
+      >
         
         {/* 왼쪽: 필터 패널 */}
         <div style={{ 
+          width: leftPanelWidth,
+          minWidth: 200,
+          maxWidth: 400,
           background: '#f8f9fa',
-          borderRadius: 8,
+          borderRadius: '8px 0 0 8px',
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          flexShrink: 0
         }}>
-          {/* 필터 타입 탭 - 균등 분할 */}
+          {/* 필터 타입 탭 */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 2,
-            padding: '6px',
+            padding: '5px',
             background: '#5d7a5d',
           }}>
             {filterOrder.map(type => (
@@ -441,12 +502,12 @@ export default function SpareShipmentPage() {
                 key={type}
                 onClick={() => handleFilterTypeChange(type)}
                 style={{
-                  padding: '6px 4px',
+                  padding: '5px 2px',
                   border: 'none',
                   borderRadius: 3,
                   background: activeFilter === type ? '#fff' : 'rgba(255,255,255,0.15)',
                   color: activeFilter === type ? '#5d7a5d' : '#fff',
-                  fontSize: 11,
+                  fontSize: 10,
                   cursor: 'pointer',
                   fontWeight: activeFilter === type ? 600 : 400,
                   textAlign: 'center',
@@ -459,7 +520,7 @@ export default function SpareShipmentPage() {
           </div>
 
           {/* 검색 입력 */}
-          <div style={{ padding: '8px 10px', borderBottom: '1px solid #ddd', background: '#fff' }}>
+          <div style={{ padding: '6px 8px', borderBottom: '1px solid #ddd', background: '#fff' }}>
             <input
               ref={searchInputRef}
               type="text"
@@ -470,10 +531,10 @@ export default function SpareShipmentPage() {
               onFocus={() => setFocusArea('search')}
               style={{
                 width: '100%',
-                padding: '8px 10px',
+                padding: '6px 8px',
                 border: '1px solid #ddd',
                 borderRadius: 4,
-                fontSize: 13,
+                fontSize: 12,
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -484,7 +545,7 @@ export default function SpareShipmentPage() {
           <div
             onClick={() => { setSelectedFilterId(null); setFocusedFilterIndex(-1) }}
             style={{
-              padding: '10px 15px',
+              padding: '8px 12px',
               borderBottom: '1px solid #ddd',
               cursor: 'pointer',
               background: selectedFilterId === null ? '#eef4ee' : '#fff',
@@ -494,12 +555,10 @@ export default function SpareShipmentPage() {
             }}
           >
             <div>
-              <div style={{ fontWeight: 600, fontSize: 13 }}>전체</div>
-              <div style={{ fontSize: 11, color: '#666' }}>
-                {orders.length}건
-              </div>
+              <div style={{ fontWeight: 600, fontSize: 12 }}>전체</div>
+              <div style={{ fontSize: 10, color: '#666' }}>{orders.length}건</div>
             </div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#5d7a5d' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#5d7a5d' }}>
               {orders.reduce((sum, o) => sum + o.totalPrice, 0).toLocaleString()}원
             </div>
           </div>
@@ -513,8 +572,8 @@ export default function SpareShipmentPage() {
             style={{ flex: 1, overflow: 'auto', outline: 'none' }}
           >
             {filterStats.length === 0 ? (
-              <div style={{ padding: 20, textAlign: 'center', color: '#999', fontSize: 12 }}>
-                {searchQuery ? '검색 결과가 없습니다' : '해당 필터에 대기 주문이 없습니다'}
+              <div style={{ padding: 15, textAlign: 'center', color: '#999', fontSize: 11 }}>
+                {searchQuery ? '검색 결과 없음' : '대기 주문 없음'}
               </div>
             ) : (
               filterStats.map((item, index) => (
@@ -522,7 +581,7 @@ export default function SpareShipmentPage() {
                   key={item.id}
                   onClick={() => { setSelectedFilterId(item.id); setFocusedFilterIndex(index) }}
                   style={{
-                    padding: '10px 15px',
+                    padding: '8px 12px',
                     borderBottom: '1px solid #eee',
                     cursor: 'pointer',
                     background: selectedFilterId === item.id 
@@ -536,12 +595,10 @@ export default function SpareShipmentPage() {
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: 13 }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: '#666' }}>
-                      {item.count}건
-                    </div>
+                    <div style={{ fontSize: 12 }}>{item.name}</div>
+                    <div style={{ fontSize: 10, color: '#666' }}>{item.count}건</div>
                   </div>
-                  <div style={{ fontSize: 11, color: '#5d7a5d', fontWeight: 500 }}>
+                  <div style={{ fontSize: 10, color: '#5d7a5d', fontWeight: 500 }}>
                     {item.amount.toLocaleString()}원
                   </div>
                 </div>
@@ -550,43 +607,67 @@ export default function SpareShipmentPage() {
           </div>
         </div>
 
+        {/* 리사이즈 핸들 */}
+        <div
+          onMouseDown={handleMouseDown}
+          style={{
+            width: 6,
+            cursor: 'col-resize',
+            background: isResizing ? '#5d7a5d' : '#ddd',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.15s'
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#bbb')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = isResizing ? '#5d7a5d' : '#ddd')}
+        >
+          <div style={{ 
+            width: 2, 
+            height: 30, 
+            background: '#999',
+            borderRadius: 1
+          }} />
+        </div>
+
         {/* 오른쪽: 주문 목록 */}
-        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           
           {/* 테이블 */}
           <div style={{ 
             flex: 1, 
             overflow: 'auto',
             border: '1px solid #ddd',
-            borderRadius: 6,
+            borderLeft: 'none',
+            borderRadius: '0 8px 8px 0',
             background: '#fff'
           }}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#666' }}>
+              <div style={{ padding: 30, textAlign: 'center', color: '#666', fontSize: 12 }}>
                 로딩 중...
               </div>
             ) : orders.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#666' }}>
+              <div style={{ padding: 30, textAlign: 'center', color: '#666', fontSize: 12 }}>
                 출고 대기 주문이 없습니다
               </div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
                   <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #ddd', position: 'sticky', top: 0, zIndex: 1 }}>
-                    <th style={{ padding: '8px 6px', textAlign: 'center', width: 30 }}>
+                    <th style={{ padding: '6px 4px', textAlign: 'center', width: 28 }}>
                       <input 
                         type="checkbox" 
                         checked={selectedItems.size === orders.length && orders.length > 0}
                         onChange={toggleSelectAll}
                       />
                     </th>
-                    <th style={{ padding: '8px 10px', textAlign: 'left', width: 140 }}>가맹점</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>브랜드 / 상품명</th>
-                    <th style={{ padding: '8px 6px', textAlign: 'center', width: 55 }}>SPH</th>
-                    <th style={{ padding: '8px 6px', textAlign: 'center', width: 55 }}>CYL</th>
-                    <th style={{ padding: '8px 6px', textAlign: 'center', width: 40 }}>수량</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'right', width: 70 }}>금액</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'left', width: 70 }}>배송담당</th>
+                    <th style={{ padding: '6px 8px', textAlign: 'left', width: 120 }}>가맹점</th>
+                    <th style={{ padding: '6px 8px', textAlign: 'left' }}>브랜드 / 상품명</th>
+                    <th style={{ padding: '6px 4px', textAlign: 'center', width: 50 }}>SPH</th>
+                    <th style={{ padding: '6px 4px', textAlign: 'center', width: 50 }}>CYL</th>
+                    <th style={{ padding: '6px 4px', textAlign: 'center', width: 35 }}>수량</th>
+                    <th style={{ padding: '6px 8px', textAlign: 'right', width: 60 }}>금액</th>
+                    <th style={{ padding: '6px 8px', textAlign: 'left', width: 60 }}>배송담당</th>
                   </tr>
                 </thead>
                 <tbody
@@ -610,49 +691,49 @@ export default function SpareShipmentPage() {
                         outlineOffset: -2
                       }}
                     >
-                      <td style={{ padding: '8px 6px', textAlign: 'center' }}>
+                      <td style={{ padding: '6px 4px', textAlign: 'center' }}>
                         <input 
                           type="checkbox" 
                           checked={selectedItems.has(order.itemId)}
                           onChange={(e) => { e.stopPropagation(); toggleSelect(order.itemId) }}
                         />
                       </td>
-                      <td style={{ padding: '8px 10px' }}>
-                        <div style={{ fontWeight: 500, fontSize: 12 }}>{order.storeName}</div>
-                        <div style={{ fontSize: 10, color: '#888' }}>
+                      <td style={{ padding: '6px 8px' }}>
+                        <div style={{ fontWeight: 500, fontSize: 11 }}>{order.storeName}</div>
+                        <div style={{ fontSize: 9, color: '#888' }}>
                           {order.storeCode} · {new Date(order.orderedAt).toLocaleString('ko-KR', {
                             month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
                           })}
                         </div>
                       </td>
-                      <td style={{ padding: '8px 10px' }}>
+                      <td style={{ padding: '6px 8px' }}>
                         <span style={{ 
                           display: 'inline-block',
-                          padding: '2px 6px',
+                          padding: '1px 5px',
                           borderRadius: 3,
                           background: '#eef4ee',
-                          fontSize: 11,
-                          marginRight: 6,
+                          fontSize: 10,
+                          marginRight: 5,
                           color: '#5d7a5d',
                           fontWeight: 500
                         }}>
                           {order.brandName}
                         </span>
-                        <span style={{ fontSize: 12 }}>{order.productName}</span>
+                        <span style={{ fontSize: 11 }}>{order.productName}</span>
                       </td>
-                      <td style={{ padding: '8px 6px', textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>
+                      <td style={{ padding: '6px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 10 }}>
                         {order.sph || '-'}
                       </td>
-                      <td style={{ padding: '8px 6px', textAlign: 'center', fontFamily: 'monospace', fontSize: 11 }}>
+                      <td style={{ padding: '6px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 10 }}>
                         {order.cyl || '-'}
                       </td>
-                      <td style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 600 }}>
+                      <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 600 }}>
                         {order.quantity}
                       </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 500 }}>
+                      <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 500 }}>
                         {order.totalPrice.toLocaleString()}
                       </td>
-                      <td style={{ padding: '8px 10px', fontSize: 11, color: '#666' }}>
+                      <td style={{ padding: '6px 8px', fontSize: 10, color: '#666' }}>
                         {order.deliveryStaffName || '-'}
                       </td>
                     </tr>
@@ -667,26 +748,26 @@ export default function SpareShipmentPage() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '12px 0',
+            padding: '8px 0',
             borderTop: '1px solid #ddd',
-            marginTop: 10
+            marginTop: 8
           }}>
-            <div style={{ fontSize: 13 }}>
+            <div style={{ fontSize: 12 }}>
               선택: <strong>{selectedItems.size}</strong>건
-              <span style={{ marginLeft: 10, color: '#5d7a5d', fontWeight: 600 }}>
+              <span style={{ marginLeft: 8, color: '#5d7a5d', fontWeight: 600 }}>
                 {selectedTotal.toLocaleString()}원
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
               <button
                 onClick={() => setSelectedItems(new Set())}
                 style={{
-                  padding: '8px 16px',
+                  padding: '6px 12px',
                   border: '1px solid #ddd',
                   borderRadius: 4,
                   background: '#fff',
                   cursor: 'pointer',
-                  fontSize: 12
+                  fontSize: 11
                 }}
               >
                 선택 해제
@@ -695,13 +776,13 @@ export default function SpareShipmentPage() {
                 onClick={handleShipping}
                 disabled={selectedItems.size === 0 || shipping}
                 style={{
-                  padding: '8px 20px',
+                  padding: '6px 16px',
                   border: 'none',
                   borderRadius: 4,
                   background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d',
                   color: '#fff',
                   cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: 600
                 }}
               >
