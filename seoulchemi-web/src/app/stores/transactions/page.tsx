@@ -57,6 +57,20 @@ interface Transaction {
   items?: TransactionItem[]
 }
 
+interface ShipmentSearchResult {
+  id: number
+  orderNo: string
+  storeName: string
+  storeCode: string
+  brandName: string
+  productName: string
+  sph: string | null
+  cyl: string | null
+  quantity: number
+  totalPrice: number
+  shippedAt: string
+}
+
 const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   sale: { label: '매출', color: '#1565c0', bg: '#e3f2fd' },
   deposit: { label: '입금', color: '#2e7d32', bg: '#e8f5e9' },
@@ -80,66 +94,175 @@ const DISPLAY_FIELDS = [
 
 const DEFAULT_VISIBLE_FIELDS = ['ownerName', 'phone', 'salesStaffName', 'deliveryStaffName', 'groupName', 'discountRate', 'address']
 
-const MOCK_TRANSACTIONS: Transaction[] = [
-  { 
-    id: 1, storeId: 0, type: 'sale', amount: 1250000, balanceAfter: 5504502, 
-    orderNo: '025', paymentMethod: null, memo: null, processedAt: '2025-02-15T10:30:00',
-    items: [
-      { brand: '에실로', product: '바리락스 XR', qty: 2, sph: '-3.00', cyl: '-0.75', axis: '180', add: '+2.00', price: 450000 },
-      { brand: '호야', product: '누진 라이프스타일3', qty: 2, sph: '-2.50', cyl: '-0.50', axis: '90', add: '+1.75', price: 380000 },
-      { brand: '케미', product: '단초점 1.60', qty: 4, sph: '-1.00', price: 120000 },
-      { brand: '케미', product: '단초점 1.67', qty: 2, sph: '-4.50', cyl: '-1.25', axis: '170', price: 180000 },
-      { brand: '니콘', product: '씨맥스 코팅', qty: 2, price: 120000 },
-    ]
-  },
-  { 
-    id: 2, storeId: 0, type: 'deposit', amount: 500000, balanceAfter: 5004502, 
-    orderNo: null, paymentMethod: '계좌이체', memo: '2월 중간정산', processedAt: '2025-02-10T14:20:00'
-  },
-  { 
-    id: 3, storeId: 0, type: 'sale', amount: 890000, balanceAfter: 5504502, 
-    orderNo: '018', paymentMethod: null, memo: null, processedAt: '2025-02-08T11:45:00',
-    items: [
-      { brand: '에실로', product: '바리락스 피지오', qty: 2, sph: '-2.00', add: '+2.25', price: 520000 },
-      { brand: '호야', product: '블루컷 코팅', qty: 2, sph: '-1.50', cyl: '-0.25', axis: '180', price: 370000 },
-    ]
-  },
-  { 
-    id: 4, storeId: 0, type: 'return', amount: 150000, balanceAfter: 4614502, 
-    orderNo: '012', paymentMethod: null, memo: '불량 교환', processedAt: '2025-02-05T16:00:00',
-    items: [
-      { brand: '케미', product: '단초점 1.60', qty: 2, sph: '-2.00', price: 150000 },
-    ]
-  },
-  { 
-    id: 5, storeId: 0, type: 'deposit', amount: 1000000, balanceAfter: 4764502, 
-    orderNo: null, paymentMethod: '현금', memo: '1월 말 정산', processedAt: '2025-01-31T17:30:00'
-  },
-  { 
-    id: 6, storeId: 0, type: 'sale', amount: 2340000, balanceAfter: 5764502, 
-    orderNo: '156', paymentMethod: null, memo: null, processedAt: '2025-01-28T09:15:00',
-    items: [
-      { brand: '호야', product: '누진 아이디', qty: 4, sph: '-3.50', add: '+2.00', price: 980000 },
-      { brand: '에실로', product: '아이젠 360', qty: 2, sph: '-1.75', cyl: '-0.50', axis: '90', price: 420000 },
-      { brand: '케미', product: '단초점 1.56', qty: 6, sph: '-0.75', price: 240000 },
-      { brand: '케미', product: '포토크로믹', qty: 4, sph: '-2.25', price: 380000 },
-      { brand: '니콘', product: '롱라이프 코팅', qty: 4, price: 320000 },
-    ]
-  },
-  { 
-    id: 7, storeId: 0, type: 'sale', amount: 670000, balanceAfter: 3424502, 
-    orderNo: '142', paymentMethod: null, memo: null, processedAt: '2025-01-20T13:40:00',
-    items: [
-      { brand: '케미', product: 'UV코팅 1.60', qty: 4, sph: '-1.25', price: 280000 },
-      { brand: '호야', product: '블루컷', qty: 2, sph: '-0.50', price: 220000 },
-      { brand: '니콘', product: '하드코팅', qty: 2, price: 170000 },
-    ]
-  },
-  { 
-    id: 8, storeId: 0, type: 'deposit', amount: 2000000, balanceAfter: 2754502, 
-    orderNo: null, paymentMethod: '계좌이체', memo: '12월 정산', processedAt: '2025-01-15T10:00:00'
-  },
-]
+// 전체 출고 검색 모달
+function ShipmentSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [searchParams, setSearchParams] = useState({
+    dateFrom: '',
+    dateTo: '',
+    brand: '',
+    product: '',
+    sph: '',
+    cyl: '',
+    store: ''
+  })
+  const [results, setResults] = useState<ShipmentSearchResult[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
+
+  const handleSearch = async () => {
+    setLoading(true)
+    setSearched(true)
+    try {
+      const params = new URLSearchParams()
+      if (searchParams.dateFrom) params.set('dateFrom', searchParams.dateFrom)
+      if (searchParams.dateTo) params.set('dateTo', searchParams.dateTo)
+      if (searchParams.brand) params.set('brand', searchParams.brand)
+      if (searchParams.product) params.set('product', searchParams.product)
+      if (searchParams.sph) params.set('sph', searchParams.sph)
+      if (searchParams.cyl) params.set('cyl', searchParams.cyl)
+      if (searchParams.store) params.set('store', searchParams.store)
+
+      const res = await fetch(`/api/orders/shipped/search?${params.toString()}`)
+      const data = await res.json()
+      setResults(data.results || [])
+    } catch (error) {
+      console.error('Search failed:', error)
+      setResults([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSearch()
+    if (e.key === 'Escape') onClose()
+  }
+
+  const resetSearch = () => {
+    setSearchParams({ dateFrom: '', dateTo: '', brand: '', product: '', sph: '', cyl: '', store: '' })
+    setResults([])
+    setSearched(false)
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div style={{ background: '#fff', borderRadius: 12, width: '90%', maxWidth: 900, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+        {/* 헤더 */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e9ecef', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>🔍 전체 출고 내역 검색</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#666' }}>×</button>
+        </div>
+
+        {/* 검색 필터 */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e9ecef', background: '#f8f9fa' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }} onKeyDown={handleKeyDown}>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>시작일</label>
+              <input type="date" value={searchParams.dateFrom} onChange={e => setSearchParams(p => ({ ...p, dateFrom: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>종료일</label>
+              <input type="date" value={searchParams.dateTo} onChange={e => setSearchParams(p => ({ ...p, dateTo: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>브랜드</label>
+              <input type="text" placeholder="예: 케미, 에실로" value={searchParams.brand} onChange={e => setSearchParams(p => ({ ...p, brand: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>상품명</label>
+              <input type="text" placeholder="예: 1.56, 바리락스" value={searchParams.product} onChange={e => setSearchParams(p => ({ ...p, product: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>SPH</label>
+              <input type="text" placeholder="예: -3.00" value={searchParams.sph} onChange={e => setSearchParams(p => ({ ...p, sph: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>CYL</label>
+              <input type="text" placeholder="예: -0.75" value={searchParams.cyl} onChange={e => setSearchParams(p => ({ ...p, cyl: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>가맹점</label>
+              <input type="text" placeholder="가맹점명 검색" value={searchParams.store} onChange={e => setSearchParams(p => ({ ...p, store: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+              <button onClick={handleSearch} disabled={loading}
+                style={{ flex: 1, padding: '8px 16px', background: '#5d7a5d', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                {loading ? '검색중...' : '검색'}
+              </button>
+              <button onClick={resetSearch}
+                style={{ padding: '8px 12px', background: '#fff', color: '#666', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>
+                초기화
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 결과 */}
+        <div style={{ flex: 1, overflow: 'auto', padding: '0' }}>
+          {!searched ? (
+            <div style={{ padding: 60, textAlign: 'center', color: '#999' }}>
+              검색 조건을 입력하고 검색 버튼을 클릭하세요
+            </div>
+          ) : loading ? (
+            <div style={{ padding: 60, textAlign: 'center', color: '#666' }}>검색 중...</div>
+          ) : results.length === 0 ? (
+            <div style={{ padding: 60, textAlign: 'center', color: '#999' }}>검색 결과가 없습니다</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#666' }}>출고일</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#666' }}>가맹점</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#666' }}>브랜드</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#666' }}>상품명</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: '#666' }}>SPH</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: '#666' }}>CYL</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: '#666' }}>수량</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#666' }}>금액</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((r, idx) => (
+                  <tr key={`${r.id}-${idx}`} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '10px 12px', color: '#666' }}>
+                      {new Date(r.shippedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
+                    </td>
+                    <td style={{ padding: '10px 12px', fontWeight: 500 }}>{r.storeName}</td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <span style={{ padding: '2px 6px', background: '#eef4ee', borderRadius: 3, fontSize: 12, color: '#5d7a5d' }}>{r.brandName}</span>
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>{r.productName}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{r.sph || '-'}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{r.cyl || '-'}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600 }}>{r.quantity}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 500 }}>{r.totalPrice.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* 푸터 */}
+        {searched && results.length > 0 && (
+          <div style={{ padding: '12px 20px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: 13, color: '#666' }}>
+            총 {results.length}건 · 합계 {results.reduce((s, r) => s + r.totalPrice, 0).toLocaleString()}원
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function TransactionsPage() {
   const [stores, setStores] = useState<Store[]>([])
@@ -154,6 +277,7 @@ export default function TransactionsPage() {
   const [highlightIndex, setHighlightIndex] = useState(-1)
   const [showSettings, setShowSettings] = useState(false)
   const [visibleFields, setVisibleFields] = useState<string[]>(DEFAULT_VISIBLE_FIELDS)
+  const [showShipmentSearch, setShowShipmentSearch] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -209,11 +333,10 @@ export default function TransactionsPage() {
     try {
       const res = await fetch(`/api/transactions?storeId=${store.id}&limit=100`)
       const data = await res.json()
-      const realTransactions = data.transactions || []
-      setTransactions(realTransactions.length === 0 ? MOCK_TRANSACTIONS.map(t => ({ ...t, storeId: store.id })) : realTransactions)
+      setTransactions(data.transactions || [])
     } catch (e) {
       console.error(e)
-      setTransactions(MOCK_TRANSACTIONS.map(t => ({ ...t, storeId: store.id })))
+      setTransactions([])
     } finally { setTransLoading(false) }
   }, [])
 
@@ -237,7 +360,6 @@ export default function TransactionsPage() {
   const toggleField = (key: string) => setVisibleFields(prev => prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key])
   const isVisible = (key: string) => visibleFields.includes(key)
 
-  // 품목 요약 텍스트
   const getItemSummary = (t: Transaction) => {
     if (!t.items || t.items.length === 0) {
       if (t.type === 'deposit') return '-'
@@ -250,9 +372,16 @@ export default function TransactionsPage() {
 
   return (
     <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
-      <div style={{ marginBottom: '10px' }}>
+      <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>가맹점 거래내역</h2>
+        <button onClick={() => setShowShipmentSearch(true)}
+          style={{ padding: '8px 16px', background: '#5d7a5d', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+          🔍 전체 출고 검색
+        </button>
       </div>
+
+      {/* 전체 출고 검색 모달 */}
+      <ShipmentSearchModal isOpen={showShipmentSearch} onClose={() => setShowShipmentSearch(false)} />
 
       {/* 3컬럼 레이아웃: 좁게:1:1 */}
       <div style={{ display: 'flex', gap: '10px', height: 'calc(100vh - 130px)', minHeight: '500px' }}>
@@ -349,7 +478,7 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        {/* 중앙: 거래내역 목록 (테이블 형태) */}
+        {/* 중앙: 거래내역 목록 */}
         <div style={{ flex: 1.2, minWidth: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid #e9ecef', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -395,9 +524,7 @@ export default function TransactionsPage() {
                         <td style={{ padding: '10px', color: '#666' }}>
                           {new Date(t.processedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
                         </td>
-                        <td style={{ padding: '10px' }}>
-                          {t.orderNo || '-'}
-                        </td>
+                        <td style={{ padding: '10px' }}>{t.orderNo || '-'}</td>
                         <td style={{ padding: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
                           {getItemSummary(t)}
                         </td>
@@ -409,9 +536,7 @@ export default function TransactionsPage() {
                         <td style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: t.type === 'deposit' ? '#2e7d32' : t.type === 'return' ? '#e65100' : '#1d1d1f' }}>
                           {t.type === 'deposit' ? '+' : ''}{t.amount.toLocaleString()}
                         </td>
-                        <td style={{ padding: '10px', textAlign: 'right', color: '#666' }}>
-                          {t.balanceAfter.toLocaleString()}
-                        </td>
+                        <td style={{ padding: '10px', textAlign: 'right', color: '#666' }}>{t.balanceAfter.toLocaleString()}</td>
                       </tr>
                     )
                   })}
@@ -435,12 +560,9 @@ export default function TransactionsPage() {
           <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>📄 세부내역</div>
           
           {!selectedTransaction ? (
-            <div style={{ padding: '50px 10px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>
-              거래내역 선택
-            </div>
+            <div style={{ padding: '50px 10px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>거래내역 선택</div>
           ) : (
             <div style={{ fontSize: '13px' }}>
-              {/* 헤더 */}
               <div style={{ textAlign: 'center', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #f0f0f0' }}>
                 <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: 600,
                   color: TYPE_LABELS[selectedTransaction.type]?.color, background: TYPE_LABELS[selectedTransaction.type]?.bg }}>
@@ -455,7 +577,6 @@ export default function TransactionsPage() {
                 </div>
               </div>
 
-              {/* 기본 정보 */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                 {selectedTransaction.orderNo && (
                   <div><span style={{ color: '#86868b' }}>주문번호:</span> <span style={{ color: '#1565c0', fontWeight: 500 }}>{selectedTransaction.orderNo}</span></div>
@@ -469,7 +590,6 @@ export default function TransactionsPage() {
                 )}
               </div>
 
-              {/* 품목 상세 */}
               {selectedTransaction.items && selectedTransaction.items.length > 0 && (
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: '#666' }}>📦 품목 상세 ({selectedTransaction.items.length}건)</div>
