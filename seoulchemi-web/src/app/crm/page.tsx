@@ -22,189 +22,161 @@ interface DashboardStats {
   }>
 }
 
+function formatCurrency(amount: number): string {
+  if (amount >= 100000000) return `${(amount / 100000000).toFixed(1)}억`
+  if (amount >= 10000) return `${Math.round(amount / 10000).toLocaleString()}만`
+  return new Intl.NumberFormat('ko-KR').format(amount)
+}
+
+function formatDate(s: string | null): string {
+  if (!s) return '-'
+  const d = new Date(s)
+  return `${d.getMonth() + 1}/${d.getDate()}`
+}
+
 export default function CrmDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    // TODO: API 연동
-    // 임시 데이터
-    setStats({
-      totalCustomers: 1234,
-      newCustomersThisMonth: 45,
-      todaySales: 2850000,
-      monthSales: 48500000,
-      pendingReminders: 12,
-      recentCustomers: [
-        { id: 1, name: '김철수', phone: '010-1234-5678', lastVisitAt: '2026-02-10' },
-        { id: 2, name: '이영희', phone: '010-2345-6789', lastVisitAt: '2026-02-09' },
-        { id: 3, name: '박지민', phone: '010-3456-7890', lastVisitAt: '2026-02-08' },
-      ],
-      todayBirthdays: [
-        { id: 5, name: '최민수', phone: '010-5555-1234' },
-      ],
-    })
-    setLoading(false)
+    const fetchData = async () => {
+      try {
+        const res = await fetch('/api/crm/dashboard')
+        if (!res.ok) throw new Error()
+        const data = await res.json()
+        setStats(data)
+      } catch {
+        setError('데이터를 불러오는데 실패했습니다.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
   }, [])
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR').format(amount) + '원'
-  }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
+        <p style={{ color: 'var(--gray-400)' }}>대시보드 로딩 중...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: '#ef4444' }}>
+        <p>{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: 20 }}>
       {/* 페이지 헤더 */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
-          <p className="text-gray-500">오늘의 현황을 확인하세요</p>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--gray-900)' }}>CRM 대시보드</h1>
+          <p style={{ fontSize: 14, color: 'var(--gray-500)', marginTop: 4 }}>오늘의 현황을 확인하세요</p>
         </div>
         <Link
           href="/crm/customers/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '10px 18px', borderRadius: 8,
+            background: '#667eea', color: '#fff',
+            fontSize: 14, fontWeight: 600,
+            textDecoration: 'none',
+          }}
         >
-          <span>+</span>
-          <span className="hidden sm:inline">신규 고객</span>
+          + 신규 고객
         </Link>
       </div>
 
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">👥</span>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">전체 고객</p>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900">
-                {stats?.totalCustomers.toLocaleString()}
-              </p>
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-green-600">
-            +{stats?.newCustomersThisMonth} 이번달
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">💰</span>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">오늘 매출</p>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900">
-                {formatCurrency(stats?.todaySales || 0)}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📈</span>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">이번달 매출</p>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900">
-                {formatCurrency(stats?.monthSales || 0)}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🔔</span>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">예정 알림</p>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900">
-                {stats?.pendingReminders}건
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* 통계 카드 4개 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+        <StatCard icon="👥" label="전체 고객" value={stats?.totalCustomers?.toLocaleString() || '0'} sub={`+${stats?.newCustomersThisMonth || 0} 이번달`} color="#667eea" />
+        <StatCard icon="💰" label="오늘 매출" value={`${formatCurrency(stats?.todaySales || 0)}원`} color="#10b981" />
+        <StatCard icon="📈" label="이번달 매출" value={`${formatCurrency(stats?.monthSales || 0)}원`} color="#8b5cf6" />
+        <StatCard icon="🔔" label="예정 알림" value={`${stats?.pendingReminders || 0}건`} color="#f59e0b" />
       </div>
 
-      {/* 두 컬럼 레이아웃 */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* 두 컬럼 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
         {/* 최근 방문 고객 */}
-        <div className="bg-white rounded-xl shadow-sm">
-          <div className="px-4 py-3 border-b flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">최근 방문 고객</h2>
-            <Link href="/crm/customers" className="text-sm text-blue-600 hover:underline">
-              전체보기
-            </Link>
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--gray-100)' }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--gray-900)' }}>최근 방문 고객</h2>
+            <Link href="/crm/customers" style={{ fontSize: 13, color: '#667eea', textDecoration: 'none' }}>전체보기</Link>
           </div>
-          <div className="divide-y">
-            {stats?.recentCustomers.map((customer) => (
-              <Link
-                key={customer.id}
-                href={`/crm/customers/${customer.id}`}
-                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    <span className="text-gray-600 font-medium">
+          {stats?.recentCustomers && stats.recentCustomers.length > 0 ? (
+            <div>
+              {stats.recentCustomers.map(customer => (
+                <Link
+                  key={customer.id}
+                  href={`/crm/customers/${customer.id}`}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--gray-50)', textDecoration: 'none', color: 'inherit' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: '50%',
+                      background: 'var(--gray-100)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14, fontWeight: 600, color: 'var(--gray-600)',
+                    }}>
                       {customer.name.charAt(0)}
-                    </span>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--gray-900)' }}>{customer.name}</p>
+                      <p style={{ fontSize: 12, color: 'var(--gray-500)' }}>{customer.phone}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{customer.name}</p>
-                    <p className="text-sm text-gray-500">{customer.phone}</p>
-                  </div>
-                </div>
-                <span className="text-sm text-gray-400">
-                  {customer.lastVisitAt}
-                </span>
-              </Link>
-            ))}
-          </div>
+                  <span style={{ fontSize: 12, color: 'var(--gray-400)' }}>{formatDate(customer.lastVisitAt)}</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: 30, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>
+              등록된 고객이 없습니다
+            </div>
+          )}
         </div>
 
         {/* 오늘 생일 */}
-        <div className="bg-white rounded-xl shadow-sm">
-          <div className="px-4 py-3 border-b">
-            <h2 className="font-semibold text-gray-900">🎂 오늘 생일</h2>
+        <div style={cardStyle}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--gray-100)' }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--gray-900)' }}>🎂 오늘 생일</h2>
           </div>
           {stats?.todayBirthdays && stats.todayBirthdays.length > 0 ? (
-            <div className="divide-y">
-              {stats.todayBirthdays.map((customer) => (
-                <div
-                  key={customer.id}
-                  className="flex items-center justify-between px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                      <span className="text-pink-600 font-medium">
-                        {customer.name.charAt(0)}
-                      </span>
+            <div>
+              {stats.todayBirthdays.map(customer => (
+                <div key={customer.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--gray-50)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: '50%',
+                      background: '#fce7f3', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14, fontWeight: 600, color: '#ec4899',
+                    }}>
+                      {customer.name.charAt(0)}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{customer.name}</p>
-                      <p className="text-sm text-gray-500">{customer.phone}</p>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--gray-900)' }}>{customer.name}</p>
+                      <p style={{ fontSize: 12, color: 'var(--gray-500)' }}>{customer.phone}</p>
                     </div>
                   </div>
-                  <button className="px-3 py-1 text-sm bg-pink-100 text-pink-600 rounded-lg hover:bg-pink-200">
+                  <button style={{
+                    padding: '4px 12px', fontSize: 12, borderRadius: 8,
+                    background: '#fce7f3', color: '#ec4899',
+                    border: 'none', cursor: 'pointer', fontWeight: 500,
+                  }}>
                     축하 문자
                   </button>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="px-4 py-8 text-center text-gray-500">
+            <div style={{ padding: 30, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>
               오늘 생일인 고객이 없습니다
             </div>
           )}
@@ -212,39 +184,62 @@ export default function CrmDashboard() {
       </div>
 
       {/* 빠른 실행 */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
-        <h2 className="font-semibold text-gray-900 mb-4">빠른 실행</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Link
-            href="/crm/customers/new"
-            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
-          >
-            <span className="text-3xl">👤</span>
-            <span className="text-sm font-medium text-blue-700">신규 고객</span>
-          </Link>
-          <Link
-            href="/crm/sales/new"
-            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
-          >
-            <span className="text-3xl">🧾</span>
-            <span className="text-sm font-medium text-green-700">판매 등록</span>
-          </Link>
-          <Link
-            href="/crm/orders/new"
-            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors"
-          >
-            <span className="text-3xl">📦</span>
-            <span className="text-sm font-medium text-purple-700">렌즈 주문</span>
-          </Link>
-          <Link
-            href="/crm/customers"
-            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors"
-          >
-            <span className="text-3xl">🔍</span>
-            <span className="text-sm font-medium text-orange-700">고객 검색</span>
-          </Link>
+      <div style={cardStyle}>
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--gray-100)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--gray-900)' }}>빠른 실행</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, padding: 16 }}>
+          <QuickAction href="/crm/customers/new" icon="👤" label="신규 고객" bg="#eff6ff" color="#2563eb" />
+          <QuickAction href="/crm/sales" icon="🧾" label="판매 내역" bg="#f0fdf4" color="#16a34a" />
+          <QuickAction href="/crm/orders" icon="📦" label="렌즈 주문" bg="#faf5ff" color="#7c3aed" />
+          <QuickAction href="/crm/customers" icon="🔍" label="고객 검색" bg="#fff7ed" color="#ea580c" />
         </div>
       </div>
     </div>
   )
+}
+
+function StatCard({ icon, label, value, sub, color }: { icon: string; label: string; value: string; sub?: string; color: string }) {
+  return (
+    <div style={{
+      background: '#fff', borderRadius: 12, padding: '18px 20px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid var(--gray-100)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 10,
+          background: `${color}15`, display: 'flex',
+          alignItems: 'center', justifyContent: 'center', fontSize: 22,
+        }}>
+          {icon}
+        </div>
+        <div>
+          <p style={{ fontSize: 12, color: 'var(--gray-500)', marginBottom: 2 }}>{label}</p>
+          <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>{value}</p>
+        </div>
+      </div>
+      {sub && <p style={{ marginTop: 6, fontSize: 12, color: '#10b981' }}>{sub}</p>}
+    </div>
+  )
+}
+
+function QuickAction({ href, icon, label, bg, color }: { href: string; icon: string; label: string; bg: string; color: string }) {
+  return (
+    <Link href={href} style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+      padding: '16px 12px', borderRadius: 12, background: bg,
+      textDecoration: 'none', transition: 'opacity 0.2s',
+    }}>
+      <span style={{ fontSize: 28 }}>{icon}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color }}>{label}</span>
+    </Link>
+  )
+}
+
+const cardStyle: React.CSSProperties = {
+  background: '#fff',
+  borderRadius: 12,
+  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+  border: '1px solid var(--gray-100)',
+  overflow: 'hidden',
 }
