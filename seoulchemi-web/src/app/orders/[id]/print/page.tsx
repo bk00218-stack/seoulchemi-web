@@ -33,7 +33,14 @@ export default function PrintShippingSlipPage() {
   useEffect(() => {
     if (!orderId) return
 
-    fetch(`/api/orders/${orderId}/print`)
+    // URL에서 itemIds 파라미터 전달 (부분출고 인쇄 지원)
+    const urlParams = new URLSearchParams(window.location.search)
+    const itemIds = urlParams.get('itemIds') || ''
+    const printUrl = itemIds
+      ? `/api/orders/${orderId}/print?itemIds=${itemIds}`
+      : `/api/orders/${orderId}/print`
+
+    fetch(printUrl)
       .then(res => res.json())
       .then(data => {
         if (data.error) {
@@ -257,7 +264,7 @@ export default function PrintShippingSlipPage() {
         <div className="total">
           <div className="total-row">
             <span>합계 ({totalQuantity}개)</span>
-            <span>{order.totalAmount.toLocaleString()}원</span>
+            <span>{order.items.reduce((sum, item) => sum + item.totalPrice, 0).toLocaleString()}원</span>
           </div>
         </div>
 

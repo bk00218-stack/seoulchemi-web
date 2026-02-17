@@ -310,15 +310,19 @@ export default function SpareShipmentPage() {
   }
 
   // 거래명세표 출력
-  const printInvoice = async (orderIds: number[]) => {
+  const printInvoice = async (shippedResults: { orderId: number; shippedItemIds?: number[] }[]) => {
     try {
       // 프린터 설정 가져오기
       const settingsRes = await fetch('/api/settings/printer')
       const settings = settingsRes.ok ? await settingsRes.json() : {}
-      
-      // 각 주문별로 거래명세표 출력
-      for (const orderId of orderIds) {
-        const printUrl = `/orders/${orderId}/print?type=invoice&printer=${encodeURIComponent(settings.invoicePrinter || '')}`
+
+      // 각 주문별로 거래명세표 출력 (출고된 아이템만)
+      for (const result of shippedResults) {
+        const params = new URLSearchParams()
+        params.set('type', 'invoice')
+        if (settings.invoicePrinter) params.set('printer', settings.invoicePrinter)
+        if (result.shippedItemIds?.length) params.set('itemIds', result.shippedItemIds.join(','))
+        const printUrl = `/orders/${result.orderId}/print?${params.toString()}`
         window.open(printUrl, '_blank', 'width=800,height=600')
       }
     } catch (error) {
@@ -345,12 +349,12 @@ export default function SpareShipmentPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '출고 처리 실패')
 
-      // 출고 완료된 주문 ID 추출
-      const shippedOrderIds = data.shipped.map((s: any) => s.orderId)
-      
-      // 거래명세표 자동 출력
-      if (shippedOrderIds.length > 0) {
-        await printInvoice(shippedOrderIds)
+      // 거래명세표 자동 출력 (출고된 아이템만 포함)
+      if (data.shipped?.length > 0) {
+        await printInvoice(data.shipped.map((s: any) => ({
+          orderId: s.orderId,
+          shippedItemIds: s.shippedItemIds
+        })))
       }
 
       setSelectedItems(new Set())

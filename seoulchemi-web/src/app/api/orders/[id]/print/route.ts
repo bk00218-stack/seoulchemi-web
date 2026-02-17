@@ -9,10 +9,15 @@ export async function GET(
   try {
     const { id } = await params
     const orderId = parseInt(id)
-    
+
     if (isNaN(orderId)) {
       return NextResponse.json({ error: '잘못된 주문 ID' }, { status: 400 })
     }
+
+    // 부분출고 시 특정 아이템만 인쇄 지원
+    const { searchParams } = new URL(request.url)
+    const itemIdsParam = searchParams.get('itemIds')
+    const filterItemIds = itemIdsParam ? itemIdsParam.split(',').map(Number).filter(n => !isNaN(n)) : null
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -26,6 +31,7 @@ export async function GET(
           }
         },
         items: {
+          ...(filterItemIds ? { where: { id: { in: filterItemIds } } } : {}),
           include: {
             product: {
               include: {
@@ -41,6 +47,9 @@ export async function GET(
       return NextResponse.json({ error: '주문을 찾을 수 없습니다' }, { status: 404 })
     }
 
+    // 필터된 아이템의 합계 계산
+    const itemsTotal = order.items.reduce((sum, item) => sum + item.totalPrice, 0)
+
     return NextResponse.json({
       orderNo: order.orderNo,
       storeName: order.store.name,
@@ -48,7 +57,7 @@ export async function GET(
       storePhone: order.store.phone,
       storeAddress: order.store.address,
       orderedAt: order.orderedAt.toISOString(),
-      totalAmount: order.totalAmount,
+      totalAmount: filterItemIds ? itemsTotal : order.totalAmount,
       memo: order.memo,
       items: order.items.map(item => ({
         productName: item.product.name,

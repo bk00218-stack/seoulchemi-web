@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const deliveryStaffId = searchParams.get('deliveryStaffId')
 
     const where: any = {
-      status: 'pending',
+      status: { in: ['pending', 'partial'] }, // 부분출고 주문도 포함
       orderType: 'stock' // 여벌만
     }
 
@@ -78,6 +78,7 @@ export async function GET(request: Request) {
             }
           },
           items: {
+            where: { status: 'pending' }, // 출고된 아이템 제외
             include: {
               product: {
                 select: {
@@ -107,10 +108,10 @@ export async function GET(request: Request) {
       }),
       // 가맹점 - 출고 대기 주문에서 직접 추출 (더 빠름)
       prisma.$queryRaw<{id: number, name: string, code: string, phone: string | null}[]>`
-        SELECT DISTINCT s.id, s.name, s.code, s.phone 
-        FROM "Store" s 
-        INNER JOIN "Order" o ON o."storeId" = s.id 
-        WHERE o.status = 'pending' AND o."orderType" = 'stock' AND s."isActive" = true
+        SELECT DISTINCT s.id, s.name, s.code, s.phone
+        FROM "Store" s
+        INNER JOIN "Order" o ON o."storeId" = s.id
+        WHERE o.status IN ('pending', 'partial') AND o."orderType" = 'stock' AND s."isActive" = true
         ORDER BY s.name
       `,
       // 그룹
@@ -186,7 +187,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/orders/ship/spare - 여벌 출고 처리 (아이템 선택 → 주문 단위로 처리)
+// POST /api/orders/ship/spare - 여벌 출고 처리 (아이템 선택 → 선택된 아이템만 처리, 부분출고 지원)
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -196,44 +197,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '출고할 아이템을 선택해주세요' }, { status: 400 })
     }
 
-    // 아이템 조회 (주문 정보 포함)
-    const items = await prisma.orderItem.findMany({
-      where: { 
+    // 선택된 아이템 중 pending 상태인 것만 조회
+    const selectedItems = await prisma.orderItem.findMany({
+      where: {
         id: { in: itemIds },
-        order: { status: 'pending', orderType: 'stock' }
+        status: 'pending',
+        order: { status: { in: ['pending', 'partial'] }, orderType: 'stock' }
       },
       include: {
-        order: {
-          include: { store: true }
-        },
-        product: {
-          include: { brand: true }
-        }
+        order: { include: { store: true } },
+        product: { include: { brand: true } }
       }
     })
 
-    if (items.length === 0) {
+    if (selectedItems.length === 0) {
       return NextResponse.json({ error: '출고할 아이템이 없습니다 (이미 출고됨 또는 존재하지 않음)' }, { status: 404 })
     }
 
-    // 주문 ID 추출 (선택된 아이템들의 주문)
-    const orderIds = [...new Set(items.map(item => item.orderId))]
+    // 주문 ID 추출
+    const orderIds = [...new Set(selectedItems.map(item => item.orderId))]
 
-    // 해당 주문들 전체 조회 (모든 아이템 포함)
+    // 주문 조회 (전체 아이템의 status 확인용 - lightweight)
     const orders = await prisma.order.findMany({
-      where: { 
-        id: { in: orderIds },
-        status: 'pending'
-      },
+      where: { id: { in: orderIds } },
       include: {
         store: true,
-        items: {
-          include: {
-            product: {
-              include: { brand: true }
-            }
-          }
-        }
+        items: { select: { id: true, status: true } }
       }
     })
 
@@ -243,19 +232,20 @@ export async function POST(request: Request) {
     await prisma.$transaction(async (tx) => {
       for (const order of orders) {
         const store = order.store
+        const now = new Date()
 
-        // 1. 주문 상태 변경 -> shipped
-        await tx.order.update({
-          where: { id: order.id },
-          data: { 
-            status: 'shipped',
-            shippedAt: new Date()
-          }
+        // 이 주문에서 지금 출고할 아이템만 필터
+        const itemsToShip = selectedItems.filter(item => item.orderId === order.id)
+        const shippedAmount = itemsToShip.reduce((sum, item) => sum + item.totalPrice, 0)
+
+        // 1. 선택된 OrderItem 상태를 shipped로 변경
+        await tx.orderItem.updateMany({
+          where: { id: { in: itemsToShip.map(i => i.id) } },
+          data: { status: 'shipped', shippedAt: now }
         })
 
-        // 2. 재고 차감 + 재고 이력 생성
-        for (const item of order.items) {
-          // ProductOption 찾기 (productId + sph + cyl 매칭)
+        // 2. 선택된 아이템만 재고 차감 + 재고 이력 생성
+        for (const item of itemsToShip) {
           const productOption = await tx.productOption.findFirst({
             where: {
               productId: item.productId,
@@ -270,9 +260,8 @@ export async function POST(request: Request) {
           let productOptionId: number | null = null
 
           if (productOption) {
-            // 재고 차감
             beforeStock = productOption.stock
-            afterStock = Math.max(0, beforeStock - item.quantity) // 음수 방지
+            afterStock = Math.max(0, beforeStock - item.quantity)
             productOptionId = productOption.id
 
             await tx.productOption.update({
@@ -281,14 +270,13 @@ export async function POST(request: Request) {
             })
           }
 
-          // 재고 이력 기록 (InventoryTransaction)
           await tx.inventoryTransaction.create({
             data: {
               productId: item.productId,
               productOptionId: productOptionId,
               type: 'out',
               reason: 'sale',
-              quantity: -item.quantity, // 출고는 마이너스
+              quantity: -item.quantity,
               beforeStock: beforeStock,
               afterStock: afterStock,
               unitPrice: item.unitPrice,
@@ -300,41 +288,56 @@ export async function POST(request: Request) {
           })
         }
 
-        // 3. 거래처 잔액 증가 (외상 증가)
-        await tx.store.update({
-          where: { id: order.storeId },
+        // 3. 주문 내 모든 아이템이 출고됐는지 확인
+        const shippingNowIds = new Set(itemsToShip.map(i => i.id))
+        const allShipped = order.items.every(i =>
+          shippingNowIds.has(i.id) || i.status === 'shipped'
+        )
+        const newOrderStatus = allShipped ? 'shipped' : 'partial'
+
+        await tx.order.update({
+          where: { id: order.id },
           data: {
-            outstandingAmount: { increment: order.totalAmount }
+            status: newOrderStatus,
+            ...(allShipped ? { shippedAt: now } : {})
           }
         })
 
-        // 4. 거래내역 생성 (Transaction)
+        // 4. 거래처 잔액 증가 (출고된 아이템 금액만)
+        await tx.store.update({
+          where: { id: order.storeId },
+          data: { outstandingAmount: { increment: shippedAmount } }
+        })
+
+        // 5. 거래내역 생성
         await tx.transaction.create({
           data: {
             storeId: order.storeId,
             type: 'sale',
-            amount: order.totalAmount,
-            balanceAfter: store.outstandingAmount + order.totalAmount, // 새 잔액
+            amount: shippedAmount,
+            balanceAfter: store.outstandingAmount + shippedAmount,
             orderId: order.id,
             orderNo: order.orderNo,
-            memo: `여벌 출고`,
+            memo: allShipped ? '여벌 출고' : '여벌 부분출고',
             processedBy: 'admin',
           }
         })
 
-        // 5. 작업 로그
+        // 6. 작업 로그
         await tx.workLog.create({
           data: {
             workType: 'order_ship',
             targetType: 'order',
             targetId: order.id,
             targetNo: order.orderNo,
-            description: `여벌 출고: ${store.name} - ${order.totalAmount.toLocaleString()}원`,
+            description: `여벌 ${allShipped ? '출고' : '부분출고'}: ${store.name} - ${shippedAmount.toLocaleString()}원`,
             details: JSON.stringify({
               storeId: store.id,
               storeName: store.name,
-              itemCount: order.items.length,
-              totalAmount: order.totalAmount
+              shippedItemCount: itemsToShip.length,
+              totalItemCount: order.items.length,
+              shippedAmount,
+              isPartial: !allShipped
             }),
             userName: 'admin',
             pcName: 'WEB',
@@ -345,8 +348,9 @@ export async function POST(request: Request) {
           orderId: order.id,
           orderNo: order.orderNo,
           storeName: store.name,
-          shippingAmount: order.totalAmount,
-          itemCount: order.items.length
+          shippingAmount: shippedAmount,
+          itemCount: itemsToShip.length,
+          shippedItemIds: itemsToShip.map(i => i.id)
         })
       }
     })

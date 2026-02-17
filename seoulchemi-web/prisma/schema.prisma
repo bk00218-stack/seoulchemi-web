@@ -288,14 +288,18 @@ model OrderItem {
   axis          String?
   bc            String?
   dia           String?
-  
+
+  status        String    @default("pending") // pending, shipped
+  shippedAt     DateTime? // 출고일시
+
   memo          String?
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([orderId])
   @@index([productId])
+  @@index([status])
 }
 
 // ===== 입출금 내역 테이블 (OlwsPro) =====
