@@ -14,18 +14,17 @@ export async function PATCH(
     const updateData: any = {}
     
     if (quantity !== undefined) {
-      // 수량은 0.5 단위로 반올림
-      const roundedQty = Math.round(quantity * 2) / 2
-      if (roundedQty < 0.5) {
-        return NextResponse.json({ error: '수량은 0.5 이상이어야 합니다' }, { status: 400 })
+      // 수량은 0.5 단위로 반올림 (음수 반품도 허용)
+      const roundedQty = quantity >= 0
+        ? Math.round(quantity * 2) / 2
+        : -Math.round(Math.abs(quantity) * 2) / 2
+      if (roundedQty === 0) {
+        return NextResponse.json({ error: '수량은 0이 될 수 없습니다' }, { status: 400 })
       }
       updateData.quantity = roundedQty
     }
-    
+
     if (totalPrice !== undefined) {
-      if (totalPrice < 0) {
-        return NextResponse.json({ error: '금액은 0 이상이어야 합니다' }, { status: 400 })
-      }
       updateData.totalPrice = Math.round(totalPrice)
     }
 

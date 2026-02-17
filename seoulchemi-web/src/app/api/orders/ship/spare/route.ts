@@ -205,9 +205,12 @@ export async function POST(request: Request) {
           let beforeStock = 0, afterStock = 0
           let productOptionId: number | null = null
 
+          const isReturnItem = item.quantity < 0
+
           if (productOption) {
             beforeStock = productOption.stock
-            afterStock = Math.max(0, beforeStock - item.quantity)
+            afterStock = beforeStock - item.quantity // 양수: 재고감소, 음수(반품): 재고증가
+            if (item.quantity > 0) afterStock = Math.max(0, afterStock) // 양수만 0 하한
             productOptionId = productOption.id
             productOption.stock = afterStock // 로컬 캐시 업데이트
 
@@ -221,15 +224,15 @@ export async function POST(request: Request) {
             data: {
               productId: item.productId,
               productOptionId,
-              type: 'out',
-              reason: 'sale',
+              type: isReturnItem ? 'return' : 'out',
+              reason: isReturnItem ? 'return' : 'sale',
               quantity: -item.quantity,
               beforeStock, afterStock,
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
               orderId: order.id,
               orderNo: order.orderNo,
-              memo: `여벌 출고: ${store.name}${!productOption ? ' (옵션없음)' : ''}`,
+              memo: `${isReturnItem ? '반품 입고' : '여벌 출고'}: ${store.name}${!productOption ? ' (옵션없음)' : ''}`,
             }
           })
         }
@@ -254,15 +257,18 @@ export async function POST(request: Request) {
           data: { outstandingAmount: { increment: shippedAmount } }
         })
 
+        const isNetReturn = shippedAmount < 0
         await tx.transaction.create({
           data: {
             storeId: order.storeId,
-            type: 'sale',
+            type: isNetReturn ? 'return' : 'sale',
             amount: shippedAmount,
             balanceAfter: store.outstandingAmount + shippedAmount,
             orderId: order.id,
             orderNo: order.orderNo,
-            memo: allShipped ? '여벌 출고' : '여벌 부분출고',
+            memo: isNetReturn
+              ? (allShipped ? '반품 처리' : '반품 부분처리')
+              : (allShipped ? '여벌 출고' : '여벌 부분출고'),
             processedBy: 'admin',
           }
         })
@@ -273,7 +279,7 @@ export async function POST(request: Request) {
             targetType: 'order',
             targetId: order.id,
             targetNo: order.orderNo,
-            description: `여벌 ${allShipped ? '출고' : '부분출고'}: ${store.name} - ${shippedAmount.toLocaleString()}원`,
+            description: `${isNetReturn ? '반품' : '여벌'} ${allShipped ? (isNetReturn ? '처리' : '출고') : (isNetReturn ? '부분처리' : '부분출고')}: ${store.name} - ${shippedAmount.toLocaleString()}원`,
             details: JSON.stringify({
               storeId: store.id,
               storeName: store.name,

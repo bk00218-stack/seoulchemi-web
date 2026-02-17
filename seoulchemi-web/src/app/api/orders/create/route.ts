@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getStoreDiscountSettings, calculatePriceFromCache } from '@/lib/priceCalculator'
 
-// 수량 정규화: 0.5 단위로 올림 (0.1→0.5, 1.1→1.5, 1.6→2)
+// 수량 정규화: 0.5 단위로 올림 (양수: 0.1→0.5, 음수(반품): -0.3→-0.5)
 function normalizeQuantity(qty: number): number {
-  return Math.ceil(qty * 2) / 2
+  if (qty >= 0) return Math.ceil(qty * 2) / 2
+  return -Math.ceil(Math.abs(qty) * 2) / 2
 }
 
 // POST /api/orders/create - 새 주문 등록
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
     )
 
     // 신용한도 체크 (옵션)
-    if (!skipCreditCheck && store.creditLimit > 0) {
+    if (!skipCreditCheck && store.creditLimit > 0 && totalAmount > 0) {
       const futureOutstanding = store.outstandingAmount + totalAmount
       if (futureOutstanding > store.creditLimit) {
         return NextResponse.json({ 

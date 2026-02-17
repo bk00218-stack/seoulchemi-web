@@ -415,15 +415,17 @@ export default function SpareShipmentPage() {
     const { itemId, field } = editingCell
     let value = parseFloat(editValue)
     
-    if (isNaN(value) || value < 0) {
+    if (isNaN(value) || value === 0) {
       setEditingCell(null)
       return
     }
-    
-    // 수량은 0.5 단위로 반올림
+
+    // 수량은 0.5 단위로 반올림 (음수 반품도 허용)
     if (field === 'quantity') {
-      value = Math.round(value * 2) / 2
-      if (value < 0.5) value = 0.5
+      value = value >= 0
+        ? Math.round(value * 2) / 2
+        : -Math.round(Math.abs(value) * 2) / 2
+      if (value === 0) { setEditingCell(null); return }
     }
     
     try {
@@ -682,7 +684,7 @@ export default function SpareShipmentPage() {
                 <tbody ref={tableRef} tabIndex={0} onKeyDown={handleTableKeyDown} onFocus={() => setFocusArea('table')} style={{ outline: 'none' }}>
                   {filteredOrders.map((order, index) => (
                     <tr key={order.itemId} onClick={() => toggleSelect(order.itemId)}
-                      style={{ borderBottom: '1px solid #eee', background: selectedItems.has(order.itemId) ? '#f0f7f0' : (focusArea === 'table' && focusedRowIndex === index ? '#e8f0e8' : undefined), cursor: 'pointer', outline: focusArea === 'table' && focusedRowIndex === index ? '2px solid #5d7a5d' : 'none', outlineOffset: -2 }}>
+                      style={{ borderBottom: '1px solid #eee', background: selectedItems.has(order.itemId) ? (order.quantity < 0 ? '#fff0f0' : '#f0f7f0') : (focusArea === 'table' && focusedRowIndex === index ? '#e8f0e8' : undefined), cursor: 'pointer', outline: focusArea === 'table' && focusedRowIndex === index ? '2px solid #5d7a5d' : 'none', outlineOffset: -2, borderLeft: order.quantity < 0 ? '3px solid #c0392b' : 'none' }}>
                       <td style={{ width: columnWidths.checkbox, padding: '8px 4px', textAlign: 'center' }}>
                         <input type="checkbox" checked={selectedItems.has(order.itemId)} onChange={(e) => { e.stopPropagation(); toggleSelect(order.itemId) }} style={{ width: 16, height: 16 }} />
                       </td>
@@ -703,7 +705,6 @@ export default function SpareShipmentPage() {
                           <input
                             type="number"
                             step="0.5"
-                            min="0.5"
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             onBlur={saveEdit}
@@ -712,9 +713,9 @@ export default function SpareShipmentPage() {
                             style={{ width: '100%', padding: '4px', border: '1px solid #5d7a5d', borderRadius: 3, fontSize: 12, textAlign: 'center', boxSizing: 'border-box' }}
                           />
                         ) : (
-                          <span 
+                          <span
                             onClick={() => startEditing(order.itemId, 'quantity', order.quantity)}
-                            style={{ cursor: 'pointer', padding: '4px 6px', borderRadius: 3, fontWeight: 600, display: 'inline-block', minWidth: 30 }}
+                            style={{ cursor: 'pointer', padding: '4px 6px', borderRadius: 3, fontWeight: 600, display: 'inline-block', minWidth: 30, color: order.quantity < 0 ? '#c0392b' : 'inherit' }}
                             onMouseEnter={(e) => e.currentTarget.style.background = '#e8f0e8'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                           >
@@ -726,7 +727,6 @@ export default function SpareShipmentPage() {
                         {editingCell?.itemId === order.itemId && editingCell?.field === 'totalPrice' ? (
                           <input
                             type="number"
-                            min="0"
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             onBlur={saveEdit}
@@ -735,9 +735,9 @@ export default function SpareShipmentPage() {
                             style={{ width: '100%', padding: '4px', border: '1px solid #5d7a5d', borderRadius: 3, fontSize: 12, textAlign: 'right', boxSizing: 'border-box' }}
                           />
                         ) : (
-                          <span 
+                          <span
                             onClick={() => startEditing(order.itemId, 'totalPrice', order.totalPrice)}
-                            style={{ cursor: 'pointer', padding: '4px 6px', borderRadius: 3, fontWeight: 500, display: 'inline-block' }}
+                            style={{ cursor: 'pointer', padding: '4px 6px', borderRadius: 3, fontWeight: 500, display: 'inline-block', color: order.totalPrice < 0 ? '#c0392b' : 'inherit' }}
                             onMouseEnter={(e) => e.currentTarget.style.background = '#e8f0e8'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                           >

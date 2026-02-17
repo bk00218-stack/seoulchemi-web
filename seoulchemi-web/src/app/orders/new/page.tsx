@@ -280,9 +280,11 @@ export default function NewOrderPage() {
   }
 
   const handleGridCellInput = useCallback((sphIndex: number, colIndex: number, quantity: number, forceMode?: 'add' | 'replace') => {
-    // 0.5 단위로 올림 (안경렌즈: 0.5 = 한쪽, 1 = 양쪽)
-    const roundedQty = Math.ceil(quantity * 2) / 2 // 0.5 단위로 올림
-    if (!selectedProduct || !selectedStore || roundedQty <= 0) return
+    // 0.5 단위로 올림 (양수: 올림, 음수: 절대값 올림 후 부호 복원)
+    const roundedQty = quantity >= 0
+      ? Math.ceil(quantity * 2) / 2
+      : -Math.ceil(Math.abs(quantity) * 2) / 2
+    if (!selectedProduct || !selectedStore || roundedQty === 0) return
     quantity = roundedQty
     const sph = sphRows[sphIndex]
     const colInfo = getColInfo(colIndex)
@@ -302,7 +304,12 @@ export default function NewOrderPage() {
       }
       // forceMode에 따라 처리
       if (forceMode === 'add') {
-        setOrderItems(items => items.map(item => item.id === exists.id ? { ...item, quantity: item.quantity + quantity } : item))
+        const newQty = exists.quantity + quantity
+        if (newQty === 0) {
+          setOrderItems(items => items.filter(item => item.id !== exists.id))
+        } else {
+          setOrderItems(items => items.map(item => item.id === exists.id ? { ...item, quantity: newQty } : item))
+        }
       } else {
         setOrderItems(items => items.map(item => item.id === exists.id ? { ...item, quantity } : item))
       }
@@ -324,7 +331,7 @@ export default function NewOrderPage() {
   const commitCellInput = useCallback(() => {
     if (gridFocus && cellInputValue) {
       const qty = parseFloat(cellInputValue)
-      if (!isNaN(qty) && qty > 0) {
+      if (!isNaN(qty) && qty !== 0) {
         handleGridCellInput(gridFocus.sphIndex, gridFocus.colIndex, qty)
       }
     }
@@ -335,8 +342,10 @@ export default function NewOrderPage() {
     const maxSphIndex = sphRows.length - 1
     const maxColIndex = totalCols - 1
 
-    if (/^[0-9.]$/.test(e.key)) {
+    if (/^[0-9.\-]$/.test(e.key)) {
       e.preventDefault()
+      // 마이너스는 첫 글자로만 허용
+      if (e.key === '-' && cellInputValue.length > 0) return
       // 소수점 중복 방지
       if (e.key === '.' && cellInputValue.includes('.')) return
       const newValue = cellInputValue + e.key
@@ -348,7 +357,7 @@ export default function NewOrderPage() {
       e.preventDefault()
       if (gridFocus && cellInputValue) {
         const qty = parseFloat(cellInputValue)
-        if (!isNaN(qty) && qty > 0) {
+        if (!isNaN(qty) && qty !== 0) {
           handleGridCellInput(gridFocus.sphIndex, gridFocus.colIndex, qty)
           setCellInputValue('')
         }
@@ -443,7 +452,7 @@ export default function NewOrderPage() {
   const handleEditConfirm = () => {
     if (!editModal) return
     const value = parseFloat(editValue)
-    if (isNaN(value) || value < 0) return
+    if (isNaN(value) || value === 0) return
     
     if (editModal.type === 'quantity') {
       setOrderItems(items => items.map(item => 
@@ -541,7 +550,7 @@ export default function NewOrderPage() {
     else if (isCurrentRow || isCurrentCol) bg = '#c5dbc5' // 세이지 행/열
     if (!isDisabled && isCurrentRow && isCurrentCol) bg = '#a8c8a8' // 교차점 더 진하게
     if (!isDisabled && isFocused) bg = '#5d7a5d'
-    if (!isDisabled && item) bg = '#6b8e6b'
+    if (!isDisabled && item) bg = item.quantity < 0 ? '#c0392b' : '#6b8e6b'
     
     return (
       <td key={colIndex} onClick={() => !isDisabled && handleGridClick(sphIndex, colIndex)}
@@ -814,13 +823,13 @@ export default function NewOrderPage() {
           <div style={{ flex: 1, overflow: 'auto' }}>
             {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#868e96' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: i % 2 === 0 ? '#fff' : '#fafafa', color: '#212529', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu' }}>
+                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: item.quantity < 0 ? '#fff0f0' : (i % 2 === 0 ? '#fff' : '#fafafa'), color: '#212529', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu', borderLeft: item.quantity < 0 ? '3px solid #c0392b' : 'none' }}>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#666' }}>{item.product.brand}</div>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{(() => { const v = parseFloat(item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()}</div>
                   <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>-{String(Math.round(Math.abs(parseFloat(item.cyl)) * 100)).padStart(3, '0')}</div>
-                  <div style={{ fontWeight: 600, textAlign: 'center' }}>{item.quantity}</div>
-                  <div style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{(item.product.sellingPrice * item.quantity).toLocaleString()}</div>
+                  <div style={{ fontWeight: 600, textAlign: 'center', color: item.quantity < 0 ? '#c0392b' : 'inherit' }}>{item.quantity}</div>
+                  <div style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, color: item.quantity < 0 ? '#c0392b' : 'inherit' }}>{(item.product.sellingPrice * item.quantity).toLocaleString()}</div>
                 </div>
               ))
             )}
@@ -830,7 +839,7 @@ export default function NewOrderPage() {
           </div>
           <div style={{ padding: '10px 12px', background: '#5d7a5d', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
             <span>총 <strong>{totalQuantity}</strong>개</span>
-            <span style={{ fontSize: 16, fontWeight: 700 }}>{totalAmount.toLocaleString()}원</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: totalAmount < 0 ? '#ff6b6b' : '#fff' }}>{totalAmount.toLocaleString()}원</span>
           </div>
           <div style={{ padding: 6, display: 'flex', gap: 4 }}>
             <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 8, background: '#f8f9fa', border: '1px solid #ccc', borderRadius: 3, cursor: 'pointer', fontSize: 12 }}>초기화</button>
@@ -860,7 +869,6 @@ export default function NewOrderPage() {
             </div>
             <input type="number" value={editValue} onChange={e => setEditValue(e.target.value)} autoFocus
               step={editModal.type === 'quantity' ? 0.5 : 1}
-              min={0}
               style={{ width: '100%', padding: '12px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 16, marginBottom: 16, boxSizing: 'border-box' }}
               onKeyDown={e => { if (e.key === 'Enter') handleEditConfirm(); if (e.key === 'Escape') { setEditModal(null); setEditValue('') } }} />
             <div style={{ display: 'flex', gap: 8 }}>
