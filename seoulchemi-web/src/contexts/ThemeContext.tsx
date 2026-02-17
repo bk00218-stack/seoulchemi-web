@@ -26,21 +26,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    // 시스템 테마 감지
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-
-    const updateResolvedTheme = () => {
-      if (theme === 'system') {
-        setResolvedTheme(mediaQuery.matches ? 'dark' : 'light')
-      } else {
-        setResolvedTheme(theme)
-      }
-    }
-
-    updateResolvedTheme()
-    mediaQuery.addEventListener('change', updateResolvedTheme)
-
-    return () => mediaQuery.removeEventListener('change', updateResolvedTheme)
+    // 강제 라이트모드 - 인라인 스타일에 하드코딩된 색상(#fff 등)이 많아
+    // 다크모드 시 흰바탕+흰글씨 문제 발생. 전체 CSS 변수화 완료 후 활성화 예정.
+    setResolvedTheme('light')
   }, [theme])
 
   useEffect(() => {
