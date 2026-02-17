@@ -120,8 +120,8 @@ export async function POST(request: Request) {
         for (const item of data.brands) {
           await tx.brand.upsert({
             where: { id: item.id },
-            update: { name: item.name, code: item.code, supplierId: item.supplierId },
-            create: { id: item.id, name: item.name, code: item.code || '', supplierId: item.supplierId }
+            update: { name: item.name, supplierId: item.supplierId },
+            create: { id: item.id, name: item.name, supplierId: item.supplierId }
           })
           restored.brands++
         }
