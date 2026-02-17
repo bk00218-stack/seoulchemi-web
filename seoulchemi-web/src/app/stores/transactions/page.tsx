@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
+import { exportToCSV } from '../../components/ExcelExport'
 
 interface Store {
   id: number
@@ -34,6 +35,7 @@ interface Store {
 }
 
 interface TransactionItem {
+  id?: number
   brand: string
   product: string
   qty: number
@@ -304,8 +306,74 @@ export default function TransactionsPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [visibleFields, setVisibleFields] = useState<string[]>(DEFAULT_VISIBLE_FIELDS)
   const [showShipmentSearch, setShowShipmentSearch] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+
+  // 엑셀 내보내기
+  const handleExportExcel = () => {
+    if (!selectedStore || filteredTransactions.length === 0) {
+      alert('내보낼 데이터가 없습니다.')
+      return
+    }
+    
+    const exportData = filteredTransactions.map(t => ({
+      date: new Date(t.processedAt).toLocaleDateString('ko-KR'),
+      orderNo: t.orderNo || '',
+      type: TYPE_LABELS[t.type]?.label || t.type,
+      amount: t.amount,
+      balanceAfter: t.balanceAfter,
+      memo: t.memo || '',
+      items: t.items?.map(i => `${i.brand} ${i.product} ${i.sph||''} ${i.cyl||''} x${i.qty}`).join(' / ') || ''
+    }))
+    
+    const columns = [
+      { key: 'date', label: '일자' },
+      { key: 'orderNo', label: '주문번호' },
+      { key: 'type', label: '유형' },
+      { key: 'amount', label: '금액' },
+      { key: 'balanceAfter', label: '잔액' },
+      { key: 'items', label: '품목' },
+      { key: 'memo', label: '메모' },
+    ]
+    
+    exportToCSV(exportData, columns, `거래내역_${selectedStore.name}`)
+  }
+
+  // 거래내역 삭제
+  const handleDeleteTransaction = async (transactionId: number) => {
+    if (!confirm('정말로 이 거래내역을 삭제하시겠습니까?\n삭제 시 잔액이 조정됩니다.')) return
+    
+    setDeleteLoading(true)
+    try {
+      const res = await fetch(`/api/transactions/${transactionId}`, { method: 'DELETE' })
+      const data = await res.json()
+      
+      if (!res.ok) throw new Error(data.error || '삭제 실패')
+      
+      // 거래내역 목록 새로고침
+      if (selectedStore) {
+        const transRes = await fetch(`/api/transactions?storeId=${selectedStore.id}&limit=100`)
+        const transData = await transRes.json()
+        setTransactions(transData.transactions || [])
+        
+        // 가맹점 정보도 새로고침 (잔액 업데이트)
+        const storeRes = await fetch(`/api/stores/${selectedStore.id}`)
+        const storeData = await storeRes.json()
+        if (storeData) {
+          setSelectedStore(prev => prev ? { ...prev, balance: storeData.outstandingAmount || 0 } : null)
+          setStores(prev => prev.map(s => s.id === selectedStore.id ? { ...s, balance: storeData.outstandingAmount || 0 } : s))
+        }
+      }
+      
+      setSelectedTransaction(null)
+      alert('삭제되었습니다.')
+    } catch (error: any) {
+      alert(error.message || '삭제 실패')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   useEffect(() => {
     fetchStores()
@@ -509,13 +577,21 @@ export default function TransactionsPage() {
           display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid #e9ecef', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '14px', fontWeight: 600 }}>📋 거래내역</span>
-            <div style={{ display: 'flex', gap: '4px' }}>
-              {[{ value: 'all', label: '전체' }, { value: 'sale', label: '매출' }, { value: 'deposit', label: '입금' }, { value: 'return', label: '반품' }, { value: 'adjustment', label: '할인' }].map(f => (
-                <button key={f.value} onClick={() => setTypeFilter(f.value)} style={{
-                  padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '12px', cursor: 'pointer',
-                  background: typeFilter === f.value ? '#007aff' : '#f5f5f7', color: typeFilter === f.value ? '#fff' : '#666'
-                }}>{f.label}</button>
-              ))}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {[{ value: 'all', label: '전체' }, { value: 'sale', label: '매출' }, { value: 'deposit', label: '입금' }, { value: 'return', label: '반품' }, { value: 'adjustment', label: '할인' }].map(f => (
+                  <button key={f.value} onClick={() => setTypeFilter(f.value)} style={{
+                    padding: '4px 10px', borderRadius: '4px', border: 'none', fontSize: '12px', cursor: 'pointer',
+                    background: typeFilter === f.value ? '#007aff' : '#f5f5f7', color: typeFilter === f.value ? '#fff' : '#666'
+                  }}>{f.label}</button>
+                ))}
+              </div>
+              {selectedStore && filteredTransactions.length > 0 && (
+                <button onClick={handleExportExcel} style={{
+                  padding: '4px 10px', borderRadius: '4px', border: '1px solid #10b981', fontSize: '12px',
+                  cursor: 'pointer', background: '#fff', color: '#10b981'
+                }}>📥 엑셀</button>
+              )}
             </div>
           </div>
 
@@ -582,8 +658,23 @@ export default function TransactionsPage() {
 
         {/* 우측: 세부내역 */}
         <div style={{ flex: 0.9, minWidth: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-          padding: '14px', overflow: 'auto' }}>
-          <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>📄 세부내역</div>
+          padding: '14px', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600 }}>📄 세부내역</span>
+            {selectedTransaction && (
+              <button
+                onClick={() => handleDeleteTransaction(selectedTransaction.id)}
+                disabled={deleteLoading}
+                style={{
+                  padding: '4px 10px', fontSize: '12px', background: '#fff', color: '#d32f2f',
+                  border: '1px solid #d32f2f', borderRadius: '4px', cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  opacity: deleteLoading ? 0.6 : 1
+                }}
+              >
+                {deleteLoading ? '삭제중...' : '🗑️ 삭제'}
+              </button>
+            )}
+          </div>
           
           {!selectedTransaction ? (
             <div style={{ padding: '50px 10px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>거래내역 선택</div>
