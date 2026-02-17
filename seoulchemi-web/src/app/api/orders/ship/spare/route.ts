@@ -264,12 +264,13 @@ export async function POST(request: Request) {
         })
 
         const isNetReturn = shippedAmount < 0
+        const updatedStore = await tx.store.findUnique({ where: { id: order.storeId } })
         await tx.transaction.create({
           data: {
             storeId: order.storeId,
             type: isNetReturn ? 'return' : 'sale',
             amount: Math.abs(shippedAmount),
-            balanceAfter: store.outstandingAmount + shippedAmount,
+            balanceAfter: updatedStore?.outstandingAmount || 0,
             orderId: order.id,
             orderNo: order.orderNo,
             memo: isNetReturn

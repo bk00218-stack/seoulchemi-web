@@ -104,13 +104,14 @@ export async function POST(request: Request) {
           }
         })
 
-        // 4. 거래내역 생성 (Transaction)
+        // 4. 거래내역 생성 (Transaction) - increment 후 최신 잔액 조회
+        const updatedStore = await tx.store.findUnique({ where: { id: order.storeId } })
         await tx.transaction.create({
           data: {
             storeId: order.storeId,
             type: 'sale',
             amount: order.totalAmount,
-            balanceAfter: order.store.outstandingAmount + order.totalAmount, // 새 잔액
+            balanceAfter: updatedStore?.outstandingAmount || 0, // increment 후 최신값
             orderId: order.id,
             orderNo: order.orderNo,
             memo: `판매 출고`,

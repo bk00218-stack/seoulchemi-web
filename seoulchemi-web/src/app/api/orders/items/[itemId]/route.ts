@@ -107,28 +107,29 @@ export async function DELETE(
       })
       
       if (transaction) {
-        // 5. 거래내역 금액 업데이트
+        // 5. 거래내역 금액 + balanceAfter 업데이트 (현재 거래)
+        const newBalanceAfter = transaction.balanceAfter - priceDiff
         await tx.transaction.update({
           where: { id: transaction.id },
-          data: { amount: newTotal }
+          data: { amount: newTotal, balanceAfter: newBalanceAfter }
         })
-        
-        // 6. 이 거래 이후의 잔액 조정 (매출 감소 → 잔액 감소)
+
+        // 6. 이 거래 이후의 잔액 조정 (후속 거래만, gt 사용)
         const laterTransactions = await tx.transaction.findMany({
           where: {
             storeId: transaction.storeId,
-            processedAt: { gte: transaction.processedAt }
+            processedAt: { gt: transaction.processedAt }
           },
           orderBy: { processedAt: 'asc' }
         })
-        
+
         for (const t of laterTransactions) {
           await tx.transaction.update({
             where: { id: t.id },
             data: { balanceAfter: t.balanceAfter - priceDiff }
           })
         }
-        
+
         // 7. 가맹점 미결제 잔액 업데이트
         await tx.store.update({
           where: { id: transaction.storeId },
