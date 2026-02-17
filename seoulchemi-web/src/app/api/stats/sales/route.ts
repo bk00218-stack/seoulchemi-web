@@ -8,7 +8,6 @@ export async function GET(request: Request) {
     const dateFrom = searchParams.get('dateFrom')
     const dateTo = searchParams.get('dateTo')
     const groupId = searchParams.get('groupId')
-    const region = searchParams.get('region')
     const salesStaffId = searchParams.get('salesStaffId')
     
     // 기본: 오늘
@@ -18,7 +17,6 @@ export async function GET(request: Request) {
     // 가맹점 필터
     const storeWhere: any = { status: 'active' }
     if (groupId) storeWhere.groupId = parseInt(groupId)
-    if (region) storeWhere.region = region
     if (salesStaffId) storeWhere.salesStaffId = parseInt(salesStaffId)
     
     // 가맹점 목록 조회
@@ -28,7 +26,7 @@ export async function GET(request: Request) {
         group: { select: { name: true } },
         salesStaff: { select: { name: true } },
       },
-      orderBy: [{ region: 'asc' }, { name: 'asc' }]
+      orderBy: { name: 'asc' }
     })
     
     // 각 가맹점의 기간 내 거래 합계
@@ -83,7 +81,7 @@ export async function GET(request: Request) {
         storeName: store.name,
         storeCode: store.code,
         groupName: store.group?.name || '-',
-        region: store.region || '-',
+        region: store.address?.split(' ')[0] || '-', // 주소에서 첫 단어 (시/도)
         salesStaffName: store.salesStaff?.name || '-',
         status: store.status,
         prevBalance, // 전전액
