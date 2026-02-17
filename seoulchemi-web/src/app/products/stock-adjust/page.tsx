@@ -149,8 +149,8 @@ export default function StockAdjustPage() {
   return (
     <Layout sidebarMenus={PRODUCTS_SIDEBAR} activeNav="상품">
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>재고 조정</h1>
-        <p style={{ color: 'var(--gray-400)', fontSize: 14, margin: 0 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6, color: 'var(--gray-900)' }}>재고 조정</h1>
+        <p style={{ color: 'var(--gray-500)', fontSize: 14, margin: 0 }}>
           상품별 재고를 입고, 출고, 직접 조정할 수 있습니다.
         </p>
       </div>

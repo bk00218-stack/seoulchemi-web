@@ -76,8 +76,8 @@ export default function InventoryPage() {
   return (
     <Layout sidebarMenus={PRODUCTS_SIDEBAR} activeNav="상품">
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>재고 현황</h1>
-        <p style={{ color: 'var(--gray-400)', fontSize: 14, margin: 0 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6, color: 'var(--gray-900)' }}>재고 현황</h1>
+        <p style={{ color: 'var(--gray-500)', fontSize: 14, margin: 0 }}>
           상품별 재고 현황을 확인합니다. 저재고 및 품절 상품을 관리하세요.
         </p>
       </div>
@@ -85,20 +85,40 @@ export default function InventoryPage() {
       {/* 통계 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         <div style={{ ...cardStyle, padding: 20 }}>
-          <div style={{ color: 'var(--gray-400)', fontSize: 13, marginBottom: 4 }}>전체 상품</div>
-          <div style={{ fontSize: 28, fontWeight: 600 }}>{stats.totalProducts.toLocaleString()}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ color: 'var(--gray-500)', fontSize: 13, marginBottom: 4 }}>전체 상품</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--gray-900)' }}>{stats.totalProducts.toLocaleString()}<span style={{ fontSize: 14, fontWeight: 400, color: 'var(--gray-400)', marginLeft: 4 }}>개</span></div>
+            </div>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--gray-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📦</div>
+          </div>
         </div>
         <div style={{ ...cardStyle, padding: 20 }}>
-          <div style={{ color: 'var(--gray-400)', fontSize: 13, marginBottom: 4 }}>총 재고</div>
-          <div style={{ fontSize: 28, fontWeight: 600, color: '#007aff' }}>{stats.totalStock.toLocaleString()}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ color: 'var(--gray-500)', fontSize: 13, marginBottom: 4 }}>총 재고</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#007aff' }}>{stats.totalStock.toLocaleString()}<span style={{ fontSize: 14, fontWeight: 400, color: 'var(--gray-400)', marginLeft: 4 }}>개</span></div>
+            </div>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📊</div>
+          </div>
         </div>
         <div style={{ ...cardStyle, padding: 20 }}>
-          <div style={{ color: '#ff9500', fontSize: 13, marginBottom: 4 }}>저재고 (5개 이하)</div>
-          <div style={{ fontSize: 28, fontWeight: 600, color: '#ff9500' }}>{stats.lowStock.toLocaleString()}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ color: '#ff9500', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>저재고 (5개 이하)</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#ff9500' }}>{stats.lowStock.toLocaleString()}<span style={{ fontSize: 14, fontWeight: 400, color: 'var(--gray-400)', marginLeft: 4 }}>개</span></div>
+            </div>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fff3e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>⚠️</div>
+          </div>
         </div>
         <div style={{ ...cardStyle, padding: 20 }}>
-          <div style={{ color: '#ff3b30', fontSize: 13, marginBottom: 4 }}>품절</div>
-          <div style={{ fontSize: 28, fontWeight: 600, color: '#ff3b30' }}>{stats.zeroStock.toLocaleString()}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ color: '#ff3b30', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>품절</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#ff3b30' }}>{stats.zeroStock.toLocaleString()}<span style={{ fontSize: 14, fontWeight: 400, color: 'var(--gray-400)', marginLeft: 4 }}>개</span></div>
+            </div>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#ffebee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🚫</div>
+          </div>
         </div>
       </div>
 
@@ -135,11 +155,19 @@ export default function InventoryPage() {
       {/* 상품 목록 */}
       <div style={{ ...cardStyle, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>로딩 중...</div>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--gray-400)' }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
+            로딩 중...
+          </div>
         ) : products.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📦</div>
-            <p>{search || selectedBrand !== 'all' || lowStockOnly ? '검색 결과가 없습니다.' : '재고 데이터가 없습니다.'}</p>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--gray-400)' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>📦</div>
+            <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 4 }}>
+              {search || selectedBrand !== 'all' || lowStockOnly ? '검색 결과가 없습니다' : '재고 데이터가 없습니다'}
+            </div>
+            <div style={{ fontSize: 13 }}>
+              {search ? '다른 검색어를 시도해보세요' : '상품을 등록하면 재고 현황이 여기에 표시됩니다'}
+            </div>
           </div>
         ) : (
           products.map(product => (
