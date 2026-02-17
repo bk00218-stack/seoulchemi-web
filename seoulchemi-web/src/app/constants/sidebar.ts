@@ -73,6 +73,12 @@ export const STORES_SIDEBAR: SidebarMenu[] = [
     ]
   },
   {
+    title: '정산',
+    items: [
+      { label: '정산관리', href: '/stores/settle' },
+    ]
+  },
+  {
     title: '그룹관리',
     items: [
       { label: '그룹별 가맹점 연결', href: '/stores/groups' },
