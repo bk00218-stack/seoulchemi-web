@@ -34,21 +34,32 @@ export async function PUT(
     const productId = parseInt(id)
     const body = await request.json()
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = {
+      name: body.name,
+      optionType: body.optionType,
+      productType: body.productType || body.optionType,
+      bundleName: body.bundleName || null,
+      refractiveIndex: body.refractiveIndex || null,
+      sellingPrice: body.sellingPrice || 0,
+      purchasePrice: body.purchasePrice || 0,
+      isActive: body.isActive ?? true,
+      displayOrder: body.displayOrder,
+      erpCode: body.erpCode ?? undefined,
+      imageUrl: body.imageUrl ?? undefined,
+    }
+
+    // 브랜드/품목 변경 지원
+    if (body.brandId !== undefined) {
+      updateData.brandId = body.brandId
+    }
+    if (body.productLineId !== undefined) {
+      updateData.productLineId = body.productLineId
+    }
+
     const product = await prisma.product.update({
       where: { id: productId },
-      data: {
-        name: body.name,
-        optionType: body.optionType,
-        productType: body.productType || body.optionType,
-        bundleName: body.bundleName || null,
-        refractiveIndex: body.refractiveIndex || null,
-        sellingPrice: body.sellingPrice || 0,
-        purchasePrice: body.purchasePrice || 0,
-        isActive: body.isActive ?? true,
-        displayOrder: body.displayOrder,
-        erpCode: body.erpCode ?? undefined,
-        imageUrl: body.imageUrl ?? undefined,
-      }
+      data: updateData
     })
 
     return NextResponse.json({ product })

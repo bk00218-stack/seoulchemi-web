@@ -1105,6 +1105,12 @@ export default function ProductsPage() {
   const [orderChanged, setOrderChanged] = useState(false)
   const [productOrders, setProductOrders] = useState<{[key: number]: number}>({})
 
+  // 상품 수정 모달 - 브랜드/품목 선택
+  const [editModalBrandId, setEditModalBrandId] = useState<number | null>(null)
+  const [editModalProductLineId, setEditModalProductLineId] = useState<number | null>(null)
+  const [editModalBrands, setEditModalBrands] = useState<Brand[]>([])
+  const [editModalProductLines, setEditModalProductLines] = useState<ProductLine[]>([])
+
   // 일괄 선택
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set())
   const [selectedOptionIds, setSelectedOptionIds] = useState<Set<number>>(new Set())
@@ -1288,10 +1294,30 @@ export default function ProductsPage() {
     }
   }
 
+  // 상품 수정 모달 열기 (브랜드/품목 정보 포함)
+  async function openEditProductModal(product: Product) {
+    setEditingProduct(product)
+    try {
+      // 전체 브랜드 목록
+      const brandsRes = await fetch('/api/brands')
+      const brandsData = await brandsRes.json()
+      setEditModalBrands(brandsData.brands || [])
+      // 현재 브랜드/품목
+      setEditModalBrandId(product.brandId)
+      const plRes = await fetch(`/api/product-lines?brandId=${product.brandId}`)
+      const plData = await plRes.json()
+      setEditModalProductLines(plData.productLines || [])
+      setEditModalProductLineId(product.productLineId)
+    } catch (e) {
+      console.error('모달 데이터 로드 실패:', e)
+    }
+    setShowProductModal(true)
+  }
+
   async function handleSaveProduct(formData: FormData) {
     const data = {
-      brandId: selectedBrand?.id,
-      productLineId: selectedProductLine?.id,
+      brandId: editingProduct ? editModalBrandId : selectedBrand?.id,
+      productLineId: editingProduct ? editModalProductLineId : selectedProductLine?.id,
       name: formData.get('name'),
       optionType: formData.get('optionType'),
       productType: formData.get('productType') || formData.get('optionType'),
@@ -1789,7 +1815,7 @@ export default function ProductsPage() {
                       </td>
                       <td style={gridCellStyle} onClick={(e) => e.stopPropagation()}>
                         <button 
-                          onClick={() => { setEditingProduct(product); setShowProductModal(true) }}
+                          onClick={() => openEditProductModal(product)}
                           style={{ ...actionBtnStyle, padding: '2px 8px' }}
                         >
                           수정
@@ -2049,18 +2075,18 @@ export default function ProductsPage() {
               <div style={{ display: 'grid', gap: 16 }}>
                 {/* 상품 코드 (수정시에만 표시) */}
                 {editingProduct && (
-                  <div style={{ 
-                    padding: '10px 14px', 
-                    background: 'var(--gray-50)', 
+                  <div style={{
+                    padding: '10px 14px',
+                    background: 'var(--gray-50)',
                     borderRadius: 8,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 12
                   }}>
                     <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>상품코드</span>
-                    <code style={{ 
-                      fontSize: 13, 
-                      fontFamily: 'monospace', 
+                    <code style={{
+                      fontSize: 13,
+                      fontFamily: 'monospace',
                       color: 'var(--gray-700)',
                       background: '#fff',
                       padding: '2px 8px',
@@ -2070,7 +2096,61 @@ export default function ProductsPage() {
                     </code>
                   </div>
                 )}
-                
+
+                {/* 📂 소속 변경 (수정 모드에서만 표시) */}
+                {editingProduct && (
+                  <div style={{
+                    padding: '12px 14px',
+                    background: '#fff8f0',
+                    border: '1px solid #fed7aa',
+                    borderRadius: 8,
+                  }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#c2410c', marginBottom: 10 }}>
+                      📂 소속 변경
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: 11 }}>브랜드</label>
+                        <select
+                          value={editModalBrandId ?? ''}
+                          onChange={async (e) => {
+                            const newBrandId = parseInt(e.target.value)
+                            setEditModalBrandId(newBrandId)
+                            setEditModalProductLineId(null)
+                            try {
+                              const plRes = await fetch(`/api/product-lines?brandId=${newBrandId}`)
+                              const plData = await plRes.json()
+                              setEditModalProductLines(plData.productLines || [])
+                            } catch (err) {
+                              console.error('품목 로드 실패:', err)
+                              setEditModalProductLines([])
+                            }
+                          }}
+                          style={{ ...inputStyle, fontSize: 12, padding: '6px 10px' }}
+                        >
+                          <option value="">브랜드 선택</option>
+                          {editModalBrands.map(b => (
+                            <option key={b.id} value={b.id}>{b.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: 11 }}>품목</label>
+                        <select
+                          value={editModalProductLineId ?? ''}
+                          onChange={(e) => setEditModalProductLineId(parseInt(e.target.value))}
+                          style={{ ...inputStyle, fontSize: 12, padding: '6px 10px' }}
+                        >
+                          <option value="">품목 선택</option>
+                          {editModalProductLines.map(pl => (
+                            <option key={pl.id} value={pl.id}>{pl.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label style={labelStyle}>상품명 *</label>
                   <input 

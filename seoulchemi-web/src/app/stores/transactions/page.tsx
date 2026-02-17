@@ -340,6 +340,31 @@ export default function TransactionsPage() {
     exportToCSV(exportData, columns, `거래내역_${selectedStore.name}`)
   }
 
+  // 품목 삭제
+  const handleDeleteItem = async (itemId: number) => {
+    if (!confirm('이 품목을 삭제하시겠습니까?')) return
+    
+    try {
+      const res = await fetch(`/api/orders/items/${itemId}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('삭제 실패')
+      
+      // 거래내역 새로고침
+      if (selectedStore) {
+        const transRes = await fetch(`/api/transactions?storeId=${selectedStore.id}&limit=100`)
+        const transData = await transRes.json()
+        setTransactions(transData.transactions || [])
+        
+        // 선택된 거래내역도 업데이트
+        if (selectedTransaction) {
+          const updated = (transData.transactions || []).find((t: Transaction) => t.id === selectedTransaction.id)
+          setSelectedTransaction(updated || null)
+        }
+      }
+    } catch (error) {
+      alert('삭제 실패')
+    }
+  }
+
   // 거래내역 삭제
   const handleDeleteTransaction = async (transactionId: number) => {
     if (!confirm('정말로 이 거래내역을 삭제하시겠습니까?\n삭제 시 잔액이 조정됩니다.')) return
@@ -606,39 +631,49 @@ export default function TransactionsPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
-                    <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666', width: '70px' }}>일자</th>
-                    <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666', width: '70px' }}>주문번호</th>
-                    <th style={{ padding: '10px', textAlign: 'left', fontWeight: 600, color: '#666' }}>품목</th>
-                    <th style={{ padding: '10px', textAlign: 'center', fontWeight: 600, color: '#666', width: '60px' }}>유형</th>
-                    <th style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: '#666', width: '100px' }}>금액</th>
-                    <th style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: '#666', width: '100px' }}>잔액</th>
+                    <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: 600, color: '#666', width: '90px' }}>일시</th>
+                    <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: 600, color: '#666' }}>품목</th>
+                    <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 600, color: '#666', width: '50px' }}>유형</th>
+                    <th style={{ padding: '8px 6px', textAlign: 'right', fontWeight: 600, color: '#666', width: '80px' }}>금액</th>
+                    <th style={{ padding: '8px 6px', textAlign: 'right', fontWeight: 600, color: '#666', width: '80px' }}>잔액</th>
+                    <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 600, color: '#666', width: '40px' }}></th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTransactions.map(t => {
                     const typeInfo = TYPE_LABELS[t.type] || TYPE_LABELS.adjustment
+                    const dt = new Date(t.processedAt)
                     return (
                       <tr key={t.id} onClick={() => setSelectedTransaction(t)}
                         style={{ cursor: 'pointer', background: selectedTransaction?.id === t.id ? '#e3f2fd' : 'transparent', borderBottom: '1px solid #f0f0f0' }}
                         onMouseEnter={e => { if (selectedTransaction?.id !== t.id) e.currentTarget.style.background = '#f8f9fa' }}
                         onMouseLeave={e => { if (selectedTransaction?.id !== t.id) e.currentTarget.style.background = 'transparent' }}
                       >
-                        <td style={{ padding: '10px', color: '#666' }}>
-                          {new Date(t.processedAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
+                        <td style={{ padding: '8px 6px', color: '#666', fontSize: '12px' }}>
+                          {dt.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
+                          <span style={{ color: '#999', marginLeft: '4px' }}>{dt.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
                         </td>
-                        <td style={{ padding: '10px' }}>{t.orderNo || '-'}</td>
-                        <td style={{ padding: '10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
+                        <td style={{ padding: '8px 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px' }}>
                           {getItemSummary(t)}
                         </td>
-                        <td style={{ padding: '10px', textAlign: 'center' }}>
-                          <span style={{ padding: '2px 8px', borderRadius: '3px', fontSize: '11px', color: typeInfo.color, background: typeInfo.bg }}>
+                        <td style={{ padding: '8px 6px', textAlign: 'center' }}>
+                          <span style={{ padding: '2px 6px', borderRadius: '3px', fontSize: '11px', color: typeInfo.color, background: typeInfo.bg }}>
                             {typeInfo.label}
                           </span>
                         </td>
-                        <td style={{ padding: '10px', textAlign: 'right', fontWeight: 600, color: t.type === 'deposit' ? '#2e7d32' : t.type === 'return' ? '#e65100' : '#1d1d1f' }}>
+                        <td style={{ padding: '8px 6px', textAlign: 'right', fontWeight: 600, fontSize: '12px', color: t.type === 'deposit' ? '#2e7d32' : t.type === 'return' ? '#e65100' : '#1d1d1f' }}>
                           {t.type === 'deposit' ? '+' : ''}{t.amount.toLocaleString()}
                         </td>
-                        <td style={{ padding: '10px', textAlign: 'right', color: '#666' }}>{t.balanceAfter.toLocaleString()}</td>
+                        <td style={{ padding: '8px 6px', textAlign: 'right', color: '#666', fontSize: '12px' }}>{t.balanceAfter.toLocaleString()}</td>
+                        <td style={{ padding: '8px 6px', textAlign: 'center' }}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteTransaction(t.id) }}
+                            disabled={deleteLoading}
+                            style={{ padding: '2px 6px', fontSize: '11px', background: 'transparent', color: '#999', border: 'none', cursor: 'pointer', borderRadius: '3px' }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#d32f2f'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#999'}
+                          >🗑️</button>
+                        </td>
                       </tr>
                     )
                   })}
@@ -708,24 +743,32 @@ export default function TransactionsPage() {
               </div>
 
               {selectedTransaction.items && selectedTransaction.items.length > 0 && (
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: '#666' }}>📦 품목 상세 ({selectedTransaction.items.length}건)</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ flex: 1, overflow: 'auto' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px', color: '#666' }}>📦 품목 ({selectedTransaction.items.length}건)</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {selectedTransaction.items.map((item, idx) => (
-                      <div key={idx} style={{ padding: '10px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '3px solid #007aff' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontWeight: 600 }}>{item.brand}</span>
-                          <span style={{ fontWeight: 600, color: '#1565c0' }}>{item.price.toLocaleString()}원</span>
+                      <div key={idx} style={{ 
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '6px 8px', background: '#f8f9fa', borderRadius: '4px', fontSize: '12px'
+                      }}>
+                        <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontWeight: 600, color: '#5d7a5d' }}>{item.brand}</span>
+                          <span style={{ color: '#666', margin: '0 4px' }}>{item.product}</span>
+                          {item.sph && <span style={{ color: '#999' }}>{item.sph}</span>}
+                          {item.cyl && <span style={{ color: '#999' }}>/{item.cyl}</span>}
+                          <span style={{ color: '#999', marginLeft: '4px' }}>×{item.qty}</span>
                         </div>
-                        <div style={{ color: '#666', marginBottom: '6px' }}>{item.product} × {item.qty}</div>
-                        {(item.sph || item.cyl || item.add) && (
-                          <div style={{ fontSize: '12px', color: '#86868b', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            {item.sph && <span>SPH: {item.sph}</span>}
-                            {item.cyl && <span>CYL: {item.cyl}</span>}
-                            {item.axis && <span>AXIS: {item.axis}</span>}
-                            {item.add && <span>ADD: {item.add}</span>}
-                          </div>
-                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                          <span style={{ fontWeight: 600, color: '#1565c0' }}>{item.price.toLocaleString()}</span>
+                          {item.id && (
+                            <button
+                              onClick={() => handleDeleteItem(item.id!)}
+                              style={{ padding: '2px 4px', fontSize: '10px', background: 'transparent', color: '#ccc', border: 'none', cursor: 'pointer' }}
+                              onMouseEnter={e => e.currentTarget.style.color = '#d32f2f'}
+                              onMouseLeave={e => e.currentTarget.style.color = '#ccc'}
+                            >✕</button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -230,23 +230,45 @@ async function main() {
   ]);
 
   // ------ 케미 (Brand 2) - 단초점 렌즈 (여벌) ------
-  console.log('\n📌 케미(2) - 단초점 렌즈 등록...');
+  // 기존 "구면(SP)/비구면(ASP)" → "일반(SP)/초발수(ASP)/퍼펙트UV/근적외선차단(IR)" 재분류
+  console.log('\n📌 케미(2) - 단초점 렌즈 재분류 + 등록...');
+
+  // 기존 품목명 변경
+  await renameProductLine(2, '구면 (SP)', '일반 (SP)');
+  await renameProductLine(2, '비구면 (ASP)', '초발수 (ASP)');
+
   await seedBrand(2, '안경렌즈 여벌', [
-    // ── 구면 (SP) ──
-    { lineName: '구면 (SP)', lineCode: 'SP', products: [
-      { name: '1.56 SP', code: '156-SP', productType: '구면', refractiveIndex: '1.56', sellingPrice: 25000, purchasePrice: 0 },
-      { name: '1.56 UV400 SP', code: '156-UV-SP', productType: '구면', refractiveIndex: '1.56', sellingPrice: 35000, purchasePrice: 0 },
-      { name: '1.60 UV400 SP', code: '160-UV-SP', productType: '구면', refractiveIndex: '1.60', sellingPrice: 45000, purchasePrice: 0 },
-      { name: '1.60 UV400(70mm) SP', code: '160-UV70-SP', productType: '구면', refractiveIndex: '1.60', sellingPrice: 45000, purchasePrice: 0 },
+    // ── 일반 (SP) ──
+    { lineName: '일반 (SP)', lineCode: 'SP', products: [
+      { name: '1.56 SP', productType: '구면', refractiveIndex: '1.56', sellingPrice: 25000, purchasePrice: 0 },
+      { name: '1.56 UV400 SP', productType: '구면', refractiveIndex: '1.56', sellingPrice: 35000, purchasePrice: 0 },
+      { name: '1.60 UV400 SP', productType: '구면', refractiveIndex: '1.60', sellingPrice: 45000, purchasePrice: 0 },
+      { name: '1.60 UV400(70mm) SP', productType: '구면', refractiveIndex: '1.60', sellingPrice: 45000, purchasePrice: 0 },
     ]},
-    // ── 비구면 (ASP) ──
-    { lineName: '비구면 (ASP)', lineCode: 'ASP', products: [
-      { name: '1.56 CHAOS', code: '156-CHAOS', productType: '비구면', refractiveIndex: '1.56', sellingPrice: 35000, purchasePrice: 0 },
-      { name: '1.60 ARGUS', code: '160-ARGUS', productType: '비구면', refractiveIndex: '1.60', sellingPrice: 75000, purchasePrice: 0 },
-      { name: '1.67 ZEUS', code: '167-ZEUS', productType: '비구면', refractiveIndex: '1.67', sellingPrice: 95000, purchasePrice: 0 },
-      { name: '1.67 ZEUS ATOMEGA', code: '167-ZEUS-AT', productType: '비구면', refractiveIndex: '1.67', sellingPrice: 140000, purchasePrice: 0 },
-      { name: '1.74 HERA', code: '174-HERA', productType: '비구면', refractiveIndex: '1.74', sellingPrice: 150000, purchasePrice: 0 },
-      { name: '1.74 HERA ATOMEGA', code: '174-HERA-AT', productType: '비구면', refractiveIndex: '1.74', sellingPrice: 230000, purchasePrice: 0 },
+    // ── 초발수 (ASP) ──
+    { lineName: '초발수 (ASP)', lineCode: 'ASP', products: [
+      { name: '1.56 CHAOS', productType: '비구면', refractiveIndex: '1.56', sellingPrice: 35000, purchasePrice: 0 },
+      { name: '1.60 ARGUS', productType: '비구면', refractiveIndex: '1.60', sellingPrice: 75000, purchasePrice: 0 },
+      { name: '1.67 ZEUS', productType: '비구면', refractiveIndex: '1.67', sellingPrice: 95000, purchasePrice: 0 },
+      { name: '1.67 ZEUS ATOMEGA', productType: '비구면', refractiveIndex: '1.67', sellingPrice: 140000, purchasePrice: 0 },
+      { name: '1.74 HERA', productType: '비구면', refractiveIndex: '1.74', sellingPrice: 150000, purchasePrice: 0 },
+      { name: '1.74 HERA ATOMEGA', productType: '비구면', refractiveIndex: '1.74', sellingPrice: 230000, purchasePrice: 0 },
+    ]},
+    // ── 퍼펙트UV ──
+    { lineName: '퍼펙트UV', lineCode: 'PUV-SPARE', products: [
+      { name: '퍼펙트UV 1.56', productType: '퍼펙트UV', refractiveIndex: '1.56', sellingPrice: 50000, purchasePrice: 0 },
+      { name: '퍼펙트UV 1.60', productType: '퍼펙트UV', refractiveIndex: '1.60', sellingPrice: 120000, purchasePrice: 0 },
+      { name: '퍼펙트UV 1.67', productType: '퍼펙트UV', refractiveIndex: '1.67', sellingPrice: 0, purchasePrice: 0 },
+      { name: '퍼펙트UV 1.74', productType: '퍼펙트UV', refractiveIndex: '1.74', sellingPrice: 170000, purchasePrice: 0 },
+    ]},
+    // ── 근적외선차단 (IR) ──
+    { lineName: '근적외선차단 (IR)', lineCode: 'IR-SPARE', products: [
+      { name: 'IR 1.56 SP', productType: 'IR', refractiveIndex: '1.56', sellingPrice: 0, purchasePrice: 0 },
+      { name: 'IR 1.56 ASP', productType: 'IR', refractiveIndex: '1.56', sellingPrice: 0, purchasePrice: 0 },
+      { name: 'IR 1.60 SP', productType: 'IR', refractiveIndex: '1.60', sellingPrice: 110000, purchasePrice: 0 },
+      { name: 'IR 1.60 ASP', productType: 'IR', refractiveIndex: '1.60', sellingPrice: 120000, purchasePrice: 0 },
+      { name: 'IR 1.67 ASP', productType: 'IR', refractiveIndex: '1.67', sellingPrice: 230000, purchasePrice: 0 },
+      { name: 'IR 1.74 ASP', productType: 'IR', refractiveIndex: '1.74', sellingPrice: 300000, purchasePrice: 0 },
     ]},
   ]);
 
@@ -330,6 +352,40 @@ async function main() {
   ]);
 
   // ================================================
+  // STEP 4: 도수옵션 등록 (여벌 상품 - Brand 2)
+  // ================================================
+  console.log('\n📐 도수옵션 등록 (케미 여벌)...');
+
+  // 카탈로그 기준 도수 범위
+  // 일반 (SP) 계열
+  await seedDiopterOptions('1.56 SP',              2, -8.00,  +6.00, -2.00);
+  await seedDiopterOptions('1.56 UV400 SP',        2, -10.00,    0,  -2.00);
+  await seedDiopterOptions('1.60 UV400 SP',        2, -12.00, +8.00, -4.00);
+  await seedDiopterOptions('1.60 UV400(70mm) SP',  2, -12.00, +8.00, -4.00);
+
+  // 초발수 (ASP) 계열
+  await seedDiopterOptions('1.56 CHAOS',           2, -10.00, +6.00, -2.00);
+  await seedDiopterOptions('1.60 ARGUS',           2, -12.00, +8.00, -4.00);
+  await seedDiopterOptions('1.67 ZEUS',            2, -14.00, +8.00, -4.00);
+  await seedDiopterOptions('1.67 ZEUS ATOMEGA',    2, -14.00, +8.00, -4.00);
+  await seedDiopterOptions('1.74 HERA',            2, -16.00, +10.00, -4.00);
+  await seedDiopterOptions('1.74 HERA ATOMEGA',    2, -16.00, +10.00, -4.00);
+
+  // 퍼펙트UV 계열 (카탈로그 기준 - RX 생산범위와 동일)
+  await seedDiopterOptions('퍼펙트UV 1.56',        2, -8.00,  +6.00, -2.00);
+  await seedDiopterOptions('퍼펙트UV 1.60',        2, -10.00, +6.00, -4.00);
+  await seedDiopterOptions('퍼펙트UV 1.67',        2, -14.00, +8.00, -4.00);
+  await seedDiopterOptions('퍼펙트UV 1.74',        2, -16.00, +10.00, -4.00);
+
+  // 근적외선차단 (IR) 계열
+  await seedDiopterOptions('IR 1.56 SP',           2, -8.00,  +4.00, -2.00);
+  await seedDiopterOptions('IR 1.56 ASP',          2, -8.00,  +4.00, -2.00);
+  await seedDiopterOptions('IR 1.60 SP',           2, -7.00,  +4.00, -2.00);
+  await seedDiopterOptions('IR 1.60 ASP',          2, -10.00, +6.00, -4.00);
+  await seedDiopterOptions('IR 1.67 ASP',          2, -14.00, +8.00, -4.00);
+  await seedDiopterOptions('IR 1.74 ASP',          2, -16.00, +10.00, -4.00);
+
+  // ================================================
   // 최종 통계
   // ================================================
   console.log('\n📊 최종 통계:');
@@ -339,13 +395,17 @@ async function main() {
     const activeProducts = await prisma.product.count({ where: { brandId, isActive: true } });
     const inactiveProducts = await prisma.product.count({ where: { brandId, isActive: false } });
     const lines = await prisma.productLine.count({ where: { brandId } });
-    console.log(`  ${brand.name}(${brandId}): 활성 ${activeProducts}개, 비활성 ${inactiveProducts}개, 품목 ${lines}개`);
+    const options = await prisma.productOption.count({
+      where: { product: { brandId, isActive: true } }
+    });
+    console.log(`  ${brand.name}(${brandId}): 활성 ${activeProducts}개, 비활성 ${inactiveProducts}개, 품목 ${lines}개, 도수옵션 ${options}개`);
   }
 
   const totalActive = await prisma.product.count({ where: { isActive: true } });
   const totalInactive = await prisma.product.count({ where: { isActive: false } });
   const totalLines = await prisma.productLine.count();
-  console.log(`\n  전체: 활성 ${totalActive}개, 비활성 ${totalInactive}개, 품목 ${totalLines}개`);
+  const totalOptions = await prisma.productOption.count();
+  console.log(`\n  전체: 활성 ${totalActive}개, 비활성 ${totalInactive}개, 품목 ${totalLines}개, 도수옵션 ${totalOptions}개`);
   console.log('\n✅ 케미렌즈 카탈로그 시드 완료!');
 }
 
@@ -408,6 +468,84 @@ async function seedBrand(brandId, optionType, lineGroups) {
   }
 
   console.log(`  ✅ ${totalCreated}개 상품 생성\n`);
+}
+
+/**
+ * 기존 ProductLine 이름 변경
+ */
+async function renameProductLine(brandId, oldName, newName) {
+  const pl = await prisma.productLine.findFirst({
+    where: { brandId, name: oldName }
+  });
+  if (pl) {
+    await prisma.productLine.update({
+      where: { id: pl.id },
+      data: { name: newName }
+    });
+    console.log(`  🔄 품목명 변경: "${oldName}" → "${newName}"`);
+  }
+}
+
+/**
+ * 도수옵션 일괄 등록
+ * @param {string} productName - 상품명
+ * @param {number} brandId - 브랜드 ID
+ * @param {number} sphMinusMax - SPH 마이너스 최대값 (예: -8.00)
+ * @param {number} sphPlusMax - SPH 플러스 최대값 (예: +6.00)
+ * @param {number} cylMin - CYL 최소값 (예: -2.00)
+ */
+async function seedDiopterOptions(productName, brandId, sphMinusMax, sphPlusMax, cylMin) {
+  const product = await prisma.product.findFirst({
+    where: { name: productName, brandId, isActive: true }
+  });
+
+  if (!product) {
+    console.log(`  ⚠️ 상품 미발견: ${productName}`);
+    return;
+  }
+
+  // 기존 옵션 삭제 (재등록)
+  const deleted = await prisma.productOption.deleteMany({
+    where: { productId: product.id }
+  });
+  if (deleted.count > 0) {
+    console.log(`  🗑️ 기존 옵션 ${deleted.count}개 삭제: ${productName}`);
+  }
+
+  const formatValue = (v) => {
+    const rounded = Math.round(v * 100) / 100;
+    if (rounded === 0) return '0.00';
+    return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2);
+  };
+
+  const options = [];
+  const step = 0.25;
+
+  // SPH 범위: sphMinusMax ~ sphPlusMax (0.25 단위)
+  // CYL 범위: cylMin ~ 0.00 (0.25 단위)
+  for (let sph = sphMinusMax; sph <= sphPlusMax + 0.001; sph += step) {
+    const roundedSph = Math.round(sph * 100) / 100;
+    for (let cyl = cylMin; cyl <= 0.001; cyl += step) {
+      const roundedCyl = Math.round(cyl * 100) / 100;
+      options.push({
+        productId: product.id,
+        sph: formatValue(roundedSph),
+        cyl: formatValue(roundedCyl),
+        stock: 0,
+        priceAdjustment: 0,
+        isActive: true,
+      });
+    }
+  }
+
+  // createMany로 일괄 생성 (성능)
+  if (options.length > 0) {
+    const result = await prisma.productOption.createMany({
+      data: options,
+      skipDuplicates: true,
+    });
+    console.log(`  ✅ ${productName}: ${result.count}개 도수옵션 생성 (SPH ${formatValue(sphMinusMax)}~${formatValue(sphPlusMax)}, CYL ${formatValue(cylMin)}~0.00)`);
+  }
 }
 
 main()
