@@ -168,9 +168,14 @@ export async function DELETE(
         }
       })
       
-      // 4. 주문도 삭제 (연결된 경우)
+      // 4. 주문도 삭제 (연결된 경우) - 자식 레코드 먼저 삭제
       if (transaction.orderId) {
-        await tx.order.delete({ where: { id: transaction.orderId } })
+        const orderExists = await tx.order.findUnique({ where: { id: transaction.orderId } })
+        if (orderExists) {
+          await tx.orderItem.deleteMany({ where: { orderId: transaction.orderId } })
+          await tx.shippingSlip.deleteMany({ where: { orderId: transaction.orderId } })
+          await tx.order.delete({ where: { id: transaction.orderId } })
+        }
       }
       
       // 5. 거래내역 삭제
@@ -180,8 +185,13 @@ export async function DELETE(
     })
     
     return NextResponse.json({ success: true, message: '거래내역이 삭제되었습니다.' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to delete transaction:', error)
-    return NextResponse.json({ error: '거래내역 삭제에 실패했습니다.' }, { status: 500 })
+    const message = error?.code === 'P2003'
+      ? '연결된 데이터가 있어 삭제할 수 없습니다.'
+      : error?.code === 'P2025'
+        ? '이미 삭제되었거나 존재하지 않는 데이터입니다.'
+        : `거래내역 삭제에 실패했습니다. (${error?.message || '알 수 없는 오류'})`
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

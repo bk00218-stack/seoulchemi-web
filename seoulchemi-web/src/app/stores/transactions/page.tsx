@@ -371,23 +371,32 @@ export default function TransactionsPage() {
   // 품목 삭제
   const handleDeleteItem = async (itemId: number) => {
     if (!confirm('이 품목을 삭제하시겠습니까?')) return
-    
+
     try {
       const res = await fetch(`/api/orders/items/${itemId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('삭제 실패')
-      
+
       // 거래내역 새로고침
       if (selectedStore) {
         const transRes = await fetch(`/api/transactions?storeId=${selectedStore.id}&limit=100`)
         const transData = await transRes.json()
         setTransactions(transData.transactions || [])
-        
+
         // 선택된 거래내역도 업데이트
         if (selectedTransaction) {
           const updated = (transData.transactions || []).find((t: Transaction) => t.id === selectedTransaction.id)
           setSelectedTransaction(updated || null)
         }
+
+        // 가맹점 잔액도 새로고침
+        const storeRes = await fetch(`/api/stores/${selectedStore.id}`)
+        const storeData = await storeRes.json()
+        if (storeData) {
+          setSelectedStore(prev => prev ? { ...prev, balance: storeData.outstandingAmount || 0 } : null)
+          setStores(prev => prev.map(s => s.id === selectedStore.id ? { ...s, balance: storeData.outstandingAmount || 0 } : s))
+        }
       }
+      toast.success('품목이 삭제되었습니다.')
     } catch (error) {
       toast.error('삭제 실패')
     }
@@ -481,10 +490,11 @@ export default function TransactionsPage() {
       const res = await fetch(`/api/transactions?storeId=${store.id}&limit=100`)
       const data = await res.json()
       setTransactions(data.transactions || [])
-      // 로드 후 스크롤 맨 아래로
+      // 로드 후 스크롤 맨 아래로 + 거래내역 영역에 포커스
       setTimeout(() => {
         if (transTableRef.current) {
           transTableRef.current.scrollTop = transTableRef.current.scrollHeight
+          transTableRef.current.focus()
         }
       }, 50)
     } catch (e) {
@@ -657,7 +667,7 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          <div ref={transTableRef} style={{ flex: 1, overflow: 'auto' }}>
+          <div ref={transTableRef} tabIndex={0} style={{ flex: 1, overflow: 'auto', outline: 'none' }}>
             {!selectedStore ? (
               <div style={{ padding: '50px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>거래처 선택</div>
             ) : transLoading ? (
