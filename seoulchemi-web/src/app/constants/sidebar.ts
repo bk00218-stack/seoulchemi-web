@@ -41,6 +41,12 @@ export const PURCHASE_SIDEBAR: SidebarMenu[] = [
       { label: '매입처 목록', href: '/purchase/suppliers' },
       { label: '미납금 관리', href: '/purchase/outstanding' },
     ]
+  },
+  {
+    title: '정산',
+    items: [
+      { label: '정산 관리', href: '/purchase/settlement' },
+    ]
   }
 ]
 

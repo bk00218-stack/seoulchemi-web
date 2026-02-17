@@ -7,10 +7,20 @@ export async function GET(request: NextRequest) {
     const brandId = searchParams.get('brandId')
     const productLineId = searchParams.get('productLineId')
     
+    const search = searchParams.get('search') || ''
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+
     const where: Record<string, unknown> = {}
     if (brandId) where.brandId = parseInt(brandId)
     if (productLineId) where.productLineId = parseInt(productLineId)
-    
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { brand: { name: { contains: search } } },
+        { erpCode: { contains: search } },
+      ]
+    }
+
     const products = await prisma.product.findMany({
       where,
       include: {
@@ -25,7 +35,8 @@ export async function GET(request: NextRequest) {
       orderBy: [
         { displayOrder: 'asc' },
         { name: 'asc' }
-      ]
+      ],
+      ...(limit ? { take: limit } : {})
     })
 
     const brands = await prisma.brand.findMany({
