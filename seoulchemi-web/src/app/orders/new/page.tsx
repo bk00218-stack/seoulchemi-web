@@ -4,6 +4,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect, useCallback, useRef, KeyboardEvent } from 'react'
 import Layout from '../../components/Layout'
 import { ORDER_SIDEBAR } from '../../constants/sidebar'
+import RxOrderForm from './RxOrderForm'
 
 interface Brand { id: number; name: string }
 interface Product { id: number; name: string; brand: string; brandId: number; optionType: string; refractiveIndex: string | null; sellingPrice: number; purchasePrice: number }
@@ -761,7 +762,8 @@ export default function NewOrderPage() {
           </section>
         </div>
 
-        {/* 중앙: 하나의 도수표 (가운데 기준) */}
+        {/* 중앙: 주문 타입에 따른 다른 UI */}
+        {orderType === '여벌' ? (
         <div ref={gridRef} tabIndex={0} onKeyDown={handleGridKeyDown}
           style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: gridFocus ? '2px solid #5d7a5d' : '1px solid #c5dbc5', borderRadius: 8, overflow: 'hidden', outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
           <div style={{ padding: '8px 12px', background: 'linear-gradient(135deg, #6b8e6b 0%, #4a6b4a 100%)', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -845,6 +847,23 @@ export default function NewOrderPage() {
             <span style={{ color: focusedInfo?.isPlus ? '#ffcccb' : '#c5dbc5', fontWeight: 700, fontSize: 13 }}>{focusedInfo ? (focusedInfo.isPlus ? '원시(+)' : '근시(-)') : ''}</span>
           </div>
         </div>
+        ) : orderType === '착색' || orderType === 'RX' ? (
+          <RxOrderForm 
+            orderType={orderType} 
+            products={products} 
+            selectedBrandId={selectedBrandId}
+          />
+        ) : (
+          /* 기타 - 간단한 메모 폼 */
+          <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: '1px solid #c5dbc5', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ padding: '8px 12px', background: 'linear-gradient(135deg, #6b8e6b 0%, #4a6b4a 100%)' }}>
+              <span style={{ fontWeight: 700, color: '#fff' }}>기타 주문</span>
+            </div>
+            <div style={{ flex: 1, padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#868e96' }}>
+              기타 주문 폼 (준비 중)
+            </div>
+          </div>
+        )}
 
         {/* 오른쪽: 주문 목록 */}
         <div style={{ display: 'flex', flexDirection: 'column', background: '#f8f9fa', color: '#212529', borderRadius: 3, overflow: 'hidden', fontSize: 13 }}>
