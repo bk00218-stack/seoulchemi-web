@@ -16,8 +16,8 @@ export async function GET() {
       transactions,
     ] = await Promise.all([
       prisma.store.findMany(),
-      prisma.group.findMany(),
-      prisma.staff.findMany(),
+      prisma.storeGroup.findMany(),
+      prisma.salesStaff.findMany(),
       prisma.brand.findMany(),
       prisma.product.findMany(),
       prisma.order.findMany(),
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
       // Groups
       if (data.groups?.length) {
         for (const item of data.groups) {
-          await tx.group.upsert({
+          await tx.storeGroup.upsert({
             where: { id: item.id },
             update: { name: item.name, discountRate: item.discountRate || 0 },
             create: { id: item.id, name: item.name, discountRate: item.discountRate || 0 }
@@ -103,13 +103,13 @@ export async function POST(request: Request) {
         }
       }
       
-      // Staff
+      // Staff (SalesStaff)
       if (data.staff?.length) {
         for (const item of data.staff) {
-          await tx.staff.upsert({
+          await tx.salesStaff.upsert({
             where: { id: item.id },
-            update: { name: item.name, phone: item.phone, role: item.role, status: item.status },
-            create: { id: item.id, name: item.name, phone: item.phone, role: item.role, status: item.status || 'active' }
+            update: { name: item.name, phone: item.phone },
+            create: { id: item.id, name: item.name, phone: item.phone }
           })
           restored.staff++
         }
