@@ -20,9 +20,8 @@ export const ORDER_SIDEBAR: SidebarMenu[] = [
   {
     title: '출고',
     items: [
-      { label: '전체 주문', href: '/orders/all' },
-      { label: '여벌 출고', href: '/orders/shipping/spare' },
       { label: '통합 출고', href: '/orders/shipping' },
+      { label: '여벌 출고', href: '/orders/shipping/spare' },
       { label: 'RX 출고', href: '/orders/delivery' },
     ]
   }

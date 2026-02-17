@@ -1,851 +1,827 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Layout, { cardStyle } from '../../components/Layout'
+import { useState, useEffect, useCallback, useRef, KeyboardEvent, MouseEvent } from 'react'
+import Layout from '../../components/Layout'
 import { ORDER_SIDEBAR } from '../../constants/sidebar'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
-type StatusFilter = '전체' | '접수' | '가공중' | '가공완료' | '배송중' | '완료'
-
-interface Processor {
+interface SpareOrder {
   id: number
-  name: string
-  pendingCount: number
-  processingCount: number
-}
-
-interface RxOrder {
-  id: number
-  orderNumber: string
+  itemId: number
+  orderNo: string
+  storeId: number
   storeName: string
   storeCode: string
-  customerName: string
+  groupId: number | null
+  groupName: string | null
+  salesStaffId: number | null
+  salesStaffName: string | null
+  deliveryStaffId: number | null
+  deliveryStaffName: string | null
+  productId: number
   productName: string
+  brandId: number
   brandName: string
-  // 처방 정보
-  rSph: string
-  rCyl: string
-  rAxis: string
-  lSph: string
-  lCyl: string
-  lAxis: string
-  pd: string
-  add?: string
-  // 주문 정보
-  amount: number
-  status: '접수' | '가공중' | '가공완료' | '배송중' | '완료'
-  processorName: string
-  processorId: number
+  supplierId: number | null
+  supplierName: string | null
+  sph: string | null
+  cyl: string | null
+  quantity: number
+  unitPrice: number
+  totalPrice: number
   orderedAt: string
-  expectedAt: string
-  // 배송 정보
-  deliveryType: '택배' | '직배송' | '픽업'
-  trackingNumber?: string
 }
 
-export default function DeliveryPage() {
-  const [activeStatus, setActiveStatus] = useState<StatusFilter>('전체')
-  const [selectedProcessor, setSelectedProcessor] = useState<number | null>(null)
-  const [orders, setOrders] = useState<RxOrder[]>([])
-  const [processors, setProcessors] = useState<Processor[]>([])
+interface FilterOption {
+  id: number
+  name: string
+  code?: string
+  phone?: string
+}
+
+interface Filters {
+  suppliers: FilterOption[]
+  stores: FilterOption[]
+  groups: FilterOption[]
+  salesStaffs: FilterOption[]
+  deliveryStaffs: FilterOption[]
+}
+
+type FilterType = 'store' | 'deliveryStaff' | 'group' | 'salesStaff' | 'supplier'
+
+interface ColumnWidths {
+  checkbox: number
+  store: number
+  date: number
+  product: number
+  sph: number
+  cyl: number
+  qty: number
+  price: number
+  delivery: number
+  actions: number
+}
+
+interface ColumnFilters {
+  store: string
+  date: string
+  product: string
+  sph: string
+  cyl: string
+  delivery: string
+}
+
+export default function RxShipmentPage() {
+  const [orders, setOrders] = useState<SpareOrder[]>([])
+  const [filters, setFilters] = useState<Filters>({
+    suppliers: [],
+    stores: [],
+    groups: [],
+    salesStaffs: [],
+    deliveryStaffs: []
+  })
   const [loading, setLoading] = useState(true)
-  const [selectedOrders, setSelectedOrders] = useState<Set<number>>(new Set())
-  const [showDetailModal, setShowDetailModal] = useState<RxOrder | null>(null)
+  const [shipping, setShipping] = useState(false)
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteItemId, setDeleteItemId] = useState<number | null>(null)
+  const [editingCell, setEditingCell] = useState<{ itemId: number; field: 'quantity' | 'totalPrice' } | null>(null)
+  const [editValue, setEditValue] = useState('')
 
-  // 데이터 로드 (데모 데이터)
-  useEffect(() => {
-    // 가공사 데모 데이터
-    const demoProcessors: Processor[] = [
-      { id: 1, name: '한국호야', pendingCount: 12, processingCount: 8 },
-      { id: 2, name: '에실로코리아', pendingCount: 8, processingCount: 5 },
-      { id: 3, name: '니콘렌즈', pendingCount: 6, processingCount: 4 },
-      { id: 4, name: '자이스비전', pendingCount: 4, processingCount: 3 },
-      { id: 5, name: '케미렌즈 RX', pendingCount: 5, processingCount: 2 },
-    ]
-    setProcessors(demoProcessors)
+  // 필터 상태
+  const [activeFilter, setActiveFilter] = useState<FilterType>('store')
+  const [selectedFilterId, setSelectedFilterId] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
-    // RX 주문 데모 데이터
-    const demoOrders: RxOrder[] = [
-      { 
-        id: 1, 
-        orderNumber: 'RX-2026-0001', 
-        storeName: '글라스 망우점', 
-        storeCode: '8107',
-        customerName: '김철수',
-        productName: 'HOYA 누진 1.60 블루컷', 
-        brandName: 'HOYA', 
-        rSph: '-2.00', rCyl: '-0.50', rAxis: '180',
-        lSph: '-2.25', lCyl: '-0.75', lAxis: '175',
-        pd: '64', add: '2.00',
-        amount: 185000, 
-        status: '접수',
-        processorName: '한국호야', 
-        processorId: 1, 
-        orderedAt: '2026-02-15 09:00',
-        expectedAt: '2026-02-17',
-        deliveryType: '택배'
-      },
-      { 
-        id: 2, 
-        orderNumber: 'RX-2026-0002', 
-        storeName: '눈편한안경원', 
-        storeCode: '7753',
-        customerName: '이영희',
-        productName: 'Essilor Varilux 1.67', 
-        brandName: 'Essilor', 
-        rSph: '-4.00', rCyl: '-1.00', rAxis: '90',
-        lSph: '-3.75', lCyl: '-0.75', lAxis: '85',
-        pd: '62', add: '2.50',
-        amount: 280000, 
-        status: '가공중',
-        processorName: '에실로코리아', 
-        processorId: 2, 
-        orderedAt: '2026-02-14 14:30',
-        expectedAt: '2026-02-16',
-        deliveryType: '택배'
-      },
-      { 
-        id: 3, 
-        orderNumber: 'RX-2026-0003', 
-        storeName: '그랑프리 성수점', 
-        storeCode: '4143',
-        customerName: '박민수',
-        productName: 'NIKON 양면비구면 1.74', 
-        brandName: 'NIKON', 
-        rSph: '-6.00', rCyl: '-2.00', rAxis: '15',
-        lSph: '-5.75', lCyl: '-1.75', lAxis: '170',
-        pd: '66',
-        amount: 220000, 
-        status: '가공완료',
-        processorName: '니콘렌즈', 
-        processorId: 3, 
-        orderedAt: '2026-02-13 11:00',
-        expectedAt: '2026-02-15',
-        deliveryType: '직배송'
-      },
-      { 
-        id: 4, 
-        orderNumber: 'RX-2026-0004', 
-        storeName: '더밝은안경 구리', 
-        storeCode: '9697',
-        customerName: '최지은',
-        productName: 'ZEISS Progressive 1.60', 
-        brandName: 'ZEISS', 
-        rSph: '-1.50', rCyl: '-0.25', rAxis: '180',
-        lSph: '-1.75', lCyl: '-0.50', lAxis: '180',
-        pd: '60', add: '1.75',
-        amount: 350000, 
-        status: '배송중',
-        processorName: '자이스비전', 
-        processorId: 4, 
-        orderedAt: '2026-02-12 16:00',
-        expectedAt: '2026-02-14',
-        deliveryType: '택배',
-        trackingNumber: '1234567890'
-      },
-      { 
-        id: 5, 
-        orderNumber: 'RX-2026-0005', 
-        storeName: '로이스 성신여대', 
-        storeCode: '9701',
-        customerName: '정호진',
-        productName: 'HOYA Nulux 1.67 변색', 
-        brandName: 'HOYA', 
-        rSph: '-3.25', rCyl: '-0.75', rAxis: '10',
-        lSph: '-3.00', lCyl: '-1.00', lAxis: '5',
-        pd: '63',
-        amount: 195000, 
-        status: '접수',
-        processorName: '한국호야', 
-        processorId: 1, 
-        orderedAt: '2026-02-15 10:30',
-        expectedAt: '2026-02-17',
-        deliveryType: '픽업'
-      },
-      { 
-        id: 6, 
-        orderNumber: 'RX-2026-0006', 
-        storeName: '눈이야기', 
-        storeCode: '11485',
-        customerName: '강서연',
-        productName: '케미 RX 중굴절 1.60', 
-        brandName: '케미', 
-        rSph: '-2.50', rCyl: '-0.50', rAxis: '175',
-        lSph: '-2.75', lCyl: '-0.75', lAxis: '180',
-        pd: '61',
-        amount: 85000, 
-        status: '가공중',
-        processorName: '케미렌즈 RX', 
-        processorId: 5, 
-        orderedAt: '2026-02-14 09:00',
-        expectedAt: '2026-02-16',
-        deliveryType: '택배'
-      },
-      { 
-        id: 7, 
-        orderNumber: 'RX-2026-0007', 
-        storeName: '글라스타 잠실점', 
-        storeCode: '7899',
-        customerName: '윤민재',
-        productName: 'Essilor Eyezen 1.60', 
-        brandName: 'Essilor', 
-        rSph: '-1.00', rCyl: '-0.25', rAxis: '90',
-        lSph: '-0.75', lCyl: '-0.25', lAxis: '90',
-        pd: '65',
-        amount: 165000, 
-        status: '완료',
-        processorName: '에실로코리아', 
-        processorId: 2, 
-        orderedAt: '2026-02-10 13:00',
-        expectedAt: '2026-02-12',
-        deliveryType: '직배송'
-      },
-      { 
-        id: 8, 
-        orderNumber: 'RX-2026-0008', 
-        storeName: '글라스스토리 미사점', 
-        storeCode: '8128',
-        customerName: '한소희',
-        productName: 'NIKON Presio Master 1.67', 
-        brandName: 'NIKON', 
-        rSph: '-4.50', rCyl: '-1.25', rAxis: '5',
-        lSph: '-4.25', lCyl: '-1.00', lAxis: '175',
-        pd: '62', add: '2.25',
-        amount: 295000, 
-        status: '가공완료',
-        processorName: '니콘렌즈', 
-        processorId: 3, 
-        orderedAt: '2026-02-13 15:00',
-        expectedAt: '2026-02-15',
-        deliveryType: '택배'
-      },
-    ]
-    setOrders(demoOrders)
-    setLoading(false)
-  }, [])
-
-  // 필터링된 주문
-  const filteredOrders = orders.filter(order => {
-    const matchesStatus = activeStatus === '전체' || order.status === activeStatus
-    const matchesProcessor = selectedProcessor === null || order.processorId === selectedProcessor
-    return matchesStatus && matchesProcessor
+  // 컬럼별 검색 필터
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
+    store: '',
+    date: '',
+    product: '',
+    sph: '',
+    cyl: '',
+    delivery: ''
   })
 
-  // 상태별 카운트
-  const statusCounts = {
-    '전체': orders.length,
-    '접수': orders.filter(o => o.status === '접수').length,
-    '가공중': orders.filter(o => o.status === '가공중').length,
-    '가공완료': orders.filter(o => o.status === '가공완료').length,
-    '배송중': orders.filter(o => o.status === '배송중').length,
-    '완료': orders.filter(o => o.status === '완료').length,
+  // 키보드 네비게이션
+  const [focusedFilterIndex, setFocusedFilterIndex] = useState<number>(-1)
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
+  const [focusArea, setFocusArea] = useState<'search' | 'filter' | 'table'>('search')
+  
+  // 리사이즈
+  const [leftPanelWidth, setLeftPanelWidth] = useState(300)
+  const [isResizing, setIsResizing] = useState<string | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  
+  // 컬럼 너비
+  const [columnWidths, setColumnWidths] = useState<ColumnWidths>({
+    checkbox: 36,
+    store: 130,
+    date: 110,
+    product: 220,
+    sph: 60,
+    cyl: 60,
+    qty: 55,
+    price: 75,
+    delivery: 70,
+    actions: 40
+  })
+  const [resizingColumn, setResizingColumn] = useState<keyof ColumnWidths | null>(null)
+  const [startX, setStartX] = useState(0)
+  const [startWidth, setStartWidth] = useState(0)
+  
+  const filterListRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLTableSectionElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // 데이터 로드
+  const loadOrders = useCallback(async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
+      
+      if (selectedFilterId !== null) {
+        switch (activeFilter) {
+          case 'supplier': params.set('supplierId', String(selectedFilterId)); break
+          case 'store': params.set('storeId', String(selectedFilterId)); break
+          case 'group': params.set('groupId', String(selectedFilterId)); break
+          case 'salesStaff': params.set('salesStaffId', String(selectedFilterId)); break
+          case 'deliveryStaff': params.set('deliveryStaffId', String(selectedFilterId)); break
+        }
+      }
+
+      const res = await fetch(`/api/orders/ship/spare?orderType=rx&${params.toString()}`)
+      if (!res.ok) throw new Error('Failed to fetch')
+      const data = await res.json()
+      setOrders(data.orders || [])
+      setFilters(data.filters || { suppliers: [], stores: [], groups: [], salesStaffs: [], deliveryStaffs: [] })
+    } catch (error) {
+      console.error('Failed to load orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [activeFilter, selectedFilterId])
+
+  useEffect(() => { loadOrders() }, [loadOrders])
+
+  // 초기 화면으로 리셋
+  const resetToInitial = useCallback(() => {
+    setSelectedItems(new Set())
+    setSelectedFilterId(null)
+    setSearchQuery('')
+    setColumnFilters({ store: '', date: '', product: '', sph: '', cyl: '', delivery: '' })
+    setFocusedFilterIndex(-1)
+    setFocusedRowIndex(-1)
+    setFocusArea('search')
+    searchInputRef.current?.focus()
+  }, [])
+
+  // F2 단축키 - 출고 처리, ESC - 초기화면
+  useEffect(() => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'F2' && selectedItems.size > 0 && !shipping) {
+        e.preventDefault()
+        handleShipping()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        resetToInitial()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedItems.size, shipping, resetToInitial])
+
+  // 컬럼 필터링된 주문
+  const getFilteredOrders = () => {
+    return orders.filter(order => {
+      if (columnFilters.store && !order.storeName.toLowerCase().includes(columnFilters.store.toLowerCase())) return false
+      if (columnFilters.date) {
+        const dateStr = new Date(order.orderedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+        if (!dateStr.includes(columnFilters.date)) return false
+      }
+      if (columnFilters.product) {
+        const productStr = `${order.brandName} ${order.productName}`.toLowerCase()
+        if (!productStr.includes(columnFilters.product.toLowerCase())) return false
+      }
+      if (columnFilters.sph && order.sph && !order.sph.includes(columnFilters.sph)) return false
+      if (columnFilters.cyl && order.cyl && !order.cyl.includes(columnFilters.cyl)) return false
+      if (columnFilters.delivery && order.deliveryStaffName && !order.deliveryStaffName.toLowerCase().includes(columnFilters.delivery.toLowerCase())) return false
+      return true
+    })
   }
 
-  // 전체 선택/해제
+  const filteredOrders = getFilteredOrders()
+
+  // 리사이즈 핸들러
+  const handlePanelMouseDown = (e: MouseEvent) => {
+    e.preventDefault()
+    setIsResizing('panel')
+    setStartX(e.clientX)
+    setStartWidth(leftPanelWidth)
+  }
+
+  const handleColumnMouseDown = (column: keyof ColumnWidths) => (e: MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setResizingColumn(column)
+    setStartX(e.clientX)
+    setStartWidth(columnWidths[column])
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: globalThis.MouseEvent) => {
+      if (isResizing === 'panel' && containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect()
+        const newWidth = e.clientX - containerRect.left
+        setLeftPanelWidth(Math.max(220, Math.min(450, newWidth)))
+      }
+      if (resizingColumn) {
+        const diff = e.clientX - startX
+        const newWidth = Math.max(40, startWidth + diff)
+        setColumnWidths(prev => ({ ...prev, [resizingColumn]: newWidth }))
+      }
+    }
+    const handleMouseUp = () => { setIsResizing(null); setResizingColumn(null) }
+
+    if (isResizing || resizingColumn) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [isResizing, resizingColumn, startX, startWidth])
+
+  // 필터 관련
+  const getFilterList = (): FilterOption[] => {
+    switch (activeFilter) {
+      case 'supplier': return filters.suppliers
+      case 'store': return filters.stores
+      case 'group': return filters.groups
+      case 'salesStaff': return filters.salesStaffs
+      case 'deliveryStaff': return filters.deliveryStaffs
+      default: return []
+    }
+  }
+
+  const handleFilterTypeChange = (type: FilterType) => {
+    setActiveFilter(type)
+    setSelectedFilterId(null)
+    setSearchQuery('')
+    setFocusedFilterIndex(-1)
+  }
+
+  // 검색 필터링 - 이름, 코드, 전화번호 모두 검색
+  const getFilteredList = () => {
+    const list = getFilterList()
+    if (!searchQuery.trim()) return list
+    const query = searchQuery.toLowerCase().replace(/-/g, '')
+    return list.filter(item => 
+      item.name.toLowerCase().includes(query) || 
+      (item.code && item.code.toLowerCase().includes(query)) ||
+      (item.phone && item.phone.replace(/-/g, '').includes(query))
+    )
+  }
+
+  const getFilterStats = () => {
+    const list = getFilteredList()
+    return list.map(item => {
+      let count = 0, amount = 0
+      orders.forEach(order => {
+        let matches = false
+        switch (activeFilter) {
+          case 'supplier': matches = order.supplierId === item.id; break
+          case 'store': matches = order.storeId === item.id; break
+          case 'group': matches = order.groupId === item.id; break
+          case 'salesStaff': matches = order.salesStaffId === item.id; break
+          case 'deliveryStaff': matches = order.deliveryStaffId === item.id; break
+        }
+        if (matches) { count++; amount += order.totalPrice }
+      })
+      return { ...item, count, amount }
+    }).filter(s => s.count > 0)
+  }
+
   const toggleSelectAll = () => {
-    if (selectedOrders.size === filteredOrders.length) {
-      setSelectedOrders(new Set())
+    if (selectedItems.size === filteredOrders.length) {
+      setSelectedItems(new Set())
     } else {
-      setSelectedOrders(new Set(filteredOrders.map(o => o.id)))
+      setSelectedItems(new Set(filteredOrders.map(o => o.itemId)))
     }
   }
 
-  // 개별 선택
-  const toggleSelect = (id: number) => {
-    const newSet = new Set(selectedOrders)
-    if (newSet.has(id)) {
-      newSet.delete(id)
-    } else {
-      newSet.add(id)
-    }
-    setSelectedOrders(newSet)
+  const toggleSelect = (itemId: number) => {
+    const newSet = new Set(selectedItems)
+    if (newSet.has(itemId)) newSet.delete(itemId)
+    else newSet.add(itemId)
+    setSelectedItems(newSet)
   }
 
-  // 상태 변경
-  const handleStatusChange = (newStatus: '접수' | '가공중' | '가공완료' | '배송중' | '완료') => {
-    if (selectedOrders.size === 0) {
-      alert('상태를 변경할 주문을 선택해주세요.')
+  // 거래명세표 자동 인쇄 (인쇄창 없이 숨겨진 iframe으로)
+  const printInvoice = async (shippedResults: { orderId: number; shippedItemIds?: number[] }[]) => {
+    try {
+      for (const result of shippedResults) {
+        const params = new URLSearchParams()
+        params.set('type', 'invoice')
+        if (result.shippedItemIds?.length) params.set('itemIds', result.shippedItemIds.join(','))
+        const printUrl = `/orders/${result.orderId}/print?${params.toString()}&silent=1`
+
+        // 숨겨진 iframe으로 자동 인쇄 (인쇄 대화상자 없음)
+        await new Promise<void>((resolve) => {
+          const iframe = document.createElement('iframe')
+          iframe.style.position = 'fixed'
+          iframe.style.left = '-9999px'
+          iframe.style.top = '-9999px'
+          iframe.style.width = '0'
+          iframe.style.height = '0'
+          iframe.src = printUrl
+          document.body.appendChild(iframe)
+
+          // iframe 로드 후 인쇄 실행
+          iframe.onload = () => {
+            setTimeout(() => {
+              try {
+                iframe.contentWindow?.print()
+              } catch (e) {
+                console.error('Print failed:', e)
+              }
+              // 인쇄 후 iframe 정리
+              setTimeout(() => {
+                document.body.removeChild(iframe)
+                resolve()
+              }, 1000)
+            }, 500)
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Failed to print invoice:', error)
+    }
+  }
+
+  // 출고 확인 모달 표시
+  const handleShipping = () => {
+    if (selectedItems.size === 0) { alert('출고할 주문을 선택해주세요.'); return }
+    setShowConfirm(true)
+  }
+
+  // 실제 출고 실행
+  const executeShipping = async () => {
+    setShowConfirm(false)
+    try {
+      setShipping(true)
+      const res = await fetch('/api/orders/ship/spare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds: Array.from(selectedItems) })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '출고 처리 실패')
+
+      // 거래명세표 자동 출력 (출고된 아이템만 포함)
+      if (data.shipped?.length > 0) {
+        printInvoice(data.shipped.map((s: any) => ({
+          orderId: s.orderId,
+          shippedItemIds: s.shippedItemIds
+        })))
+      }
+
+      // 초기 화면으로 리셋 후 데이터 재로드
+      resetToInitial()
+      loadOrders()
+    } catch (error: any) {
+      alert(`출고 실패: ${error.message}`)
+    } finally {
+      setShipping(false)
+    }
+  }
+
+  // 셀 편집 시작
+  const startEditing = (itemId: number, field: 'quantity' | 'totalPrice', currentValue: number) => {
+    setEditingCell({ itemId, field })
+    setEditValue(String(currentValue))
+  }
+
+  // 셀 편집 저장
+  const saveEdit = async () => {
+    if (!editingCell) return
+    
+    const { itemId, field } = editingCell
+    let value = parseFloat(editValue)
+    
+    if (isNaN(value) || value === 0) {
+      setEditingCell(null)
       return
     }
-    const statusLabels: { [key: string]: string } = {
-      '접수': '접수',
-      '가공중': '가공중',
-      '가공완료': '가공완료',
-      '배송중': '배송중',
-      '완료': '완료'
+
+    // 수량은 0.5 단위로 반올림 (음수 반품도 허용)
+    if (field === 'quantity') {
+      value = value >= 0
+        ? Math.round(value * 2) / 2
+        : -Math.round(Math.abs(value) * 2) / 2
+      if (value === 0) { setEditingCell(null); return }
     }
-    alert(`${selectedOrders.size}건의 주문이 "${statusLabels[newStatus]}" 상태로 변경되었습니다.`)
-    setSelectedOrders(new Set())
+    
+    try {
+      const res = await fetch(`/api/orders/items/${itemId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value })
+      })
+      if (!res.ok) throw new Error('수정 실패')
+      loadOrders()
+    } catch (error) {
+      alert('수정에 실패했습니다.')
+    }
+    setEditingCell(null)
   }
 
-  // 선택된 주문 합계
-  const selectedTotal = filteredOrders
-    .filter(o => selectedOrders.has(o.id))
-    .reduce((sum, o) => sum + o.amount, 0)
+  // 셀 편집 취소
+  const cancelEdit = () => {
+    setEditingCell(null)
+    setEditValue('')
+  }
 
-  // 상태 색상
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case '접수': return { bg: '#fff3e0', color: '#ff9800' }
-      case '가공중': return { bg: '#e3f2fd', color: '#2196f3' }
-      case '가공완료': return { bg: '#e8f5e9', color: '#4caf50' }
-      case '배송중': return { bg: '#fce4ec', color: '#e91e63' }
-      case '완료': return { bg: '#f5f5f5', color: '#757575' }
-      default: return { bg: '#f5f5f5', color: '#757575' }
+  // 삭제 확인 모달 열기
+  const confirmDelete = (itemId: number) => {
+    setDeleteItemId(itemId)
+    setShowDeleteConfirm(true)
+  }
+
+  // 아이템 삭제 실행
+  const executeDelete = async () => {
+    if (!deleteItemId) return
+    setShowDeleteConfirm(false)
+    
+    try {
+      const res = await fetch(`/api/orders/items/${deleteItemId}`, {
+        method: 'DELETE'
+      })
+      if (!res.ok) throw new Error('삭제 실패')
+      loadOrders()
+    } catch (error) {
+      alert('삭제에 실패했습니다.')
     }
+    setDeleteItemId(null)
+  }
+
+  // 키보드 핸들러
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    const stats = getFilterStats()
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setFocusArea('filter')
+      setFocusedFilterIndex(stats.length > 0 ? 0 : -1)
+      filterListRef.current?.focus()
+    } else if (e.key === 'Enter' && stats.length > 0) {
+      e.preventDefault()
+      setSelectedFilterId(stats[0].id)
+      setFocusArea('table')
+      setFocusedRowIndex(0)
+      setTimeout(() => tableRef.current?.focus(), 100)
+    }
+  }
+
+  const handleFilterKeyDown = (e: KeyboardEvent) => {
+    const stats = getFilterStats()
+    const maxIndex = stats.length - 1
+    switch (e.key) {
+      case 'ArrowDown': e.preventDefault(); setFocusedFilterIndex(prev => Math.min(prev + 1, maxIndex)); break
+      case 'ArrowUp':
+        e.preventDefault()
+        if (focusedFilterIndex <= 0) { setFocusArea('search'); setFocusedFilterIndex(-1); searchInputRef.current?.focus() }
+        else setFocusedFilterIndex(prev => prev - 1)
+        break
+      case 'Enter':
+      case 'ArrowRight':
+        e.preventDefault()
+        if (e.key === 'Enter' && focusedFilterIndex >= 0 && stats[focusedFilterIndex]) setSelectedFilterId(stats[focusedFilterIndex].id)
+        setFocusArea('table'); setFocusedRowIndex(0)
+        setTimeout(() => tableRef.current?.focus(), 100)
+        break
+    }
+  }
+
+  const handleTableKeyDown = (e: KeyboardEvent) => {
+    const maxIndex = filteredOrders.length - 1
+    switch (e.key) {
+      case 'ArrowDown': e.preventDefault(); setFocusedRowIndex(prev => Math.min(prev + 1, maxIndex)); break
+      case 'ArrowUp': e.preventDefault(); setFocusedRowIndex(prev => Math.max(prev - 1, 0)); break
+      case ' ': e.preventDefault(); if (filteredOrders[focusedRowIndex]) toggleSelect(filteredOrders[focusedRowIndex].itemId); break
+      case 'Enter':
+        e.preventDefault()
+        if (filteredOrders[focusedRowIndex]) {
+          toggleSelect(filteredOrders[focusedRowIndex].itemId)
+          if (focusedRowIndex < maxIndex) setFocusedRowIndex(prev => prev + 1)
+        }
+        break
+      case 'a': if (e.ctrlKey || e.metaKey) { e.preventDefault(); toggleSelectAll() } break
+      case 'ArrowLeft': e.preventDefault(); setFocusArea('filter'); filterListRef.current?.focus(); break
+    }
+  }
+
+  useEffect(() => {
+    if (focusArea === 'table' && focusedRowIndex >= 0) {
+      const row = tableRef.current?.children[focusedRowIndex] as HTMLElement
+      row?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [focusedRowIndex, focusArea])
+
+  useEffect(() => {
+    if (focusArea === 'filter' && focusedFilterIndex >= 0) {
+      const items = filterListRef.current?.children
+      if (items && items[focusedFilterIndex]) (items[focusedFilterIndex] as HTMLElement).scrollIntoView({ block: 'nearest' })
+    }
+  }, [focusedFilterIndex, focusArea])
+
+  const selectedOrders = filteredOrders.filter(o => selectedItems.has(o.itemId))
+  const selectedTotal = selectedOrders.reduce((sum, o) => sum + o.totalPrice, 0)
+  const selectedQuantity = selectedOrders.reduce((sum, o) => sum + o.quantity, 0)
+  const filterStats = getFilterStats()
+  const filterLabels: Record<FilterType, string> = { store: '가맹점', deliveryStaff: '배송담당', group: '그룹', salesStaff: '영업담당', supplier: '매입처' }
+  const filterOrder: FilterType[] = ['store', 'deliveryStaff', 'group', 'salesStaff', 'supplier']
+
+  const ColumnResizer = ({ column }: { column: keyof ColumnWidths }) => (
+    <div
+      onMouseDown={handleColumnMouseDown(column)}
+      style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 6, cursor: 'col-resize', background: resizingColumn === column ? '#5d7a5d' : 'transparent', zIndex: 2 }}
+      onMouseEnter={(e) => { if (!resizingColumn) e.currentTarget.style.background = '#ccc' }}
+      onMouseLeave={(e) => { if (!resizingColumn) e.currentTarget.style.background = 'transparent' }}
+    />
+  )
+
+  const updateColumnFilter = (key: keyof ColumnFilters, value: string) => {
+    setColumnFilters(prev => ({ ...prev, [key]: value }))
   }
 
   return (
     <Layout sidebarMenus={ORDER_SIDEBAR} activeNav="주문">
       {/* 헤더 */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: 15,
-        paddingBottom: 10,
-        borderBottom: '2px solid #1976d2'
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingBottom: 10, borderBottom: '2px solid #5d7a5d' }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>RX 출고 관리</h1>
-          <p style={{ fontSize: 12, color: '#666', margin: '4px 0 0' }}>
-            맞춤 렌즈 가공 현황 및 배송 관리
+          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+            RX 출고
+            <span style={{ fontSize: 12, background: '#eef4ee', color: '#5d7a5d', padding: '3px 8px', borderRadius: 4, marginLeft: 10, fontWeight: 500 }}>
+              {filteredOrders.length}건 대기
+            </span>
+          </h1>
+          <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>
+            <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10 }}>↑↓</kbd> 이동 
+            <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>Enter</kbd> 선택+다음
+            <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>F2</kbd> 출고
+            <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>ESC</kbd> 초기화
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <span style={{ fontSize: 13, color: '#666' }}>
-            {new Date().toLocaleDateString('ko-KR', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric',
-              weekday: 'long'
-            })}
-          </span>
-        </div>
+        <span style={{ fontSize: 13, color: '#666' }}>
+          {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+        </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 15, height: 'calc(100vh - 180px)' }}>
+      <div ref={containerRef} style={{ display: 'flex', height: 'calc(100vh - 170px)', userSelect: (isResizing || resizingColumn) ? 'none' : 'auto' }}>
         
-        {/* 왼쪽: 가공사별 현황 */}
-        <div style={{ 
-          background: '#f8f9fa',
-          borderRadius: 8,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          <div style={{
-            padding: '12px 15px',
-            background: '#1976d2',
-            color: '#fff',
-            fontSize: 13,
-            fontWeight: 600
-          }}>
-            가공사별 현황
-          </div>
-          
-          {/* 전체 보기 */}
-          <div
-            onClick={() => setSelectedProcessor(null)}
-            style={{
-              padding: '12px 15px',
-              borderBottom: '1px solid #ddd',
-              cursor: 'pointer',
-              background: selectedProcessor === null ? '#e3f2fd' : '#fff',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 13 }}>전체</div>
-              <div style={{ fontSize: 11, color: '#666' }}>
-                {processors.reduce((sum, p) => sum + p.pendingCount + p.processingCount, 0)}건
-              </div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: '#ff9800' }}>
-                대기 {processors.reduce((sum, p) => sum + p.pendingCount, 0)}
-              </div>
-              <div style={{ fontSize: 11, color: '#2196f3' }}>
-                가공 {processors.reduce((sum, p) => sum + p.processingCount, 0)}
-              </div>
-            </div>
-          </div>
-          
-          {/* 가공사 목록 */}
-          <div style={{ flex: 1, overflow: 'auto' }}>
-            {processors.map(processor => (
-              <div
-                key={processor.id}
-                onClick={() => setSelectedProcessor(processor.id)}
-                style={{
-                  padding: '12px 15px',
-                  borderBottom: '1px solid #eee',
-                  cursor: 'pointer',
-                  background: selectedProcessor === processor.id ? '#e3f2fd' : '#fff',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: 12 }}>{processor.name}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: '#ff9800' }}>
-                    대기 {processor.pendingCount}
-                  </div>
-                  <div style={{ fontSize: 11, color: '#2196f3' }}>
-                    가공 {processor.processingCount}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 오른쪽: RX 주문 목록 */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          background: '#fff',
-          border: '1px solid #ccc',
-          borderRadius: 8,
-          overflow: 'hidden'
-        }}>
-          {/* 상태 탭 */}
-          <div style={{
-            display: 'flex',
-            borderBottom: '2px solid #1976d2',
-            background: '#f8f9fa',
-            overflowX: 'auto'
-          }}>
-            {(['전체', '접수', '가공중', '가공완료', '배송중', '완료'] as StatusFilter[]).map(status => (
-              <button
-                key={status}
-                onClick={() => setActiveStatus(status)}
-                style={{
-                  padding: '10px 14px',
-                  border: 'none',
-                  background: activeStatus === status ? '#1976d2' : 'transparent',
-                  color: activeStatus === status ? '#fff' : '#333',
-                  fontWeight: activeStatus === status ? 600 : 400,
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {status}
-                <span style={{
-                  background: activeStatus === status ? 'rgba(255,255,255,0.3)' : '#e0e0e0',
-                  padding: '2px 6px',
-                  borderRadius: 10,
-                  fontSize: 10
-                }}>
-                  {statusCounts[status]}
-                </span>
+        {/* 왼쪽: 필터 패널 */}
+        <div style={{ width: leftPanelWidth, minWidth: 220, maxWidth: 450, background: '#f8f9fa', borderRadius: '8px 0 0 8px', border: '1px solid #ddd', borderRight: 'none', overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 3, padding: '6px', background: '#5d7a5d' }}>
+            {filterOrder.map(type => (
+              <button key={type} onClick={() => handleFilterTypeChange(type)}
+                style={{ padding: '6px 4px', border: 'none', borderRadius: 4, background: activeFilter === type ? '#fff' : 'rgba(255,255,255,0.15)', color: activeFilter === type ? '#5d7a5d' : '#fff', fontSize: 12, cursor: 'pointer', fontWeight: activeFilter === type ? 600 : 400, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                {filterLabels[type]}
               </button>
             ))}
           </div>
-
-          {/* 테이블 헤더 */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '35px 90px 130px 140px 200px 80px 80px 70px',
-            padding: '8px 10px',
-            background: '#f0f0f0',
-            fontSize: 11,
-            fontWeight: 600,
-            borderBottom: '1px solid #ccc',
-            gap: 4
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <input
-                type="checkbox"
-                checked={filteredOrders.length > 0 && selectedOrders.size === filteredOrders.length}
-                onChange={toggleSelectAll}
-                style={{ cursor: 'pointer' }}
-              />
-            </div>
-            <div>주문번호</div>
-            <div>가맹점</div>
-            <div>상품</div>
-            <div>처방 (R/L)</div>
-            <div style={{ textAlign: 'right' }}>금액</div>
-            <div style={{ textAlign: 'center' }}>상태</div>
-            <div style={{ textAlign: 'center' }}>배송</div>
+          <div style={{ padding: '8px 10px', borderBottom: '1px solid #ddd', background: '#fff' }}>
+            <input ref={searchInputRef} type="text" placeholder={`${filterLabels[activeFilter]} 또는 전화번호 검색...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleSearchKeyDown} onFocus={() => setFocusArea('search')}
+              style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
+          <div onClick={() => { setSelectedFilterId(null); setFocusedFilterIndex(-1) }}
+            style={{ padding: '10px 14px', borderBottom: '1px solid #ddd', cursor: 'pointer', background: selectedFilterId === null ? '#eef4ee' : '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div><div style={{ fontWeight: 600, fontSize: 14 }}>전체</div><div style={{ fontSize: 12, color: '#666' }}>{orders.length}건</div></div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#5d7a5d' }}>{orders.reduce((sum, o) => sum + o.totalPrice, 0).toLocaleString()}원</div>
+          </div>
+          <div ref={filterListRef} tabIndex={0} onKeyDown={handleFilterKeyDown} onFocus={() => setFocusArea('filter')} style={{ flex: 1, overflow: 'auto', outline: 'none' }}>
+            {filterStats.length === 0 ? (
+              <div style={{ padding: 20, textAlign: 'center', color: '#999', fontSize: 13 }}>{searchQuery ? '검색 결과 없음' : '대기 주문 없음'}</div>
+            ) : filterStats.map((item, index) => (
+              <div key={item.id} onClick={() => { setSelectedFilterId(item.id); setFocusedFilterIndex(index) }}
+                style={{ padding: '10px 14px', borderBottom: '1px solid #eee', cursor: 'pointer', background: selectedFilterId === item.id ? '#eef4ee' : (focusArea === 'filter' && focusedFilterIndex === index ? '#e3e8e3' : '#fff'), display: 'flex', justifyContent: 'space-between', alignItems: 'center', outline: focusArea === 'filter' && focusedFilterIndex === index ? '2px solid #5d7a5d' : 'none', outlineOffset: -2 }}>
+                <div><div style={{ fontSize: 14 }}>{item.name}</div><div style={{ fontSize: 12, color: '#666' }}>{item.count}건</div></div>
+                <div style={{ fontSize: 12, color: '#5d7a5d', fontWeight: 500 }}>{item.amount.toLocaleString()}원</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          {/* 주문 목록 */}
-          <div style={{ flex: 1, overflow: 'auto' }}>
+        {/* 패널 리사이즈 핸들 */}
+        <div onMouseDown={handlePanelMouseDown} style={{ width: 8, cursor: 'col-resize', background: isResizing === 'panel' ? '#5d7a5d' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onMouseEnter={(e) => { if (!isResizing) e.currentTarget.style.background = '#e0e0e0' }}
+          onMouseLeave={(e) => { if (!isResizing) e.currentTarget.style.background = 'transparent' }}>
+          <div style={{ width: 4, height: 40, background: '#ccc', borderRadius: 2 }} />
+        </div>
+
+        {/* 오른쪽: 테이블 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ flex: 1, overflow: 'auto', border: '1px solid #ddd', borderRadius: '0 8px 8px 0', background: '#fff' }}>
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
-                로딩 중...
-              </div>
-            ) : filteredOrders.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#868e96' }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>👓</div>
-                해당 상태의 RX 주문이 없습니다
-              </div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#666', fontSize: 14 }}>로딩 중...</div>
+            ) : orders.length === 0 ? (
+              <div style={{ padding: 40, textAlign: 'center', color: '#666', fontSize: 14 }}>출고 대기 주문이 없습니다</div>
             ) : (
-              filteredOrders.map((order, index) => {
-                const statusStyle = getStatusColor(order.status)
-                return (
-                  <div
-                    key={order.id}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '35px 90px 130px 140px 200px 80px 80px 70px',
-                      padding: '10px 10px',
-                      fontSize: 11,
-                      borderBottom: '1px solid #eee',
-                      background: selectedOrders.has(order.id) ? '#e3f2fd' : (index % 2 === 0 ? '#fff' : '#fafafa'),
-                      cursor: 'pointer',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                    onClick={() => setShowDetailModal(order)}
-                  >
-                    <div onClick={e => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedOrders.has(order.id)}
-                        onChange={() => toggleSelect(order.id)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: 10, color: '#1976d2' }}>{order.orderNumber}</div>
-                      <div style={{ fontSize: 9, color: '#999' }}>{order.orderedAt.split(' ')[0]}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: 11 }}>{order.storeName}</div>
-                      <div style={{ fontSize: 9, color: '#666' }}>{order.customerName}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: 10 }}>{order.productName}</div>
-                      <div style={{ fontSize: 9, color: '#666' }}>{order.processorName}</div>
-                    </div>
-                    <div style={{ fontFamily: 'monospace', fontSize: 10 }}>
-                      <div>R: {order.rSph} / {order.rCyl} × {order.rAxis}°</div>
-                      <div>L: {order.lSph} / {order.lCyl} × {order.lAxis}°</div>
-                    </div>
-                    <div style={{ textAlign: 'right', fontWeight: 600, fontSize: 11 }}>
-                      {order.amount.toLocaleString()}
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <span style={{
-                        background: statusStyle.bg,
-                        color: statusStyle.color,
-                        padding: '3px 8px',
-                        borderRadius: 4,
-                        fontSize: 10,
-                        fontWeight: 500
-                      }}>
-                        {order.status}
-                      </span>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <span style={{
-                        fontSize: 10,
-                        color: order.deliveryType === '택배' ? '#1976d2' : order.deliveryType === '직배송' ? '#4caf50' : '#ff9800'
-                      }}>
-                        {order.deliveryType === '택배' ? '📦' : order.deliveryType === '직배송' ? '🚗' : '🏪'}
-                        {order.deliveryType}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
+                <thead>
+                  {/* 컬럼 헤더 */}
+                  <tr style={{ background: '#f8f9fa', borderBottom: '1px solid #ddd', position: 'sticky', top: 0, zIndex: 2 }}>
+                    <th style={{ width: columnWidths.checkbox, padding: '8px 4px', textAlign: 'center' }}>
+                      <input type="checkbox" checked={selectedItems.size === filteredOrders.length && filteredOrders.length > 0} onChange={toggleSelectAll} style={{ width: 16, height: 16 }} />
+                    </th>
+                    <th style={{ width: columnWidths.store, padding: '8px 8px', textAlign: 'left', position: 'relative' }}>가맹점<ColumnResizer column="store" /></th>
+                    <th style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', position: 'relative' }}>날짜<ColumnResizer column="date" /></th>
+                    <th style={{ width: columnWidths.product || 'auto', padding: '8px 8px', textAlign: 'left', position: 'relative' }}>브랜드 / 상품명<ColumnResizer column="product" /></th>
+                    <th style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>SPH<ColumnResizer column="sph" /></th>
+                    <th style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>CYL<ColumnResizer column="cyl" /></th>
+                    <th style={{ width: columnWidths.qty, padding: '8px 4px', textAlign: 'center', position: 'relative' }}>수량<ColumnResizer column="qty" /></th>
+                    <th style={{ width: columnWidths.price, padding: '8px 6px', textAlign: 'right', position: 'relative' }}>금액<ColumnResizer column="price" /></th>
+                    <th style={{ width: columnWidths.delivery, padding: '8px 8px', textAlign: 'left', position: 'relative' }}>배송담당<ColumnResizer column="delivery" /></th>
+                    <th style={{ width: columnWidths.actions, padding: '8px 4px', textAlign: 'center' }}></th>
+                  </tr>
+                  {/* 검색 필터 행 */}
+                  <tr style={{ background: '#f0f0f0', borderBottom: '1px solid #ddd', position: 'sticky', top: 37, zIndex: 2 }}>
+                    <th style={{ padding: '4px' }}></th>
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="검색" value={columnFilters.store} onChange={(e) => updateColumnFilter('store', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box' }} />
+                    </th>
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="MM/DD" value={columnFilters.date} onChange={(e) => updateColumnFilter('date', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box', textAlign: 'center' }} />
+                    </th>
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="브랜드/상품 검색" value={columnFilters.product} onChange={(e) => updateColumnFilter('product', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box' }} />
+                    </th>
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="SPH" value={columnFilters.sph} onChange={(e) => updateColumnFilter('sph', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box', textAlign: 'center' }} />
+                    </th>
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="CYL" value={columnFilters.cyl} onChange={(e) => updateColumnFilter('cyl', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box', textAlign: 'center' }} />
+                    </th>
+                    <th style={{ padding: '4px' }}></th>
+                    <th style={{ padding: '4px' }}></th>
+                    <th style={{ padding: '4px' }}>
+                      <input type="text" placeholder="검색" value={columnFilters.delivery} onChange={(e) => updateColumnFilter('delivery', e.target.value)}
+                        style={{ width: '100%', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, boxSizing: 'border-box' }} />
+                    </th>
+                    <th style={{ padding: '4px' }}></th>
+                  </tr>
+                </thead>
+                <tbody ref={tableRef} tabIndex={0} onKeyDown={handleTableKeyDown} onFocus={() => setFocusArea('table')} style={{ outline: 'none' }}>
+                  {filteredOrders.map((order, index) => (
+                    <tr key={order.itemId} onClick={() => toggleSelect(order.itemId)}
+                      style={{ borderBottom: '1px solid #eee', background: selectedItems.has(order.itemId) ? (order.quantity < 0 ? '#fff0f0' : '#f0f7f0') : (focusArea === 'table' && focusedRowIndex === index ? '#e8f0e8' : undefined), cursor: 'pointer', outline: focusArea === 'table' && focusedRowIndex === index ? '2px solid #5d7a5d' : 'none', outlineOffset: -2, borderLeft: order.quantity < 0 ? '3px solid #c0392b' : 'none' }}>
+                      <td style={{ width: columnWidths.checkbox, padding: '8px 4px', textAlign: 'center' }}>
+                        <input type="checkbox" checked={selectedItems.has(order.itemId)} onChange={(e) => { e.stopPropagation(); toggleSelect(order.itemId) }} style={{ width: 16, height: 16 }} />
+                      </td>
+                      <td style={{ width: columnWidths.store, padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                        {order.storeName}
+                      </td>
+                      <td style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', fontSize: 11, color: '#666' }}>
+                        {new Date(order.orderedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td style={{ width: columnWidths.product, padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 3, background: '#eef4ee', fontSize: 12, marginRight: 6, color: '#5d7a5d', fontWeight: 500 }}>{order.brandName}</span>
+                        <span>{order.productName}</span>
+                      </td>
+                      <td style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{order.sph || '-'}</td>
+                      <td style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{order.cyl || '-'}</td>
+                      <td style={{ width: columnWidths.qty, padding: '4px 2px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        {editingCell?.itemId === order.itemId && editingCell?.field === 'quantity' ? (
+                          <input
+                            type="number"
+                            step="0.5"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={saveEdit}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') cancelEdit(); }}
+                            autoFocus
+                            style={{ width: '100%', padding: '4px', border: '1px solid #5d7a5d', borderRadius: 3, fontSize: 12, textAlign: 'center', boxSizing: 'border-box' }}
+                          />
+                        ) : (
+                          <span
+                            onClick={() => startEditing(order.itemId, 'quantity', order.quantity)}
+                            style={{ cursor: 'pointer', padding: '4px 6px', borderRadius: 3, fontWeight: 600, display: 'inline-block', minWidth: 30, color: order.quantity < 0 ? '#c0392b' : 'inherit' }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#e8f0e8'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {order.quantity}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ width: columnWidths.price, padding: '4px 2px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                        {editingCell?.itemId === order.itemId && editingCell?.field === 'totalPrice' ? (
+                          <input
+                            type="number"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={saveEdit}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') cancelEdit(); }}
+                            autoFocus
+                            style={{ width: '100%', padding: '4px', border: '1px solid #5d7a5d', borderRadius: 3, fontSize: 12, textAlign: 'right', boxSizing: 'border-box' }}
+                          />
+                        ) : (
+                          <span
+                            onClick={() => startEditing(order.itemId, 'totalPrice', order.totalPrice)}
+                            style={{ cursor: 'pointer', padding: '4px 6px', borderRadius: 3, fontWeight: 500, display: 'inline-block', color: order.totalPrice < 0 ? '#c0392b' : 'inherit' }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#e8f0e8'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {order.totalPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ width: columnWidths.delivery, padding: '8px 8px', fontSize: 12, color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.deliveryStaffName || '-'}</td>
+                      <td style={{ width: columnWidths.actions, padding: '4px 2px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => confirmDelete(order.itemId)}
+                          style={{ padding: '2px 6px', border: 'none', background: 'transparent', color: '#999', cursor: 'pointer', fontSize: 14 }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = '#dc2626' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = '#999' }}
+                          title="삭제"
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
 
-          {/* 하단 액션 바 */}
-          <div style={{
-            padding: '10px 12px',
-            borderTop: '1px solid #ccc',
-            background: '#f8f9fa',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div style={{ fontSize: 12 }}>
-              선택: <strong>{selectedOrders.size}</strong>건 
-              <span style={{ marginLeft: 15, color: '#1976d2', fontWeight: 600 }}>
-                {selectedTotal.toLocaleString()}원
-              </span>
+          {/* 하단 액션바 */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '2px solid #5d7a5d', marginTop: 10, background: selectedItems.size > 0 ? '#f0f7f0' : '#f8f9fa', borderRadius: '0 0 8px 0' }}>
+            <div style={{ 
+              fontSize: 15, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 8,
+              padding: '8px 16px',
+              background: selectedItems.size > 0 ? '#fff' : 'transparent',
+              borderRadius: 8,
+              border: selectedItems.size > 0 ? '2px solid #5d7a5d' : '2px solid transparent',
+              transition: 'all 0.2s'
+            }}>
+              <span style={{ color: '#666' }}>선택:</span>
+              <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedItems.size}</strong>
+              <span style={{ color: '#666' }}>건</span>
+              <span style={{ color: '#999', margin: '0 4px' }}>/</span>
+              <span style={{ color: '#666' }}>수량</span>
+              <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedQuantity}</strong>
+              <span style={{ color: '#666' }}>조</span>
+              <span style={{ color: '#999', margin: '0 4px' }}>/</span>
+              <strong style={{ color: '#5d7a5d', fontSize: 16 }}>{selectedTotal.toLocaleString()}</strong>
+              <span style={{ color: '#666' }}>원</span>
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button
-                onClick={() => setSelectedOrders(new Set())}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid #ccc',
-                  background: '#fff',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  fontSize: 11
-                }}
-              >
-                선택 해제
-              </button>
-              <button
-                onClick={() => handleStatusChange('가공중')}
-                disabled={selectedOrders.size === 0}
-                style={{
-                  padding: '6px 12px',
-                  border: 'none',
-                  background: selectedOrders.size === 0 ? '#ccc' : '#2196f3',
-                  color: '#fff',
-                  borderRadius: 4,
-                  cursor: selectedOrders.size === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: 11
-                }}
-              >
-                가공시작
-              </button>
-              <button
-                onClick={() => handleStatusChange('가공완료')}
-                disabled={selectedOrders.size === 0}
-                style={{
-                  padding: '6px 12px',
-                  border: 'none',
-                  background: selectedOrders.size === 0 ? '#ccc' : '#4caf50',
-                  color: '#fff',
-                  borderRadius: 4,
-                  cursor: selectedOrders.size === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: 11
-                }}
-              >
-                가공완료
-              </button>
-              <button
-                onClick={() => handleStatusChange('배송중')}
-                disabled={selectedOrders.size === 0}
-                style={{
-                  padding: '6px 12px',
-                  border: 'none',
-                  background: selectedOrders.size === 0 ? '#ccc' : '#e91e63',
-                  color: '#fff',
-                  borderRadius: 4,
-                  cursor: selectedOrders.size === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: 11
-                }}
-              >
-                🚚 배송처리
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setColumnFilters({ store: '', date: '', product: '', sph: '', cyl: '', delivery: '' })} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 12 }}>필터 초기화</button>
+              <button onClick={() => setSelectedItems(new Set())} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 13 }}>선택 해제</button>
+              <button onClick={handleShipping} disabled={selectedItems.size === 0 || shipping}
+                style={{ padding: '10px 24px', border: 'none', borderRadius: 6, background: selectedItems.size === 0 ? '#ccc' : '#5d7a5d', color: '#fff', cursor: selectedItems.size === 0 ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, boxShadow: selectedItems.size > 0 ? '0 2px 8px rgba(93, 122, 93, 0.3)' : 'none' }}>
+                {shipping ? '처리 중...' : `출고 (F2)`}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 상세 모달 */}
-      {showDetailModal && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000
-          }}
-          onClick={() => setShowDetailModal(null)}
-        >
-          <div 
-            style={{
-              background: '#fff',
-              borderRadius: 12,
-              width: 500,
-              maxHeight: '90vh',
-              overflow: 'auto',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* 모달 헤더 */}
-            <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid #eee',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 16 }}>RX 주문 상세</h3>
-                <p style={{ margin: '4px 0 0', fontSize: 12, color: '#666' }}>{showDetailModal.orderNumber}</p>
-              </div>
-              <button
-                onClick={() => setShowDetailModal(null)}
-                style={{
-                  border: 'none',
-                  background: 'none',
-                  fontSize: 20,
-                  cursor: 'pointer',
-                  color: '#999'
-                }}
-              >
-                ×
-              </button>
-            </div>
+      {/* 출고 확인 모달 */}
+      <ConfirmDialog
+        isOpen={showConfirm}
+        title="출고 확인"
+        message={`${selectedItems.size}건 / 수량 ${selectedQuantity}조 / ${selectedTotal.toLocaleString()}원\n\n출고 처리하시겠습니까?`}
+        confirmText="출고"
+        cancelText="취소"
+        onConfirm={executeShipping}
+        onCancel={() => setShowConfirm(false)}
+      />
 
-            {/* 모달 내용 */}
-            <div style={{ padding: 20 }}>
-              {/* 기본 정보 */}
-              <div style={{ marginBottom: 20 }}>
-                <h4 style={{ fontSize: 13, color: '#666', marginBottom: 10, borderBottom: '1px solid #eee', paddingBottom: 6 }}>
-                  📍 기본 정보
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 13 }}>
-                  <div>
-                    <span style={{ color: '#999' }}>가맹점:</span> <strong>{showDetailModal.storeName}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#999' }}>고객명:</span> <strong>{showDetailModal.customerName}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#999' }}>주문일:</span> {showDetailModal.orderedAt}
-                  </div>
-                  <div>
-                    <span style={{ color: '#999' }}>예상출고:</span> {showDetailModal.expectedAt}
-                  </div>
-                </div>
-              </div>
-
-              {/* 상품 정보 */}
-              <div style={{ marginBottom: 20 }}>
-                <h4 style={{ fontSize: 13, color: '#666', marginBottom: 10, borderBottom: '1px solid #eee', paddingBottom: 6 }}>
-                  👓 상품 정보
-                </h4>
-                <div style={{ fontSize: 13 }}>
-                  <div style={{ marginBottom: 8 }}>
-                    <strong>{showDetailModal.productName}</strong>
-                  </div>
-                  <div style={{ display: 'flex', gap: 20 }}>
-                    <div><span style={{ color: '#999' }}>브랜드:</span> {showDetailModal.brandName}</div>
-                    <div><span style={{ color: '#999' }}>가공사:</span> {showDetailModal.processorName}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 처방 정보 */}
-              <div style={{ marginBottom: 20 }}>
-                <h4 style={{ fontSize: 13, color: '#666', marginBottom: 10, borderBottom: '1px solid #eee', paddingBottom: 6 }}>
-                  📋 처방 정보
-                </h4>
-                <div style={{ 
-                  background: '#f8f9fa', 
-                  borderRadius: 8, 
-                  padding: 12,
-                  fontFamily: 'monospace',
-                  fontSize: 12
-                }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
-                    <div style={{ fontWeight: 600 }}></div>
-                    <div style={{ fontWeight: 600, textAlign: 'center' }}>SPH</div>
-                    <div style={{ fontWeight: 600, textAlign: 'center' }}>CYL</div>
-                    <div style={{ fontWeight: 600, textAlign: 'center' }}>AXIS</div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 1fr 1fr', gap: 8, marginBottom: 6 }}>
-                    <div style={{ fontWeight: 600, color: '#1976d2' }}>R</div>
-                    <div style={{ textAlign: 'center' }}>{showDetailModal.rSph}</div>
-                    <div style={{ textAlign: 'center' }}>{showDetailModal.rCyl}</div>
-                    <div style={{ textAlign: 'center' }}>{showDetailModal.rAxis}°</div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 1fr 1fr', gap: 8 }}>
-                    <div style={{ fontWeight: 600, color: '#4caf50' }}>L</div>
-                    <div style={{ textAlign: 'center' }}>{showDetailModal.lSph}</div>
-                    <div style={{ textAlign: 'center' }}>{showDetailModal.lCyl}</div>
-                    <div style={{ textAlign: 'center' }}>{showDetailModal.lAxis}°</div>
-                  </div>
-                  <div style={{ 
-                    marginTop: 12, 
-                    paddingTop: 10, 
-                    borderTop: '1px dashed #ddd',
-                    display: 'flex',
-                    gap: 30
-                  }}>
-                    <div><span style={{ color: '#666' }}>PD:</span> <strong>{showDetailModal.pd}mm</strong></div>
-                    {showDetailModal.add && (
-                      <div><span style={{ color: '#666' }}>ADD:</span> <strong>+{showDetailModal.add}</strong></div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* 배송 정보 */}
-              <div style={{ marginBottom: 20 }}>
-                <h4 style={{ fontSize: 13, color: '#666', marginBottom: 10, borderBottom: '1px solid #eee', paddingBottom: 6 }}>
-                  🚚 배송 정보
-                </h4>
-                <div style={{ fontSize: 13, display: 'flex', gap: 20 }}>
-                  <div><span style={{ color: '#999' }}>배송방법:</span> <strong>{showDetailModal.deliveryType}</strong></div>
-                  {showDetailModal.trackingNumber && (
-                    <div><span style={{ color: '#999' }}>운송장:</span> <strong>{showDetailModal.trackingNumber}</strong></div>
-                  )}
-                </div>
-              </div>
-
-              {/* 금액 */}
-              <div style={{ 
-                background: '#1976d2', 
-                color: '#fff', 
-                padding: 15, 
-                borderRadius: 8,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{ fontSize: 14 }}>결제 금액</span>
-                <span style={{ fontSize: 20, fontWeight: 700 }}>{showDetailModal.amount.toLocaleString()}원</span>
-              </div>
-            </div>
-
-            {/* 모달 푸터 */}
-            <div style={{ 
-              padding: '12px 20px', 
-              borderTop: '1px solid #eee',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 8
-            }}>
-              <button
-                onClick={() => setShowDetailModal(null)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #ccc',
-                  background: '#fff',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                  fontSize: 13
-                }}
-              >
-                닫기
-              </button>
-              <button
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  background: '#1976d2',
-                  color: '#fff',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                  fontSize: 13
-                }}
-              >
-                🖨️ 가공의뢰서 출력
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 삭제 확인 모달 */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="삭제 확인"
+        message="이 주문 아이템을 삭제하시겠습니까?"
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+        onConfirm={executeDelete}
+        onCancel={() => { setShowDeleteConfirm(false); setDeleteItemId(null); }}
+      />
     </Layout>
   )
 }

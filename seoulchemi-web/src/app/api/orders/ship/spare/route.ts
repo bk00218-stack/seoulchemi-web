@@ -10,13 +10,17 @@ export async function GET(request: Request) {
     const groupId = searchParams.get('groupId')
     const salesStaffId = searchParams.get('salesStaffId')
     const deliveryStaffId = searchParams.get('deliveryStaffId')
+    const orderType = searchParams.get('orderType') || 'stock' // stock, rx, all
 
     // 필터 조건 빌드
     const storeWhere: string[] = []
     const orderWhere: string[] = [
-      `o.status IN ('pending', 'partial')`,
-      `o."orderType" = 'stock'`
+      `o.status IN ('pending', 'partial')`
     ]
+    // orderType 필터: 'all'이면 전체, 아니면 해당 타입만
+    if (orderType !== 'all') {
+      orderWhere.push(`o."orderType" = '${orderType}'`)
+    }
     const itemWhere: string[] = [`oi.status = 'pending'`]
     const params: any[] = []
     let paramIdx = 1
@@ -87,13 +91,13 @@ export async function GET(request: Request) {
         select: { id: true, name: true },
         orderBy: { name: 'asc' }
       }),
-      prisma.$queryRaw<{id: number, name: string, code: string, phone: string | null}[]>`
-        SELECT DISTINCT s.id, s.name, s.code, s.phone
+      prisma.$queryRawUnsafe<{id: number, name: string, code: string, phone: string | null}[]>(
+        `SELECT DISTINCT s.id, s.name, s.code, s.phone
         FROM "Store" s
         INNER JOIN "Order" o ON o."storeId" = s.id
-        WHERE o.status IN ('pending', 'partial') AND o."orderType" = 'stock' AND s."isActive" = true
-        ORDER BY s.name
-      `,
+        WHERE o.status IN ('pending', 'partial') ${orderType !== 'all' ? `AND o."orderType" = '${orderType}'` : ''} AND s."isActive" = true
+        ORDER BY s.name`
+      ),
       prisma.storeGroup.findMany({
         where: { isActive: true },
         select: { id: true, name: true },
@@ -141,7 +145,7 @@ export async function POST(request: Request) {
       where: {
         id: { in: itemIds },
         status: 'pending',
-        order: { status: { in: ['pending', 'partial'] }, orderType: 'stock' }
+        order: { status: { in: ['pending', 'partial'] } }
       },
       include: {
         order: { include: { store: true } },
@@ -232,7 +236,7 @@ export async function POST(request: Request) {
               totalPrice: item.totalPrice,
               orderId: order.id,
               orderNo: order.orderNo,
-              memo: `${isReturnItem ? '반품 입고' : '여벌 출고'}: ${store.name}${!productOption ? ' (옵션없음)' : ''}`,
+              memo: `${isReturnItem ? '반품 입고' : '출고'}: ${store.name}${!productOption ? ' (옵션없음)' : ''}`,
             }
           })
         }
@@ -268,7 +272,7 @@ export async function POST(request: Request) {
             orderNo: order.orderNo,
             memo: isNetReturn
               ? (allShipped ? '반품 처리' : '반품 부분처리')
-              : (allShipped ? '여벌 출고' : '여벌 부분출고'),
+              : (allShipped ? '출고' : '부분출고'),
             processedBy: 'admin',
           }
         })
@@ -279,7 +283,7 @@ export async function POST(request: Request) {
             targetType: 'order',
             targetId: order.id,
             targetNo: order.orderNo,
-            description: `${isNetReturn ? '반품' : '여벌'} ${allShipped ? (isNetReturn ? '처리' : '출고') : (isNetReturn ? '부분처리' : '부분출고')}: ${store.name} - ${shippedAmount.toLocaleString()}원`,
+            description: `${isNetReturn ? '반품' : ''} ${allShipped ? (isNetReturn ? '처리' : '출고') : (isNetReturn ? '부분처리' : '부분출고')}: ${store.name} - ${shippedAmount.toLocaleString()}원`,
             details: JSON.stringify({
               storeId: store.id,
               storeName: store.name,
