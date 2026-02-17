@@ -719,10 +719,10 @@ export default function TransactionsPage() {
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDeleteTransaction(t.id) }}
                             disabled={deleteLoading}
-                            style={{ padding: '2px 6px', fontSize: '11px', background: 'transparent', color: '#999', border: 'none', cursor: 'pointer', borderRadius: '3px' }}
+                            style={{ padding: '2px 6px', fontSize: '12px', background: 'transparent', color: '#ccc', border: 'none', cursor: 'pointer', borderRadius: '3px', fontWeight: 600 }}
                             onMouseEnter={e => e.currentTarget.style.color = '#d32f2f'}
-                            onMouseLeave={e => e.currentTarget.style.color = '#999'}
-                          >🗑️</button>
+                            onMouseLeave={e => e.currentTarget.style.color = '#ccc'}
+                          >✕</button>
                         </td>
                       </tr>
                     )
@@ -770,7 +770,7 @@ export default function TransactionsPage() {
                   opacity: deleteLoading ? 0.6 : 1
                 }}
               >
-                {deleteLoading ? '삭제중...' : '🗑️ 삭제'}
+                {deleteLoading ? '삭제중...' : '✕ 삭제'}
               </button>
             )}
           </div>
@@ -804,33 +804,41 @@ export default function TransactionsPage() {
               {selectedTransaction.items && selectedTransaction.items.length > 0 && (
                 <div style={{ flex: 1, overflow: 'auto' }}>
                   <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px', color: '#666' }}>📦 품목 ({selectedTransaction.items.length}건)</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {selectedTransaction.items.map((item, idx) => (
-                      <div key={idx} style={{ 
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '6px 8px', background: '#f8f9fa', borderRadius: '4px', fontSize: '12px'
-                      }}>
-                        <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          <span style={{ fontWeight: 600, color: '#5d7a5d' }}>{item.brand}</span>
-                          <span style={{ color: '#666', margin: '0 4px' }}>{item.product}</span>
-                          {item.sph && <span style={{ color: '#999' }}>{item.sph}</span>}
-                          {item.cyl && <span style={{ color: '#999' }}>/{item.cyl}</span>}
-                          <span style={{ color: '#999', marginLeft: '4px' }}>×{item.qty}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                          <span style={{ fontWeight: 600, color: '#1565c0' }}>{item.price.toLocaleString()}</span>
-                          {item.id && (
-                            <button
-                              onClick={() => handleDeleteItem(item.id!)}
-                              style={{ padding: '2px 4px', fontSize: '10px', background: 'transparent', color: '#ccc', border: 'none', cursor: 'pointer' }}
-                              onMouseEnter={e => e.currentTarget.style.color = '#d32f2f'}
-                              onMouseLeave={e => e.currentTarget.style.color = '#ccc'}
-                            >✕</button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <thead>
+                      <tr style={{ background: '#f0f0f0' }}>
+                        <th style={{ padding: '6px 4px', textAlign: 'left', fontWeight: 600, color: '#666' }}>브랜드</th>
+                        <th style={{ padding: '6px 4px', textAlign: 'left', fontWeight: 600, color: '#666' }}>품목</th>
+                        <th style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 600, color: '#666' }}>SPH</th>
+                        <th style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 600, color: '#666' }}>CYL</th>
+                        <th style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 600, color: '#666' }}>수량</th>
+                        <th style={{ padding: '6px 4px', textAlign: 'right', fontWeight: 600, color: '#666' }}>금액</th>
+                        <th style={{ width: '24px' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedTransaction.items.map((item, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                          <td style={{ padding: '6px 4px', fontWeight: 600, color: '#5d7a5d' }}>{item.brand}</td>
+                          <td style={{ padding: '6px 4px', color: '#666' }}>{item.product}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 700, color: '#1d1d1f', fontFamily: 'monospace' }}>{item.sph || '-'}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 700, color: '#1d1d1f', fontFamily: 'monospace' }}>{item.cyl || '-'}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'center', fontWeight: 700, color: '#1565c0' }}>{item.qty}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', fontWeight: 600, color: '#1d1d1f' }}>{item.price.toLocaleString()}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'center' }}>
+                            {item.id && (
+                              <button
+                                onClick={() => handleDeleteItem(item.id!)}
+                                style={{ padding: '2px 4px', fontSize: '10px', background: 'transparent', color: '#ccc', border: 'none', cursor: 'pointer' }}
+                                onMouseEnter={e => e.currentTarget.style.color = '#d32f2f'}
+                                onMouseLeave={e => e.currentTarget.style.color = '#ccc'}
+                              >✕</button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
