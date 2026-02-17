@@ -104,11 +104,11 @@ export async function DELETE(
     // 거래 삭제 및 잔액/재고 복구
     await prisma.$transaction(async (tx) => {
       // 1. 재고 복구 (매출 삭제 → 재고 증가, 반품 삭제 → 재고 감소)
+      // ProductOption에 도수별 재고가 있는 경우만 처리
       if (transaction.order?.items && transaction.order.items.length > 0) {
         for (const item of transaction.order.items) {
-          // 실재고가 있는 상품만 처리
-          const product = await tx.product.findUnique({ where: { id: item.productId } })
-          if (product && product.trackInventory) {
+          // 도수 정보가 있는 품목만 재고 처리
+          if (item.sph || item.cyl) {
             let stockChange = 0
             if (transaction.type === 'sale') {
               // 매출 삭제 → 재고 복구 (증가)
@@ -119,20 +119,12 @@ export async function DELETE(
             }
             
             if (stockChange !== 0) {
-              // ProductOption(도수별 재고) 업데이트
-              if (item.sph || item.cyl) {
-                await tx.productOption.updateMany({
-                  where: {
-                    productId: item.productId,
-                    sph: item.sph || '0.00',
-                    cyl: item.cyl || '0.00'
-                  },
-                  data: { stock: { increment: stockChange } }
-                })
-              }
-              // Product 총재고 업데이트
-              await tx.product.update({
-                where: { id: item.productId },
+              await tx.productOption.updateMany({
+                where: {
+                  productId: item.productId,
+                  sph: item.sph || '0.00',
+                  cyl: item.cyl || '0.00'
+                },
                 data: { stock: { increment: stockChange } }
               })
             }

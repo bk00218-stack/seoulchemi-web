@@ -75,21 +75,14 @@ export async function DELETE(
       const priceDiff = item.totalPrice // 삭제되는 금액
       
       // 1. 재고 복구 (출고된 상품 → 재고 증가)
-      if (item.product.trackInventory && item.quantity > 0) {
-        // ProductOption(도수별 재고) 업데이트
-        if (item.sph || item.cyl) {
-          await tx.productOption.updateMany({
-            where: {
-              productId: item.productId,
-              sph: item.sph || '0.00',
-              cyl: item.cyl || '0.00'
-            },
-            data: { stock: { increment: item.quantity } }
-          })
-        }
-        // Product 총재고 업데이트
-        await tx.product.update({
-          where: { id: item.productId },
+      // ProductOption에 도수별 재고가 있으면 복구
+      if (item.quantity > 0 && (item.sph || item.cyl)) {
+        await tx.productOption.updateMany({
+          where: {
+            productId: item.productId,
+            sph: item.sph || '0.00',
+            cyl: item.cyl || '0.00'
+          },
           data: { stock: { increment: item.quantity } }
         })
       }
