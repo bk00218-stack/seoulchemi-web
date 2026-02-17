@@ -11,102 +11,82 @@ export async function GET(request: Request) {
     const salesStaffId = searchParams.get('salesStaffId')
     const deliveryStaffId = searchParams.get('deliveryStaffId')
 
-    const where: any = {
-      status: { in: ['pending', 'partial'] }, // 부분출고 주문도 포함
-      orderType: 'stock' // 여벌만
-    }
+    // 필터 조건 빌드
+    const storeWhere: string[] = []
+    const orderWhere: string[] = [
+      `o.status IN ('pending', 'partial')`,
+      `o."orderType" = 'stock'`
+    ]
+    const itemWhere: string[] = [`oi.status = 'pending'`]
+    const params: any[] = []
+    let paramIdx = 1
 
-    // 가맹점 직접 필터
     if (storeId && storeId !== 'all') {
-      where.storeId = parseInt(storeId)
+      orderWhere.push(`o."storeId" = $${paramIdx}`)
+      params.push(parseInt(storeId))
+      paramIdx++
     }
-
-    // 그룹 필터 - store.groupId
     if (groupId && groupId !== 'all') {
-      where.store = {
-        ...where.store,
-        groupId: parseInt(groupId)
-      }
+      storeWhere.push(`s."groupId" = $${paramIdx}`)
+      params.push(parseInt(groupId))
+      paramIdx++
     }
-
-    // 영업담당 필터 - store.salesStaffId
     if (salesStaffId && salesStaffId !== 'all') {
-      where.store = {
-        ...where.store,
-        salesStaffId: parseInt(salesStaffId)
-      }
+      storeWhere.push(`s."salesStaffId" = $${paramIdx}`)
+      params.push(parseInt(salesStaffId))
+      paramIdx++
     }
-
-    // 배송담당 필터 - store.deliveryStaffId
     if (deliveryStaffId && deliveryStaffId !== 'all') {
-      where.store = {
-        ...where.store,
-        deliveryStaffId: parseInt(deliveryStaffId)
-      }
+      storeWhere.push(`s."deliveryStaffId" = $${paramIdx}`)
+      params.push(parseInt(deliveryStaffId))
+      paramIdx++
     }
-
-    // 매입처 필터 - 브랜드의 supplierId 기준
     if (supplierId && supplierId !== 'all') {
-      where.items = {
-        some: {
-          product: {
-            brand: {
-              supplierId: parseInt(supplierId)
-            }
-          }
-        }
-      }
+      params.push(parseInt(supplierId))
+      paramIdx++
     }
 
-    // 병렬로 주문과 필터 목록 조회 (성능 최적화)
-    const [orders, suppliers, stores, groups, salesStaffs, deliveryStaffs] = await Promise.all([
-      // 주문 조회
-      prisma.order.findMany({
-        where,
-        include: {
-          store: {
-            select: { 
-              id: true, 
-              name: true, 
-              code: true,
-              groupId: true,
-              salesStaffId: true,
-              deliveryStaffId: true,
-              group: { select: { id: true, name: true } },
-              salesStaff: { select: { id: true, name: true } },
-              deliveryStaff: { select: { id: true, name: true } }
-            }
-          },
-          items: {
-            where: { status: 'pending' }, // 출고된 아이템 제외
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  brandId: true,
-                  brand: {
-                    select: {
-                      id: true,
-                      name: true,
-                      supplierId: true,
-                      supplier: { select: { id: true, name: true } }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        orderBy: { orderedAt: 'asc' }
-      }),
-      // 매입처 (브랜드가 연결된 것만)
+    // 단일 raw SQL로 플랫 아이템 목록 조회 (성능 최적화)
+    const supplierJoin = (supplierId && supplierId !== 'all')
+      ? `INNER JOIN "Brand" br ON br.id = p."brandId" AND br."supplierId" = $${paramIdx - 1}`
+      : `LEFT JOIN "Brand" br ON br.id = p."brandId"`
+
+    const storeFilter = storeWhere.length > 0 ? `AND ${storeWhere.join(' AND ')}` : ''
+
+    const flatOrders = await prisma.$queryRawUnsafe<any[]>(`
+      SELECT
+        o.id, oi.id as "itemId", o."orderNo",
+        s.id as "storeId", s.name as "storeName", s.code as "storeCode",
+        s."groupId", sg.name as "groupName",
+        s."salesStaffId", ss.name as "salesStaffName",
+        s."deliveryStaffId", ds.name as "deliveryStaffName",
+        p.id as "productId", p.name as "productName",
+        p."brandId", br.name as "brandName",
+        br."supplierId", sup.name as "supplierName",
+        oi.sph, oi.cyl, oi.quantity, oi."unitPrice", oi."totalPrice",
+        o."orderType", o."orderedAt", o.status
+      FROM "OrderItem" oi
+      INNER JOIN "Order" o ON o.id = oi."orderId"
+      INNER JOIN "Store" s ON s.id = o."storeId"
+      INNER JOIN "Product" p ON p.id = oi."productId"
+      ${supplierJoin}
+      LEFT JOIN "Supplier" sup ON sup.id = br."supplierId"
+      LEFT JOIN "StoreGroup" sg ON sg.id = s."groupId"
+      LEFT JOIN "SalesStaff" ss ON ss.id = s."salesStaffId"
+      LEFT JOIN "DeliveryStaff" ds ON ds.id = s."deliveryStaffId"
+      WHERE ${orderWhere.join(' AND ')}
+        AND ${itemWhere.join(' AND ')}
+        ${storeFilter}
+      ORDER BY o."orderedAt" ASC, oi.id ASC
+    `, ...params)
+
+    // 필터 목록은 병렬로 조회
+    const [suppliers, stores, groups, salesStaffs, deliveryStaffs] = await Promise.all([
       prisma.supplier.findMany({
         where: { isActive: true, brands: { some: {} } },
         select: { id: true, name: true },
         orderBy: { name: 'asc' }
       }),
-      // 가맹점 - 출고 대기 주문에서 직접 추출 (더 빠름)
       prisma.$queryRaw<{id: number, name: string, code: string, phone: string | null}[]>`
         SELECT DISTINCT s.id, s.name, s.code, s.phone
         FROM "Store" s
@@ -114,19 +94,16 @@ export async function GET(request: Request) {
         WHERE o.status IN ('pending', 'partial') AND o."orderType" = 'stock' AND s."isActive" = true
         ORDER BY s.name
       `,
-      // 그룹
       prisma.storeGroup.findMany({
         where: { isActive: true },
         select: { id: true, name: true },
         orderBy: { name: 'asc' }
       }),
-      // 영업담당
       prisma.salesStaff.findMany({
         where: { isActive: true },
         select: { id: true, name: true },
         orderBy: { name: 'asc' }
       }),
-      // 배송담당
       prisma.deliveryStaff.findMany({
         where: { isActive: true },
         select: { id: true, name: true },
@@ -134,47 +111,9 @@ export async function GET(request: Request) {
       })
     ])
 
-    // 플랫하게 변환 (아이템 단위로) - 개별 선택 가능하도록
-    const flatOrders = orders.flatMap(order => 
-      order.items.map(item => ({
-        id: order.id,
-        itemId: item.id,
-        orderNo: order.orderNo,
-        storeId: order.store.id,
-        storeName: order.store.name,
-        storeCode: order.store.code,
-        groupId: order.store.groupId,
-        groupName: order.store.group?.name || null,
-        salesStaffId: order.store.salesStaffId,
-        salesStaffName: order.store.salesStaff?.name || null,
-        deliveryStaffId: order.store.deliveryStaffId,
-        deliveryStaffName: order.store.deliveryStaff?.name || null,
-        productId: item.productId,
-        productName: item.product.name,
-        brandId: item.product.brandId,
-        brandName: item.product.brand.name,
-        supplierId: item.product.brand.supplierId,
-        supplierName: item.product.brand.supplier?.name || null,
-        sph: item.sph,
-        cyl: item.cyl,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice,
-        orderType: order.orderType,
-        orderedAt: order.orderedAt,
-        status: order.status
-      }))
-    )
-
     return NextResponse.json({
       orders: flatOrders,
-      filters: {
-        suppliers,
-        stores,
-        groups,
-        salesStaffs,
-        deliveryStaffs
-      },
+      filters: { suppliers, stores, groups, salesStaffs, deliveryStaffs },
       totalCount: flatOrders.length
     })
 
@@ -187,17 +126,17 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/orders/ship/spare - 여벌 출고 처리 (아이템 선택 → 선택된 아이템만 처리, 부분출고 지원)
+// POST /api/orders/ship/spare - 여벌 출고 처리 (부분출고 지원)
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { itemIds } = body // 출고할 OrderItem ID 배열
+    const { itemIds } = body
 
     if (!itemIds || itemIds.length === 0) {
       return NextResponse.json({ error: '출고할 아이템을 선택해주세요' }, { status: 400 })
     }
 
-    // 선택된 아이템 중 pending 상태인 것만 조회
+    // 1. 트랜잭션 밖에서 데이터 미리 조회
     const selectedItems = await prisma.orderItem.findMany({
       where: {
         id: { in: itemIds },
@@ -206,7 +145,7 @@ export async function POST(request: Request) {
       },
       include: {
         order: { include: { store: true } },
-        product: { include: { brand: true } }
+        product: true
       }
     })
 
@@ -214,55 +153,63 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '출고할 아이템이 없습니다 (이미 출고됨 또는 존재하지 않음)' }, { status: 404 })
     }
 
-    // 주문 ID 추출
     const orderIds = [...new Set(selectedItems.map(item => item.orderId))]
 
-    // 주문 조회 (전체 아이템의 status 확인용 - lightweight)
-    const orders = await prisma.order.findMany({
-      where: { id: { in: orderIds } },
-      include: {
-        store: true,
-        items: { select: { id: true, status: true } }
-      }
-    })
+    // 주문별 전체 아이템 상태 + ProductOption 미리 조회 (트랜잭션 밖에서)
+    const [orders, productOptions] = await Promise.all([
+      prisma.order.findMany({
+        where: { id: { in: orderIds } },
+        include: {
+          store: true,
+          items: { select: { id: true, status: true } }
+        }
+      }),
+      // 필요한 ProductOption 한 번에 조회
+      prisma.productOption.findMany({
+        where: {
+          productId: { in: selectedItems.map(i => i.productId) },
+          isActive: true
+        },
+        select: { id: true, productId: true, sph: true, cyl: true, stock: true }
+      })
+    ])
+
+    // ProductOption 룩업 맵 생성
+    const optionMap = new Map<string, typeof productOptions[0]>()
+    for (const opt of productOptions) {
+      const key = `${opt.productId}|${opt.sph || ''}|${opt.cyl || ''}`
+      optionMap.set(key, opt)
+    }
 
     const results: any[] = []
+    const now = new Date()
 
-    // 트랜잭션으로 처리
+    // 2. 트랜잭션: 최소한의 쓰기 작업만 수행
     await prisma.$transaction(async (tx) => {
       for (const order of orders) {
         const store = order.store
-        const now = new Date()
-
-        // 이 주문에서 지금 출고할 아이템만 필터
         const itemsToShip = selectedItems.filter(item => item.orderId === order.id)
         const shippedAmount = itemsToShip.reduce((sum, item) => sum + item.totalPrice, 0)
 
-        // 1. 선택된 OrderItem 상태를 shipped로 변경
+        // OrderItem 일괄 shipped 처리
         await tx.orderItem.updateMany({
           where: { id: { in: itemsToShip.map(i => i.id) } },
           data: { status: 'shipped', shippedAt: now }
         })
 
-        // 2. 선택된 아이템만 재고 차감 + 재고 이력 생성
+        // 재고 차감 + 이력: 배치로 처리
         for (const item of itemsToShip) {
-          const productOption = await tx.productOption.findFirst({
-            where: {
-              productId: item.productId,
-              sph: item.sph || null,
-              cyl: item.cyl || null,
-              isActive: true
-            }
-          })
+          const optKey = `${item.productId}|${item.sph || ''}|${item.cyl || ''}`
+          const productOption = optionMap.get(optKey)
 
-          let beforeStock = 0
-          let afterStock = 0
+          let beforeStock = 0, afterStock = 0
           let productOptionId: number | null = null
 
           if (productOption) {
             beforeStock = productOption.stock
             afterStock = Math.max(0, beforeStock - item.quantity)
             productOptionId = productOption.id
+            productOption.stock = afterStock // 로컬 캐시 업데이트
 
             await tx.productOption.update({
               where: { id: productOption.id },
@@ -273,12 +220,11 @@ export async function POST(request: Request) {
           await tx.inventoryTransaction.create({
             data: {
               productId: item.productId,
-              productOptionId: productOptionId,
+              productOptionId,
               type: 'out',
               reason: 'sale',
               quantity: -item.quantity,
-              beforeStock: beforeStock,
-              afterStock: afterStock,
+              beforeStock, afterStock,
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
               orderId: order.id,
@@ -288,28 +234,26 @@ export async function POST(request: Request) {
           })
         }
 
-        // 3. 주문 내 모든 아이템이 출고됐는지 확인
+        // 주문 상태 결정
         const shippingNowIds = new Set(itemsToShip.map(i => i.id))
         const allShipped = order.items.every(i =>
           shippingNowIds.has(i.id) || i.status === 'shipped'
         )
-        const newOrderStatus = allShipped ? 'shipped' : 'partial'
 
         await tx.order.update({
           where: { id: order.id },
           data: {
-            status: newOrderStatus,
+            status: allShipped ? 'shipped' : 'partial',
             ...(allShipped ? { shippedAt: now } : {})
           }
         })
 
-        // 4. 거래처 잔액 증가 (출고된 아이템 금액만)
+        // 거래처 잔액 + 거래내역 + 로그
         await tx.store.update({
           where: { id: order.storeId },
           data: { outstandingAmount: { increment: shippedAmount } }
         })
 
-        // 5. 거래내역 생성
         await tx.transaction.create({
           data: {
             storeId: order.storeId,
@@ -323,7 +267,6 @@ export async function POST(request: Request) {
           }
         })
 
-        // 6. 작업 로그
         await tx.workLog.create({
           data: {
             workType: 'order_ship',
@@ -353,7 +296,7 @@ export async function POST(request: Request) {
           shippedItemIds: itemsToShip.map(i => i.id)
         })
       }
-    })
+    }, { timeout: 15000 })
 
     return NextResponse.json({
       success: true,
