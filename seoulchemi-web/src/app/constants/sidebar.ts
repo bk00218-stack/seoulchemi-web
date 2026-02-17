@@ -14,6 +14,7 @@ export const ORDER_SIDEBAR: SidebarMenu[] = [
       { label: '온라인 여벌 주문', href: '/orders/online-spare' },
       { label: '온라인 RX 주문', href: '/orders/rx' },
       { label: '주문 등록', href: '/orders/new' },
+      { label: 'RX 접수 (F9)', href: '/orders/rx/new' },
       { label: '명세표 출력이력', href: '/orders/print-history' },
     ]
   },
