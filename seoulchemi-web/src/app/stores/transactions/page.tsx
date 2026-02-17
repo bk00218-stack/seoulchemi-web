@@ -311,6 +311,7 @@ export default function TransactionsPage() {
   const [resizing, setResizing] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const transTableRef = useRef<HTMLDivElement>(null)
 
   // 테이블 컬럼 리사이즈 핸들러
   const handleMouseDown = (column: string) => (e: React.MouseEvent) => {
@@ -478,6 +479,12 @@ export default function TransactionsPage() {
       const res = await fetch(`/api/transactions?storeId=${store.id}&limit=100`)
       const data = await res.json()
       setTransactions(data.transactions || [])
+      // 로드 후 스크롤 맨 아래로
+      setTimeout(() => {
+        if (transTableRef.current) {
+          transTableRef.current.scrollTop = transTableRef.current.scrollHeight
+        }
+      }, 50)
     } catch (e) {
       console.error(e)
       setTransactions([])
@@ -500,7 +507,10 @@ export default function TransactionsPage() {
     }
   }, [highlightIndex])
 
-  const filteredTransactions = transactions.filter(t => typeFilter === 'all' || t.type === typeFilter)
+  // 오래된 순으로 정렬 (최신이 아래로)
+  const filteredTransactions = [...transactions]
+    .filter(t => typeFilter === 'all' || t.type === typeFilter)
+    .sort((a, b) => new Date(a.processedAt).getTime() - new Date(b.processedAt).getTime())
   const toggleField = (key: string) => setVisibleFields(prev => prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key])
   const isVisible = (key: string) => visibleFields.includes(key)
 
@@ -645,7 +655,7 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          <div ref={transTableRef} style={{ flex: 1, overflow: 'auto' }}>
             {!selectedStore ? (
               <div style={{ padding: '50px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>거래처 선택</div>
             ) : transLoading ? (
