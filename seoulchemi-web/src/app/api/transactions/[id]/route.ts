@@ -73,7 +73,7 @@ export async function GET(
   }
 }
 
-// DELETE /api/transactions/[id] - 거래내역 삭제
+// DELETE /api/transactions/[id] - 거래내역 삭제 (잔액 + 재고 복구)
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -82,19 +82,65 @@ export async function DELETE(
     const { id } = await params
     const transactionId = parseInt(id)
     
-    // 거래내역 조회
+    // 거래내역 조회 (주문 아이템 포함)
     const transaction = await prisma.transaction.findUnique({
       where: { id: transactionId },
-      include: { store: true }
+      include: { 
+        store: true,
+        order: {
+          include: {
+            items: {
+              include: { product: true }
+            }
+          }
+        }
+      }
     })
     
     if (!transaction) {
       return NextResponse.json({ error: '거래내역을 찾을 수 없습니다.' }, { status: 404 })
     }
     
-    // 거래 삭제 및 잔액 복구
+    // 거래 삭제 및 잔액/재고 복구
     await prisma.$transaction(async (tx) => {
-      // 이 거래 이후의 모든 거래내역 잔액 조정
+      // 1. 재고 복구 (매출 삭제 → 재고 증가, 반품 삭제 → 재고 감소)
+      if (transaction.order?.items && transaction.order.items.length > 0) {
+        for (const item of transaction.order.items) {
+          // 실재고가 있는 상품만 처리
+          const product = await tx.product.findUnique({ where: { id: item.productId } })
+          if (product && product.trackInventory) {
+            let stockChange = 0
+            if (transaction.type === 'sale') {
+              // 매출 삭제 → 재고 복구 (증가)
+              stockChange = item.quantity
+            } else if (transaction.type === 'return') {
+              // 반품 삭제 → 재고 롤백 (감소)
+              stockChange = -item.quantity
+            }
+            
+            if (stockChange !== 0) {
+              // ProductOption(도수별 재고) 업데이트
+              if (item.sph || item.cyl) {
+                await tx.productOption.updateMany({
+                  where: {
+                    productId: item.productId,
+                    sph: item.sph || '0.00',
+                    cyl: item.cyl || '0.00'
+                  },
+                  data: { stock: { increment: stockChange } }
+                })
+              }
+              // Product 총재고 업데이트
+              await tx.product.update({
+                where: { id: item.productId },
+                data: { stock: { increment: stockChange } }
+              })
+            }
+          }
+        }
+      }
+      
+      // 2. 이 거래 이후의 모든 거래내역 잔액 조정
       const laterTransactions = await tx.transaction.findMany({
         where: {
           storeId: transaction.storeId,
@@ -104,7 +150,15 @@ export async function DELETE(
       })
       
       // 삭제하는 거래의 금액만큼 이후 거래들의 잔액 조정
-      const amountDiff = transaction.type === 'deposit' ? transaction.amount : -transaction.amount
+      // sale: 잔액 증가했던 것 → 삭제 시 감소
+      // deposit: 잔액 감소했던 것 → 삭제 시 증가
+      // return: 잔액 감소했던 것 → 삭제 시 증가
+      let amountDiff = 0
+      if (transaction.type === 'sale') {
+        amountDiff = -transaction.amount // 매출 삭제 → 잔액 감소
+      } else if (transaction.type === 'deposit' || transaction.type === 'return' || transaction.type === 'adjustment') {
+        amountDiff = transaction.amount // 입금/반품/조정 삭제 → 잔액 증가
+      }
       
       for (const t of laterTransactions) {
         await tx.transaction.update({
@@ -113,7 +167,7 @@ export async function DELETE(
         })
       }
       
-      // 가맹점 잔액 업데이트
+      // 3. 가맹점 미결제 잔액 업데이트
       await tx.store.update({
         where: { id: transaction.storeId },
         data: {
@@ -121,7 +175,12 @@ export async function DELETE(
         }
       })
       
-      // 거래내역 삭제
+      // 4. 주문도 삭제 (연결된 경우)
+      if (transaction.orderId) {
+        await tx.order.delete({ where: { id: transaction.orderId } })
+      }
+      
+      // 5. 거래내역 삭제
       await tx.transaction.delete({
         where: { id: transactionId }
       })
