@@ -68,6 +68,13 @@ function formatDateTime(s: string): string {
   return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
 
+const TX_TYPE_MAP: Record<string, { label: string; color: string; bg: string }> = {
+  sale: { label: '매출', color: '#ef4444', bg: '#fef2f2' },
+  deposit: { label: '입금', color: '#16a34a', bg: '#f0fdf4' },
+  return: { label: '반품', color: '#e65100', bg: '#fff3e0' },
+  adjustment: { label: '할인', color: '#7c3aed', bg: '#f5f3ff' },
+}
+
 export default function SettlePage() {
   const { toast } = useToast()
 
@@ -85,6 +92,12 @@ export default function SettlePage() {
   const [depositMemo, setDepositMemo] = useState('')
   const [depositor, setDepositor] = useState('')
   const [depositing, setDepositing] = useState(false)
+
+  // 할인 모달
+  const [discountModal, setDiscountModal] = useState<StoreReceivable | null>(null)
+  const [discountAmount, setDiscountAmount] = useState('')
+  const [discountMemo, setDiscountMemo] = useState('')
+  const [discounting, setDiscounting] = useState(false)
 
   // 거래내역 모달
   const [txModal, setTxModal] = useState<{ storeId: number; storeName: string } | null>(null)
@@ -148,6 +161,45 @@ export default function SettlePage() {
     }
   }
 
+  // 할인 처리
+  const handleDiscount = async () => {
+    if (!discountModal) return
+    const amount = parseInt(discountAmount.replace(/,/g, ''))
+    if (!amount || amount <= 0) {
+      toast.warning('유효한 금액을 입력해주세요.')
+      return
+    }
+    if (!discountMemo.trim()) {
+      toast.warning('할인 사유를 입력해주세요.')
+      return
+    }
+
+    setDiscounting(true)
+    try {
+      const res = await fetch('/api/receivables/discount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: discountModal.id,
+          amount,
+          memo: discountMemo,
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || '할인 처리 실패'); return }
+
+      toast.success(`${discountModal.name}에 ${formatNum(amount)}원 할인 처리 완료`)
+      setDiscountModal(null)
+      setDiscountAmount('')
+      setDiscountMemo('')
+      fetchData()
+    } catch {
+      toast.error('할인 처리에 실패했습니다.')
+    } finally {
+      setDiscounting(false)
+    }
+  }
+
   // 거래내역 조회
   const openTransactions = async (storeId: number, storeName: string) => {
     setTxModal({ storeId, storeName })
@@ -166,12 +218,21 @@ export default function SettlePage() {
   }
 
   // 금액 입력 포맷터
-  const handleAmountInput = (val: string) => {
+  const handleDepositAmountInput = (val: string) => {
     const num = val.replace(/[^0-9]/g, '')
     if (num) {
       setDepositAmount(parseInt(num).toLocaleString())
     } else {
       setDepositAmount('')
+    }
+  }
+
+  const handleDiscountAmountInput = (val: string) => {
+    const num = val.replace(/[^0-9]/g, '')
+    if (num) {
+      setDiscountAmount(parseInt(num).toLocaleString())
+    } else {
+      setDiscountAmount('')
     }
   }
 
@@ -188,7 +249,7 @@ export default function SettlePage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>가맹점 정산관리</h1>
-          <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>미수금 조회, 입금 처리, 거래내역 관리</p>
+          <p style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 4 }}>미수금 조회, 입금/할인 처리, 거래내역 관리</p>
         </div>
       </div>
 
@@ -332,6 +393,23 @@ export default function SettlePage() {
                             입금
                           </button>
                           <button
+                            onClick={() => {
+                              setDiscountModal(store)
+                              setDiscountAmount('')
+                              setDiscountMemo('')
+                            }}
+                            style={{
+                              ...btnStyle,
+                              padding: '4px 10px',
+                              fontSize: 12,
+                              background: '#7c3aed',
+                              color: '#fff',
+                              border: 'none',
+                            }}
+                          >
+                            할인
+                          </button>
+                          <button
                             onClick={() => openTransactions(store.id, store.name)}
                             style={{
                               ...btnStyle,
@@ -386,7 +464,7 @@ export default function SettlePage() {
                 <input
                   type="text"
                   value={depositAmount}
-                  onChange={e => handleAmountInput(e.target.value)}
+                  onChange={e => handleDepositAmountInput(e.target.value)}
                   placeholder="금액 입력"
                   style={{ ...inputStyle, width: '100%', fontSize: 16, fontWeight: 600 }}
                   autoFocus
@@ -491,6 +569,100 @@ export default function SettlePage() {
         </div>
       )}
 
+      {/* 할인 모달 */}
+      {discountModal && (
+        <div style={overlayStyle} onClick={() => setDiscountModal(null)}>
+          <div style={modalStyle} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>할인 처리</h2>
+              <button onClick={() => setDiscountModal(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--gray-400)' }}>×</button>
+            </div>
+
+            {/* 가맹점 정보 */}
+            <div style={{ background: 'var(--gray-50)', borderRadius: 8, padding: '12px 16px', marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{discountModal.name}</span>
+                <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>{discountModal.code}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 13, color: 'var(--gray-500)' }}>현재 미수금</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#ef4444' }}>{formatNum(discountModal.outstandingAmount)}원</span>
+              </div>
+            </div>
+
+            {/* 할인 폼 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <label style={labelStyle}>할인 금액 *</label>
+                <input
+                  type="text"
+                  value={discountAmount}
+                  onChange={e => handleDiscountAmountInput(e.target.value)}
+                  placeholder="할인 금액 입력"
+                  style={{ ...inputStyle, width: '100%', fontSize: 16, fontWeight: 600 }}
+                  autoFocus
+                />
+                {/* 빠른 금액 버튼 */}
+                <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                  {[discountModal.outstandingAmount, 500000, 100000, 50000].filter(v => v > 0).map((amount, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setDiscountAmount(amount.toLocaleString())}
+                      style={{ ...btnStyle, padding: '4px 8px', fontSize: 11, flex: i === 0 ? 'none' : 1 }}
+                    >
+                      {i === 0 ? '전액' : formatCurrency(amount)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label style={labelStyle}>할인 사유 *</label>
+                <input
+                  type="text"
+                  value={discountMemo}
+                  onChange={e => setDiscountMemo(e.target.value)}
+                  placeholder="할인 사유 입력 (필수)"
+                  style={{ ...inputStyle, width: '100%' }}
+                />
+              </div>
+            </div>
+
+            {/* 할인 후 잔액 미리보기 */}
+            {discountAmount && (
+              <div style={{ background: '#f5f3ff', borderRadius: 8, padding: '10px 14px', marginTop: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#7c3aed' }}>할인 후 잔액</span>
+                  <span style={{ fontWeight: 700, color: '#7c3aed' }}>
+                    {formatNum(Math.max(0, discountModal.outstandingAmount - parseInt(discountAmount.replace(/,/g, '') || '0')))}원
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 버튼 */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
+              <button onClick={() => setDiscountModal(null)} style={{ ...btnStyle, padding: '10px 20px' }}>취소</button>
+              <button
+                onClick={handleDiscount}
+                disabled={discounting || !discountAmount || !discountMemo.trim()}
+                style={{
+                  ...btnStyle,
+                  padding: '10px 24px',
+                  background: '#7c3aed',
+                  color: '#fff',
+                  border: 'none',
+                  fontWeight: 600,
+                  opacity: discounting || !discountAmount || !discountMemo.trim() ? 0.6 : 1,
+                }}
+              >
+                {discounting ? '처리 중...' : '할인 처리'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 거래내역 모달 */}
       {txModal && (
         <div style={overlayStyle} onClick={() => setTxModal(null)}>
@@ -519,46 +691,50 @@ export default function SettlePage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.map(tx => (
-                      <tr key={tx.id} style={{ borderBottom: '1px solid var(--gray-100)' }}>
-                        <td style={tdStyle}>{formatDateTime(tx.processedAt)}</td>
-                        <td style={tdStyle}>
-                          <span style={{
-                            display: 'inline-block',
-                            padding: '2px 8px',
-                            borderRadius: 10,
-                            fontSize: 11,
+                    {transactions.map(tx => {
+                      const typeInfo = TX_TYPE_MAP[tx.type] || { label: tx.type, color: '#666', bg: '#f5f5f5' }
+                      const isDecrease = tx.type === 'deposit' || tx.type === 'return' || tx.type === 'adjustment'
+                      return (
+                        <tr key={tx.id} style={{ borderBottom: '1px solid var(--gray-100)' }}>
+                          <td style={tdStyle}>{formatDateTime(tx.processedAt)}</td>
+                          <td style={tdStyle}>
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '2px 8px',
+                              borderRadius: 10,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              background: typeInfo.bg,
+                              color: typeInfo.color,
+                            }}>
+                              {typeInfo.label}
+                            </span>
+                          </td>
+                          <td style={{
+                            ...tdStyle,
+                            textAlign: 'right',
                             fontWeight: 600,
-                            background: tx.type === 'deposit' ? '#f0fdf4' : tx.type === 'sale' ? '#fef2f2' : '#eff6ff',
-                            color: tx.type === 'deposit' ? '#16a34a' : tx.type === 'sale' ? '#ef4444' : '#2563eb',
+                            color: isDecrease ? '#16a34a' : '#ef4444',
                           }}>
-                            {tx.type === 'deposit' ? '입금' : tx.type === 'sale' ? '매출' : tx.type === 'refund' ? '환불' : tx.type}
-                          </span>
-                        </td>
-                        <td style={{
-                          ...tdStyle,
-                          textAlign: 'right',
-                          fontWeight: 600,
-                          color: tx.type === 'deposit' ? '#16a34a' : '#ef4444',
-                        }}>
-                          {tx.type === 'deposit' ? '-' : '+'}{formatNum(tx.amount)}원
-                        </td>
-                        <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--gray-500)' }}>
-                          {formatNum(tx.balanceAfter)}원
-                        </td>
-                        <td style={tdStyle}>
-                          {tx.paymentMethod === 'transfer' ? '계좌이체' :
-                           tx.paymentMethod === 'cash' ? '현금' :
-                           tx.paymentMethod === 'card' ? '카드' :
-                           tx.paymentMethod === 'check' ? '수표' :
-                           tx.paymentMethod || '-'}
-                        </td>
-                        <td style={{ ...tdStyle, color: 'var(--gray-500)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {tx.memo || tx.orderNo || '-'}
-                        </td>
-                        <td style={{ ...tdStyle, color: 'var(--gray-400)', fontSize: 12 }}>{tx.processedBy}</td>
-                      </tr>
-                    ))}
+                            {isDecrease ? '-' : '+'}{formatNum(tx.amount)}원
+                          </td>
+                          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--gray-500)' }}>
+                            {formatNum(tx.balanceAfter)}원
+                          </td>
+                          <td style={tdStyle}>
+                            {tx.paymentMethod === 'transfer' ? '계좌이체' :
+                             tx.paymentMethod === 'cash' ? '현금' :
+                             tx.paymentMethod === 'card' ? '카드' :
+                             tx.paymentMethod === 'check' ? '수표' :
+                             tx.paymentMethod || '-'}
+                          </td>
+                          <td style={{ ...tdStyle, color: 'var(--gray-500)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {tx.memo || tx.orderNo || '-'}
+                          </td>
+                          <td style={{ ...tdStyle, color: 'var(--gray-400)', fontSize: 12 }}>{tx.processedBy}</td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

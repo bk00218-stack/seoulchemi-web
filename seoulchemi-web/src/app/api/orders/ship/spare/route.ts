@@ -268,7 +268,7 @@ export async function POST(request: Request) {
           data: {
             storeId: order.storeId,
             type: isNetReturn ? 'return' : 'sale',
-            amount: shippedAmount,
+            amount: Math.abs(shippedAmount),
             balanceAfter: store.outstandingAmount + shippedAmount,
             orderId: order.id,
             orderNo: order.orderNo,
