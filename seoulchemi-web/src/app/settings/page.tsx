@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect, useCallback } from 'react'
 import Layout, { btnStyle, cardStyle, inputStyle } from '../components/Layout'
 import { SETTINGS_SIDEBAR } from '../constants/sidebar'
@@ -39,6 +40,7 @@ const defaultSettings: Setting[] = [
 ]
 
 export default function SettingsPage() {
+  const { toast } = useToast()
   const [settings, setSettings] = useState(defaultSettings)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -99,11 +101,11 @@ export default function SettingsPage() {
         setDirty(false)
         setTimeout(() => setSaved(false), 3000)
       } else {
-        alert('저장에 실패했습니다.')
+        toast.error('저장에 실패했습니다.')
       }
     } catch (e) {
       console.error('설정 저장 실패:', e)
-      alert('저장 중 오류가 발생했습니다.')
+      toast.error('저장 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }

@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState } from 'react'
 import Layout, { cardStyle } from '../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
@@ -42,6 +44,7 @@ const btnStyle: React.CSSProperties = {
 }
 
 export default function ShortcutsPage() {
+  const { toast } = useToast()
   const [shortcuts, setShortcuts] = useState(mockShortcuts)
   const [numpad] = useState(numpadShortcuts)
   const [selectedShortcut, setSelectedShortcut] = useState<typeof mockShortcuts[0] | null>(null)
@@ -178,7 +181,7 @@ export default function ShortcutsPage() {
           {numpad.map(shortcut => (
             <div
               key={shortcut.id}
-              onClick={() => alert('넘패드 단축키 설정 기능 준비중')}
+              onClick={() => toast.info('넘패드 단축키 설정 기능 준비중')}
               style={{
                 padding: 16,
                 borderRadius: 12,

@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState } from 'react'
 import Layout from '../../../components/Layout'
 import { STORES_SIDEBAR } from '../../../constants/sidebar'
@@ -48,6 +50,7 @@ const MOCK_SETTINGS: GroupTypeSetting[] = [
 ]
 
 export default function GroupTypesPage() {
+  const { toast } = useToast()
   const [groups] = useState<StoreGroup[]>(MOCK_GROUPS)
   const [types, setTypes] = useState<GroupType[]>(MOCK_TYPES)
   const [settings, setSettings] = useState<GroupTypeSetting[]>(MOCK_SETTINGS)
@@ -94,7 +97,7 @@ export default function GroupTypesPage() {
 
   const handleSaveType = () => {
     if (!typeForm.name.trim()) {
-      alert('타입명을 입력해주세요.')
+      toast.warning('타입명을 입력해주세요.')
       return
     }
 
@@ -110,7 +113,7 @@ export default function GroupTypesPage() {
           ? { ...s, typeName: typeForm.name }
           : s
       ))
-      alert('타입이 수정되었습니다.')
+      toast.success('타입이 수정되었습니다.')
     } else {
       const newType: GroupType = {
         id: Math.max(...types.map(t => t.id)) + 1,
@@ -119,7 +122,7 @@ export default function GroupTypesPage() {
         color: typeForm.color,
       }
       setTypes([...types, newType])
-      alert('타입이 등록되었습니다.')
+      toast.success('타입이 등록되었습니다.')
     }
     setShowTypeModal(false)
   }

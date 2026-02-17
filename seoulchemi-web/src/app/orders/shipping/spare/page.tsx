@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect, useCallback, useRef, KeyboardEvent, MouseEvent } from 'react'
 import Layout from '../../../components/Layout'
 import { ORDER_SIDEBAR } from '../../../constants/sidebar'
@@ -72,6 +74,7 @@ interface ColumnFilters {
 }
 
 export default function SpareShipmentPage() {
+  const { toast } = useToast()
   const [orders, setOrders] = useState<SpareOrder[]>([])
   const [filters, setFilters] = useState<Filters>({
     suppliers: [],
@@ -367,7 +370,7 @@ export default function SpareShipmentPage() {
 
   // 출고 확인 모달 표시
   const handleShipping = () => {
-    if (selectedItems.size === 0) { alert('출고할 주문을 선택해주세요.'); return }
+    if (selectedItems.size === 0) { toast.warning('출고할 주문을 선택해주세요.'); return }
     setShowConfirm(true)
   }
 
@@ -396,7 +399,7 @@ export default function SpareShipmentPage() {
       resetToInitial()
       loadOrders()
     } catch (error: any) {
-      alert(`출고 실패: ${error.message}`)
+      toast.error(`출고 실패: ${error.message}`)
     } finally {
       setShipping(false)
     }
@@ -437,7 +440,7 @@ export default function SpareShipmentPage() {
       if (!res.ok) throw new Error('수정 실패')
       loadOrders()
     } catch (error) {
-      alert('수정에 실패했습니다.')
+      toast.error('수정에 실패했습니다.')
     }
     setEditingCell(null)
   }
@@ -466,7 +469,7 @@ export default function SpareShipmentPage() {
       if (!res.ok) throw new Error('삭제 실패')
       loadOrders()
     } catch (error) {
-      alert('삭제에 실패했습니다.')
+      toast.error('삭제에 실패했습니다.')
     }
     setDeleteItemId(null)
   }

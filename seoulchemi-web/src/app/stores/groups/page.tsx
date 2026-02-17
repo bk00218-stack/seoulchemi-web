@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
@@ -40,6 +42,7 @@ const MOCK_STORES: Store[] = [
 ]
 
 export default function StoreGroupsPage() {
+  const { toast } = useToast()
   const [groups, setGroups] = useState<StoreGroup[]>(MOCK_GROUPS)
   const [stores, setStores] = useState<Store[]>(MOCK_STORES)
   const [selectedGroup, setSelectedGroup] = useState<StoreGroup | null>(null)
@@ -82,7 +85,7 @@ export default function StoreGroupsPage() {
 
   const handleSaveGroup = () => {
     if (!groupForm.name.trim()) {
-      alert('그룹명을 입력해주세요.')
+      toast.warning('그룹명을 입력해주세요.')
       return
     }
 
@@ -92,7 +95,7 @@ export default function StoreGroupsPage() {
           ? { ...g, name: groupForm.name, description: groupForm.description }
           : g
       ))
-      alert('그룹이 수정되었습니다.')
+      toast.success('그룹이 수정되었습니다.')
     } else {
       const newGroup: StoreGroup = {
         id: Math.max(...groups.map(g => g.id)) + 1,
@@ -102,7 +105,7 @@ export default function StoreGroupsPage() {
         createdAt: new Date().toISOString().split('T')[0],
       }
       setGroups([...groups, newGroup])
-      alert('그룹이 등록되었습니다.')
+      toast.success('그룹이 등록되었습니다.')
     }
     setShowGroupModal(false)
   }

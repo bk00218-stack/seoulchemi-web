@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect } from 'react'
 import Layout, { btnStyle, selectStyle, inputStyle, cardStyle, thStyle, tdStyle } from '../../components/Layout'
 import { ORDER_SIDEBAR } from '../../constants/sidebar'
@@ -28,6 +29,7 @@ interface RxOrder {
 }
 
 export default function RxOrdersPage() {
+  const { toast } = useToast()
   const today = new Date().toISOString().split('T')[0]
   
   // 필터 상태
@@ -133,11 +135,11 @@ export default function RxOrdersPage() {
   // 상태 변경
   async function handleStatusChange(newStatus: string) {
     if (selectedIds.size === 0) {
-      alert('선택된 주문이 없습니다.')
+      toast.warning('선택된 주문이 없습니다.')
       return
     }
     // TODO: API 연동
-    alert(`${selectedIds.size}건을 "${newStatus}" 상태로 변경합니다.`)
+    toast.info(`${selectedIds.size}건을 "${newStatus}" 상태로 변경합니다.`)
   }
 
   // 날짜 빠른 선택

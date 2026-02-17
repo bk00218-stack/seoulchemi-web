@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
@@ -28,6 +30,7 @@ interface Staff {
 type ModalType = 'group' | 'delivery' | 'sales' | null
 
 export default function StaffManagementPage() {
+  const { toast } = useToast()
   const [groups, setGroups] = useState<StoreGroup[]>([])
   const [deliveryStaff, setDeliveryStaff] = useState<Staff[]>([])
   const [salesStaff, setSalesStaff] = useState<Staff[]>([])
@@ -100,8 +103,8 @@ export default function StaffManagementPage() {
   }
 
   async function handleSubmit() {
-    if (modalType === 'group' && !groupForm.name.trim()) { alert('그룹명을 입력해주세요.'); return }
-    if (modalType !== 'group' && !staffForm.name.trim()) { alert('담당자명을 입력해주세요.'); return }
+    if (modalType === 'group' && !groupForm.name.trim()) { toast.warning('그룹명을 입력해주세요.'); return }
+    if (modalType !== 'group' && !staffForm.name.trim()) { toast.warning('담당자명을 입력해주세요.'); return }
 
     setSaving(true)
     try {
@@ -129,7 +132,7 @@ export default function StaffManagementPage() {
 
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || '저장 실패')
+        toast.error(data.error || '저장 실패')
         return
       }
 
@@ -138,7 +141,7 @@ export default function StaffManagementPage() {
       else if (modalType === 'delivery') fetchDeliveryStaff()
       else fetchSalesStaff()
     } catch (e) {
-      alert('저장 실패')
+      toast.error('저장 실패')
     } finally {
       setSaving(false)
     }
@@ -183,7 +186,7 @@ export default function StaffManagementPage() {
     try {
       const text = await bulkFile.text()
       const lines = text.split('\n').filter(l => l.trim())
-      if (lines.length < 2) { alert('데이터가 없습니다.'); return }
+      if (lines.length < 2) { toast.error('데이터가 없습니다.'); return }
       
       const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
       const items = []
@@ -205,7 +208,7 @@ export default function StaffManagementPage() {
         }
       }
       
-      if (items.length === 0) { alert('등록할 데이터가 없습니다.'); return }
+      if (items.length === 0) { toast.error('등록할 데이터가 없습니다.'); return }
       
       const endpoint = bulkType === 'group' ? 'store-groups' : bulkType === 'delivery' ? 'delivery-staff' : 'sales-staff'
       let success = 0, failed = 0
@@ -222,7 +225,7 @@ export default function StaffManagementPage() {
         } catch { failed++ }
       }
       
-      alert(`등록 완료: ${success}건 성공, ${failed}건 실패`)
+      toast.success(`등록 완료: ${success}건 성공, ${failed}건 실패`)
       setBulkType(null)
       setBulkFile(null)
       
@@ -230,7 +233,7 @@ export default function StaffManagementPage() {
       else if (bulkType === 'delivery') fetchDeliveryStaff()
       else fetchSalesStaff()
     } catch (e) {
-      alert('파일 처리 실패')
+      toast.error('파일 처리 실패')
     } finally {
       setBulkUploading(false)
     }
@@ -245,14 +248,14 @@ export default function StaffManagementPage() {
       const res = await fetch(`/api/${endpoint}/${id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || '삭제 실패')
+        toast.error(data.error || '삭제 실패')
         return
       }
       if (type === 'group') fetchGroups()
       else if (type === 'delivery') fetchDeliveryStaff()
       else fetchSalesStaff()
     } catch (e) {
-      alert('삭제 실패')
+      toast.error('삭제 실패')
     }
   }
 

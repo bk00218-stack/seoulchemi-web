@@ -1,8 +1,10 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState } from 'react'
 
 export default function SettingsPage() {
+  const { toast } = useToast()
   const [settings, setSettings] = useState({
     // 안경원 정보
     storeName: '행복안경원',
@@ -33,7 +35,7 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     // TODO: API 저장
-    alert('설정이 저장되었습니다')
+    toast.success('설정이 저장되었습니다')
   }
 
   return (

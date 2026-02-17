@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
@@ -37,6 +39,7 @@ const DISPLAY_LABELS: Record<string, string> = {
 }
 
 export default function NoticesPage() {
+  const { toast } = useToast()
   const [notices, setNotices] = useState<Notice[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all')
@@ -119,8 +122,8 @@ export default function NoticesPage() {
   }
 
   async function handleSave() {
-    if (!form.title.trim()) { alert('제목을 입력해주세요.'); return }
-    if (!form.imageUrl && !form.content) { alert('이미지 또는 내용을 입력해주세요.'); return }
+    if (!form.title.trim()) { toast.warning('제목을 입력해주세요.'); return }
+    if (!form.imageUrl && !form.content) { toast.warning('이미지 또는 내용을 입력해주세요.'); return }
     
     setSaving(true)
     try {
@@ -145,7 +148,7 @@ export default function NoticesPage() {
       setShowModal(false)
       fetchNotices()
     } catch (e) {
-      alert('저장 실패')
+      toast.error('저장 실패')
     } finally {
       setSaving(false)
     }
@@ -158,7 +161,7 @@ export default function NoticesPage() {
       await fetch(`/api/notices/${notice.id}`, { method: 'DELETE' })
       fetchNotices()
     } catch (e) {
-      alert('삭제 실패')
+      toast.error('삭제 실패')
     }
   }
 
@@ -171,7 +174,7 @@ export default function NoticesPage() {
       })
       fetchNotices()
     } catch (e) {
-      alert('수정 실패')
+      toast.error('수정 실패')
     }
   }
 

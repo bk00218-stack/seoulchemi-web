@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState } from 'react'
 import Layout, { cardStyle } from '../../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../../constants/sidebar'
@@ -34,6 +36,7 @@ const btnStyle: React.CSSProperties = {
 }
 
 export default function BulkStockPage() {
+  const { toast } = useToast()
   const [products, setProducts] = useState(mockProducts)
   const [search, setSearch] = useState('')
   const [brandFilter, setBrandFilter] = useState('all')
@@ -83,14 +86,14 @@ export default function BulkStockPage() {
   const handleSave = () => {
     const changes = products.filter(p => p.currentStock !== p.newStock)
     if (changes.length === 0) {
-      alert('변경된 재고가 없습니다.')
+      toast.error('변경된 재고가 없습니다.')
       return
     }
     if (!reason.trim()) {
-      alert('조정 사유를 입력해주세요.')
+      toast.warning('조정 사유를 입력해주세요.')
       return
     }
-    alert(`${changes.length}개 상품의 재고가 조정되었습니다.\n사유: ${reason}`)
+    toast.success(`${changes.length}개 상품의 재고가 조정되었습니다.\n사유: ${reason}`)
     setProducts(products.map(p => ({ ...p, currentStock: p.newStock, selected: false })))
     setReason('')
   }

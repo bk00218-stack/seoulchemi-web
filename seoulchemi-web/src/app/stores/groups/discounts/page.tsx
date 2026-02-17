@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect } from 'react'
 import Layout from '../../../components/Layout'
 import { STORES_SIDEBAR } from '../../../constants/sidebar'
@@ -70,6 +72,7 @@ const MOCK_DISCOUNTS: DiscountSetting[] = [
 ]
 
 export default function GroupDiscountsPage() {
+  const { toast } = useToast()
   const [groups] = useState<StoreGroup[]>(MOCK_GROUPS)
   const [discounts, setDiscounts] = useState<DiscountSetting[]>(MOCK_DISCOUNTS)
   const [selectedGroup, setSelectedGroup] = useState<StoreGroup | null>(null)
@@ -141,7 +144,7 @@ export default function GroupDiscountsPage() {
     setTimeout(() => {
       setSaving(false)
       setShowModal(false)
-      alert('할인율이 저장되었습니다.')
+      toast.success('할인율이 저장되었습니다.')
     }, 500)
   }
 
@@ -151,7 +154,7 @@ export default function GroupDiscountsPage() {
     const availableBrand = MOCK_BRANDS.find(b => !existingBrandIds.includes(b.id))
     
     if (!availableBrand) {
-      alert('모든 브랜드가 이미 추가되어 있습니다.')
+      toast.info('모든 브랜드가 이미 추가되어 있습니다.')
       return
     }
 

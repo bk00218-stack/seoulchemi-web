@@ -4,6 +4,12 @@
   padding: 0;
 }
 
+/* Toast animation */
+@keyframes toastSlideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
 :root {
   /* Light mode (default) - Bright & Clean */
   --bg-primary: #ffffff;

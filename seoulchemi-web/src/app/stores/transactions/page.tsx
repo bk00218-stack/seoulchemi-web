@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
@@ -293,6 +294,7 @@ function ShipmentSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
 }
 
 export default function TransactionsPage() {
+  const { toast } = useToast()
   const [stores, setStores] = useState<Store[]>([])
   const [filteredStores, setFilteredStores] = useState<Store[]>([])
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
@@ -339,7 +341,7 @@ export default function TransactionsPage() {
   // 엑셀 내보내기
   const handleExportExcel = () => {
     if (!selectedStore || filteredTransactions.length === 0) {
-      alert('내보낼 데이터가 없습니다.')
+      toast.error('내보낼 데이터가 없습니다.')
       return
     }
     
@@ -387,7 +389,7 @@ export default function TransactionsPage() {
         }
       }
     } catch (error) {
-      alert('삭제 실패')
+      toast.error('삭제 실패')
     }
   }
 
@@ -418,9 +420,9 @@ export default function TransactionsPage() {
       }
       
       setSelectedTransaction(null)
-      alert('삭제되었습니다.')
+      toast.success('삭제되었습니다.')
     } catch (error: any) {
-      alert(error.message || '삭제 실패')
+      toast.error(error.message || '삭제 실패')
     } finally {
       setDeleteLoading(false)
     }

@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from '../../../components/Layout'
 import { PURCHASE_SIDEBAR } from '../../../constants/sidebar'
@@ -39,6 +40,7 @@ interface PaymentForm {
 }
 
 export default function VendorsUnpaidPage() {
+  const { toast } = useToast()
   const [vendors, setVendors] = useState<VendorUnpaid[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -149,7 +151,7 @@ export default function VendorsUnpaidPage() {
 
   async function handlePaymentSubmit() {
     if (paymentForm.amount <= 0) {
-      alert('결제 금액을 입력해주세요.')
+      toast.warning('결제 금액을 입력해주세요.')
       return
     }
 
@@ -162,12 +164,12 @@ export default function VendorsUnpaidPage() {
       //   body: JSON.stringify(paymentForm),
       // })
       
-      alert(`${paymentForm.vendorName}에 ${paymentForm.amount.toLocaleString()}원 결제가 등록되었습니다.`)
+      toast.info(`${paymentForm.vendorName}에 ${paymentForm.amount.toLocaleString()}원 결제가 등록되었습니다.`)
       setShowPaymentModal(false)
       fetchUnpaidVendors()
     } catch (e) {
       console.error(e)
-      alert('결제 등록에 실패했습니다.')
+      toast.error('결제 등록에 실패했습니다.')
     } finally {
       setSaving(false)
     }

@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect } from 'react'
 import Layout, { cardStyle } from '../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
@@ -55,6 +56,7 @@ const labelStyle: React.CSSProperties = {
 }
 
 export default function BrandsPage() {
+  const { toast } = useToast()
   const [brands, setBrands] = useState<Brand[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -103,7 +105,7 @@ export default function BrandsPage() {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      alert('브랜드명을 입력해주세요.')
+      toast.warning('브랜드명을 입력해주세요.')
       return
     }
 
@@ -125,10 +127,10 @@ export default function BrandsPage() {
         loadBrands()
       } else {
         const error = await res.json()
-        alert(error.error || '저장에 실패했습니다.')
+        toast.error(error.error || '저장에 실패했습니다.')
       }
     } catch {
-      alert('저장에 실패했습니다.')
+      toast.error('저장에 실패했습니다.')
     }
   }
 
@@ -141,10 +143,10 @@ export default function BrandsPage() {
         loadBrands()
       } else {
         const error = await res.json()
-        alert(error.error || '삭제에 실패했습니다.')
+        toast.error(error.error || '삭제에 실패했습니다.')
       }
     } catch {
-      alert('삭제에 실패했습니다.')
+      toast.error('삭제에 실패했습니다.')
     }
   }
 

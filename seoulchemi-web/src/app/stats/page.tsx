@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
 import { STATS_SIDEBAR } from '../constants/sidebar'
@@ -43,6 +45,7 @@ interface Staff {
 }
 
 export default function StatsPage() {
+  const { toast } = useToast()
   const today = new Date().toISOString().split('T')[0]
   const [dateFrom, setDateFrom] = useState(today)
   const [dateTo, setDateTo] = useState(today)
@@ -120,7 +123,7 @@ export default function StatsPage() {
   
   const handleExportExcel = () => {
     if (stores.length === 0) {
-      alert('내보낼 데이터가 없습니다.')
+      toast.error('내보낼 데이터가 없습니다.')
       return
     }
     

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 
 interface ExcelExportProps {
   endpoint: string
@@ -10,6 +11,7 @@ interface ExcelExportProps {
 }
 
 export default function ExcelExport({ endpoint, filename, label = '엑셀 다운로드', params = {} }: ExcelExportProps) {
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
 
   const handleExport = async () => {
@@ -33,7 +35,7 @@ export default function ExcelExport({ endpoint, filename, label = '엑셀 다운
       document.body.removeChild(a)
     } catch (error) {
       console.error('Export failed:', error)
-      alert('다운로드에 실패했습니다.')
+      toast.error('다운로드에 실패했습니다.')
     } finally {
       setLoading(false)
     }
@@ -111,9 +113,10 @@ export function ExcelExportButton({
   filename: string
   label?: string 
 }) {
+  const { toast } = useToast()
   const handleExport = () => {
     if (data.length === 0) {
-      alert('내보낼 데이터가 없습니다.')
+      toast.error('내보낼 데이터가 없습니다.')
       return
     }
     exportToCSV(data, columns, filename)

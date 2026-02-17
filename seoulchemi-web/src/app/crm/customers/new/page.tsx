@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -20,6 +21,7 @@ interface CustomerForm {
 }
 
 export default function NewCustomerPage() {
+  const { toast } = useToast()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<CustomerForm>({
@@ -64,11 +66,11 @@ export default function NewCustomerPage() {
     e.preventDefault()
     
     if (!form.name.trim()) {
-      alert('고객명을 입력해주세요')
+      toast.warning('고객명을 입력해주세요')
       return
     }
     if (!form.phone.trim()) {
-      alert('전화번호를 입력해주세요')
+      toast.warning('전화번호를 입력해주세요')
       return
     }
 
@@ -93,11 +95,11 @@ export default function NewCustomerPage() {
         throw new Error(data.error || '등록 실패')
       }
       
-      alert('고객이 등록되었습니다')
+      toast.success('고객이 등록되었습니다')
       router.push(`/crm/customers/${data.id}`)
     } catch (error: any) {
       console.error(error)
-      alert(error.message || '등록 중 오류가 발생했습니다')
+      toast.error(error.message || '등록 중 오류가 발생했습니다')
     } finally {
       setLoading(false)
     }

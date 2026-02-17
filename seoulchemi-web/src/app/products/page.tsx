@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useEffect, useState, useCallback } from 'react'
 import Layout from '../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../constants/sidebar'
@@ -119,6 +120,7 @@ function GenerateOptionsModal({
   onUpdate?: (updates: { id: number; priceAdjustment: number }[]) => void
   mode?: 'create' | 'edit'
 }) {
+  const { toast } = useToast()
   // 탭: 근난시(-/-), 원난시(+/-)
   const [activeTab, setActiveTab] = useState<'minus' | 'plus'>('minus')
   
@@ -316,7 +318,7 @@ function GenerateOptionsModal({
         onGenerate(newOptions)
       }
       if (updates.length === 0 && newOptions.length === 0) {
-        alert('변경된 내용이 없습니다.')
+        toast.error('변경된 내용이 없습니다.')
       }
     } else {
       // 생성 모드: 새로운 옵션만 생성
@@ -783,6 +785,7 @@ function EditPriceModal({
   onClose: () => void
   onSave: (updates: { id: number; priceAdjustment: number }[]) => void
 }) {
+  const { toast } = useToast()
   // 옵션별 가격 조정 상태
   const [priceMap, setPriceMap] = useState<Map<number, number>>(
     new Map(options.map(o => [o.id, o.priceAdjustment || 0]))
@@ -847,7 +850,7 @@ function EditPriceModal({
       .map(([id, priceAdjustment]) => ({ id, priceAdjustment }))
     
     if (updates.length === 0) {
-      alert('변경된 내용이 없습니다.')
+      toast.error('변경된 내용이 없습니다.')
       return
     }
     onSave(updates)
@@ -1060,6 +1063,7 @@ function EditPriceModal({
 }
 
 export default function ProductsPage() {
+  const { toast } = useToast()
   const [categories, setCategories] = useState<MainCategory[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
   const [productLines, setProductLines] = useState<ProductLine[]>([])
@@ -1252,13 +1256,13 @@ export default function ProductsPage() {
         }
         setShowBarcodeModal(false)
         setBarcodeSearch('')
-        alert(`찾았습니다: ${data.product.name} - SPH: ${data.option.sph}, CYL: ${data.option.cyl}`)
+        toast.info(`찾았습니다: ${data.product.name} - SPH: ${data.option.sph}, CYL: ${data.option.cyl}`)
       } else {
-        alert('해당 바코드를 찾을 수 없습니다.')
+        toast.error('해당 바코드를 찾을 수 없습니다.')
       }
     } catch (e) {
       console.error(e)
-      alert('검색 중 오류가 발생했습니다.')
+      toast.error('검색 중 오류가 발생했습니다.')
     }
   }
 
@@ -1283,14 +1287,14 @@ export default function ProductsPage() {
         setShowBrandModal(false)
         setEditingBrand(null)
         if (selectedCategory) handleSelectCategory(selectedCategory)
-        alert(editingBrand ? '브랜드가 수정되었습니다.' : '브랜드가 추가되었습니다.')
+        toast.success(editingBrand ? '브랜드가 수정되었습니다.' : '브랜드가 추가되었습니다.')
       } else {
         const err = await res.json()
-        alert(err.error || '저장 실패')
+        toast.error(err.error || '저장 실패')
       }
     } catch (e) {
       console.error(e)
-      alert('저장 중 오류 발생')
+      toast.error('저장 중 오류 발생')
     }
   }
 
@@ -1369,9 +1373,9 @@ export default function ProductsPage() {
             
             if (optRes.ok) {
               const optData = await optRes.json()
-              alert(`상품이 등록되었습니다.\n도수 옵션 ${optData.created || optionsToCreate.length}개가 함께 생성되었습니다.`)
+              toast.success(`상품이 등록되었습니다.\n도수 옵션 ${optData.created || optionsToCreate.length}개가 함께 생성되었습니다.`)
             } else {
-              alert('상품은 등록되었으나, 도수 옵션 생성에 실패했습니다.')
+              toast.success('상품은 등록되었으나, 도수 옵션 생성에 실패했습니다.')
             }
           }
           
@@ -1379,7 +1383,7 @@ export default function ProductsPage() {
         } else {
           // 일반 저장
           if (!editingProduct) {
-            alert('상품이 등록되었습니다.')
+            toast.success('상품이 등록되었습니다.')
           }
         }
         
@@ -1387,11 +1391,11 @@ export default function ProductsPage() {
         setEditingProduct(null)
         if (selectedProductLine) handleSelectProductLine(selectedProductLine)
       } else {
-        alert('저장 실패')
+        toast.error('저장 실패')
       }
     } catch (e) {
       console.error(e)
-      alert('저장 중 오류 발생')
+      toast.error('저장 중 오류 발생')
     }
   }
 
@@ -1423,11 +1427,11 @@ export default function ProductsPage() {
         setEditingOption(null)
         if (selectedProduct) handleSelectProduct(selectedProduct)
       } else {
-        alert('저장 실패')
+        toast.error('저장 실패')
       }
     } catch (e) {
       console.error(e)
-      alert('저장 중 오류 발생')
+      toast.error('저장 중 오류 발생')
     }
   }
 
@@ -1441,11 +1445,11 @@ export default function ProductsPage() {
       })
       if (res.ok) {
         setOrderChanged(false)
-        alert('순서가 저장되었습니다.')
+        toast.success('순서가 저장되었습니다.')
       }
     } catch (e) {
       console.error(e)
-      alert('순서 저장 실패')
+      toast.error('순서 저장 실패')
     }
   }
 
@@ -1467,11 +1471,11 @@ export default function ProductsPage() {
         setShowBulkEditModal(false)
         setSelectedProductIds(new Set())
         if (selectedBrand) handleSelectBrand(selectedBrand)
-        alert('일괄 수정 완료')
+        toast.success('일괄 수정 완료')
       }
     } catch (e) {
       console.error(e)
-      alert('일괄 수정 실패')
+      toast.error('일괄 수정 실패')
     }
   }
 
@@ -1710,7 +1714,7 @@ export default function ProductsPage() {
           <div style={{ padding: 8, borderTop: '1px solid var(--gray-200)' }}>
             <button 
               onClick={() => {
-                if (!selectedBrand) { alert('브랜드를 먼저 선택하세요'); return }
+                if (!selectedBrand) { toast.warning('브랜드를 먼저 선택하세요'); return }
                 const name = prompt('품목명을 입력하세요')
                 if (name) {
                   fetch('/api/product-lines', {
@@ -2054,13 +2058,13 @@ export default function ProductsPage() {
                             setShowProductModal(false)
                             setEditingProduct(null)
                             if (selectedBrand) handleSelectBrand(selectedBrand)
-                            alert('삭제되었습니다.')
+                            toast.success('삭제되었습니다.')
                           } else {
-                            alert('삭제 실패')
+                            toast.error('삭제 실패')
                           }
                         } catch (e) {
                           console.error(e)
-                          alert('삭제 중 오류 발생')
+                          toast.error('삭제 중 오류 발생')
                         }
                       }
                     }}
@@ -2530,11 +2534,11 @@ export default function ProductsPage() {
                 const data = await res.json()
                 setShowGenerateModal(false)
                 if (selectedProduct) handleSelectProduct(selectedProduct)
-                alert(`${data.created}개의 옵션이 생성되었습니다.`)
+                toast.success(`${data.created}개의 옵션이 생성되었습니다.`)
               }
             } catch (e) {
               console.error(e)
-              alert('도수 생성 실패')
+              toast.error('도수 생성 실패')
             }
           }}
         />
@@ -2559,11 +2563,11 @@ export default function ProductsPage() {
                 if (res.ok) {
                   const data = await res.json()
                   if (selectedProduct) handleSelectProduct(selectedProduct)
-                  alert(`${data.created}개의 옵션이 추가되었습니다.`)
+                  toast.success(`${data.created}개의 옵션이 추가되었습니다.`)
                 }
               } catch (e) {
                 console.error(e)
-                alert('옵션 추가 실패')
+                toast.error('옵션 추가 실패')
               }
             }
             setShowEditPriceModal(false)
@@ -2579,11 +2583,11 @@ export default function ProductsPage() {
               if (res.ok) {
                 const data = await res.json()
                 if (selectedProduct) handleSelectProduct(selectedProduct)
-                alert(`${data.updated}개의 옵션이 수정되었습니다.`)
+                toast.success(`${data.updated}개의 옵션이 수정되었습니다.`)
               }
             } catch (e) {
               console.error(e)
-              alert('가격 수정 실패')
+              toast.error('가격 수정 실패')
             }
           }}
         />
@@ -2602,7 +2606,7 @@ export default function ProductsPage() {
                   type="button"
                   onClick={async () => {
                     if (editingBrand._count?.products && editingBrand._count.products > 0) {
-                      alert(`이 브랜드에 ${editingBrand._count.products}개의 상품이 있어 삭제할 수 없습니다.\n먼저 상품을 이동하거나 삭제해주세요.`)
+                      toast.error(`이 브랜드에 ${editingBrand._count.products}개의 상품이 있어 삭제할 수 없습니다.\n먼저 상품을 이동하거나 삭제해주세요.`)
                       return
                     }
                     if (confirm('정말 이 브랜드를 삭제하시겠습니까?')) {
@@ -2613,14 +2617,14 @@ export default function ProductsPage() {
                           setEditingBrand(null)
                           setSelectedBrand(null)
                           if (selectedCategory) handleSelectCategory(selectedCategory)
-                          alert('브랜드가 삭제되었습니다.')
+                          toast.success('브랜드가 삭제되었습니다.')
                         } else {
                           const err = await res.json()
-                          alert(err.error || '삭제 실패')
+                          toast.error(err.error || '삭제 실패')
                         }
                       } catch (e) {
                         console.error(e)
-                        alert('삭제 중 오류 발생')
+                        toast.error('삭제 중 오류 발생')
                       }
                     }
                   }}

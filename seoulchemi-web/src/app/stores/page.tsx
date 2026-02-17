@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -85,6 +87,7 @@ const initialFormData: FormData = {
 }
 
 export default function StoresPage() {
+  const { toast } = useToast()
   const router = useRouter()
   const [filter, setFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
@@ -295,7 +298,7 @@ export default function StoresPage() {
   }
 
   const handleSave = async () => {
-    if (!formData.name.trim()) { alert('안경원명을 입력해주세요.'); return }
+    if (!formData.name.trim()) { toast.warning('안경원명을 입력해주세요.'); return }
     setSaving(true)
     try {
       const url = editingStore ? `/api/stores/${editingStore.id}` : '/api/stores'
@@ -305,11 +308,11 @@ export default function StoresPage() {
         body: JSON.stringify(formData),
       })
       const json = await res.json()
-      if (json.error) { alert(json.error); return }
-      alert(editingStore ? '수정되었습니다.' : '등록되었습니다.')
+      if (json.error) { toast.error(json.error); return }
+      toast.success(editingStore ? '수정되었습니다.' : '등록되었습니다.')
       setShowModal(false)
       fetchData()
-    } catch (error) { alert('저장에 실패했습니다.') }
+    } catch (error) { toast.error('저장에 실패했습니다.') }
     setSaving(false)
   }
 
@@ -324,8 +327,8 @@ export default function StoresPage() {
       if (deleteTarget.type === 'single' && deleteTarget.store) {
         const res = await fetch(`/api/stores/${deleteTarget.store.id}`, { method: 'DELETE' })
         const json = await res.json()
-        if (json.error) { alert(json.error); return }
-        alert(json.message || '삭제되었습니다.')
+        if (json.error) { toast.error(json.error); return }
+        toast.success(json.message || '삭제되었습니다.')
       } else {
         // 일괄 삭제
         const res = await fetch('/api/stores/bulk-action', {
@@ -334,14 +337,14 @@ export default function StoresPage() {
           body: JSON.stringify({ ids: Array.from(selectedIds), action: 'delete' }),
         })
         const json = await res.json()
-        if (json.error) { alert(json.error); return }
-        alert(json.message || '삭제되었습니다.')
+        if (json.error) { toast.error(json.error); return }
+        toast.success(json.message || '삭제되었습니다.')
         setSelectedIds(new Set())
       }
       setDeleteModalOpen(false)
       fetchData()
     } catch (error) {
-      alert('삭제에 실패했습니다.')
+      toast.error('삭제에 실패했습니다.')
     } finally {
       setDeleteLoading(false)
     }
@@ -350,7 +353,7 @@ export default function StoresPage() {
   // 일괄 작업 함수들
   const handleBulkAction = async (action: string, value?: any) => {
     const ids = Array.from(selectedIds)
-    if (ids.length === 0) { alert('선택된 가맹점이 없습니다.'); return }
+    if (ids.length === 0) { toast.warning('선택된 가맹점이 없습니다.'); return }
     
     try {
       const res = await fetch('/api/stores/bulk-action', {
@@ -359,15 +362,15 @@ export default function StoresPage() {
         body: JSON.stringify({ ids, action, value }),
       })
       const json = await res.json()
-      if (json.error) { alert(json.error); return }
-      alert(json.message)
+      if (json.error) { toast.error(json.error); return }
+      toast.info(json.message)
       setSelectedIds(new Set())
       fetchData()
-    } catch (error) { alert('일괄 작업에 실패했습니다.') }
+    } catch (error) { toast.error('일괄 작업에 실패했습니다.') }
   }
 
   const handleBulkDelete = () => {
-    if (selectedIds.size === 0) { alert('선택된 가맹점이 없습니다.'); return }
+    if (selectedIds.size === 0) { toast.warning('선택된 가맹점이 없습니다.'); return }
     setDeleteTarget({ type: 'bulk' })
     setDeleteModalOpen(true)
   }
@@ -528,7 +531,7 @@ export default function StoresPage() {
   // CSV 다운로드 실행 (전체 데이터)
   const executeDownload = async () => {
     if (downloadColumns.size === 0) {
-      alert('다운로드할 항목을 선택해주세요.')
+      toast.warning('다운로드할 항목을 선택해주세요.')
       return
     }
 
@@ -551,7 +554,7 @@ export default function StoresPage() {
       const json = await res.json()
       
       if (!json.stores || json.stores.length === 0) {
-        alert('다운로드할 데이터가 없습니다.')
+        toast.error('다운로드할 데이터가 없습니다.')
         return
       }
       
@@ -590,7 +593,7 @@ export default function StoresPage() {
       setShowDownloadModal(false)
     } catch (error) {
       console.error('Download failed:', error)
-      alert('다운로드에 실패했습니다.')
+      toast.error('다운로드에 실패했습니다.')
     } finally {
       setDownloading(false)
     }

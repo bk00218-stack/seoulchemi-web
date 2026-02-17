@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect, useCallback, useRef, KeyboardEvent } from 'react'
 import Layout from '../../components/Layout'
 import { ORDER_SIDEBAR } from '../../constants/sidebar'
@@ -49,6 +50,7 @@ function generateCylColsRight(): number[] {
 }
 
 export default function NewOrderPage() {
+  const { toast } = useToast()
   const storeInputRef = useRef<HTMLInputElement>(null)
   const storeResultRefs = useRef<(HTMLDivElement | null)[]>([])
   const brandSelectRef = useRef<HTMLSelectElement>(null)
@@ -423,7 +425,7 @@ export default function NewOrderPage() {
   }, [selectedProduct, selectedStore, sphRows, totalCols, cellInputValue, gridFocus, getFocusedInfo, handleGridCellInput, centerIndex, commitCellInput])
 
   const handleGridClick = useCallback((sphIndex: number, colIndex: number) => {
-    if (!selectedProduct || !selectedStore) { alert('가맹점과 상품을 먼저 선택해주세요.'); return }
+    if (!selectedProduct || !selectedStore) { toast.warning('가맹점과 상품을 먼저 선택해주세요.'); return }
     setGridFocus({ sphIndex, colIndex })
     setCellInputValue('')
     gridRef.current?.focus()
@@ -506,7 +508,7 @@ export default function NewOrderPage() {
   }
 
   const handleSubmit = async () => {
-    if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
+    if (!selectedStore || orderItems.length === 0) { toast.warning('가맹점과 상품을 선택해주세요.'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
@@ -518,21 +520,21 @@ export default function NewOrderPage() {
         }
         // 폼 초기화하여 다음 주문 등록 준비 (출고 페이지 이동 안함)
         resetForm()
-      } else alert('주문 생성 실패')
-    } catch { alert('오류가 발생했습니다.') }
+      } else toast.error('주문 생성 실패')
+    } catch { toast.error('오류가 발생했습니다.') }
     setLoading(false)
   }
 
   // 접수 + 즉시출고
   const handleSubmitAndShip = async () => {
-    if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
-    if (orderType !== '여벌') { alert('여벌 주문만 즉시 출고 가능합니다.'); return }
+    if (!selectedStore || orderItems.length === 0) { toast.warning('가맹점과 상품을 선택해주세요.'); return }
+    if (orderType !== '여벌') { toast.info('여벌 주문만 즉시 출고 가능합니다.'); return }
     setLoading(true)
     try {
       // 1. 주문 생성
       const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
       const data = await res.json()
-      if (!res.ok) { alert(data.error || '주문 생성 실패'); setLoading(false); return }
+      if (!res.ok) { toast.error(data.error || '주문 생성 실패'); setLoading(false); return }
 
       // 2. 즉시 출고
       if (data.order?.itemIds?.length > 0) {
@@ -543,7 +545,7 @@ export default function NewOrderPage() {
         })
         const shipData = await shipRes.json()
         if (!shipRes.ok) {
-          alert(`주문 등록 완료, 출고 실패: ${shipData.error || '출고 처리 실패'}`)
+          toast.success(`주문 등록 완료, 출고 실패: ${shipData.error || '출고 처리 실패'}`)
         } else if (shipData.shipped?.length > 0) {
           // 출고 성공 → 인쇄
           const itemIds = shipData.shipped[0].shippedItemIds?.join(',') || ''
@@ -554,7 +556,7 @@ export default function NewOrderPage() {
         if (data.order?.id) silentPrint(`/orders/${data.order.id}/print`)
       }
       resetForm()
-    } catch { alert('오류가 발생했습니다.') }
+    } catch { toast.error('오류가 발생했습니다.') }
     setLoading(false)
   }
 

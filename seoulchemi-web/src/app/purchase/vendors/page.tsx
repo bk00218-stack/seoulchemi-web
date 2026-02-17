@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect } from 'react'
 import Layout, { btnStyle, cardStyle, selectStyle, inputStyle, thStyle, tdStyle } from '../../components/Layout'
 import { PURCHASE_SIDEBAR } from '../../constants/sidebar'
@@ -27,6 +28,7 @@ interface Vendor {
 }
 
 export default function VendorsPage() {
+  const { toast } = useToast()
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -207,17 +209,17 @@ export default function VendorsPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        alert(data.error || '저장에 실패했습니다.')
+        toast.error(data.error || '저장에 실패했습니다.')
         return
       }
 
-      alert(editingVendor ? '수정되었습니다.' : '등록되었습니다.')
+      toast.success(editingVendor ? '수정되었습니다.' : '등록되었습니다.')
       setShowModal(false)
       resetForm()
       fetchVendors()
     } catch (e) {
       console.error(e)
-      alert('저장에 실패했습니다.')
+      toast.error('저장에 실패했습니다.')
     } finally {
       setSaving(false)
     }
@@ -235,7 +237,7 @@ export default function VendorsPage() {
       fetchVendors()
     } catch (e) {
       console.error(e)
-      alert('상태 변경에 실패했습니다.')
+      toast.error('상태 변경에 실패했습니다.')
     }
   }
 

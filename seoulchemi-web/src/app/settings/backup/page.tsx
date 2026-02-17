@@ -1,10 +1,13 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useRef } from 'react'
 import Layout from '../../components/Layout'
 import { SETTINGS_SIDEBAR } from '../../constants/sidebar'
 
 export default function BackupPage() {
+  const { toast } = useToast()
   const [backupLoading, setBackupLoading] = useState(false)
   const [restoreLoading, setRestoreLoading] = useState(false)
   const [backupInfo, setBackupInfo] = useState<any>(null)
@@ -26,9 +29,9 @@ export default function BackupPage() {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
       
-      alert('백업 파일이 다운로드되었습니다.')
+      toast.success('백업 파일이 다운로드되었습니다.')
     } catch (error) {
-      alert('백업 생성에 실패했습니다.')
+      toast.error('백업 생성에 실패했습니다.')
     } finally {
       setBackupLoading(false)
     }
@@ -43,7 +46,7 @@ export default function BackupPage() {
       const data = JSON.parse(text)
       
       if (!data.version || !data.data) {
-        alert('유효하지 않은 백업 파일입니다.')
+        toast.error('유효하지 않은 백업 파일입니다.')
         return
       }
       
@@ -54,7 +57,7 @@ export default function BackupPage() {
         data: data
       })
     } catch (error) {
-      alert('파일을 읽는데 실패했습니다.')
+      toast.error('파일을 읽는데 실패했습니다.')
     }
   }
 
@@ -75,11 +78,11 @@ export default function BackupPage() {
       
       if (!res.ok) throw new Error(result.error || '복원 실패')
       
-      alert(`복원이 완료되었습니다.\n\n복원된 항목:\n- 그룹: ${result.restored.groups}개\n- 직원: ${result.restored.staff}개\n- 브랜드: ${result.restored.brands}개`)
+      toast.success(`복원이 완료되었습니다.\n\n복원된 항목:\n- 그룹: ${result.restored.groups}개\n- 직원: ${result.restored.staff}개\n- 브랜드: ${result.restored.brands}개`)
       setBackupInfo(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (error: any) {
-      alert(error.message || '복원에 실패했습니다.')
+      toast.error(error.message || '복원에 실패했습니다.')
     } finally {
       setRestoreLoading(false)
     }

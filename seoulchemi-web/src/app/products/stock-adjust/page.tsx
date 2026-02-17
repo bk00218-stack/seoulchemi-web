@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect } from 'react'
 import Layout, { cardStyle } from '../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
@@ -38,6 +39,7 @@ interface Transaction {
 }
 
 export default function StockAdjustPage() {
+  const { toast } = useToast()
   const [products, setProducts] = useState<ProductInventory[]>([])
   const [brands, setBrands] = useState<{ id: number; name: string }[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -97,7 +99,7 @@ export default function StockAdjustPage() {
 
   const handleAdjust = async () => {
     if (!selectedOption || adjustQty === 0) {
-      alert('조정 수량을 입력해주세요.')
+      toast.warning('조정 수량을 입력해주세요.')
       return
     }
 
@@ -121,10 +123,10 @@ export default function StockAdjustPage() {
         fetchData()
       } else {
         const data = await res.json()
-        alert(data.error || '재고 조정에 실패했습니다.')
+        toast.error(data.error || '재고 조정에 실패했습니다.')
       }
     } catch (error) {
-      alert('서버 오류가 발생했습니다.')
+      toast.error('서버 오류가 발생했습니다.')
     } finally {
       setAdjusting(false)
     }

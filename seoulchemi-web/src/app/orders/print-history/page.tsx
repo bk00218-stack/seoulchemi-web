@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect } from 'react'
 import Layout, { cardStyle, btnStyle, inputStyle, selectStyle, thStyle, tdStyle } from '../../components/Layout'
 import { ORDER_SIDEBAR } from '../../constants/sidebar'
@@ -30,6 +31,7 @@ const printTypeLabels: Record<string, { label: string; icon: string; color: stri
 }
 
 export default function PrintHistoryPage() {
+  const { toast } = useToast()
   const [history, setHistory] = useState<PrintRecord[]>([])
   const [stats, setStats] = useState<Stats>({ todayCount: 0, weekCount: 0, monthCount: 0, totalPages: 0 })
   const [loading, setLoading] = useState(true)
@@ -80,14 +82,14 @@ export default function PrintHistoryPage() {
       })
       
       if (res.ok) {
-        alert('출력 요청이 완료되었습니다')
+        toast.success('출력 요청이 완료되었습니다')
         fetchHistory()
       } else {
         const error = await res.json()
-        alert(error.error || '출력 실패')
+        toast.error(error.error || '출력 실패')
       }
     } catch {
-      alert('출력 요청 중 오류가 발생했습니다')
+      toast.error('출력 요청 중 오류가 발생했습니다')
     }
   }
 

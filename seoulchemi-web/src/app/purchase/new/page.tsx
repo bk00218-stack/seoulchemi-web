@@ -1,10 +1,13 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState } from 'react'
 import Layout, { btnStyle, cardStyle, inputStyle, selectStyle } from '../../components/Layout'
 import { PURCHASE_SIDEBAR } from '../../constants/sidebar'
 
 export default function PurchaseNewPage() {
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     purchaseDate: new Date().toISOString().split('T')[0],
     supplierId: '',
@@ -43,7 +46,7 @@ export default function PurchaseNewPage() {
   }
 
   const handleSubmit = () => {
-    alert('매입 등록 기능은 아직 준비 중입니다.')
+    toast.info('매입 등록 기능은 아직 준비 중입니다.')
   }
 
   return (

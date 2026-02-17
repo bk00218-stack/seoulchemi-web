@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -47,6 +48,7 @@ const addValues = generateDiopter(0.75, 3.5, 0.25)
 const pdValues = Array.from({ length: 41 }, (_, i) => (50 + i).toString())
 
 export default function NewPrescriptionPage() {
+  const { toast } = useToast()
   const params = useParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -93,11 +95,11 @@ export default function NewPrescriptionPage() {
         throw new Error(data.error || '저장 실패')
       }
       
-      alert('도수가 저장되었습니다')
+      toast.success('도수가 저장되었습니다')
       router.push(`/crm/customers/${params.id}`)
     } catch (error: any) {
       console.error(error)
-      alert(error.message || '저장 중 오류가 발생했습니다')
+      toast.error(error.message || '저장 중 오류가 발생했습니다')
     } finally {
       setLoading(false)
     }

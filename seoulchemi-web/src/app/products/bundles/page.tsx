@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState } from 'react'
 import Layout, { cardStyle } from '../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
@@ -83,6 +85,7 @@ const btnStyle: React.CSSProperties = {
 }
 
 export default function BundlesPage() {
+  const { toast } = useToast()
   const [bundles] = useState(mockBundles)
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -226,13 +229,13 @@ export default function BundlesPage() {
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button
-                        onClick={() => alert('수정 기능 준비중')}
+                        onClick={() => toast.info('수정 기능 준비중')}
                         style={{ padding: '8px 16px', borderRadius: 6, background: '#fff', color: '#007aff', border: '1px solid var(--gray-200)', fontSize: 13, cursor: 'pointer' }}
                       >
                         수정
                       </button>
                       <button
-                        onClick={() => alert('삭제 기능 준비중')}
+                        onClick={() => toast.info('삭제 기능 준비중')}
                         style={{ padding: '8px 16px', borderRadius: 6, background: '#fff0f0', color: '#ff3b30', border: 'none', fontSize: 13, cursor: 'pointer' }}
                       >
                         삭제

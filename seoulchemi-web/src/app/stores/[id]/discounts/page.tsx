@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Layout from '../../../components/Layout'
@@ -64,6 +66,7 @@ interface StoreDiscountData {
 }
 
 export default function StoreDiscountsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { toast } = useToast()
   const { id } = use(params)
   const router = useRouter()
   const [data, setData] = useState<StoreDiscountData | null>(null)
@@ -92,7 +95,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       setData(await res.json())
     } catch (error) {
       console.error('Failed:', error)
-      alert('데이터를 불러오는데 실패했습니다')
+      toast.error('데이터를 불러오는데 실패했습니다')
     } finally {
       setLoading(false)
     }
@@ -108,7 +111,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       })
       loadData()
     } catch (error) {
-      alert('저장 실패')
+      toast.error('저장 실패')
     } finally {
       setSaving(false)
     }
@@ -133,7 +136,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       setNewPriceProductId(0)
       setNewSpecialPrice(0)
     } catch (error) {
-      alert('저장 실패')
+      toast.error('저장 실패')
     } finally {
       setSaving(false)
     }
@@ -147,7 +150,7 @@ export default function StoreDiscountsPage({ params }: { params: Promise<{ id: s
       })
       loadData()
     } catch (error) {
-      alert('삭제 실패')
+      toast.error('삭제 실패')
     }
   }
 

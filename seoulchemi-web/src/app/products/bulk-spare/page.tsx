@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect, useRef } from 'react'
 import Layout from '@/app/components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
@@ -37,6 +38,7 @@ const generateCylCols = (): number[] => {
 }
 
 export default function BulkSpareRegistrationPage() {
+  const { toast } = useToast()
   // 브랜드/품목 선택
   const [brands, setBrands] = useState<Brand[]>([])
   const [productLines, setProductLines] = useState<ProductLine[]>([])
@@ -155,15 +157,15 @@ export default function BulkSpareRegistrationPage() {
 
   const handleSave = async () => {
     if (!selectedBrandId) {
-      alert('브랜드를 선택하세요.')
+      toast.warning('브랜드를 선택하세요.')
       return
     }
     if (!productName.trim()) {
-      alert('상품명을 입력하세요.')
+      toast.warning('상품명을 입력하세요.')
       return
     }
     if (selectedCells.size === 0) {
-      alert('도수를 선택하세요.')
+      toast.warning('도수를 선택하세요.')
       return
     }
 
@@ -206,7 +208,7 @@ export default function BulkSpareRegistrationPage() {
 
       if (optionsRes.ok) {
         const result = await optionsRes.json()
-        alert(`✅ 상품이 등록되었습니다!\n- 상품명: ${productName}\n- 도수 옵션: ${result.created || options.length}개`)
+        toast.success(`✅ 상품이 등록되었습니다!\n- 상품명: ${productName}\n- 도수 옵션: ${result.created || options.length}개`)
         
         // 폼 초기화
         setProductName('')
@@ -215,11 +217,11 @@ export default function BulkSpareRegistrationPage() {
         setPurchasePrice(0)
         setSelectedCells(new Set())
       } else {
-        alert('상품은 생성되었으나, 도수 옵션 생성에 실패했습니다.')
+        toast.success('상품은 생성되었으나, 도수 옵션 생성에 실패했습니다.')
       }
     } catch (e) {
       console.error(e)
-      alert('저장 중 오류가 발생했습니다.')
+      toast.error('저장 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }

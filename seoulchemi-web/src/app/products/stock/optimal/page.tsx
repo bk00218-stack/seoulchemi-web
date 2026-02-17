@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState } from 'react'
 import Layout, { cardStyle } from '../../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../../constants/sidebar'
@@ -35,6 +37,7 @@ const btnStyle: React.CSSProperties = {
 }
 
 export default function OptimalStockPage() {
+  const { toast } = useToast()
   const [settings, setSettings] = useState(mockSettings)
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -67,7 +70,7 @@ export default function OptimalStockPage() {
   }
 
   const handleSave = () => {
-    alert('적정 재고 설정이 저장되었습니다.')
+    toast.success('적정 재고 설정이 저장되었습니다.')
     setHasChanges(false)
   }
 

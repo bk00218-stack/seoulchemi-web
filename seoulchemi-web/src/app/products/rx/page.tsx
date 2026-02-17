@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect, useCallback } from 'react'
 import Layout, { cardStyle } from '../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
@@ -47,6 +49,7 @@ const labelStyle: React.CSSProperties = {
 }
 
 export default function RxProductsPage() {
+  const { toast } = useToast()
   const [products, setProducts] = useState<RxProduct[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
   const [loading, setLoading] = useState(true)
@@ -176,8 +179,8 @@ export default function RxProductsPage() {
   }
 
   const handleSave = async () => {
-    if (!formData.name.trim()) { alert('상품명을 입력하세요.'); return }
-    if (!formData.brandId) { alert('브랜드를 선택하세요.'); return }
+    if (!formData.name.trim()) { toast.warning('상품명을 입력하세요.'); return }
+    if (!formData.brandId) { toast.warning('브랜드를 선택하세요.'); return }
 
     setSaving(true)
     try {
@@ -200,10 +203,10 @@ export default function RxProductsPage() {
         fetchProducts()
       } else {
         const err = await res.json()
-        alert(err.error || '저장에 실패했습니다.')
+        toast.error(err.error || '저장에 실패했습니다.')
       }
     } catch {
-      alert('저장에 실패했습니다.')
+      toast.error('저장에 실패했습니다.')
     } finally {
       setSaving(false)
     }

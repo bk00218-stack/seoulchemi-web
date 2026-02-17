@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Layout from '../../components/Layout'
@@ -40,6 +42,7 @@ interface FormData {
 }
 
 export default function StoreDetailPage() {
+  const { toast } = useToast()
   const params = useParams()
   const router = useRouter()
   const storeId = params.id as string
@@ -154,7 +157,7 @@ export default function StoreDetailPage() {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      alert('안경원명을 입력해주세요.')
+      toast.warning('안경원명을 입력해주세요.')
       return
     }
     
@@ -167,16 +170,16 @@ export default function StoreDetailPage() {
       })
       
       if (res.ok) {
-        alert('저장되었습니다.')
+        toast.success('저장되었습니다.')
         setOriginalData(formData)
         setIsEditing(false)
       } else {
         const data = await res.json()
-        alert(data.error || '저장에 실패했습니다.')
+        toast.error(data.error || '저장에 실패했습니다.')
       }
     } catch (e) {
       console.error(e)
-      alert('저장에 실패했습니다.')
+      toast.error('저장에 실패했습니다.')
     } finally {
       setSaving(false)
     }

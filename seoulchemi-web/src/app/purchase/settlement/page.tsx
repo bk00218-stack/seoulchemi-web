@@ -1,5 +1,7 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext'
+
 import { useState } from 'react'
 import Layout, { btnStyle, cardStyle, inputStyle, selectStyle, thStyle, tdStyle } from '../../components/Layout'
 import { PURCHASE_SIDEBAR } from '../../constants/sidebar'
@@ -14,6 +16,7 @@ interface SettlementItem {
 }
 
 export default function SettlementPage() {
+  const { toast } = useToast()
   const [selectedSupplier, setSelectedSupplier] = useState('')
 
   // 목업 데이터
@@ -27,7 +30,7 @@ export default function SettlementPage() {
   const totalPaid = mockData.reduce((sum, item) => sum + item.paidAmount, 0)
 
   const handleSettlement = (item: SettlementItem) => {
-    alert(`${item.supplierName} 정산 등록 기능은 아직 준비 중입니다.`)
+    toast.info(`${item.supplierName} 정산 등록 기능은 아직 준비 중입니다.`)
   }
 
   return (

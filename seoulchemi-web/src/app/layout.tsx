@@ -1,6 +1,7 @@
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import { ToastProvider } from '@/contexts/ToastContext'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts'
 import PWARegister from '@/components/PWARegister'
 
@@ -39,11 +40,13 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
-          <AuthProvider>
-            <KeyboardShortcuts />
-            <PWARegister />
-            {children}
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <KeyboardShortcuts />
+              <PWARegister />
+              {children}
+            </AuthProvider>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
