@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import Layout from '../../components/Layout'
 import { STORES_SIDEBAR } from '../../constants/sidebar'
 import { exportToCSV } from '../../components/ExcelExport'
@@ -307,8 +307,33 @@ export default function TransactionsPage() {
   const [visibleFields, setVisibleFields] = useState<string[]>(DEFAULT_VISIBLE_FIELDS)
   const [showShipmentSearch, setShowShipmentSearch] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [columnWidths, setColumnWidths] = useState({ date: 90, item: 150, type: 50, amount: 80, balance: 80, action: 40 })
+  const [resizing, setResizing] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+
+  // 테이블 컬럼 리사이즈 핸들러
+  const handleMouseDown = (column: string) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    setResizing(column)
+    const startX = e.clientX
+    const startWidth = columnWidths[column as keyof typeof columnWidths]
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const diff = e.clientX - startX
+      const newWidth = Math.max(40, startWidth + diff)
+      setColumnWidths(prev => ({ ...prev, [column]: newWidth }))
+    }
+    
+    const handleMouseUp = () => {
+      setResizing(null)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+    
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
 
   // 엑셀 내보내기
   const handleExportExcel = () => {
@@ -628,15 +653,30 @@ export default function TransactionsPage() {
             ) : filteredTransactions.length === 0 ? (
               <div style={{ padding: '50px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>내역 없음</div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', tableLayout: 'fixed' }}>
                 <thead>
                   <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
-                    <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: 600, color: '#666', width: '90px' }}>일시</th>
-                    <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: 600, color: '#666' }}>품목</th>
-                    <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 600, color: '#666', width: '50px' }}>유형</th>
-                    <th style={{ padding: '8px 6px', textAlign: 'right', fontWeight: 600, color: '#666', width: '80px' }}>금액</th>
-                    <th style={{ padding: '8px 6px', textAlign: 'right', fontWeight: 600, color: '#666', width: '80px' }}>잔액</th>
-                    <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 600, color: '#666', width: '40px' }}></th>
+                    <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: 600, color: '#666', width: columnWidths.date, position: 'relative' }}>
+                      일시
+                      <div onMouseDown={handleMouseDown('date')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 4, cursor: 'col-resize', background: resizing === 'date' ? '#007aff' : 'transparent' }} />
+                    </th>
+                    <th style={{ padding: '8px 6px', textAlign: 'left', fontWeight: 600, color: '#666', width: columnWidths.item, position: 'relative' }}>
+                      품목
+                      <div onMouseDown={handleMouseDown('item')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 4, cursor: 'col-resize', background: resizing === 'item' ? '#007aff' : 'transparent' }} />
+                    </th>
+                    <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 600, color: '#666', width: columnWidths.type, position: 'relative' }}>
+                      유형
+                      <div onMouseDown={handleMouseDown('type')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 4, cursor: 'col-resize', background: resizing === 'type' ? '#007aff' : 'transparent' }} />
+                    </th>
+                    <th style={{ padding: '8px 6px', textAlign: 'right', fontWeight: 600, color: '#666', width: columnWidths.amount, position: 'relative' }}>
+                      금액
+                      <div onMouseDown={handleMouseDown('amount')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 4, cursor: 'col-resize', background: resizing === 'amount' ? '#007aff' : 'transparent' }} />
+                    </th>
+                    <th style={{ padding: '8px 6px', textAlign: 'right', fontWeight: 600, color: '#666', width: columnWidths.balance, position: 'relative' }}>
+                      잔액
+                      <div onMouseDown={handleMouseDown('balance')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 4, cursor: 'col-resize', background: resizing === 'balance' ? '#007aff' : 'transparent' }} />
+                    </th>
+                    <th style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 600, color: '#666', width: columnWidths.action }}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -682,13 +722,27 @@ export default function TransactionsPage() {
             )}
           </div>
 
-          {selectedStore && filteredTransactions.length > 0 && (
-            <div style={{ padding: '8px 12px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '12px', color: '#666' }}>
-              {filteredTransactions.length}건 · 
-              매출 {filteredTransactions.filter(t => t.type === 'sale').reduce((s, t) => s + t.amount, 0).toLocaleString()} · 
-              입금 {filteredTransactions.filter(t => t.type === 'deposit').reduce((s, t) => s + t.amount, 0).toLocaleString()}
-            </div>
-          )}
+          {selectedStore && filteredTransactions.length > 0 && (() => {
+            const sales = filteredTransactions.filter(t => t.type === 'sale').reduce((s, t) => s + t.amount, 0)
+            const deposits = filteredTransactions.filter(t => t.type === 'deposit').reduce((s, t) => s + t.amount, 0)
+            const returns = filteredTransactions.filter(t => t.type === 'return').reduce((s, t) => s + t.amount, 0)
+            const adjustments = filteredTransactions.filter(t => t.type === 'adjustment').reduce((s, t) => s + t.amount, 0)
+            const balance = sales - deposits - returns - adjustments
+            return (
+              <div style={{ padding: '8px 12px', borderTop: '1px solid #e9ecef', background: '#f8f9fa', fontSize: '12px', color: '#666', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{filteredTransactions.length}건</span>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <span>매출 <b style={{ color: '#1565c0' }}>{sales.toLocaleString()}</b></span>
+                  <span>반품 <b style={{ color: '#e65100' }}>-{returns.toLocaleString()}</b></span>
+                  <span>입금 <b style={{ color: '#2e7d32' }}>-{deposits.toLocaleString()}</b></span>
+                  <span>할인 <b style={{ color: '#666' }}>-{adjustments.toLocaleString()}</b></span>
+                  <span style={{ borderLeft: '1px solid #ddd', paddingLeft: '12px', fontWeight: 600 }}>
+                    잔액 <b style={{ color: balance > 0 ? '#d32f2f' : '#2e7d32' }}>{balance.toLocaleString()}</b>
+                  </span>
+                </div>
+              </div>
+            )
+          })()}
         </div>
 
         {/* 우측: 세부내역 */}
@@ -715,21 +769,16 @@ export default function TransactionsPage() {
             <div style={{ padding: '50px 10px', textAlign: 'center', color: '#86868b', fontSize: '14px' }}>거래내역 선택</div>
           ) : (
             <div style={{ fontSize: '13px' }}>
-              <div style={{ textAlign: 'center', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #f0f0f0' }}>
-                <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: 600,
-                  color: TYPE_LABELS[selectedTransaction.type]?.color, background: TYPE_LABELS[selectedTransaction.type]?.bg }}>
-                  {TYPE_LABELS[selectedTransaction.type]?.label}
-                </span>
-                <div style={{ fontSize: '26px', fontWeight: 700, marginTop: '8px',
-                  color: selectedTransaction.type === 'deposit' ? '#2e7d32' : selectedTransaction.type === 'return' ? '#e65100' : '#1d1d1f' }}>
-                  {selectedTransaction.type === 'deposit' ? '+' : ''}{selectedTransaction.amount.toLocaleString()}원
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: 600,
+                    color: TYPE_LABELS[selectedTransaction.type]?.color, background: TYPE_LABELS[selectedTransaction.type]?.bg }}>
+                    {TYPE_LABELS[selectedTransaction.type]?.label}
+                  </span>
+                  <span style={{ fontWeight: 600, color: selectedTransaction.type === 'deposit' ? '#2e7d32' : selectedTransaction.type === 'return' ? '#e65100' : '#1d1d1f' }}>
+                    {selectedTransaction.type === 'deposit' ? '+' : ''}{selectedTransaction.amount.toLocaleString()}원
+                  </span>
                 </div>
-                <div style={{ fontSize: '12px', color: '#86868b', marginTop: '6px' }}>
-                  {new Date(selectedTransaction.processedAt).toLocaleString('ko-KR')}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                 {selectedTransaction.orderNo && (
                   <div><span style={{ color: '#86868b' }}>주문번호:</span> <span style={{ color: '#1565c0', fontWeight: 500 }}>{selectedTransaction.orderNo}</span></div>
                 )}
