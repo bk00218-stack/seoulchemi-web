@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-
-const prisma = new PrismaClient()
 
 // RX 상품 optionType 값들
 const RX_OPTION_TYPES = ['안경렌즈 RX', 'RX']

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { calculatePrice, calculatePrices, getStoreDiscountSettings, calculatePriceFromCache } from '@/lib/priceCalculator'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 // GET: 상품 가격 계산
 // ?productId=123 - 단일 상품

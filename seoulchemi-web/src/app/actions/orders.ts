@@ -1,9 +1,7 @@
 'use server'
 
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-
-const prisma = new PrismaClient()
 
 // 주문번호 생성
 function generateOrderNo() {

@@ -165,18 +165,32 @@ export default function SpareShipmentPage() {
 
   useEffect(() => { loadOrders() }, [loadOrders])
 
-  // F2 단축키 - 출고 처리
+  // 초기 화면으로 리셋
+  const resetToInitial = useCallback(() => {
+    setSelectedItems(new Set())
+    setSelectedFilterId(null)
+    setSearchQuery('')
+    setColumnFilters({ store: '', date: '', product: '', sph: '', cyl: '', delivery: '' })
+    setFocusedFilterIndex(-1)
+    setFocusedRowIndex(-1)
+    setFocusArea('search')
+    searchInputRef.current?.focus()
+  }, [])
+
+  // F2 단축키 - 출고 처리, ESC - 초기화면
   useEffect(() => {
     const handleKeyDown = (e: globalThis.KeyboardEvent) => {
-      console.log('🔑 Key pressed:', e.key, 'selectedItems:', selectedItems.size, 'shipping:', shipping)
       if (e.key === 'F2' && selectedItems.size > 0 && !shipping) {
         e.preventDefault()
         handleShipping()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        resetToInitial()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedItems.size, shipping])
+  }, [selectedItems.size, shipping, resetToInitial])
 
   // 컬럼 필터링된 주문
   const getFilteredOrders = () => {
@@ -309,21 +323,42 @@ export default function SpareShipmentPage() {
     setSelectedItems(newSet)
   }
 
-  // 거래명세표 출력
+  // 거래명세표 자동 인쇄 (인쇄창 없이 숨겨진 iframe으로)
   const printInvoice = async (shippedResults: { orderId: number; shippedItemIds?: number[] }[]) => {
     try {
-      // 프린터 설정 가져오기
-      const settingsRes = await fetch('/api/settings/printer')
-      const settings = settingsRes.ok ? await settingsRes.json() : {}
-
-      // 각 주문별로 거래명세표 출력 (출고된 아이템만)
       for (const result of shippedResults) {
         const params = new URLSearchParams()
         params.set('type', 'invoice')
-        if (settings.invoicePrinter) params.set('printer', settings.invoicePrinter)
         if (result.shippedItemIds?.length) params.set('itemIds', result.shippedItemIds.join(','))
         const printUrl = `/orders/${result.orderId}/print?${params.toString()}`
-        window.open(printUrl, '_blank', 'width=800,height=600')
+
+        // 숨겨진 iframe으로 자동 인쇄 (인쇄 대화상자 없음)
+        await new Promise<void>((resolve) => {
+          const iframe = document.createElement('iframe')
+          iframe.style.position = 'fixed'
+          iframe.style.left = '-9999px'
+          iframe.style.top = '-9999px'
+          iframe.style.width = '0'
+          iframe.style.height = '0'
+          iframe.src = printUrl
+          document.body.appendChild(iframe)
+
+          // iframe 로드 후 인쇄 실행
+          iframe.onload = () => {
+            setTimeout(() => {
+              try {
+                iframe.contentWindow?.print()
+              } catch (e) {
+                console.error('Print failed:', e)
+              }
+              // 인쇄 후 iframe 정리
+              setTimeout(() => {
+                document.body.removeChild(iframe)
+                resolve()
+              }, 1000)
+            }, 500)
+          }
+        })
       }
     } catch (error) {
       console.error('Failed to print invoice:', error)
@@ -351,13 +386,14 @@ export default function SpareShipmentPage() {
 
       // 거래명세표 자동 출력 (출고된 아이템만 포함)
       if (data.shipped?.length > 0) {
-        await printInvoice(data.shipped.map((s: any) => ({
+        printInvoice(data.shipped.map((s: any) => ({
           orderId: s.orderId,
           shippedItemIds: s.shippedItemIds
         })))
       }
 
-      setSelectedItems(new Set())
+      // 초기 화면으로 리셋 후 데이터 재로드
+      resetToInitial()
       loadOrders()
     } catch (error: any) {
       alert(`출고 실패: ${error.message}`)
@@ -467,7 +503,6 @@ export default function SpareShipmentPage() {
         setFocusArea('table'); setFocusedRowIndex(0)
         setTimeout(() => tableRef.current?.focus(), 100)
         break
-      case 'Escape': setFocusArea('search'); searchInputRef.current?.focus(); break
     }
   }
 
@@ -485,7 +520,6 @@ export default function SpareShipmentPage() {
         }
         break
       case 'a': if (e.ctrlKey || e.metaKey) { e.preventDefault(); toggleSelectAll() } break
-      case 'Escape':
       case 'ArrowLeft': e.preventDefault(); setFocusArea('filter'); filterListRef.current?.focus(); break
     }
   }
@@ -539,6 +573,7 @@ export default function SpareShipmentPage() {
             <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10 }}>↑↓</kbd> 이동 
             <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>Enter</kbd> 선택+다음
             <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>F2</kbd> 출고
+            <kbd style={{ background: '#eee', padding: '2px 4px', borderRadius: 2, fontSize: 10, marginLeft: 4 }}>ESC</kbd> 초기화
           </p>
         </div>
         <span style={{ fontSize: 13, color: '#666' }}>

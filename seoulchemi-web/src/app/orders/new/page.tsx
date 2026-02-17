@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, KeyboardEvent } from 'react'
-import { useRouter } from 'next/navigation'
 import Layout from '../../components/Layout'
 import { ORDER_SIDEBAR } from '../../constants/sidebar'
 
@@ -50,8 +49,6 @@ function generateCylColsRight(): number[] {
 }
 
 export default function NewOrderPage() {
-  const router = useRouter()
-  
   const storeInputRef = useRef<HTMLInputElement>(null)
   const storeResultRefs = useRef<(HTMLDivElement | null)[]>([])
   const brandSelectRef = useRef<HTMLSelectElement>(null)
@@ -464,8 +461,38 @@ export default function NewOrderPage() {
   const totalAmount = orderItems.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0)
   const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0)
 
-  const [showCompleteModal, setShowCompleteModal] = useState(false)
-  const [completedOrder, setCompletedOrder] = useState<{ orderNumber: string; storeName: string; itemCount: number; totalAmount: number } | null>(null)
+  // 숨겨진 iframe으로 자동 인쇄 (인쇄 대화상자 없음)
+  const silentPrint = (printUrl: string) => {
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'fixed'
+    iframe.style.left = '-9999px'
+    iframe.style.top = '-9999px'
+    iframe.style.width = '0'
+    iframe.style.height = '0'
+    iframe.src = printUrl
+    document.body.appendChild(iframe)
+    iframe.onload = () => {
+      setTimeout(() => {
+        try { iframe.contentWindow?.print() } catch (e) { console.error('Print failed:', e) }
+        setTimeout(() => { document.body.removeChild(iframe) }, 1000)
+      }, 500)
+    }
+  }
+
+  // 폼 초기화 (다음 주문 등록 준비)
+  const resetForm = () => {
+    setSelectedStore(null)
+    setStoreSearchText('')
+    setStoreFocusIndex(-1)
+    setSelectedBrandId(null)
+    setSelectedProductId(null)
+    setProductFocusIndex(-1)
+    setOrderItems([])
+    setMemo('')
+    setGridFocus(null)
+    setCellInputValue('')
+    setTimeout(() => storeInputRef.current?.focus(), 100)
+  }
 
   const handleSubmit = async () => {
     if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
@@ -474,43 +501,15 @@ export default function NewOrderPage() {
       const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
       if (res.ok) {
         const data = await res.json()
-        // 프린터 설정 확인 후 자동 출력
+        // 자동 인쇄 (인쇄창 없이 바로 프린터로)
         if (data.order?.id) {
-          try {
-            const printerSettings = JSON.parse(localStorage.getItem('printerSettings') || '{}')
-            if (printerSettings.autoPrintOnOrder !== false) {
-              // 새 창에서 출고지시서 인쇄
-              const printWindow = window.open(`/orders/${data.order.id}/print`, '_blank', 'width=400,height=700')
-              if (printWindow) printWindow.focus()
-            }
-          } catch (e) { console.error('출력 실패:', e) }
+          silentPrint(`/orders/${data.order.id}/print`)
         }
-        // 접수 완료 팝업 표시
-        setCompletedOrder({
-          orderNumber: data.order?.orderNo || '',
-          storeName: selectedStore.name,
-          itemCount: orderItems.length,
-          totalAmount: totalAmount
-        })
-        setShowCompleteModal(true)
+        // 폼 초기화하여 다음 주문 등록 준비 (출고 페이지 이동 안함)
+        resetForm()
       } else alert('주문 생성 실패')
     } catch { alert('오류가 발생했습니다.') }
     setLoading(false)
-  }
-
-  const handleCompleteClose = () => {
-    setShowCompleteModal(false)
-    setCompletedOrder(null)
-    // 폼 초기화
-    setSelectedStore(null)
-    setStoreSearchText('')
-    setSelectedBrandId(null)
-    setSelectedProductId(null)
-    setOrderItems([])
-    setMemo('')
-    setGridFocus(null)
-    // 여벌출고 페이지로 이동
-    router.push('/orders/shipping')
   }
 
   // 오른쪽 원시 SPH 000 행 비활성화 여부 체크
@@ -839,47 +838,6 @@ export default function NewOrderPage() {
           </div>
         </div>
       </div>
-
-      {/* 접수 완료 팝업 */}
-      {showCompleteModal && completedOrder && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 32, width: 400, textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 40 }}>✓</div>
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#212529', marginBottom: 8 }}>전송되었습니다</h2>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>출고지시서가 자동 출력됩니다.</p>
-            
-            <div style={{ background: '#f9fafb', borderRadius: 12, padding: 20, marginBottom: 24, textAlign: 'left' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
-                <span style={{ color: '#6b7280' }}>주문번호</span>
-                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.orderNumber}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
-                <span style={{ color: '#6b7280' }}>가맹점</span>
-                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.storeName}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
-                <span style={{ color: '#6b7280' }}>주문유형</span>
-                <span style={{ fontWeight: 600, color: '#3b82f6' }}>{orderType}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
-                <span style={{ color: '#6b7280' }}>상품수</span>
-                <span style={{ fontWeight: 600, color: '#212529' }}>{completedOrder.itemCount}건</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
-                <span style={{ color: '#6b7280' }}>총 금액</span>
-                <span style={{ fontWeight: 700, color: '#10b981', fontSize: 18 }}>{completedOrder.totalAmount.toLocaleString()}원</span>
-              </div>
-            </div>
-
-            <button 
-              onClick={handleCompleteClose}
-              style={{ width: '100%', padding: '14px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
-            >
-              여벌출고 화면으로 이동
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* 컨텍스트 메뉴 */}
       {contextMenu && (

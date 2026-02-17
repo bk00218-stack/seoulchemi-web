@@ -72,6 +72,35 @@ export async function GET(request: Request) {
       ]
     }
     
+    // 대량 로드 (limit >= 1000)일 때는 최소 필드만, 통계 쿼리 생략
+    const isBulkLoad = limit >= 1000
+
+    if (isBulkLoad) {
+      const stores = await prisma.store.findMany({
+        where: { ...where, isActive: true },
+        select: {
+          id: true, code: true, name: true, phone: true,
+          deliveryPhone: true, salesRepName: true, deliveryContact: true,
+          outstandingAmount: true, address: true, paymentTermDays: true,
+        },
+        orderBy: { name: 'asc' },
+        take: limit,
+      })
+      return NextResponse.json({
+        stores: stores.map((s: any) => ({
+          id: s.id, code: s.code, name: s.name, phone: s.phone || '-',
+          deliveryPhone: s.deliveryPhone || null,
+          salesRepName: s.salesRepName || null,
+          deliveryContact: s.deliveryContact || null,
+          outstandingAmount: s.outstandingAmount || 0,
+          address: s.address || null,
+          paymentTermDays: s.paymentTermDays || 30,
+        })),
+        pagination: { page: 1, limit, total: stores.length, totalPages: 1 },
+        stats: { total: stores.length, active: stores.length, inactive: 0, newThisMonth: 0 },
+      })
+    }
+
     // 이번 달 기준
     const monthStart = new Date()
     monthStart.setDate(1)
@@ -87,7 +116,7 @@ export async function GET(request: Request) {
     ] = await Promise.all([
       // 필터된 개수
       prisma.store.count({ where }),
-      
+
       // 목록 조회 (export일 때는 전체 필드)
       prisma.store.findMany({
         where,
@@ -149,13 +178,13 @@ export async function GET(request: Request) {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      
+
       // 전체 가맹점 수
       prisma.store.count(),
-      
+
       // 활성 가맹점 수
       prisma.store.count({ where: { isActive: true } }),
-      
+
       // 이번 달 신규
       prisma.store.count({ where: { createdAt: { gte: monthStart } } }),
     ])
