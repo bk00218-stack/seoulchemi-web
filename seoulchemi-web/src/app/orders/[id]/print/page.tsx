@@ -59,17 +59,22 @@ export default function PrintShippingSlipPage() {
   // 데이터 로드 완료 후 자동 인쇄 + 인쇄 후 자동 닫기
   useEffect(() => {
     if (order && !loading) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const isSilent = urlParams.get('silent') === '1'
+
       // 인쇄 후 창 닫기
       const handleAfterPrint = () => {
         window.close()
       }
       window.addEventListener('afterprint', handleAfterPrint)
-      
-      // 약간의 딜레이 후 인쇄 다이얼로그 열기
-      setTimeout(() => {
-        window.print()
-      }, 300)
-      
+
+      // silent 모드: iframe에서 직접 print() 호출하므로 자동인쇄 스킵
+      if (!isSilent) {
+        setTimeout(() => {
+          window.print()
+        }, 300)
+      }
+
       return () => {
         window.removeEventListener('afterprint', handleAfterPrint)
       }

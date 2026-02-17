@@ -472,13 +472,15 @@ export default function NewOrderPage() {
 
   // 숨겨진 iframe으로 자동 인쇄 (인쇄 대화상자 없음)
   const silentPrint = (printUrl: string) => {
+    const separator = printUrl.includes('?') ? '&' : '?'
+    const url = `${printUrl}${separator}silent=1`
     const iframe = document.createElement('iframe')
     iframe.style.position = 'fixed'
     iframe.style.left = '-9999px'
     iframe.style.top = '-9999px'
     iframe.style.width = '0'
     iframe.style.height = '0'
-    iframe.src = printUrl
+    iframe.src = url
     document.body.appendChild(iframe)
     iframe.onload = () => {
       setTimeout(() => {
@@ -517,6 +519,41 @@ export default function NewOrderPage() {
         // 폼 초기화하여 다음 주문 등록 준비 (출고 페이지 이동 안함)
         resetForm()
       } else alert('주문 생성 실패')
+    } catch { alert('오류가 발생했습니다.') }
+    setLoading(false)
+  }
+
+  // 접수 + 즉시출고
+  const handleSubmitAndShip = async () => {
+    if (!selectedStore || orderItems.length === 0) { alert('가맹점과 상품을 선택해주세요.'); return }
+    if (orderType !== '여벌') { alert('여벌 주문만 즉시 출고 가능합니다.'); return }
+    setLoading(true)
+    try {
+      // 1. 주문 생성
+      const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
+      const data = await res.json()
+      if (!res.ok) { alert(data.error || '주문 생성 실패'); setLoading(false); return }
+
+      // 2. 즉시 출고
+      if (data.order?.itemIds?.length > 0) {
+        const shipRes = await fetch('/api/orders/ship/spare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemIds: data.order.itemIds })
+        })
+        const shipData = await shipRes.json()
+        if (!shipRes.ok) {
+          alert(`주문 등록 완료, 출고 실패: ${shipData.error || '출고 처리 실패'}`)
+        } else if (shipData.shipped?.length > 0) {
+          // 출고 성공 → 인쇄
+          const itemIds = shipData.shipped[0].shippedItemIds?.join(',') || ''
+          silentPrint(`/orders/${data.order.id}/print${itemIds ? `?itemIds=${itemIds}` : ''}`)
+        }
+      } else {
+        // itemIds 없으면 접수만 하고 인쇄
+        if (data.order?.id) silentPrint(`/orders/${data.order.id}/print`)
+      }
+      resetForm()
     } catch { alert('오류가 발생했습니다.') }
     setLoading(false)
   }
@@ -843,7 +880,8 @@ export default function NewOrderPage() {
           </div>
           <div style={{ padding: 6, display: 'flex', gap: 4 }}>
             <button onClick={() => setOrderItems([])} style={{ flex: 1, padding: 8, background: '#f8f9fa', border: '1px solid #ccc', borderRadius: 3, cursor: 'pointer', fontSize: 12 }}>초기화</button>
-            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 8, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>전송 [F2]</button>
+            <button onClick={handleSubmit} disabled={loading || !selectedStore || orderItems.length === 0} style={{ flex: 2, padding: 8, background: loading ? '#ccc' : '#4caf50', color: '#fff', border: 'none', borderRadius: 3, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>접수 [F2]</button>
+            <button onClick={handleSubmitAndShip} disabled={loading || !selectedStore || orderItems.length === 0 || orderType !== '여벌'} style={{ flex: 2, padding: 8, background: loading || orderType !== '여벌' ? '#ccc' : '#2196F3', color: '#fff', border: 'none', borderRadius: 3, cursor: loading || orderType !== '여벌' ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>접수+출고</button>
           </div>
         </div>
       </div>

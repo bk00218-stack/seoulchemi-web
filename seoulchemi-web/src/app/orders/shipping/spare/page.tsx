@@ -330,7 +330,7 @@ export default function SpareShipmentPage() {
         const params = new URLSearchParams()
         params.set('type', 'invoice')
         if (result.shippedItemIds?.length) params.set('itemIds', result.shippedItemIds.join(','))
-        const printUrl = `/orders/${result.orderId}/print?${params.toString()}`
+        const printUrl = `/orders/${result.orderId}/print?${params.toString()}&silent=1`
 
         // 숨겨진 iframe으로 자동 인쇄 (인쇄 대화상자 없음)
         await new Promise<void>((resolve) => {

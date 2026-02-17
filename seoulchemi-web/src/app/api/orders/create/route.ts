@@ -185,7 +185,8 @@ export async function POST(request: Request) {
         storeName: order.store.name,
         totalAmount: order.totalAmount,
         status: order.status,
-        itemCount: order.items.length
+        itemCount: order.items.length,
+        itemIds: order.items.map(i => i.id)
       }
     })
   } catch (error: any) {
