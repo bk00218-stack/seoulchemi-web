@@ -44,20 +44,48 @@ export async function PATCH(
   }
 }
 
-// 아이템 삭제
+// 아이템 삭제 (주문 총액 자동 업데이트)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ itemId: string }> }
 ) {
   try {
     const { itemId } = await params
+    const id = parseInt(itemId)
 
-    // 아이템 삭제
-    await prisma.orderItem.delete({
-      where: { id: parseInt(itemId) }
+    // 품목 조회
+    const item = await prisma.orderItem.findUnique({
+      where: { id },
+      include: { order: true }
     })
 
-    return NextResponse.json({ success: true })
+    if (!item) {
+      return NextResponse.json({ error: '품목을 찾을 수 없습니다.' }, { status: 404 })
+    }
+
+    // 트랜잭션으로 처리
+    await prisma.$transaction(async (tx) => {
+      await tx.orderItem.delete({ where: { id } })
+
+      // 주문 총액 업데이트
+      const remainingItems = await tx.orderItem.findMany({
+        where: { orderId: item.orderId }
+      })
+      const newTotal = remainingItems.reduce((sum, i) => sum + i.totalPrice, 0)
+
+      await tx.order.update({
+        where: { id: item.orderId },
+        data: { totalAmount: newTotal }
+      })
+
+      // 거래내역 금액도 업데이트
+      await tx.transaction.updateMany({
+        where: { orderId: item.orderId },
+        data: { amount: newTotal }
+      })
+    })
+
+    return NextResponse.json({ success: true, message: '품목이 삭제되었습니다.' })
   } catch (error: any) {
     console.error('Item delete error:', error)
     return NextResponse.json({ error: error.message || '삭제 실패' }, { status: 500 })
