@@ -665,9 +665,11 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
         </aside>
 
         {/* Main */}
-        <main 
+        <main
           ref={mainRef}
           tabIndex={-1}
+          role="main"
+          aria-label="메인 콘텐츠"
           className="main-content"
           style={{ 
             flex: 1, 

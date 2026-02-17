@@ -26,11 +26,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    // 시스템 테마 감지 - 앱이 다크모드 미지원이므로 항상 라이트 모드 사용
-    // TODO: 다크모드 지원 시 아래 주석 해제
-    /*
+    // 시스템 테마 감지
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    
+
     const updateResolvedTheme = () => {
       if (theme === 'system') {
         setResolvedTheme(mediaQuery.matches ? 'dark' : 'light')
@@ -43,10 +41,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     mediaQuery.addEventListener('change', updateResolvedTheme)
 
     return () => mediaQuery.removeEventListener('change', updateResolvedTheme)
-    */
-    
-    // 항상 라이트 모드 강제
-    setResolvedTheme('light')
   }, [theme])
 
   useEffect(() => {

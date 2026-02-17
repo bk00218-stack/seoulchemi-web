@@ -2,6 +2,7 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ToastProvider } from '@/contexts/ToastContext'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts'
 import PWARegister from '@/components/PWARegister'
 
@@ -42,9 +43,11 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider>
             <AuthProvider>
-              <KeyboardShortcuts />
-              <PWARegister />
-              {children}
+              <ErrorBoundary>
+                <KeyboardShortcuts />
+                <PWARegister />
+                {children}
+              </ErrorBoundary>
             </AuthProvider>
           </ToastProvider>
         </ThemeProvider>
