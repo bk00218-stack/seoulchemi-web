@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 
 // POST /api/orders/[id]/shipping - 출고 지시서 생성
 export async function POST(
@@ -7,6 +8,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const { id } = await params
     const orderId = parseInt(id)
 
@@ -88,7 +90,7 @@ export async function POST(
           targetNo: order.orderNo,
           description: `출고 지시서 생성: ${slipNo}`,
           details: JSON.stringify({ slipNo, itemCount: order.items.length }),
-          userName: 'admin',
+          userName: currentUser,
           pcName: 'WEB',
         }
       })
@@ -116,6 +118,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const { id } = await params
     const orderId = parseInt(id)
     const body = await request.json()
@@ -142,14 +145,14 @@ export async function PATCH(
     switch (action) {
       case 'pick': // 피킹 완료
         updateData.status = 'picking'
-        updateData.pickedBy = 'admin'
+        updateData.pickedBy = currentUser
         updateData.pickedAt = now
         newStatus = 'picking'
         break
 
       case 'pack': // 포장 완료
         updateData.status = 'packed'
-        updateData.packedBy = 'admin'
+        updateData.packedBy = currentUser
         updateData.packedAt = now
         newStatus = 'packed'
         break
@@ -159,7 +162,7 @@ export async function PATCH(
           return NextResponse.json({ error: '택배사와 운송장번호를 입력해주세요.' }, { status: 400 })
         }
         updateData.status = 'shipped'
-        updateData.shippedBy = 'admin'
+        updateData.shippedBy = currentUser
         updateData.shippedAt = now
         updateData.courier = courier
         updateData.trackingNo = trackingNo
@@ -220,7 +223,7 @@ export async function PATCH(
               orderId: order.id,
               orderNo: order.orderNo,
               memo: `주문 출고 (${order.orderNo})`,
-              processedBy: 'admin',
+              processedBy: currentUser,
               processedAt: now,
             }
           })
@@ -236,7 +239,7 @@ export async function PATCH(
           targetNo: slip.order.orderNo,
           description: `출고 상태 변경: ${slip.status} → ${newStatus}`,
           details: JSON.stringify({ slipNo: slip.slipNo, action, courier, trackingNo }),
-          userName: 'admin',
+          userName: currentUser,
           pcName: 'WEB',
         }
       })

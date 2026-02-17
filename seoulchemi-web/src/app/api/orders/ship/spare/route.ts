@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 
 // GET /api/orders/ship/spare - 여벌 출고 대기 주문 목록 조회
 export async function GET(request: Request) {
@@ -133,6 +134,7 @@ export async function GET(request: Request) {
 // POST /api/orders/ship/spare - 여벌 출고 처리 (부분출고 지원)
 export async function POST(request: Request) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const body = await request.json()
     const { itemIds } = body
 
@@ -273,7 +275,7 @@ export async function POST(request: Request) {
             memo: isNetReturn
               ? (allShipped ? '반품 처리' : '반품 부분처리')
               : (allShipped ? '출고' : '부분출고'),
-            processedBy: 'admin',
+            processedBy: currentUser,
           }
         })
 
@@ -292,7 +294,7 @@ export async function POST(request: Request) {
               shippedAmount,
               isPartial: !allShipped
             }),
-            userName: 'admin',
+            userName: currentUser,
             pcName: 'WEB',
           }
         })

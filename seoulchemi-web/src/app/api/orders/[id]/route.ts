@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 
 // GET /api/orders/[id] - 주문 상세 조회
 export async function GET(
@@ -126,6 +127,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const { id } = await params
     const orderId = parseInt(id)
     const body = await request.json()
@@ -183,7 +185,7 @@ export async function PATCH(
             targetNo: order.orderNo,
             description: `주문 상태 변경: ${order.status} → ${status}`,
             details: JSON.stringify({ previousStatus: order.status, newStatus: status }),
-            userName: 'admin',
+            userName: currentUser,
             pcName: 'WEB',
           }
         })
@@ -207,7 +209,7 @@ export async function PATCH(
               orderId: order.id,
               orderNo: order.orderNo,
               memo: `주문 확정 (${order.orderNo})`,
-              processedBy: 'admin',
+              processedBy: currentUser,
               processedAt: now,
             }
           })
@@ -253,7 +255,7 @@ export async function PATCH(
                       unitPrice: item.unitPrice,
                       totalPrice: item.totalPrice,
                       memo: `주문 확정 출고: ${order.orderNo}`,
-                      processedBy: 'admin',
+                      processedBy: currentUser,
                     }
                   })
                 }
@@ -281,7 +283,7 @@ export async function PATCH(
               orderId: order.id,
               orderNo: order.orderNo,
               memo: `주문 출고 (${order.orderNo})`,
-              processedBy: 'admin',
+              processedBy: currentUser,
               processedAt: now,
             }
           })
@@ -327,7 +329,7 @@ export async function PATCH(
                       unitPrice: item.unitPrice,
                       totalPrice: item.totalPrice,
                       memo: `주문 출고: ${order.orderNo}`,
-                      processedBy: 'admin',
+                      processedBy: currentUser,
                     }
                   })
                 }
@@ -355,7 +357,7 @@ export async function PATCH(
               orderId: order.id,
               orderNo: order.orderNo,
               memo: `주문 취소 (${order.orderNo})`,
-              processedBy: 'admin',
+              processedBy: currentUser,
               processedAt: now,
             }
           })
@@ -401,7 +403,7 @@ export async function PATCH(
                       unitPrice: item.unitPrice,
                       totalPrice: item.totalPrice,
                       memo: `주문 취소 재고 복원: ${order.orderNo}`,
-                      processedBy: 'admin',
+                      processedBy: currentUser,
                     }
                   })
                 }
@@ -434,6 +436,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const { id } = await params
     const orderId = parseInt(id)
 
@@ -475,7 +478,7 @@ export async function DELETE(
           targetId: orderId,
           targetNo: order.orderNo,
           description: `주문 삭제: ${order.orderNo}`,
-          userName: 'admin',
+          userName: currentUser,
           pcName: 'WEB',
         }
       })

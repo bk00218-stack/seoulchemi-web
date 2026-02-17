@@ -1,6 +1,7 @@
 // 월마감/결산 API
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 
 // 월별 결산 데이터 조회
 export async function GET(request: NextRequest) {
@@ -183,6 +184,7 @@ export async function GET(request: NextRequest) {
 // 월마감 처리
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const body = await request.json()
     const { year, month, action } = body // action: 'close' | 'reopen'
 
@@ -197,7 +199,7 @@ export async function POST(request: NextRequest) {
           value: JSON.stringify({
             closed: true,
             closedAt: new Date().toISOString(),
-            closedBy: 'admin' // TODO: 실제 사용자
+            closedBy: currentUser,
           }),
           description: `${year}년 ${month}월 마감`
         },
@@ -205,7 +207,7 @@ export async function POST(request: NextRequest) {
           value: JSON.stringify({
             closed: true,
             closedAt: new Date().toISOString(),
-            closedBy: 'admin'
+            closedBy: currentUser
           })
         }
       })

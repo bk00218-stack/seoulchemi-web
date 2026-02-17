@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 
 // DELETE /api/orders/bulk-delete - 주문 일괄 삭제
 export async function DELETE(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const body = await request.json()
     const { orderIds } = body as { orderIds: number[] }
 
@@ -51,7 +53,7 @@ export async function DELETE(request: NextRequest) {
           targetId: deletableIds[0],
           targetNo: deletedOrderNos.join(', '),
           description: `주문 일괄 삭제: ${deletableIds.length}건 (${deletedOrderNos.slice(0, 5).join(', ')}${deletedOrderNos.length > 5 ? ' 외' : ''})`,
-          userName: 'admin',
+          userName: currentUser,
           pcName: 'WEB',
         }
       })

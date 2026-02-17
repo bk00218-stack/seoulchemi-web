@@ -1,8 +1,10 @@
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const { orderIds, status } = await request.json()
     
     if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
@@ -58,7 +60,7 @@ export async function POST(request: Request) {
               orderId: order.id,
               orderNo: order.orderNo,
               memo: `주문 확정: ${order.orderNo}`,
-              processedBy: 'admin',
+              processedBy: currentUser,
               processedAt: now,
             }
           })
@@ -101,7 +103,7 @@ export async function POST(request: Request) {
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice,
                     memo: `주문 확정 출고: ${order.orderNo}`,
-                    processedBy: 'admin',
+                    processedBy: currentUser,
                   }
                 })
               }
@@ -133,7 +135,7 @@ export async function POST(request: Request) {
               orderId: order.id,
               orderNo: order.orderNo,
               memo: `주문 출고: ${order.orderNo}`,
-              processedBy: 'admin',
+              processedBy: currentUser,
               processedAt: now,
             }
           })
@@ -173,7 +175,7 @@ export async function POST(request: Request) {
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice,
                     memo: `주문 출고: ${order.orderNo}`,
-                    processedBy: 'admin',
+                    processedBy: currentUser,
                   }
                 })
               }
@@ -204,7 +206,7 @@ export async function POST(request: Request) {
                 orderId: order.id,
                 orderNo: order.orderNo,
                 memo: `주문 취소: ${order.orderNo}`,
-                processedBy: 'admin',
+                processedBy: currentUser,
                 processedAt: now,
               }
             })
@@ -246,7 +248,7 @@ export async function POST(request: Request) {
                       unitPrice: item.unitPrice,
                       totalPrice: item.totalPrice,
                       memo: `주문 취소 재고 복원: ${order.orderNo}`,
-                      processedBy: 'admin',
+                      processedBy: currentUser,
                     }
                   })
                 }

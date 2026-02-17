@@ -253,6 +253,26 @@ export function hasRole(user: AuthUser, roles: string | string[]): boolean {
   return roleArray.includes(user.role)
 }
 
+/**
+ * API 라우트에서 현재 로그인 사용자 정보 추출
+ * 미들웨어가 JWT에서 x-user-id, x-user-role 헤더를 설정함
+ */
+export async function getCurrentUserName(request: Request): Promise<string> {
+  try {
+    const userId = request.headers.get('x-user-id')
+    if (userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: parseInt(userId) },
+        select: { name: true, username: true }
+      })
+      if (user) return user.name || user.username
+    }
+  } catch {
+    // 실패 시 기본값 반환
+  }
+  return '시스템'
+}
+
 // 역할별 기본 권한
 export const ROLE_PERMISSIONS: Record<string, string[]> = {
   admin: ['*'], // 모든 권한

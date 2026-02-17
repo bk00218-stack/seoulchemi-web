@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 import { getStoreDiscountSettings, calculatePriceFromCache } from '@/lib/priceCalculator'
 
 // 수량 정규화: 0.5 단위로 올림 (양수: 0.1→0.5, 음수(반품): -0.3→-0.5)
@@ -11,6 +12,7 @@ function normalizeQuantity(qty: number): number {
 // POST /api/orders/create - 새 주문 등록
 export async function POST(request: Request) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const body = await request.json()
     const { storeId, orderType: rawOrderType, items, memo, skipCreditCheck } = body
     
@@ -169,7 +171,7 @@ export async function POST(request: Request) {
             itemCount: items.length,
             totalAmount
           }),
-          userName: 'admin',
+          userName: currentUser,
           pcName: 'WEB',
         }
       })

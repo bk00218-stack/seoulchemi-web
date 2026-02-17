@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const body = await request.json()
     const { storeId, amount, paymentMethod, memo, depositor, bankName } = body
 
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
           depositor: depositor || memo || null,
           bankName: bankName || null,
           memo,
-          processedBy: 'admin', // TODO: 실제 로그인 사용자
+          processedBy: currentUser, // TODO: 실제 로그인 사용자
           processedAt: new Date(),
         }
       })
@@ -66,7 +68,7 @@ export async function POST(request: NextRequest) {
             previousBalance: store.outstandingAmount,
             newBalance: newOutstanding,
           }),
-          userName: 'admin', // TODO: 실제 로그인 사용자
+          userName: currentUser,
           pcName: 'WEB',
         }
       })

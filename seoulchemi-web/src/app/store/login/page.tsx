@@ -15,15 +15,36 @@ export default function StoreLoginPage() {
     setLoading(true)
     setError('')
 
-    // TODO: 실제 로그인 API 연동
-    setTimeout(() => {
-      if (storeCode && password) {
-        router.push('/store/products')
+    if (!storeCode || !password) {
+      setError('가맹점 코드와 비밀번호를 입력하세요')
+      setLoading(false)
+      return
+    }
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: storeCode, password }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.success) {
+        // 가맹점 계정이면 가맹점 페이지로, 아니면 관리자 대시보드로
+        if (data.user.role === 'store') {
+          router.push('/store/products')
+        } else {
+          router.push('/dashboard')
+        }
       } else {
-        setError('가맹점 코드와 비밀번호를 입력하세요')
-        setLoading(false)
+        setError(data.error || '로그인에 실패했습니다.')
       }
-    }, 500)
+    } catch {
+      setError('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -157,16 +178,33 @@ export default function StoreLoginPage() {
           </button>
         </form>
 
+        {/* Admin login link */}
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
+          <button
+            onClick={() => router.push('/login')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#86868b',
+              fontSize: 13,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            관리자 로그인
+          </button>
+        </div>
+
         {/* Help */}
         <div style={{
-          marginTop: 24,
+          marginTop: 16,
           textAlign: 'center',
           fontSize: 13,
           color: '#86868b',
         }}>
           <p style={{ margin: '0 0 8px' }}>가맹점 코드를 모르시나요?</p>
-          <a href="tel:1588-0000" style={{ color: '#007aff', textDecoration: 'none' }}>
-            고객센터 1588-0000
+          <a href="tel:02-521-2323" style={{ color: '#007aff', textDecoration: 'none' }}>
+            고객센터 02-521-2323
           </a>
         </div>
       </div>

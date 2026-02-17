@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUserName } from '@/lib/auth'
 
 // POST /api/orders/ship - 출고 처리
 export async function POST(request: Request) {
   try {
+    const currentUser = await getCurrentUserName(request)
     const body = await request.json()
     const { orderIds } = body // 출고할 주문 ID 배열
 
@@ -112,7 +114,7 @@ export async function POST(request: Request) {
             orderId: order.id,
             orderNo: order.orderNo,
             memo: `판매 출고`,
-            processedBy: 'admin',
+            processedBy: currentUser,
           }
         })
 
@@ -130,7 +132,7 @@ export async function POST(request: Request) {
               itemCount: order.items.length,
               totalAmount: order.totalAmount
             }),
-            userName: 'admin',
+            userName: currentUser,
             pcName: 'WEB',
           }
         })
