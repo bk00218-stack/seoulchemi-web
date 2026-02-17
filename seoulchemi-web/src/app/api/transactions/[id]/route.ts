@@ -82,31 +82,32 @@ export async function DELETE(
     const { id } = await params
     const transactionId = parseInt(id)
     
-    // 거래내역 조회 (주문 아이템 포함)
+    // 거래내역 조회
     const transaction = await prisma.transaction.findUnique({
       where: { id: transactionId },
-      include: { 
-        store: true,
-        order: {
-          include: {
-            items: {
-              include: { product: true }
-            }
-          }
-        }
-      }
+      include: { store: true }
     })
     
     if (!transaction) {
       return NextResponse.json({ error: '거래내역을 찾을 수 없습니다.' }, { status: 404 })
     }
     
+    // 연결된 주문 조회 (별도로)
+    let orderItems: any[] = []
+    if (transaction.orderId) {
+      const order = await prisma.order.findUnique({
+        where: { id: transaction.orderId },
+        include: { items: true }
+      })
+      orderItems = order?.items || []
+    }
+    
     // 거래 삭제 및 잔액/재고 복구
     await prisma.$transaction(async (tx) => {
       // 1. 재고 복구 (매출 삭제 → 재고 증가, 반품 삭제 → 재고 감소)
       // ProductOption에 도수별 재고가 있는 경우만 처리
-      if (transaction.order?.items && transaction.order.items.length > 0) {
-        for (const item of transaction.order.items) {
+      if (orderItems.length > 0) {
+        for (const item of orderItems) {
           // 도수 정보가 있는 품목만 재고 처리
           if (item.sph || item.cyl) {
             let stockChange = 0
