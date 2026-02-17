@@ -63,6 +63,7 @@ export const PRODUCTS_SIDEBAR: SidebarMenu[] = [
     title: '재고관리',
     items: [
       { label: '재고 현황', href: '/products/inventory' },
+      { label: '수불대장', href: '/products/inventory/ledger' },
       { label: '재고 조정', href: '/products/stock-adjust' },
     ]
   }
@@ -82,6 +83,7 @@ export const STORES_SIDEBAR: SidebarMenu[] = [
     title: '정산',
     items: [
       { label: '정산관리', href: '/stores/settle' },
+      { label: '거래명세서', href: '/stores/statements' },
     ]
   },
   {
