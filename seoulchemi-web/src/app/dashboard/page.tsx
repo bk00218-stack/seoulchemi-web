@@ -3,6 +3,17 @@
 import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
 import { ORDER_SIDEBAR } from '../constants/sidebar'
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from 'recharts'
 
 interface DashboardData {
   today: {
@@ -46,6 +57,11 @@ function formatCurrency(num: number): string {
     return `${(num / 10000).toFixed(0)}만`
   }
   return formatNumber(num)
+}
+
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(dateStr)
+  return `${d.getMonth() + 1}/${d.getDate()}`
 }
 
 function StatCard({ title, value, subValue, icon, color, trend }: {
@@ -225,7 +241,8 @@ export default function DashboardPage() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: '16px'
+        gap: '16px',
+        marginBottom: '24px'
       }}>
         <StatCard
           title="기간 총 주문"
@@ -242,6 +259,97 @@ export default function DashboardPage() {
           color="#06b6d4"
         />
       </div>
+
+      {/* 일별 매출/주문 차트 */}
+      {data.chart.daily.length > 0 && (
+        <div style={{
+          background: '#fff',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div>
+              <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                일별 매출 추이
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                최근 {data.period.days}일간 매출 및 주문 현황
+              </p>
+            </div>
+          </div>
+          <div style={{ width: '100%', height: 320 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={data.chart.daily.map(d => ({
+                ...d,
+                dateLabel: formatDateLabel(d.date),
+              }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis
+                  dataKey="dateLabel"
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e5e7eb' }}
+                />
+                <YAxis
+                  yAxisId="revenue"
+                  orientation="left"
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v: number) => formatCurrency(v)}
+                />
+                <YAxis
+                  yAxisId="orders"
+                  orientation="right"
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v: number) => `${v}건`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 12,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    fontSize: 13,
+                  }}
+                  formatter={(value: number, name: string) => {
+                    if (name === '매출') return [`${formatNumber(value)}원`, name]
+                    return [`${value}건`, name]
+                  }}
+                  labelFormatter={(label: string) => label}
+                />
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 12, paddingBottom: 8 }}
+                />
+                <Bar
+                  yAxisId="revenue"
+                  dataKey="revenue"
+                  name="매출"
+                  fill="#667eea"
+                  radius={[4, 4, 0, 0]}
+                  opacity={0.8}
+                />
+                <Line
+                  yAxisId="orders"
+                  type="monotone"
+                  dataKey="orders"
+                  name="주문"
+                  stroke="#f59e0b"
+                  strokeWidth={2.5}
+                  dot={{ fill: '#f59e0b', r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
       </div>
       )}
     </Layout>
