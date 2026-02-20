@@ -1,27 +1,59 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+interface StoreInfo {
+  id: number
+  name: string
+  code: string
+  phone: string | null
+  ownerName: string | null
+  outstandingAmount: number
+  creditLimit: number
+  billingDay: number | null
+}
 
 interface Transaction {
   id: number
-  date: string
-  type: 'order' | 'payment' | 'refund'
-  description: string
+  type: string
   amount: number
+  balanceAfter: number
+  orderNo: string | null
+  memo: string | null
+  processedAt: string
+}
+
+const TX_TYPE_MAP: Record<string, { label: string; color: string; bg: string }> = {
+  sale: { label: '매출', color: '#007aff', bg: '#f0f7ff' },
+  deposit: { label: '입금', color: '#34c759', bg: '#f0fff4' },
+  return: { label: '반품', color: '#ff9500', bg: '#fff8f0' },
+  adjustment: { label: '조정', color: '#af52de', bg: '#faf0ff' },
 }
 
 export default function StoreAccountPage() {
-  const [balance] = useState(1250000) // 미수금
-  const [creditLimit] = useState(5000000) // 신용한도
-  
-  const [transactions] = useState<Transaction[]>([
-    { id: 1, date: '2026-02-03', type: 'order', description: '주문 ORD-20260203-001', amount: 125000 },
-    { id: 2, date: '2026-02-02', type: 'order', description: '주문 ORD-20260202-005', amount: 83500 },
-    { id: 3, date: '2026-02-01', type: 'payment', description: '1월 정산금 입금', amount: -850000 },
-    { id: 4, date: '2026-02-01', type: 'order', description: '주문 ORD-20260201-012', amount: 215000 },
-    { id: 5, date: '2026-01-31', type: 'order', description: '주문 ORD-20260131-008', amount: 41050 },
-    { id: 6, date: '2026-01-15', type: 'payment', description: '12월 정산금 입금', amount: -720000 },
-  ])
+  const [store, setStore] = useState<StoreInfo | null>(null)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchAccount()
+  }, [])
+
+  const fetchAccount = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/store/account')
+      const data = await res.json()
+      if (data.store) {
+        setStore(data.store)
+        setTransactions(data.transactions || [])
+      }
+    } catch (e) {
+      console.error('Failed to fetch account:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const cardStyle = {
     background: 'white',
@@ -30,7 +62,25 @@ export default function StoreAccountPage() {
     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   }
 
-  const usedPercent = (balance / creditLimit) * 100
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: 60, color: '#86868b' }}>
+        로딩 중...
+      </div>
+    )
+  }
+
+  if (!store) {
+    return (
+      <div style={{ textAlign: 'center', padding: 60, color: '#86868b' }}>
+        가맹점 정보를 불러올 수 없습니다.
+      </div>
+    )
+  }
+
+  const balance = store.outstandingAmount
+  const creditLimit = store.creditLimit
+  const usedPercent = creditLimit > 0 ? (balance / creditLimit) * 100 : 0
 
   return (
     <div>
@@ -61,42 +111,44 @@ export default function StoreAccountPage() {
         <div style={{ ...cardStyle, borderLeft: '4px solid #34c759' }}>
           <div style={{ fontSize: 13, color: '#86868b' }}>주문 가능 금액</div>
           <div style={{ fontSize: 32, fontWeight: 700, color: '#34c759', marginTop: 4 }}>
-            {(creditLimit - balance).toLocaleString()}<span style={{ fontSize: 16, fontWeight: 400 }}>원</span>
+            {Math.max(0, creditLimit - balance).toLocaleString()}<span style={{ fontSize: 16, fontWeight: 400 }}>원</span>
           </div>
         </div>
       </div>
 
       {/* Credit Usage Bar */}
-      <div style={{ ...cardStyle, marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>신용 한도 사용률</span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: usedPercent > 80 ? '#ff3b30' : '#34c759' }}>
-            {usedPercent.toFixed(1)}%
-          </span>
-        </div>
-        <div style={{ 
-          height: 12, 
-          background: '#f5f5f7', 
-          borderRadius: 6, 
-          overflow: 'hidden' 
-        }}>
+      {creditLimit > 0 && (
+        <div style={{ ...cardStyle, marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>신용 한도 사용률</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: usedPercent > 80 ? '#ff3b30' : '#34c759' }}>
+              {usedPercent.toFixed(1)}%
+            </span>
+          </div>
           <div style={{
-            height: '100%',
-            width: `${Math.min(usedPercent, 100)}%`,
-            background: usedPercent > 80 
-              ? 'linear-gradient(90deg, #ff9500, #ff3b30)' 
-              : 'linear-gradient(90deg, #34c759, #30d158)',
+            height: 12,
+            background: '#f5f5f7',
             borderRadius: 6,
-            transition: 'width 0.3s',
-          }} />
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.min(usedPercent, 100)}%`,
+              background: usedPercent > 80
+                ? 'linear-gradient(90deg, #ff9500, #ff3b30)'
+                : 'linear-gradient(90deg, #34c759, #30d158)',
+              borderRadius: 6,
+              transition: 'width 0.3s',
+            }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+            <span style={{ fontSize: 12, color: '#86868b' }}>사용: {balance.toLocaleString()}원</span>
+            <span style={{ fontSize: 12, color: '#86868b' }}>잔여: {Math.max(0, creditLimit - balance).toLocaleString()}원</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-          <span style={{ fontSize: 12, color: '#86868b' }}>사용: {balance.toLocaleString()}원</span>
-          <span style={{ fontSize: 12, color: '#86868b' }}>잔여: {(creditLimit - balance).toLocaleString()}원</span>
-        </div>
-      </div>
+      )}
 
-      {/* Store Info */}
+      {/* Store Info + Transactions */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24 }}>
         <div style={cardStyle}>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', margin: '0 0 16px' }}>
@@ -105,19 +157,29 @@ export default function StoreAccountPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
               <div style={{ fontSize: 12, color: '#86868b' }}>가맹점명</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>밝은안경</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>{store.name}</div>
             </div>
             <div>
               <div style={{ fontSize: 12, color: '#86868b' }}>가맹점 코드</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>BK-001</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>{store.code}</div>
             </div>
+            {store.ownerName && (
+              <div>
+                <div style={{ fontSize: 12, color: '#86868b' }}>대표자</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>{store.ownerName}</div>
+              </div>
+            )}
+            {store.phone && (
+              <div>
+                <div style={{ fontSize: 12, color: '#86868b' }}>전화번호</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>{store.phone}</div>
+              </div>
+            )}
             <div>
               <div style={{ fontSize: 12, color: '#86868b' }}>정산일</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>매월 말일</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: '#86868b' }}>담당자</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>김철수 (010-1234-5678)</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginTop: 2 }}>
+                {store.billingDay ? `매월 ${store.billingDay}일` : '매월 말일'}
+              </div>
             </div>
           </div>
         </div>
@@ -126,61 +188,74 @@ export default function StoreAccountPage() {
         <div style={cardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', margin: 0 }}>
-              거래 내역
+              거래 내역 (최근 3개월)
             </h3>
-            <select style={{
-              padding: '6px 12px',
-              fontSize: 13,
-              border: '1px solid #e9ecef',
-              borderRadius: 8,
-              outline: 'none',
-            }}>
-              <option>최근 1개월</option>
-              <option>최근 3개월</option>
-              <option>최근 6개월</option>
-            </select>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e9ecef' }}>
-                <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>일자</th>
-                <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>구분</th>
-                <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>내용</th>
-                <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#86868b' }}>금액</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map(tx => (
-                <tr key={tx.id} style={{ borderBottom: '1px solid #f5f5f7' }}>
-                  <td style={{ padding: '12px 8px', fontSize: 13, color: '#86868b' }}>{tx.date}</td>
-                  <td style={{ padding: '12px 8px' }}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: tx.type === 'payment' ? '#f0fff4' : tx.type === 'refund' ? '#fff8f0' : '#f0f7ff',
-                      color: tx.type === 'payment' ? '#34c759' : tx.type === 'refund' ? '#ff9500' : '#007aff',
-                    }}>
-                      {tx.type === 'payment' ? '입금' : tx.type === 'refund' ? '환불' : '주문'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 8px', fontSize: 13, color: '#1d1d1f' }}>{tx.description}</td>
-                  <td style={{ 
-                    padding: '12px 8px', 
-                    fontSize: 13, 
-                    fontWeight: 600, 
-                    textAlign: 'right',
-                    color: tx.amount < 0 ? '#34c759' : '#1d1d1f',
-                  }}>
-                    {tx.amount < 0 ? '' : '+'}{tx.amount.toLocaleString()}원
-                  </td>
+          {transactions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 40, color: '#86868b' }}>
+              거래 내역이 없습니다
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #e9ecef' }}>
+                  <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>일자</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>구분</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#86868b' }}>내용</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#86868b' }}>금액</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#86868b' }}>잔액</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {transactions.map(tx => {
+                  const typeInfo = TX_TYPE_MAP[tx.type] || { label: tx.type, color: '#666', bg: '#f5f5f5' }
+                  const isDebit = tx.type === 'sale'
+                  return (
+                    <tr key={tx.id} style={{ borderBottom: '1px solid #f5f5f7' }}>
+                      <td style={{ padding: '12px 8px', fontSize: 13, color: '#86868b' }}>
+                        {new Date(tx.processedAt).toLocaleDateString('ko-KR')}
+                      </td>
+                      <td style={{ padding: '12px 8px' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          background: typeInfo.bg,
+                          color: typeInfo.color,
+                        }}>
+                          {typeInfo.label}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 8px', fontSize: 13, color: '#1d1d1f' }}>
+                        {tx.orderNo ? `주문 ${tx.orderNo}` : tx.memo || '-'}
+                      </td>
+                      <td style={{
+                        padding: '12px 8px',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        textAlign: 'right',
+                        color: isDebit ? '#1d1d1f' : '#34c759',
+                      }}>
+                        {isDebit ? '+' : '-'}{tx.amount.toLocaleString()}원
+                      </td>
+                      <td style={{
+                        padding: '12px 8px',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        textAlign: 'right',
+                        color: '#1d1d1f',
+                      }}>
+                        {tx.balanceAfter.toLocaleString()}원
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ interface CartItem {
   id: number
   name: string
   brand: string
+  optionType?: string
   price: number
   qty: number
 }
@@ -57,7 +58,6 @@ export default function CartPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // storeId 미지정시 API에서 밝은안경(BK-001) 사용
           items: items.map(item => ({
             productId: item.id,
             quantity: item.qty,

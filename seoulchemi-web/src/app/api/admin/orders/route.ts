@@ -10,12 +10,25 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
   const productType = searchParams.get('productType') // 'rx', 'stock', 'contact', 'all'
-  
+  const from = searchParams.get('from')
+  const to = searchParams.get('to')
+
   const where: any = {}
   if (status && status !== 'all') {
     where.status = status
   }
-  
+
+  // 날짜 필터
+  if (from || to) {
+    where.orderedAt = {}
+    if (from) where.orderedAt.gte = new Date(from)
+    if (to) {
+      const toDate = new Date(to)
+      toDate.setDate(toDate.getDate() + 1) // to 날짜 포함
+      where.orderedAt.lt = toDate
+    }
+  }
+
   const orders = await prisma.order.findMany({
     where,
     orderBy: { orderedAt: 'desc' },

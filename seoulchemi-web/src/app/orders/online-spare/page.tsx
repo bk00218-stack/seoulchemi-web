@@ -73,7 +73,7 @@ export default function OnlineSpareOrdersPage() {
       const params = new URLSearchParams({
         from: dateFrom,
         to: dateTo,
-        optionType: '안경렌즈 여벌',
+        productType: 'stock',
       })
       if (statusFilter !== 'all') {
         params.append('status', statusFilter)

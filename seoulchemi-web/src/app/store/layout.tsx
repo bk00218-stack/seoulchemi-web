@@ -1,12 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [cartCount, setCartCount] = useState(0)
+  const [storeName, setStoreName] = useState('')
+
+  useEffect(() => {
+    if (pathname !== '/store/login') {
+      fetch('/api/store/account')
+        .then(res => res.json())
+        .then(data => {
+          if (data.store?.name) {
+            setStoreName(data.store.name)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [])
 
   const navItems = [
     { label: '상품주문', href: '/store/products', icon: '🛒' },
@@ -125,12 +140,21 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               background: '#f5f5f7',
               borderRadius: 20,
             }}>
-              <span style={{ fontSize: 13, color: '#86868b' }}>밝은안경</span>
-              <Link href="/store/login" style={{
-                fontSize: 12,
-                color: '#007aff',
-                textDecoration: 'none',
-              }}>로그아웃</Link>
+              {storeName && <span style={{ fontSize: 13, color: '#86868b' }}>{storeName}</span>}
+              <button
+                onClick={async () => {
+                  await fetch('/api/auth/logout', { method: 'POST' })
+                  router.push('/store/login')
+                }}
+                style={{
+                  fontSize: 12,
+                  color: '#007aff',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >로그아웃</button>
             </div>
           </div>
         </div>

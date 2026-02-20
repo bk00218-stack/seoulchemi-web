@@ -26,6 +26,7 @@ interface CartItem {
   id: number
   name: string
   brand: string
+  optionType: string
   price: number
   qty: number
 }
@@ -82,6 +83,7 @@ export default function StoreProductsPage() {
       id: product.id,
       name: product.name,
       brand: product.brand,
+      optionType: product.optionType,
       price: product.sellingPrice,
       qty: 1
     }
