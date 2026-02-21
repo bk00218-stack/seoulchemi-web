@@ -404,7 +404,7 @@ export default function RxOrderForm({
                   <th style={rxTh}>AXIS</th>
                   <th style={rxTh}>ADD</th>
                   <th style={rxTh}>CURVE</th>
-                  <th style={{ ...rxTh, borderLeft: '2px solid #a7d7be' }}>PD</th>
+                  <th style={rxTh}>PD</th>
                   <th style={rxTh}>PRISM</th>
                   <th style={rxTh}>BASE</th>
                 </tr>
@@ -432,7 +432,7 @@ export default function RxOrderForm({
                       ))}
 
                       {/* PD */}
-                      <td style={{ ...rxTd, borderLeft: '2px solid #a7d7be' }}>
+                      <td style={rxTd}>
                         <input
                           style={{ ...inpStyle, width: '100%' }}
                           type="number" step="0.5" placeholder="-"
