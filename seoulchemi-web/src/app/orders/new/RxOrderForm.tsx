@@ -404,7 +404,7 @@ export default function RxOrderForm({
                   <th style={rxTh}>AXIS</th>
                   <th style={rxTh}>ADD</th>
                   <th style={rxTh}>CURVE</th>
-                  <th style={{ ...rxTh, borderLeft: '2px solid #93c5fd' }}>PD</th>
+                  <th style={{ ...rxTh, borderLeft: '2px solid #a7d7be' }}>PD</th>
                   <th style={rxTh}>PRISM</th>
                   <th style={rxTh}>BASE</th>
                 </tr>
@@ -432,7 +432,7 @@ export default function RxOrderForm({
                       ))}
 
                       {/* PD */}
-                      <td style={{ ...rxTd, borderLeft: '2px solid #93c5fd' }}>
+                      <td style={{ ...rxTd, borderLeft: '2px solid #a7d7be' }}>
                         <input
                           style={{ ...inpStyle, width: '100%' }}
                           type="number" step="0.5" placeholder="-"
@@ -468,97 +468,96 @@ export default function RxOrderForm({
           </div>
         </div>
 
-        {/* ③ 착색 or 코팅 */}
-        {orderType === '착색' ? (
-          <div style={{ borderBottom: '1px solid #eee' }}>
-            <div style={secHead}><span>🎨 착색</span></div>
-            <div style={secBody}>
-              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                {/* 색상 스와치 */}
-                <div>
-                  <label style={labelSt}>색상</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-                    {TINT_COLORS.map(tc => (
-                      <div
-                        key={tc.key}
-                        title={tc.label}
-                        onClick={() => setTintColor(tc.key)}
-                        style={{
-                          width: 28, height: 28, borderRadius: 5, cursor: 'pointer',
-                          background: tc.bg,
-                          border:     tintColor === tc.key
-                            ? `3px solid ${G}`
-                            : `2px solid ${tc.border ?? 'transparent'}`,
-                          boxShadow:  tintColor === tc.key
-                            ? `0 0 0 1px white, 0 0 0 3px ${G}`
-                            : undefined,
-                          transition: 'transform 0.1s',
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* 농도 */}
-                <div style={{ flex: 1, minWidth: 160 }}>
-                  <label style={labelSt}>농도</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                    <input
-                      type="range" min={0} max={85} step={5}
-                      value={tintDensity}
-                      onChange={e => setTintDensity(parseInt(e.target.value))}
-                      style={{ flex: 1, accentColor: G }}
-                    />
-                    <input
-                      type="number" min={0} max={85}
-                      value={tintDensity}
-                      onChange={e => setTintDensity(Math.max(0, Math.min(85, parseInt(e.target.value) || 0)))}
+        {/* ③ 착색 (착색/RX 모두 표시) */}
+        <div style={{ borderBottom: '1px solid #eee' }}>
+          <div style={secHead}><span>🎨 착색</span></div>
+          <div style={secBody}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              {/* 색상 스와치 */}
+              <div>
+                <label style={labelSt}>색상</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                  {TINT_COLORS.map(tc => (
+                    <div
+                      key={tc.key}
+                      title={tc.label}
+                      onClick={() => setTintColor(tc.key)}
                       style={{
-                        width: 52, padding: '4px 6px', fontSize: 12,
-                        border: '1px solid #ddd', borderRadius: 4, textAlign: 'center',
+                        width: 28, height: 28, borderRadius: 5, cursor: 'pointer',
+                        background: tc.bg,
+                        border:     tintColor === tc.key
+                          ? `3px solid ${G}`
+                          : `2px solid ${tc.border ?? 'transparent'}`,
+                        boxShadow:  tintColor === tc.key
+                          ? `0 0 0 1px white, 0 0 0 3px ${G}`
+                          : undefined,
+                        transition: 'transform 0.1s',
                       }}
                     />
-                    <span style={{ color: '#6b7280', fontSize: 12 }}>%</span>
-                  </div>
-                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 8, fontSize: 12, cursor: 'pointer' }}>
-                    <input
-                      type="checkbox" checked={tintGradient}
-                      onChange={e => setTintGradient(e.target.checked)}
-                      style={{ accentColor: G }}
-                    />
-                    그라데이션
-                  </label>
+                  ))}
                 </div>
               </div>
-            </div>
-          </div>
-        ) : (
-          <div style={{ borderBottom: '1px solid #eee' }}>
-            <div style={secHead}><span>✨ 코팅</span></div>
-            <div style={secBody}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {COATING_OPTIONS.map(c => (
-                  <button
-                    key={c.key}
-                    onClick={() => toggleCoating(c.key)}
+
+              {/* 농도 */}
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <label style={labelSt}>농도</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                  <input
+                    type="range" min={0} max={85} step={5}
+                    value={tintDensity}
+                    onChange={e => setTintDensity(parseInt(e.target.value))}
+                    style={{ flex: 1, accentColor: G }}
+                  />
+                  <input
+                    type="number" min={0} max={85}
+                    value={tintDensity}
+                    onChange={e => setTintDensity(Math.max(0, Math.min(85, parseInt(e.target.value) || 0)))}
                     style={{
-                      padding: '4px 10px', borderRadius: 12, fontSize: 11, cursor: 'pointer',
-                      background:  coatings.includes(c.key) ? '#e8f5ee' : '#f3f4f6',
-                      color:       coatings.includes(c.key) ? G         : '#374151',
-                      border:      coatings.includes(c.key)
-                        ? `1px solid ${G}`
-                        : '1px solid #e5e7eb',
-                      fontWeight:  coatings.includes(c.key) ? 600 : 400,
-                    }}>
-                    {c.label}
-                  </button>
-                ))}
+                      width: 52, padding: '4px 6px', fontSize: 12,
+                      border: '1px solid #ddd', borderRadius: 4, textAlign: 'center',
+                    }}
+                  />
+                  <span style={{ color: '#6b7280', fontSize: 12 }}>%</span>
+                </div>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 8, fontSize: 12, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox" checked={tintGradient}
+                    onChange={e => setTintGradient(e.target.checked)}
+                    style={{ accentColor: G }}
+                  />
+                  그라데이션
+                </label>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* ④ 피팅 정보 */}
+        {/* ④ 코팅 (착색/RX 모두 표시) */}
+        <div style={{ borderBottom: '1px solid #eee' }}>
+          <div style={secHead}><span>✨ 코팅</span></div>
+          <div style={secBody}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {COATING_OPTIONS.map(c => (
+                <button
+                  key={c.key}
+                  onClick={() => toggleCoating(c.key)}
+                  style={{
+                    padding: '4px 10px', borderRadius: 12, fontSize: 11, cursor: 'pointer',
+                    background:  coatings.includes(c.key) ? '#e8f5ee' : '#f3f4f6',
+                    color:       coatings.includes(c.key) ? G         : '#374151',
+                    border:      coatings.includes(c.key)
+                      ? `1px solid ${G}`
+                      : '1px solid #e5e7eb',
+                    fontWeight:  coatings.includes(c.key) ? 600 : 400,
+                  }}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ⑤ 피팅 정보 */}
         <div style={{ borderBottom: '1px solid #eee' }}>
           <div style={secHead}><span>👓 피팅</span></div>
           <div style={{
@@ -595,7 +594,7 @@ export default function RxOrderForm({
           </div>
         </div>
 
-        {/* ⑤ 고객명 + 메모 */}
+        {/* ⑥ 고객명 + 메모 */}
         <div style={secBody}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 8 }}>
             <div>
