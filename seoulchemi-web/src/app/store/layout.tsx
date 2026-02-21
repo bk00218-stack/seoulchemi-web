@@ -3,25 +3,30 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { StoreCartProvider, useCart } from '@/contexts/StoreCartContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
-export default function StoreLayout({ children }: { children: React.ReactNode }) {
+function StoreHeader() {
   const pathname = usePathname()
   const router = useRouter()
-  const [cartCount, setCartCount] = useState(0)
+  const { totalCount } = useCart()
+  const isMobile = useIsMobile()
   const [storeName, setStoreName] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
-    if (pathname !== '/store/login') {
-      fetch('/api/store/account')
-        .then(res => res.json())
-        .then(data => {
-          if (data.store?.name) {
-            setStoreName(data.store.name)
-          }
-        })
-        .catch(() => {})
-    }
+    fetch('/api/store/account')
+      .then(res => res.json())
+      .then(data => {
+        if (data.store?.name) setStoreName(data.store.name)
+      })
+      .catch(() => {})
   }, [])
+
+  // 페이지 변경 시 메뉴 닫기
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
 
   const navItems = [
     { label: '상품주문', href: '/store/products', icon: '🛒' },
@@ -29,64 +34,46 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
     { label: '잔액조회', href: '/store/account', icon: '💰' },
   ]
 
-  const isLoginPage = pathname === '/store/login'
-
-  if (isLoginPage) {
-    return <>{children}</>
-  }
-
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f5f7' }}>
-      {/* Header */}
-      <header style={{
-        background: 'white',
-        borderBottom: '1px solid var(--border-color)',
-        padding: '0 20px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
+    <header style={{
+      background: 'white',
+      borderBottom: '1px solid #e5e5e5',
+      padding: '0 20px',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+    }}>
+      <div style={{
+        maxWidth: 1200,
+        margin: '0 auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: 60,
       }}>
-        <div style={{
-          maxWidth: 1200,
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: 60,
-        }}>
-          {/* Logo */}
-          <Link href="/store/products" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #007aff, #00c7be)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: 16,
-              fontWeight: 700,
-            }}>L</div>
-            <span style={{ fontSize: 18, fontWeight: 700, color: '#1d1d1f' }}>LensChoice</span>
-            <span style={{ fontSize: 12, color: '#86868b', marginLeft: 4 }}>주문</span>
-          </Link>
+        {/* Logo */}
+        <Link href="/store/products" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #007aff, #00c7be)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', fontSize: 16, fontWeight: 700,
+          }}>L</div>
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#1d1d1f' }}>LensChoice</span>
+          {!isMobile && <span style={{ fontSize: 12, color: '#86868b', marginLeft: 4 }}>주문</span>}
+        </Link>
 
-          {/* Navigation */}
+        {/* Desktop Navigation */}
+        {!isMobile && (
           <nav style={{ display: 'flex', gap: 8 }}>
             {navItems.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 16px',
-                  borderRadius: 20,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  textDecoration: 'none',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 16px', borderRadius: 20,
+                  fontSize: 14, fontWeight: 500, textDecoration: 'none',
                   background: pathname.startsWith(item.href) ? '#007aff' : 'transparent',
                   color: pathname.startsWith(item.href) ? 'white' : '#1d1d1f',
                   transition: 'all 0.2s',
@@ -97,48 +84,46 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               </Link>
             ))}
           </nav>
+        )}
 
-          {/* Right side */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Cart */}
-            <Link href="/store/cart" style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '8px 12px',
-              borderRadius: 20,
-              background: pathname === '/store/cart' ? '#007aff' : '#f5f5f7',
-              color: pathname === '/store/cart' ? 'white' : '#1d1d1f',
-              textDecoration: 'none',
-              fontSize: 14,
-              fontWeight: 500,
-            }}>
-              <span>🛍️</span>
-              <span>장바구니</span>
-              {cartCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: -4,
-                  right: -4,
-                  background: '#ff3b30',
-                  color: 'white',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  padding: '2px 6px',
-                  borderRadius: 10,
-                }}>{cartCount}</span>
-              )}
-            </Link>
+        {/* Right side */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 16 }}>
+          {/* Cart */}
+          <Link href="/store/cart" style={{
+            position: 'relative',
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: isMobile ? '8px' : '8px 12px', borderRadius: 20,
+            background: pathname === '/store/cart' ? '#007aff' : '#f5f5f7',
+            color: pathname === '/store/cart' ? 'white' : '#1d1d1f',
+            textDecoration: 'none', fontSize: 14, fontWeight: 500,
+          }}>
+            <span>🛍️</span>
+            {!isMobile && <span>장바구니</span>}
+            {totalCount > 0 && (
+              <span style={{
+                position: 'absolute', top: -4, right: -4,
+                background: '#ff3b30', color: 'white',
+                fontSize: 11, fontWeight: 700,
+                padding: '2px 6px', borderRadius: 10,
+                minWidth: 18, textAlign: 'center',
+              }}>{totalCount}</span>
+            )}
+          </Link>
 
-            {/* Store info */}
+          {/* Mobile hamburger */}
+          {isMobile ? (
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              style={{
+                background: 'none', border: 'none',
+                fontSize: 22, cursor: 'pointer', padding: 4,
+              }}
+            >☰</button>
+          ) : (
+            /* Desktop store info */
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 12px',
-              background: '#f5f5f7',
-              borderRadius: 20,
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '6px 12px', background: '#f5f5f7', borderRadius: 20,
             }}>
               {storeName && <span style={{ fontSize: 13, color: '#86868b' }}>{storeName}</span>}
               <button
@@ -147,48 +132,94 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
                   router.push('/store/login')
                 }}
                 style={{
-                  fontSize: 12,
-                  color: '#007aff',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
+                  fontSize: 12, color: '#007aff',
+                  background: 'none', border: 'none',
+                  cursor: 'pointer', padding: 0,
                 }}
               >로그아웃</button>
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile menu dropdown */}
+      {isMobile && menuOpen && (
+        <div style={{
+          position: 'absolute', top: 60, left: 0, right: 0,
+          background: 'white', borderBottom: '1px solid #e5e5e5',
+          padding: '12px 20px', zIndex: 99,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        }}>
+          {navItems.map(item => (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '12px 16px', borderRadius: 10,
+                fontSize: 15, fontWeight: 500, textDecoration: 'none',
+                background: pathname.startsWith(item.href) ? '#007aff' : 'transparent',
+                color: pathname.startsWith(item.href) ? 'white' : '#1d1d1f',
+                marginBottom: 4,
+              }}
+            >
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+            </Link>
+          ))}
+          <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 8, paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {storeName && <span style={{ fontSize: 13, color: '#86868b' }}>{storeName}</span>}
+            <button
+              onClick={async () => {
+                await fetch('/api/auth/logout', { method: 'POST' })
+                router.push('/store/login')
+              }}
+              style={{
+                fontSize: 13, color: '#007aff',
+                background: 'none', border: 'none',
+                cursor: 'pointer',
+              }}
+            >로그아웃</button>
           </div>
         </div>
-      </header>
+      )}
+    </header>
+  )
+}
 
-      {/* Main Content */}
-      <main style={{
-        maxWidth: 1200,
-        margin: '0 auto',
-        padding: 20,
-      }}>
-        {children}
-      </main>
+export default function StoreLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const isLoginPage = pathname === '/store/login'
 
-      {/* Footer */}
-      <footer style={{
-        background: 'white',
-        borderTop: '1px solid #e5e5e5',
-        padding: '20px',
-        marginTop: 40,
-      }}>
-        <div style={{
-          maxWidth: 1200,
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: 13,
-          color: '#86868b',
+  if (isLoginPage) {
+    return <>{children}</>
+  }
+
+  return (
+    <StoreCartProvider>
+      <div style={{ minHeight: '100vh', background: '#f5f5f7' }}>
+        <StoreHeader />
+
+        {/* Main Content */}
+        <main style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
+          {children}
+        </main>
+
+        {/* Footer */}
+        <footer style={{
+          background: 'white', borderTop: '1px solid #e5e5e5',
+          padding: '20px', marginTop: 40,
         }}>
-          <span>© 2026 LensChoice. BK Company</span>
-          <span>고객센터: 1588-0000</span>
-        </div>
-      </footer>
-    </div>
+          <div style={{
+            maxWidth: 1200, margin: '0 auto',
+            display: 'flex', justifyContent: 'space-between',
+            alignItems: 'center', fontSize: 13, color: '#86868b',
+          }}>
+            <span>© 2026 LensChoice. 서울케미</span>
+            <span>고객센터: 02-521-2323</span>
+          </div>
+        </footer>
+      </div>
+    </StoreCartProvider>
   )
 }

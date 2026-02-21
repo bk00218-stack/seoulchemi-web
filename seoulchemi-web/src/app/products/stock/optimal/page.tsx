@@ -1,21 +1,20 @@
 'use client'
 
 import { useToast } from '@/contexts/ToastContext'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Layout, { cardStyle } from '../../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../../constants/sidebar'
 
-// 목업 데이터
-const mockSettings = [
-  { id: 1, brand: '다비치', productLine: '단초점 1.60', minStock: 3, maxStock: 10, reorderPoint: 5, currentAvg: 4.2, status: 'ok' },
-  { id: 2, brand: '다비치', productLine: '단초점 1.67', minStock: 2, maxStock: 8, reorderPoint: 4, currentAvg: 2.8, status: 'warning' },
-  { id: 3, brand: '에실로', productLine: '누진 1.60', minStock: 2, maxStock: 6, reorderPoint: 3, currentAvg: 5.1, status: 'ok' },
-  { id: 4, brand: '에실로', productLine: '누진 1.67', minStock: 1, maxStock: 4, reorderPoint: 2, currentAvg: 0.8, status: 'critical' },
-  { id: 5, brand: '호야', productLine: '단초점 1.60', minStock: 2, maxStock: 8, reorderPoint: 4, currentAvg: 6.3, status: 'ok' },
-  { id: 6, brand: '호야', productLine: '누진 1.67', minStock: 1, maxStock: 5, reorderPoint: 2, currentAvg: 1.2, status: 'warning' },
-  { id: 7, brand: '자이스', productLine: '중근용 1.60', minStock: 1, maxStock: 4, reorderPoint: 2, currentAvg: 3.5, status: 'ok' },
-]
+interface OptimalSetting {
+  id: string
+  brandName: string
+  productName: string
+  minStock: number
+  maxStock: number
+  reorderPoint: number
+  currentAvg: number
+  status: 'ok' | 'warning' | 'critical'
+}
 
 const inputStyle: React.CSSProperties = {
   padding: '8px 12px',
@@ -36,16 +35,108 @@ const btnStyle: React.CSSProperties = {
   cursor: 'pointer',
 }
 
+interface ProductOption {
+  id: number
+  productId: number
+  stock: number
+  product: {
+    id: number
+    name: string
+    brand: { name: string } | null
+  }
+}
+
 export default function OptimalStockPage() {
   const { toast } = useToast()
-  const [settings, setSettings] = useState(mockSettings)
+  const [settings, setSettings] = useState<OptimalSetting[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [showModal, setShowModal] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      // 설정값과 실제 재고 데이터를 동시에 조회
+      const [settingsRes, stockRes] = await Promise.all([
+        fetch('/api/admin/settings?group=stock.optimal'),
+        fetch('/api/admin/stock'),
+      ])
+      const settingsData = await settingsRes.json()
+      const stockData = await stockRes.json()
+
+      // 저장된 적정재고 설정 파싱
+      const savedItems: Record<string, { minStock: number; maxStock: number; reorderPoint: number }> = {}
+      try {
+        const raw = settingsData.settings?.['stock.optimal.items']
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          if (Array.isArray(parsed)) {
+            for (const item of parsed) {
+              savedItems[item.key] = { minStock: item.minStock || 0, maxStock: item.maxStock || 10, reorderPoint: item.reorderPoint || 3 }
+            }
+          }
+        }
+      } catch { /* ignore parse error */ }
+
+      // 실제 재고 데이터에서 상품별 평균 재고 계산
+      const options: ProductOption[] = stockData.options || []
+      const productMap = new Map<number, { name: string; brand: string; stocks: number[] }>()
+      for (const opt of options) {
+        if (!opt.product) continue
+        const existing = productMap.get(opt.productId)
+        if (existing) {
+          existing.stocks.push(opt.stock)
+        } else {
+          productMap.set(opt.productId, {
+            name: opt.product.name,
+            brand: opt.product.brand?.name || '-',
+            stocks: [opt.stock],
+          })
+        }
+      }
+
+      // OptimalSetting 배열 생성
+      const items: OptimalSetting[] = []
+      productMap.forEach((data, productId) => {
+        const key = `p${productId}`
+        const saved = savedItems[key]
+        const avgStock = data.stocks.length > 0
+          ? data.stocks.reduce((a, b) => a + b, 0) / data.stocks.length
+          : 0
+        const minStock = saved?.minStock ?? 2
+        const maxStock = saved?.maxStock ?? 10
+        const reorderPoint = saved?.reorderPoint ?? 4
+
+        let status: 'ok' | 'warning' | 'critical' = 'ok'
+        if (avgStock <= minStock) status = 'critical'
+        else if (avgStock <= reorderPoint) status = 'warning'
+
+        items.push({
+          id: key,
+          brandName: data.brand,
+          productName: data.name,
+          minStock,
+          maxStock,
+          reorderPoint,
+          currentAvg: Math.round(avgStock * 10) / 10,
+          status,
+        })
+      })
+
+      setSettings(items)
+    } catch (e) {
+      console.error('Failed to fetch optimal stock data:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const filteredSettings = settings.filter(s =>
-    s.brand.toLowerCase().includes(search.toLowerCase()) ||
-    s.productLine.toLowerCase().includes(search.toLowerCase())
+    s.brandName.toLowerCase().includes(search.toLowerCase()) ||
+    s.productName.toLowerCase().includes(search.toLowerCase())
   )
 
   const stats = {
@@ -64,14 +155,53 @@ export default function OptimalStockPage() {
     }
   }
 
-  const handleValueChange = (id: number, field: 'minStock' | 'maxStock' | 'reorderPoint', value: number) => {
-    setSettings(settings.map(s => s.id === id ? { ...s, [field]: value } : s))
+  const handleValueChange = (id: string, field: 'minStock' | 'maxStock' | 'reorderPoint', value: number) => {
+    setSettings(prev => {
+      const updated = prev.map(s => {
+        if (s.id !== id) return s
+        const newS = { ...s, [field]: value }
+        // 상태 재계산
+        if (newS.currentAvg <= newS.minStock) newS.status = 'critical'
+        else if (newS.currentAvg <= newS.reorderPoint) newS.status = 'warning'
+        else newS.status = 'ok'
+        return newS
+      })
+      return updated
+    })
     setHasChanges(true)
   }
 
-  const handleSave = () => {
-    toast.success('적정 재고 설정이 저장되었습니다.')
-    setHasChanges(false)
+  const handleSave = async () => {
+    try {
+      const items = settings.map(s => ({
+        key: s.id,
+        minStock: s.minStock,
+        maxStock: s.maxStock,
+        reorderPoint: s.reorderPoint,
+      }))
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: { 'stock.optimal.items': JSON.stringify(items) } }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast.success('적정 재고 설정이 저장되었습니다.')
+        setHasChanges(false)
+      } else {
+        toast.error(data.error || '저장 실패')
+      }
+    } catch {
+      toast.error('저장 중 오류가 발생했습니다.')
+    }
+  }
+
+  if (loading) {
+    return (
+      <Layout sidebarMenus={PRODUCTS_SIDEBAR} activeNav="상품">
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--gray-400)' }}>로딩 중...</div>
+      </Layout>
+    )
   }
 
   return (
@@ -117,31 +247,18 @@ export default function OptimalStockPage() {
 
       {/* 필터 및 버튼 */}
       <div style={{ ...cardStyle, padding: 16, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <input
-            type="text"
-            placeholder="🔍 브랜드, 품목 검색..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ ...inputStyle, width: 280, textAlign: 'left' as const }}
-          />
-        </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={() => setShowModal(true)}
-            style={{ ...btnStyle, background: 'var(--gray-100)', color: '#1d1d1f' }}
-          >
-            + 품목 추가
+        <input
+          type="text"
+          placeholder="🔍 브랜드, 품목 검색..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ ...inputStyle, width: 280, textAlign: 'left' as const }}
+        />
+        {hasChanges && (
+          <button onClick={handleSave} style={{ ...btnStyle, background: '#34c759', color: '#fff' }}>
+            변경사항 저장
           </button>
-          {hasChanges && (
-            <button
-              onClick={handleSave}
-              style={{ ...btnStyle, background: '#34c759', color: '#fff' }}
-            >
-              변경사항 저장
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* 설정 목록 */}
@@ -150,7 +267,7 @@ export default function OptimalStockPage() {
           <thead>
             <tr style={{ background: 'var(--gray-50)', borderBottom: '1px solid var(--gray-200)' }}>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 500, color: 'var(--gray-500)' }}>브랜드</th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 500, color: 'var(--gray-500)' }}>품목</th>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 500, color: 'var(--gray-500)' }}>상품</th>
               <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 100 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <span>최소</span>
@@ -174,102 +291,73 @@ export default function OptimalStockPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredSettings.map(setting => {
-              const statusStyle = getStatusStyle(setting.status)
-              return (
-                <tr key={setting.id} style={{ borderBottom: '1px solid var(--gray-100)' }}>
-                  <td style={{ padding: '14px 16px' }}>
-                    <span style={{ padding: '4px 8px', borderRadius: 4, fontSize: 12, background: 'var(--gray-100)', color: 'var(--gray-600)' }}>
-                      {setting.brand}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 16px', fontWeight: 500 }}>{setting.productLine}</td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                    <input
-                      type="number"
-                      min="0"
-                      value={setting.minStock}
-                      onChange={e => handleValueChange(setting.id, 'minStock', parseInt(e.target.value) || 0)}
-                      style={{ ...inputStyle, borderColor: '#ff3b30' }}
-                    />
-                  </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                    <input
-                      type="number"
-                      min="0"
-                      value={setting.reorderPoint}
-                      onChange={e => handleValueChange(setting.id, 'reorderPoint', parseInt(e.target.value) || 0)}
-                      style={{ ...inputStyle, borderColor: '#ff9500' }}
-                    />
-                  </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                    <input
-                      type="number"
-                      min="0"
-                      value={setting.maxStock}
-                      onChange={e => handleValueChange(setting.id, 'maxStock', parseInt(e.target.value) || 0)}
-                      style={{ ...inputStyle, borderColor: '#34c759' }}
-                    />
-                  </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 500 }}>
-                    {setting.currentAvg.toFixed(1)}
-                  </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      fontSize: 12,
-                      fontWeight: 500,
-                      background: statusStyle.bg,
-                      color: statusStyle.color,
-                    }}>
-                      {statusStyle.label}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
+            {filteredSettings.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>
+                  {search ? '검색 결과가 없습니다.' : '재고 데이터가 없습니다.'}
+                </td>
+              </tr>
+            ) : (
+              filteredSettings.map(setting => {
+                const statusStyle = getStatusStyle(setting.status)
+                return (
+                  <tr key={setting.id} style={{ borderBottom: '1px solid var(--gray-100)' }}>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ padding: '4px 8px', borderRadius: 4, fontSize: 12, background: 'var(--gray-100)', color: 'var(--gray-600)' }}>
+                        {setting.brandName}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', fontWeight: 500 }}>{setting.productName}</td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <input
+                        type="number"
+                        min="0"
+                        value={setting.minStock}
+                        onChange={e => handleValueChange(setting.id, 'minStock', parseInt(e.target.value) || 0)}
+                        style={{ ...inputStyle, borderColor: '#ff3b30' }}
+                      />
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <input
+                        type="number"
+                        min="0"
+                        value={setting.reorderPoint}
+                        onChange={e => handleValueChange(setting.id, 'reorderPoint', parseInt(e.target.value) || 0)}
+                        style={{ ...inputStyle, borderColor: '#ff9500' }}
+                      />
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <input
+                        type="number"
+                        min="0"
+                        value={setting.maxStock}
+                        onChange={e => handleValueChange(setting.id, 'maxStock', parseInt(e.target.value) || 0)}
+                        style={{ ...inputStyle, borderColor: '#34c759' }}
+                      />
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 500 }}>
+                      {setting.currentAvg.toFixed(1)}
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '4px 10px',
+                        borderRadius: 6,
+                        fontSize: 12,
+                        fontWeight: 500,
+                        background: statusStyle.bg,
+                        color: statusStyle.color,
+                      }}>
+                        {statusStyle.label}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })
+            )}
           </tbody>
         </table>
       </div>
-
-      {/* 품목 추가 모달 */}
-      {showModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: 16,
-            padding: 28,
-            width: 400,
-          }}>
-            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 24, margin: '0 0 24px' }}>품목별 적정 재고 추가</h3>
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)', background: 'var(--gray-50)', borderRadius: 12 }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🚧</div>
-              <p style={{ margin: 0 }}>품목 추가 기능 준비중입니다.</p>
-            </div>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24 }}>
-              <button
-                onClick={() => setShowModal(false)}
-                style={{ ...btnStyle, background: 'var(--gray-100)', color: '#1d1d1f' }}
-              >
-                닫기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </Layout>
   )
 }

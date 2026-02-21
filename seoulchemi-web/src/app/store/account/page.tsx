@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface StoreInfo {
   id: number
@@ -34,6 +35,8 @@ export default function StoreAccountPage() {
   const [store, setStore] = useState<StoreInfo | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
+  const [period, setPeriod] = useState<'1m' | '3m' | '6m' | '1y'>('3m')
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     fetchAccount()
@@ -55,10 +58,20 @@ export default function StoreAccountPage() {
     }
   }
 
+  // 기간 필터
+  const filteredTransactions = transactions.filter(tx => {
+    const txDate = new Date(tx.processedAt)
+    const now = new Date()
+    const monthsMap = { '1m': 1, '3m': 3, '6m': 6, '1y': 12 }
+    const months = monthsMap[period]
+    const cutoff = new Date(now.getFullYear(), now.getMonth() - months, now.getDate())
+    return txDate >= cutoff
+  })
+
   const cardStyle = {
     background: 'white',
     borderRadius: 16,
-    padding: 24,
+    padding: isMobile ? 16 : 24,
     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   }
 
@@ -85,8 +98,8 @@ export default function StoreAccountPage() {
   return (
     <div>
       {/* Page Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
+      <div style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
           잔액 조회
         </h1>
         <p style={{ fontSize: 14, color: '#86868b', marginTop: 8 }}>
@@ -95,22 +108,27 @@ export default function StoreAccountPage() {
       </div>
 
       {/* Balance Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-        <div style={{ ...cardStyle, borderLeft: '4px solid #ff3b30' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+        gap: isMobile ? 8 : 16,
+        marginBottom: isMobile ? 16 : 24,
+      }}>
+        <div style={{ ...cardStyle, borderLeft: '4px solid #ff3b30', padding: isMobile ? 14 : 24 }}>
           <div style={{ fontSize: 13, color: '#86868b' }}>현재 미수금</div>
-          <div style={{ fontSize: 32, fontWeight: 700, color: '#ff3b30', marginTop: 4 }}>
+          <div style={{ fontSize: isMobile ? 24 : 32, fontWeight: 700, color: '#ff3b30', marginTop: 4 }}>
             {balance.toLocaleString()}<span style={{ fontSize: 16, fontWeight: 400 }}>원</span>
           </div>
         </div>
-        <div style={{ ...cardStyle, borderLeft: '4px solid #007aff' }}>
+        <div style={{ ...cardStyle, borderLeft: '4px solid #007aff', padding: isMobile ? 14 : 24 }}>
           <div style={{ fontSize: 13, color: '#86868b' }}>신용 한도</div>
-          <div style={{ fontSize: 32, fontWeight: 700, color: '#007aff', marginTop: 4 }}>
+          <div style={{ fontSize: isMobile ? 24 : 32, fontWeight: 700, color: '#007aff', marginTop: 4 }}>
             {creditLimit.toLocaleString()}<span style={{ fontSize: 16, fontWeight: 400 }}>원</span>
           </div>
         </div>
-        <div style={{ ...cardStyle, borderLeft: '4px solid #34c759' }}>
+        <div style={{ ...cardStyle, borderLeft: '4px solid #34c759', padding: isMobile ? 14 : 24 }}>
           <div style={{ fontSize: 13, color: '#86868b' }}>주문 가능 금액</div>
-          <div style={{ fontSize: 32, fontWeight: 700, color: '#34c759', marginTop: 4 }}>
+          <div style={{ fontSize: isMobile ? 24 : 32, fontWeight: 700, color: '#34c759', marginTop: 4 }}>
             {Math.max(0, creditLimit - balance).toLocaleString()}<span style={{ fontSize: 16, fontWeight: 400 }}>원</span>
           </div>
         </div>
@@ -118,7 +136,7 @@ export default function StoreAccountPage() {
 
       {/* Credit Usage Bar */}
       {creditLimit > 0 && (
-        <div style={{ ...cardStyle, marginBottom: 24 }}>
+        <div style={{ ...cardStyle, marginBottom: isMobile ? 16 : 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f' }}>신용 한도 사용률</span>
             <span style={{ fontSize: 14, fontWeight: 600, color: usedPercent > 80 ? '#ff3b30' : '#34c759' }}>
@@ -126,10 +144,7 @@ export default function StoreAccountPage() {
             </span>
           </div>
           <div style={{
-            height: 12,
-            background: '#f5f5f7',
-            borderRadius: 6,
-            overflow: 'hidden'
+            height: 12, background: '#f5f5f7', borderRadius: 6, overflow: 'hidden'
           }}>
             <div style={{
               height: '100%',
@@ -137,8 +152,7 @@ export default function StoreAccountPage() {
               background: usedPercent > 80
                 ? 'linear-gradient(90deg, #ff9500, #ff3b30)'
                 : 'linear-gradient(90deg, #34c759, #30d158)',
-              borderRadius: 6,
-              transition: 'width 0.3s',
+              borderRadius: 6, transition: 'width 0.3s',
             }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
@@ -149,7 +163,11 @@ export default function StoreAccountPage() {
       )}
 
       {/* Store Info + Transactions */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24 }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr',
+        gap: isMobile ? 16 : 24,
+      }}>
         <div style={cardStyle}>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', margin: '0 0 16px' }}>
             가맹점 정보
@@ -186,17 +204,73 @@ export default function StoreAccountPage() {
 
         {/* Transactions */}
         <div style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
             <h3 style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', margin: 0 }}>
-              거래 내역 (최근 3개월)
+              거래 내역
             </h3>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {([['1m', '1개월'], ['3m', '3개월'], ['6m', '6개월'], ['1y', '1년']] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setPeriod(key)}
+                  style={{
+                    padding: '6px 12px', borderRadius: 20, border: 'none',
+                    fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                    background: period === key ? '#007aff' : '#f5f5f7',
+                    color: period === key ? 'white' : '#1d1d1f',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {transactions.length === 0 ? (
+          {filteredTransactions.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 40, color: '#86868b' }}>
               거래 내역이 없습니다
             </div>
+          ) : isMobile ? (
+            /* Mobile: Card layout */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {filteredTransactions.map(tx => {
+                const typeInfo = TX_TYPE_MAP[tx.type] || { label: tx.type, color: '#666', bg: '#f5f5f5' }
+                const isDebit = tx.type === 'sale'
+                return (
+                  <div key={tx.id} style={{
+                    padding: 12, borderRadius: 10,
+                    border: '1px solid #f0f0f0',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{
+                          padding: '2px 8px', borderRadius: 4,
+                          fontSize: 11, fontWeight: 600,
+                          background: typeInfo.bg, color: typeInfo.color,
+                        }}>{typeInfo.label}</span>
+                        <span style={{ fontSize: 12, color: '#86868b' }}>
+                          {new Date(tx.processedAt).toLocaleDateString('ko-KR')}
+                        </span>
+                      </div>
+                      <span style={{
+                        fontSize: 14, fontWeight: 600,
+                        color: isDebit ? '#1d1d1f' : '#34c759',
+                      }}>
+                        {isDebit ? '+' : '-'}{tx.amount.toLocaleString()}원
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 12, color: '#86868b' }}>
+                        {tx.orderNo ? `주문 ${tx.orderNo}` : tx.memo || '-'}
+                      </span>
+                      <span style={{ fontSize: 12, color: '#86868b' }}>잔액 {tx.balanceAfter.toLocaleString()}원</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           ) : (
+            /* Desktop: Table layout */
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #e9ecef' }}>
@@ -208,7 +282,7 @@ export default function StoreAccountPage() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map(tx => {
+                {filteredTransactions.map(tx => {
                   const typeInfo = TX_TYPE_MAP[tx.type] || { label: tx.type, color: '#666', bg: '#f5f5f5' }
                   const isDebit = tx.type === 'sale'
                   return (
@@ -218,13 +292,8 @@ export default function StoreAccountPage() {
                       </td>
                       <td style={{ padding: '12px 8px' }}>
                         <span style={{
-                          display: 'inline-block',
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          background: typeInfo.bg,
-                          color: typeInfo.color,
+                          display: 'inline-block', padding: '2px 8px', borderRadius: 4,
+                          fontSize: 11, fontWeight: 600, background: typeInfo.bg, color: typeInfo.color,
                         }}>
                           {typeInfo.label}
                         </span>
@@ -233,20 +302,13 @@ export default function StoreAccountPage() {
                         {tx.orderNo ? `주문 ${tx.orderNo}` : tx.memo || '-'}
                       </td>
                       <td style={{
-                        padding: '12px 8px',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        textAlign: 'right',
+                        padding: '12px 8px', fontSize: 13, fontWeight: 600, textAlign: 'right',
                         color: isDebit ? '#1d1d1f' : '#34c759',
                       }}>
                         {isDebit ? '+' : '-'}{tx.amount.toLocaleString()}원
                       </td>
                       <td style={{
-                        padding: '12px 8px',
-                        fontSize: 13,
-                        fontWeight: 500,
-                        textAlign: 'right',
-                        color: '#1d1d1f',
+                        padding: '12px 8px', fontSize: 13, fontWeight: 500, textAlign: 'right', color: '#1d1d1f',
                       }}>
                         {tx.balanceAfter.toLocaleString()}원
                       </td>

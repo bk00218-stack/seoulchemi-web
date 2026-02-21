@@ -111,6 +111,9 @@ model Product {
   orderItems      OrderItem[]
   storeDiscounts  StoreProductDiscount[]
   storePrices     StoreProductPrice[]
+  bundleItems     BundleItem[]
+  purchaseItems   PurchaseItem[]
+  shortcuts       ProductShortcut[]
 
   @@index([brandId])
   @@index([productLineId])
@@ -585,15 +588,17 @@ model PurchaseItem {
   purchaseId    Int
   purchase      Purchase  @relation(fields: [purchaseId], references: [id])
   productId     Int
-  
+  product       Product   @relation(fields: [productId], references: [id])
+
   quantity      Float     @default(1) // 수량 (안경렌즈: 0.5=한쪽)
   unitPrice     Int       // 단가
   totalPrice    Int       // 소계
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index([purchaseId])
+  @@index([productId])
 }
 
 // 설정 테이블 (key-value 형태)
@@ -724,8 +729,9 @@ model BundleItem {
   bundleId      Int
   bundle        BundleProduct @relation(fields: [bundleId], references: [id])
   productId     Int
+  product       Product   @relation(fields: [productId], references: [id])
   quantity      Float     @default(1) // 수량 (안경렌즈: 0.5=한쪽)
-  
+
   @@index([bundleId])
   @@index([productId])
 }
@@ -734,14 +740,15 @@ model BundleItem {
 model ProductShortcut {
   id            Int       @id @default(autoincrement())
   shortcode     String    @unique // 단축코드
-  productId     Int       // 연결 상품
+  productId     Int?      // 연결 상품
+  product       Product?  @relation(fields: [productId], references: [id])
   description   String?   // 설명
   useCount      Int       @default(0) // 사용 횟수
   isActive      Boolean   @default(true)
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   @@index([productId])
 }
 

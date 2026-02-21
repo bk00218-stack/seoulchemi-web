@@ -1,90 +1,109 @@
 'use client'
 
 import { useToast } from '@/contexts/ToastContext'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Layout, { cardStyle } from '../../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../../constants/sidebar'
 
-// 목업 데이터
-const mockProducts = [
-  { id: 1, name: '다비치 단초점 1.60', brand: '다비치', sph: '-2.00', cyl: '-0.50', currentStock: 5, newStock: 5, selected: false },
-  { id: 2, name: '다비치 단초점 1.60', brand: '다비치', sph: '-2.25', cyl: '-0.50', currentStock: 3, newStock: 3, selected: false },
-  { id: 3, name: '다비치 단초점 1.60', brand: '다비치', sph: '-2.50', cyl: '-0.50', currentStock: 0, newStock: 0, selected: false },
-  { id: 4, name: '다비치 단초점 1.60', brand: '다비치', sph: '-2.75', cyl: '-0.50', currentStock: 2, newStock: 2, selected: false },
-  { id: 5, name: '다비치 단초점 1.67', brand: '다비치', sph: '-3.00', cyl: '-0.75', currentStock: 8, newStock: 8, selected: false },
-  { id: 6, name: '에실로 누진 1.60', brand: '에실로', sph: '+1.00', cyl: '-0.50', currentStock: 4, newStock: 4, selected: false },
-  { id: 7, name: '에실로 누진 1.60', brand: '에실로', sph: '+1.25', cyl: '-0.50', currentStock: 1, newStock: 1, selected: false },
-  { id: 8, name: '호야 단초점 1.60', brand: '호야', sph: '-4.00', cyl: '-1.00', currentStock: 6, newStock: 6, selected: false },
-]
+interface StockOption {
+  id: number
+  sph: string | null
+  cyl: string | null
+  stock: number
+  product: {
+    id: number
+    name: string
+    brand: { id: number; name: string } | null
+  }
+  // 클라이언트 전용
+  newStock?: number
+  selected?: boolean
+}
+
+interface BrandItem {
+  id: number
+  name: string
+}
 
 const inputStyle: React.CSSProperties = {
-  padding: '10px 14px',
-  borderRadius: 8,
-  border: '1px solid var(--gray-200)',
-  fontSize: 14,
-  outline: 'none',
+  padding: '10px 14px', borderRadius: 8,
+  border: '1px solid var(--gray-200)', fontSize: 14, outline: 'none',
 }
 
 const btnStyle: React.CSSProperties = {
-  padding: '10px 20px',
-  borderRadius: 8,
-  border: 'none',
-  fontSize: 14,
-  fontWeight: 500,
-  cursor: 'pointer',
+  padding: '10px 20px', borderRadius: 8, border: 'none',
+  fontSize: 14, fontWeight: 500, cursor: 'pointer',
 }
 
 export default function BulkStockPage() {
   const { toast } = useToast()
-  const [products, setProducts] = useState(mockProducts)
+  const [options, setOptions] = useState<StockOption[]>([])
+  const [brands, setBrands] = useState<BrandItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
   const [brandFilter, setBrandFilter] = useState('all')
   const [adjustType, setAdjustType] = useState<'set' | 'add' | 'subtract'>('set')
   const [adjustValue, setAdjustValue] = useState('')
   const [reason, setReason] = useState('')
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-                         p.sph.includes(search) || p.cyl.includes(search)
-    const matchesBrand = brandFilter === 'all' || p.brand === brandFilter
+  useEffect(() => {
+    fetchStock()
+  }, [])
+
+  const fetchStock = async () => {
+    try {
+      const res = await fetch('/api/admin/stock')
+      const data = await res.json()
+      const opts = (data.options || []).map((o: StockOption) => ({ ...o, newStock: o.stock, selected: false }))
+      setOptions(opts)
+      setBrands(data.brands || [])
+    } catch (e) {
+      console.error('Failed to fetch stock:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredOptions = options.filter(o => {
+    const matchesSearch = !search ||
+      o.product.name.toLowerCase().includes(search.toLowerCase()) ||
+      (o.sph || '').includes(search) || (o.cyl || '').includes(search)
+    const matchesBrand = brandFilter === 'all' || o.product.brand?.id === parseInt(brandFilter)
     return matchesSearch && matchesBrand
   })
 
-  const selectedProducts = products.filter(p => p.selected)
-  const brands = [...new Set(products.map(p => p.brand))]
+  const selectedOptions = options.filter(o => o.selected)
 
   const handleSelectAll = () => {
-    const allSelected = filteredProducts.every(p => p.selected)
-    setProducts(products.map(p => 
-      filteredProducts.find(f => f.id === p.id) 
-        ? { ...p, selected: !allSelected }
-        : p
+    const allSelected = filteredOptions.every(o => o.selected)
+    const filteredIds = new Set(filteredOptions.map(o => o.id))
+    setOptions(options.map(o =>
+      filteredIds.has(o.id) ? { ...o, selected: !allSelected } : o
     ))
   }
 
   const handleToggleSelect = (id: number) => {
-    setProducts(products.map(p => p.id === id ? { ...p, selected: !p.selected } : p))
+    setOptions(options.map(o => o.id === id ? { ...o, selected: !o.selected } : o))
   }
 
   const handleApplyAdjustment = () => {
-    if (!adjustValue || selectedProducts.length === 0) return
-    
+    if (!adjustValue || selectedOptions.length === 0) return
     const value = parseInt(adjustValue)
-    setProducts(products.map(p => {
-      if (!p.selected) return p
-      let newStock = p.currentStock
+    setOptions(options.map(o => {
+      if (!o.selected) return o
+      let newStock = o.stock
       switch (adjustType) {
         case 'set': newStock = value; break
-        case 'add': newStock = p.currentStock + value; break
-        case 'subtract': newStock = Math.max(0, p.currentStock - value); break
+        case 'add': newStock = o.stock + value; break
+        case 'subtract': newStock = Math.max(0, o.stock - value); break
       }
-      return { ...p, newStock }
+      return { ...o, newStock }
     }))
   }
 
-  const handleSave = () => {
-    const changes = products.filter(p => p.currentStock !== p.newStock)
+  const handleSave = async () => {
+    const changes = options.filter(o => o.stock !== (o.newStock ?? o.stock))
     if (changes.length === 0) {
       toast.error('변경된 재고가 없습니다.')
       return
@@ -93,12 +112,41 @@ export default function BulkStockPage() {
       toast.warning('조정 사유를 입력해주세요.')
       return
     }
-    toast.success(`${changes.length}개 상품의 재고가 조정되었습니다.\n사유: ${reason}`)
-    setProducts(products.map(p => ({ ...p, currentStock: p.newStock, selected: false })))
-    setReason('')
+
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adjustments: changes.map(o => ({ optionId: o.id, newStock: o.newStock })),
+          reason,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast.success(`${data.adjusted}개 상품의 재고가 조정되었습니다.`)
+        setReason('')
+        fetchStock()
+      } else {
+        toast.error(data.error || '재고 조정 실패')
+      }
+    } catch {
+      toast.error('재고 조정 중 오류 발생')
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const totalChange = products.reduce((sum, p) => sum + (p.newStock - p.currentStock), 0)
+  const totalChange = options.reduce((sum, o) => sum + ((o.newStock ?? o.stock) - o.stock), 0)
+
+  if (loading) {
+    return (
+      <Layout sidebarMenus={PRODUCTS_SIDEBAR} activeNav="상품">
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--gray-400)' }}>로딩 중...</div>
+      </Layout>
+    )
+  }
 
   return (
     <Layout sidebarMenus={PRODUCTS_SIDEBAR} activeNav="상품">
@@ -114,11 +162,7 @@ export default function BulkStockPage() {
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6, color: 'var(--gray-600)' }}>조정 방식</label>
-            <select
-              value={adjustType}
-              onChange={e => setAdjustType(e.target.value as 'set' | 'add' | 'subtract')}
-              style={{ ...inputStyle, minWidth: 140 }}
-            >
+            <select value={adjustType} onChange={e => setAdjustType(e.target.value as 'set' | 'add' | 'subtract')} style={{ ...inputStyle, minWidth: 140 }}>
               <option value="set">값으로 설정</option>
               <option value="add">더하기 (+)</option>
               <option value="subtract">빼기 (-)</option>
@@ -126,43 +170,26 @@ export default function BulkStockPage() {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6, color: 'var(--gray-600)' }}>수량</label>
-            <input
-              type="number"
-              min="0"
-              value={adjustValue}
-              onChange={e => setAdjustValue(e.target.value)}
-              placeholder="0"
-              style={{ ...inputStyle, width: 100 }}
-            />
+            <input type="number" min="0" value={adjustValue} onChange={e => setAdjustValue(e.target.value)} placeholder="0" style={{ ...inputStyle, width: 100 }} />
           </div>
           <button
             onClick={handleApplyAdjustment}
-            disabled={!adjustValue || selectedProducts.length === 0}
+            disabled={!adjustValue || selectedOptions.length === 0}
             style={{
               ...btnStyle,
-              background: selectedProducts.length > 0 && adjustValue ? '#007aff' : 'var(--gray-200)',
-              color: selectedProducts.length > 0 && adjustValue ? '#fff' : 'var(--gray-400)',
-              cursor: selectedProducts.length > 0 && adjustValue ? 'pointer' : 'not-allowed',
+              background: selectedOptions.length > 0 && adjustValue ? '#007aff' : 'var(--gray-200)',
+              color: selectedOptions.length > 0 && adjustValue ? '#fff' : 'var(--gray-400)',
             }}
           >
-            선택된 {selectedProducts.length}개에 적용
+            선택된 {selectedOptions.length}개에 적용
           </button>
           <div style={{ flex: 1 }} />
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6, color: 'var(--gray-600)' }}>조정 사유 *</label>
-            <input
-              type="text"
-              value={reason}
-              onChange={e => setReason(e.target.value)}
-              placeholder="예: 월말 재고실사"
-              style={{ ...inputStyle, width: 200 }}
-            />
+            <input type="text" value={reason} onChange={e => setReason(e.target.value)} placeholder="예: 월말 재고실사" style={{ ...inputStyle, width: 200 }} />
           </div>
-          <button
-            onClick={handleSave}
-            style={{ ...btnStyle, background: '#34c759', color: '#fff' }}
-          >
-            저장
+          <button onClick={handleSave} disabled={saving} style={{ ...btnStyle, background: '#34c759', color: '#fff' }}>
+            {saving ? '저장 중...' : '저장'}
           </button>
         </div>
       </div>
@@ -170,125 +197,90 @@ export default function BulkStockPage() {
       {/* 필터 */}
       <div style={{ ...cardStyle, padding: 16, marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <select
-            value={brandFilter}
-            onChange={e => setBrandFilter(e.target.value)}
-            style={{ ...inputStyle, minWidth: 120 }}
-          >
+          <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} style={{ ...inputStyle, minWidth: 120 }}>
             <option value="all">전체 브랜드</option>
-            {brands.map(brand => (
-              <option key={brand} value={brand}>{brand}</option>
-            ))}
+            {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
-          <input
-            type="text"
-            placeholder="🔍 상품명, 도수 검색..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ ...inputStyle, width: 280 }}
-          />
+          <input type="text" placeholder="🔍 상품명, 도수 검색..." value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, width: 280 }} />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {totalChange !== 0 && (
-            <span style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 600,
-              background: totalChange > 0 ? '#e8f5e9' : '#ffebee',
-              color: totalChange > 0 ? '#34c759' : '#ff3b30',
-            }}>
-              총 변동: {totalChange > 0 ? '+' : ''}{totalChange}
-            </span>
-          )}
-        </div>
+        {totalChange !== 0 && (
+          <span style={{
+            padding: '8px 16px', borderRadius: 8, fontSize: 14, fontWeight: 600,
+            background: totalChange > 0 ? '#e8f5e9' : '#ffebee',
+            color: totalChange > 0 ? '#34c759' : '#ff3b30',
+          }}>
+            총 변동: {totalChange > 0 ? '+' : ''}{totalChange}
+          </span>
+        )}
       </div>
 
       {/* 상품 목록 */}
       <div style={{ ...cardStyle, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: 'var(--gray-50)', borderBottom: '1px solid var(--gray-200)' }}>
-              <th style={{ padding: '12px 16px', textAlign: 'center', width: 50 }}>
-                <input
-                  type="checkbox"
-                  checked={filteredProducts.length > 0 && filteredProducts.every(p => p.selected)}
-                  onChange={handleSelectAll}
-                  style={{ width: 18, height: 18, accentColor: '#007aff' }}
-                />
-              </th>
-              <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 500, color: 'var(--gray-500)' }}>상품명</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 80 }}>브랜드</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 80 }}>SPH</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 80 }}>CYL</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 100 }}>현재 재고</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 100 }}>조정 후</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 80 }}>변동</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map(product => {
-              const change = product.newStock - product.currentStock
-              return (
-                <tr
-                  key={product.id}
-                  style={{
+        {filteredOptions.length === 0 ? (
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-400)' }}>재고 옵션이 없습니다</div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <thead>
+              <tr style={{ background: 'var(--gray-50)', borderBottom: '1px solid var(--gray-200)' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'center', width: 50 }}>
+                  <input type="checkbox" checked={filteredOptions.length > 0 && filteredOptions.every(o => o.selected)} onChange={handleSelectAll} style={{ width: 18, height: 18, accentColor: '#007aff' }} />
+                </th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 500, color: 'var(--gray-500)' }}>상품명</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 80 }}>브랜드</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 80 }}>SPH</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 80 }}>CYL</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 100 }}>현재 재고</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 100 }}>조정 후</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500, color: 'var(--gray-500)', width: 80 }}>변동</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOptions.map(option => {
+                const change = (option.newStock ?? option.stock) - option.stock
+                return (
+                  <tr key={option.id} style={{
                     borderBottom: '1px solid var(--gray-100)',
-                    background: product.selected ? '#f0f8ff' : change !== 0 ? '#fffbf0' : '#fff',
-                  }}
-                >
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <input
-                      type="checkbox"
-                      checked={product.selected}
-                      onChange={() => handleToggleSelect(product.id)}
-                      style={{ width: 18, height: 18, accentColor: '#007aff' }}
-                    />
-                  </td>
-                  <td style={{ padding: '12px 16px', fontWeight: 500 }}>{product.name}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center', color: 'var(--gray-500)' }}>{product.brand}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'monospace' }}>{product.sph}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'monospace' }}>{product.cyl}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500 }}>{product.currentStock}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    <input
-                      type="number"
-                      min="0"
-                      value={product.newStock}
-                      onChange={e => setProducts(products.map(p => 
-                        p.id === product.id ? { ...p, newStock: parseInt(e.target.value) || 0 } : p
-                      ))}
-                      style={{
-                        width: 60,
-                        padding: '6px 8px',
-                        borderRadius: 6,
-                        border: change !== 0 ? '2px solid #ff9500' : '1px solid var(--gray-200)',
-                        fontSize: 14,
-                        fontWeight: 500,
-                        textAlign: 'center',
-                        outline: 'none',
-                      }}
-                    />
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                    {change !== 0 && (
-                      <span style={{
-                        padding: '4px 10px',
-                        borderRadius: 6,
-                        fontSize: 13,
-                        fontWeight: 600,
-                        background: change > 0 ? '#e8f5e9' : '#ffebee',
-                        color: change > 0 ? '#34c759' : '#ff3b30',
-                      }}>
-                        {change > 0 ? '+' : ''}{change}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    background: option.selected ? '#f0f8ff' : change !== 0 ? '#fffbf0' : '#fff',
+                  }}>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <input type="checkbox" checked={option.selected || false} onChange={() => handleToggleSelect(option.id)} style={{ width: 18, height: 18, accentColor: '#007aff' }} />
+                    </td>
+                    <td style={{ padding: '12px 16px', fontWeight: 500 }}>{option.product.name}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', color: 'var(--gray-500)' }}>{option.product.brand?.name || '-'}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'monospace' }}>{option.sph || '-'}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'monospace' }}>{option.cyl || '-'}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 500 }}>{option.stock}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <input
+                        type="number" min="0"
+                        value={option.newStock ?? option.stock}
+                        onChange={e => setOptions(options.map(o =>
+                          o.id === option.id ? { ...o, newStock: parseInt(e.target.value) || 0 } : o
+                        ))}
+                        style={{
+                          width: 60, padding: '6px 8px', borderRadius: 6,
+                          border: change !== 0 ? '2px solid #ff9500' : '1px solid var(--gray-200)',
+                          fontSize: 14, fontWeight: 500, textAlign: 'center', outline: 'none',
+                        }}
+                      />
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      {change !== 0 && (
+                        <span style={{
+                          padding: '4px 10px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+                          background: change > 0 ? '#e8f5e9' : '#ffebee',
+                          color: change > 0 ? '#34c759' : '#ff3b30',
+                        }}>
+                          {change > 0 ? '+' : ''}{change}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </Layout>
   )

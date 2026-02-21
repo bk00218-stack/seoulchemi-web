@@ -1,37 +1,81 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Layout, { btnStyle, cardStyle, inputStyle, selectStyle, thStyle, tdStyle } from '../../../components/Layout'
 import { PURCHASE_SIDEBAR } from '../../../constants/sidebar'
 
-interface SettlementHistory {
+interface PurchaseRecord {
   id: number
-  settlementDate: string
-  supplierName: string
-  amount: number
-  paymentMethod: string
-  memo: string
+  purchaseNo: string
+  status: string
+  totalAmount: number
+  memo: string | null
+  purchasedAt: string
+  receivedAt: string | null
+  supplier: {
+    id: number
+    name: string
+  } | null
+  items: {
+    id: number
+    quantity: number
+    unitPrice: number
+    totalPrice: number
+    product: {
+      name: string
+      brand: { name: string } | null
+    } | null
+  }[]
+}
+
+interface SupplierItem {
+  id: number
+  name: string
 }
 
 export default function SettlementHistoryPage() {
-  const [dateFrom, setDateFrom] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+  const [purchases, setPurchases] = useState<PurchaseRecord[]>([])
+  const [suppliers, setSuppliers] = useState<SupplierItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [totalAmount, setTotalAmount] = useState(0)
+
+  const [dateFrom, setDateFrom] = useState(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
   const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0])
   const [selectedSupplier, setSelectedSupplier] = useState('')
 
-  // 목업 데이터
-  const mockHistory: SettlementHistory[] = [
-    { id: 1, settlementDate: '2024-01-15', supplierName: '(주)한국유리', amount: 1500000, paymentMethod: '계좌이체', memo: '1월 2차 정산' },
-    { id: 2, settlementDate: '2024-01-10', supplierName: '대명글라스', amount: 3200000, paymentMethod: '계좌이체', memo: '1월 전액 정산' },
-    { id: 3, settlementDate: '2024-01-08', supplierName: '서울자동차유리', amount: 500000, paymentMethod: '현금', memo: '1차 부분 정산' },
-    { id: 4, settlementDate: '2024-01-05', supplierName: '(주)한국유리', amount: 1500000, paymentMethod: '계좌이체', memo: '1월 1차 정산' },
-  ]
+  useEffect(() => {
+    fetchHistory()
+  }, [])
 
-  const suppliers = [...new Set(mockHistory.map(h => h.supplierName))]
-  const totalAmount = mockHistory.reduce((sum, h) => sum + h.amount, 0)
+  const fetchHistory = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (selectedSupplier) params.set('supplierId', selectedSupplier)
+      if (dateFrom) params.set('from', dateFrom)
+      if (dateTo) params.set('to', dateTo)
+
+      const res = await fetch(`/api/admin/settlement-history?${params}`)
+      const data = await res.json()
+      setPurchases(data.purchases || [])
+      setSuppliers(data.suppliers || [])
+      setTotalAmount(data.stats?.totalAmount || 0)
+    } catch (e) {
+      console.error('Failed to fetch settlement history:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePeriod = (days: number) => {
+    const to = new Date()
+    const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+    setDateFrom(from.toISOString().split('T')[0])
+    setDateTo(to.toISOString().split('T')[0])
+  }
 
   return (
     <Layout sidebarMenus={PURCHASE_SIDEBAR} activeNav="매입">
-      {/* Page Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--gray-900)' }}>정산 이력</h1>
@@ -48,7 +92,7 @@ export default function SettlementHistoryPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginBottom: 24 }}>
         <div style={{ ...cardStyle, padding: 20, textAlign: 'center' }}>
           <p style={{ fontSize: 13, color: 'var(--gray-500)', margin: '0 0 8px' }}>정산 건수</p>
-          <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: 'var(--gray-700)' }}>{mockHistory.length}건</p>
+          <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: 'var(--gray-700)' }}>{purchases.length}건</p>
         </div>
         <div style={{ ...cardStyle, padding: 20, textAlign: 'center' }}>
           <p style={{ fontSize: 13, color: 'var(--gray-500)', margin: '0 0 8px' }}>총 정산금액</p>
@@ -58,15 +102,9 @@ export default function SettlementHistoryPage() {
 
       {/* Filters */}
       <div style={{ ...cardStyle, padding: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
-        <select
-          value={selectedSupplier}
-          onChange={e => setSelectedSupplier(e.target.value)}
-          style={selectStyle}
-        >
+        <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)} style={selectStyle}>
           <option value="">매입처 전체</option>
-          {suppliers.map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
+          {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 13, color: 'var(--gray-600)' }}>기간:</span>
@@ -75,65 +113,66 @@ export default function SettlementHistoryPage() {
           <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={inputStyle} />
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
-          {['이번주', '이번달', '3개월', '전체'].map(label => (
-            <button key={label} style={{
+          {[
+            { label: '이번주', days: 7 },
+            { label: '이번달', days: 30 },
+            { label: '3개월', days: 90 },
+            { label: '전체', days: 365 * 3 },
+          ].map(p => (
+            <button key={p.label} onClick={() => handlePeriod(p.days)} style={{
               padding: '6px 12px', borderRadius: 20,
               border: '1px solid var(--gray-200)', background: '#fff',
-              fontSize: 12, color: 'var(--gray-600)', cursor: 'pointer'
-            }}>{label}</button>
+              fontSize: 12, color: 'var(--gray-600)', cursor: 'pointer',
+            }}>{p.label}</button>
           ))}
         </div>
-        <button style={{ ...btnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}>검색</button>
-        <div style={{ flex: 1 }} />
-        <button style={{ ...btnStyle, background: 'var(--success)', color: '#fff', border: 'none' }}>📥 엑셀다운</button>
+        <button onClick={fetchHistory} style={{ ...btnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}>검색</button>
       </div>
 
       {/* Table */}
       <div style={{ ...cardStyle, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={thStyle}>#</th>
-              <th style={thStyle}>정산일자</th>
-              <th style={thStyle}>매입처</th>
-              <th style={thStyle}>정산금액</th>
-              <th style={thStyle}>결제방법</th>
-              <th style={thStyle}>비고</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mockHistory.length === 0 ? (
+        {loading ? (
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--gray-400)' }}>로딩 중...</div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
               <tr>
-                <td colSpan={6} style={{ padding: 60, textAlign: 'center', color: 'var(--gray-400)' }}>
-                  정산 이력이 없습니다
-                </td>
+                <th style={thStyle}>#</th>
+                <th style={thStyle}>매입번호</th>
+                <th style={thStyle}>정산일자</th>
+                <th style={thStyle}>매입처</th>
+                <th style={thStyle}>상품 수</th>
+                <th style={thStyle}>정산금액</th>
+                <th style={thStyle}>비고</th>
               </tr>
-            ) : (
-              mockHistory.map((item, idx) => (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--gray-100)' }}>
-                  <td style={tdStyle}>{idx + 1}</td>
-                  <td style={tdStyle}>{item.settlementDate}</td>
-                  <td style={{ ...tdStyle, fontWeight: 500 }}>{item.supplierName}</td>
-                  <td style={{ ...tdStyle, color: 'var(--success)', fontWeight: 600 }}>
-                    {item.amount.toLocaleString()}원
+            </thead>
+            <tbody>
+              {purchases.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: 60, textAlign: 'center', color: 'var(--gray-400)' }}>
+                    정산 이력이 없습니다
                   </td>
-                  <td style={tdStyle}>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: 4,
-                      fontSize: 12,
-                      background: item.paymentMethod === '계좌이체' ? '#e0f2fe' : '#fef3c7',
-                      color: item.paymentMethod === '계좌이체' ? '#0369a1' : '#92400e'
-                    }}>
-                      {item.paymentMethod}
-                    </span>
-                  </td>
-                  <td style={{ ...tdStyle, color: 'var(--gray-500)', fontSize: 13 }}>{item.memo || '-'}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                purchases.map((item, idx) => (
+                  <tr key={item.id} style={{ borderBottom: '1px solid var(--gray-100)' }}>
+                    <td style={tdStyle}>{idx + 1}</td>
+                    <td style={{ ...tdStyle, fontWeight: 500 }}>{item.purchaseNo}</td>
+                    <td style={tdStyle}>
+                      {item.receivedAt ? new Date(item.receivedAt).toLocaleDateString('ko-KR') : '-'}
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 500 }}>{item.supplier?.name || '-'}</td>
+                    <td style={tdStyle}>{item.items.length}개</td>
+                    <td style={{ ...tdStyle, color: 'var(--success)', fontWeight: 600 }}>
+                      {(item.totalAmount || 0).toLocaleString()}원
+                    </td>
+                    <td style={{ ...tdStyle, color: 'var(--gray-500)', fontSize: 13 }}>{item.memo || '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </Layout>
   )
