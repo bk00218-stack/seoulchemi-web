@@ -848,10 +848,12 @@ export default function NewOrderPage() {
           </div>
         </div>
         ) : orderType === '착색' || orderType === 'RX' ? (
-          <RxOrderForm 
-            orderType={orderType} 
-            products={products} 
+          <RxOrderForm
+            orderType={orderType}
+            products={products}
             selectedBrandId={selectedBrandId}
+            selectedStore={selectedStore}
+            onOrderSubmitted={resetForm}
           />
         ) : (
           /* 기타 - 간단한 메모 폼 */
