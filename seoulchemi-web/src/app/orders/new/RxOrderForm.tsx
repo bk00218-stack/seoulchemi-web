@@ -1013,7 +1013,162 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           </div>
         </div>
 
-        {/* ③ 착색 — 브랜드별 색상 */}
+        {/* ③ 피팅 + 가공 정보 */}
+        <div style={{ borderBottom: '1px solid #eee' }}>
+          <div style={secHead}><span>👓 피팅</span></div>
+          <div style={secBody}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: 8,
+              marginBottom: 12,
+            }}>
+              <div>
+                <label style={labelSt}>가로 (mm)</label>
+                <input
+                  ref={setFrameRef('fw')}
+                  type="number" value={fw}
+                  onChange={e => setFw(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fw.length)) {
+                      e.preventDefault(); focusFrameField('fb')
+                    }
+                  }}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={labelSt}>브릿지 (mm)</label>
+                <input
+                  ref={setFrameRef('fb')}
+                  type="number" value={fb}
+                  onChange={e => setFb(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fb.length)) {
+                      e.preventDefault(); focusFrameField('fd')
+                    } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                      e.preventDefault(); focusFrameField('fw')
+                    }
+                  }}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={labelSt}>프레임 PD</label>
+                <input
+                  type="number" value={fpd} readOnly
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#f0faf5', color: G, fontWeight: 600, outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={labelSt}>대각 (mm)</label>
+                <input
+                  ref={setFrameRef('fd')}
+                  type="number" value={fd}
+                  onChange={e => setFd(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fd.length)) {
+                      e.preventDefault(); focusFrameField('fh')
+                    } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                      e.preventDefault(); focusFrameField('fb')
+                    }
+                  }}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={labelSt}>상하 (mm)</label>
+                <input
+                  ref={setFrameRef('fh')}
+                  type="number" value={fh}
+                  onChange={e => setFh(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                      e.preventDefault(); focusFrameField('fd')
+                    }
+                  }}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+                />
+              </div>
+            </div>
+
+            {/* 가공 정보 */}
+            <div style={{ paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div>
+                  <label style={labelSt}>가공 유형</label>
+                  <select
+                    value={processType}
+                    onChange={e => setProcessType(e.target.value)}
+                    style={{ ...selStyle, width: 'auto', minWidth: 130 }}
+                  >
+                    {PROCESS_TYPES.map(pt => (
+                      <option key={pt} value={pt}>{pt}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelSt}>특수가공</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
+                    {SPECIAL_PROCESS_OPTIONS.map(sp => (
+                      <button
+                        key={sp}
+                        onClick={() => toggleSpecialProcess(sp)}
+                        style={{
+                          padding: '3px 8px', borderRadius: 10, fontSize: 11, cursor: 'pointer',
+                          background: specialProcess.includes(sp) ? '#e8f5ee' : '#f3f4f6',
+                          color: specialProcess.includes(sp) ? G : '#374151',
+                          border: specialProcess.includes(sp) ? `1px solid ${G}` : '1px solid #e5e7eb',
+                          fontWeight: specialProcess.includes(sp) ? 600 : 400,
+                        }}
+                      >
+                        {sp}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ flex: 1, minWidth: 120 }}>
+                  <label style={labelSt}>가공 메모</label>
+                  <input
+                    ref={setFrameRef('memo')}
+                    value={processMemo}
+                    onChange={e => setProcessMemo(e.target.value)}
+                    onKeyDown={e => handleFrameKeyDown('memo', e)}
+                    placeholder="특수가공 메모..."
+                    style={fieldInputStyle}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ④ 코팅 */}
+        <div style={{ borderBottom: '1px solid #eee' }}>
+          <div style={secHead}><span>✨ 코팅</span></div>
+          <div style={secBody}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {COATING_OPTIONS.map(c => (
+                <button
+                  key={c.key}
+                  onClick={() => toggleCoating(c.key)}
+                  style={{
+                    padding: '4px 10px', borderRadius: 12, fontSize: 11, cursor: 'pointer',
+                    background:  coatings.includes(c.key) ? '#e8f5ee' : '#f3f4f6',
+                    color:       coatings.includes(c.key) ? G         : '#374151',
+                    border:      coatings.includes(c.key)
+                      ? `1px solid ${G}`
+                      : '1px solid #e5e7eb',
+                    fontWeight:  coatings.includes(c.key) ? 600 : 400,
+                  }}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ⑤ 착색 — 브랜드별 색상 */}
         <div style={{ borderBottom: '1px solid #eee' }}>
           <div style={secHead}><span>🎨 착색</span></div>
           <div style={secBody}>
@@ -1123,337 +1278,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           </div>
         </div>
 
-        {/* ④ 코팅 */}
-        <div style={{ borderBottom: '1px solid #eee' }}>
-          <div style={secHead}><span>✨ 코팅</span></div>
-          <div style={secBody}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {COATING_OPTIONS.map(c => (
-                <button
-                  key={c.key}
-                  onClick={() => toggleCoating(c.key)}
-                  style={{
-                    padding: '4px 10px', borderRadius: 12, fontSize: 11, cursor: 'pointer',
-                    background:  coatings.includes(c.key) ? '#e8f5ee' : '#f3f4f6',
-                    color:       coatings.includes(c.key) ? G         : '#374151',
-                    border:      coatings.includes(c.key)
-                      ? `1px solid ${G}`
-                      : '1px solid #e5e7eb',
-                    fontWeight:  coatings.includes(c.key) ? 600 : 400,
-                  }}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ⑤ 인프레임 (RX만) */}
-        {orderType === 'RX' && (
-          <div style={{ borderBottom: '1px solid #eee' }}>
-            <div style={{ ...secHead, background: '#fff8f0', color: '#b45309', borderBottomColor: '#fde68a' }}>
-              <span>📦 인프레임</span>
-            </div>
-            <div style={secBody}>
-              {/* 5-1. 프레임 정보 */}
-              <div style={{ marginBottom: 10 }}>
-                <label style={{ ...labelSt, color: '#b45309' }}>프레임 정보</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: 6, marginTop: 4 }}>
-                  <div>
-                    <label style={labelSt}>모델명</label>
-                    <input
-                      ref={setFrameRef('model')}
-                      value={frameModel}
-                      onChange={e => setFrameModel(e.target.value)}
-                      onKeyDown={e => handleFrameKeyDown('model', e)}
-                      placeholder="브랜드 / 모델"
-                      style={fieldInputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelSt}>A사이즈</label>
-                    <input
-                      ref={setFrameRef('a')}
-                      type="number" value={frameA}
-                      onChange={e => setFrameA(e.target.value)}
-                      onKeyDown={e => handleFrameKeyDown('a', e)}
-                      placeholder="mm"
-                      style={fieldInputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelSt}>B사이즈</label>
-                    <input
-                      ref={setFrameRef('b')}
-                      type="number" value={frameB}
-                      onChange={e => setFrameB(e.target.value)}
-                      onKeyDown={e => handleFrameKeyDown('b', e)}
-                      placeholder="mm"
-                      style={fieldInputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelSt}>DBL</label>
-                    <input
-                      ref={setFrameRef('dbl')}
-                      type="number" value={frameDbl}
-                      onChange={e => setFrameDbl(e.target.value)}
-                      onKeyDown={e => handleFrameKeyDown('dbl', e)}
-                      placeholder="mm"
-                      style={fieldInputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelSt}>템플</label>
-                    <input
-                      ref={setFrameRef('temple')}
-                      type="number" value={frameTemple}
-                      onChange={e => setFrameTemple(e.target.value)}
-                      onKeyDown={e => handleFrameKeyDown('temple', e)}
-                      placeholder="mm"
-                      style={fieldInputStyle}
-                    />
-                  </div>
-                </div>
-
-                {/* 자동계산 결과 */}
-                {(frameED || framePD) && (
-                  <div style={{
-                    marginTop: 10,
-                    padding: '10px 12px',
-                    background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                    borderRadius: 8,
-                    border: '1px solid #f59e0b',
-                  }}>
-                    <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-                      {/* ED */}
-                      {frameED && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>ED</span>
-                          <span style={{
-                            fontSize: 15, fontWeight: 700, color: '#b45309',
-                            background: '#fff', padding: '2px 10px', borderRadius: 4,
-                            border: '1px solid #f59e0b',
-                          }}>{frameED}mm</span>
-                          <span style={{ fontSize: 10, color: '#a16207' }}>√(A²+B²)</span>
-                        </div>
-                      )}
-                      {/* Frame PD */}
-                      {framePD && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>프레임PD</span>
-                          <span style={{
-                            fontSize: 15, fontWeight: 700, color: '#b45309',
-                            background: '#fff', padding: '2px 10px', borderRadius: 4,
-                            border: '1px solid #f59e0b',
-                          }}>{framePD}mm</span>
-                          <span style={{ fontSize: 10, color: '#a16207' }}>A+DBL</span>
-                        </div>
-                      )}
-                      {/* Decenter */}
-                      {(decenter.r || decenter.l) && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>디센터</span>
-                          <span style={{
-                            fontSize: 13, fontWeight: 600, color: '#1d4ed8',
-                            background: '#fff', padding: '2px 8px', borderRadius: 4,
-                            border: '1px solid #93c5fd',
-                          }}>R {decenter.r || '-'}</span>
-                          <span style={{
-                            fontSize: 13, fontWeight: 600, color: '#15803d',
-                            background: '#fff', padding: '2px 8px', borderRadius: 4,
-                            border: '1px solid #86efac',
-                          }}>L {decenter.l || '-'}</span>
-                        </div>
-                      )}
-                      {/* Min Blank Size */}
-                      {(minBlankSize.r || minBlankSize.l) && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>최소공경</span>
-                          <span style={{
-                            fontSize: 13, fontWeight: 600, color: '#1d4ed8',
-                            background: '#fff', padding: '2px 8px', borderRadius: 4,
-                            border: '1px solid #93c5fd',
-                          }}>R {minBlankSize.r || '-'}</span>
-                          <span style={{
-                            fontSize: 13, fontWeight: 600, color: '#15803d',
-                            background: '#fff', padding: '2px 8px', borderRadius: 4,
-                            border: '1px solid #86efac',
-                          }}>L {minBlankSize.l || '-'}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 5-2. 가공 정보 */}
-              <div style={{ marginBottom: 10, paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
-                <label style={{ ...labelSt, color: '#b45309' }}>가공 정보</label>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginTop: 4 }}>
-                  <div>
-                    <label style={labelSt}>가공 유형</label>
-                    <select
-                      value={processType}
-                      onChange={e => setProcessType(e.target.value)}
-                      style={{ ...selStyle, width: 'auto', minWidth: 140 }}
-                    >
-                      {PROCESS_TYPES.map(pt => (
-                        <option key={pt} value={pt}>{pt}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={labelSt}>특수가공</label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
-                      {SPECIAL_PROCESS_OPTIONS.map(sp => (
-                        <button
-                          key={sp}
-                          onClick={() => toggleSpecialProcess(sp)}
-                          style={{
-                            padding: '3px 8px', borderRadius: 10, fontSize: 11, cursor: 'pointer',
-                            background: specialProcess.includes(sp) ? '#fef3c7' : '#f3f4f6',
-                            color: specialProcess.includes(sp) ? '#92400e' : '#374151',
-                            border: specialProcess.includes(sp) ? '1px solid #f59e0b' : '1px solid #e5e7eb',
-                            fontWeight: specialProcess.includes(sp) ? 600 : 400,
-                          }}
-                        >
-                          {sp}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 120 }}>
-                    <label style={labelSt}>가공 메모</label>
-                    <input
-                      ref={setFrameRef('memo')}
-                      value={processMemo}
-                      onChange={e => setProcessMemo(e.target.value)}
-                      onKeyDown={e => handleFrameKeyDown('memo', e)}
-                      placeholder="특수가공 관련 메모..."
-                      style={fieldInputStyle}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 5-3. 발송 정보 */}
-              <div style={{ paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
-                <label style={{ ...labelSt, color: '#b45309' }}>발송 정보</label>
-                <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
-                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer' }}>
-                    <input
-                      type="checkbox" checked={frameSent}
-                      onChange={e => setFrameSent(e.target.checked)}
-                      style={{ accentColor: '#b45309' }}
-                    />
-                    프레임 발송 완료
-                  </label>
-                  {frameSent && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <label style={{ fontSize: 11, color: '#6b7280' }}>발송일:</label>
-                      <input
-                        type="date"
-                        value={frameSentDate}
-                        onChange={e => setFrameSentDate(e.target.value)}
-                        style={{ ...fieldInputStyle, width: 'auto', padding: '3px 6px', fontSize: 11 }}
-                      />
-                    </div>
-                  )}
-                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer' }}>
-                    <input
-                      type="checkbox" checked={frameReturn}
-                      onChange={e => setFrameReturn(e.target.checked)}
-                      style={{ accentColor: '#b45309' }}
-                    />
-                    가공 후 프레임 반송 요청
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ⑥ 피팅 정보 */}
-        <div style={{ borderBottom: '1px solid #eee' }}>
-          <div style={secHead}><span>👓 피팅</span></div>
-          <div style={{
-            ...secBody,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: 8,
-          }}>
-            <div>
-              <label style={labelSt}>가로 (mm)</label>
-              <input
-                ref={setFrameRef('fw')}
-                type="number" value={fw}
-                onChange={e => setFw(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fw.length)) {
-                    e.preventDefault(); focusFrameField('fb')
-                  }
-                }}
-                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
-              />
-            </div>
-            <div>
-              <label style={labelSt}>브릿지 (mm)</label>
-              <input
-                ref={setFrameRef('fb')}
-                type="number" value={fb}
-                onChange={e => setFb(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fb.length)) {
-                    e.preventDefault(); focusFrameField('fd')
-                  } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
-                    e.preventDefault(); focusFrameField('fw')
-                  }
-                }}
-                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
-              />
-            </div>
-            <div>
-              <label style={labelSt}>프레임 PD</label>
-              <input
-                type="number" value={fpd} readOnly
-                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#f0faf5', color: G, fontWeight: 600, outline: 'none' }}
-              />
-            </div>
-            <div>
-              <label style={labelSt}>대각 (mm)</label>
-              <input
-                ref={setFrameRef('fd')}
-                type="number" value={fd}
-                onChange={e => setFd(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fd.length)) {
-                    e.preventDefault(); focusFrameField('fh')
-                  } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
-                    e.preventDefault(); focusFrameField('fb')
-                  }
-                }}
-                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
-              />
-            </div>
-            <div>
-              <label style={labelSt}>상하 (mm)</label>
-              <input
-                ref={setFrameRef('fh')}
-                type="number" value={fh}
-                onChange={e => setFh(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
-                    e.preventDefault(); focusFrameField('fd')
-                  }
-                }}
-                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ⑦ 고객명 + 메모 */}
+        {/* ⑥ 고객명 + 메모 */}
         <div style={secBody}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 8 }}>
             <div>
