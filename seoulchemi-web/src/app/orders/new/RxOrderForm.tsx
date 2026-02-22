@@ -358,11 +358,11 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   const CASCADE_ORDER = ['brand', 'line', 'type', 'idx', 'corr'] as const
 
   const handleCascadeKeyDown = useCallback((field: string, e: React.KeyboardEvent<HTMLSelectElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      const idx = CASCADE_ORDER.indexOf(field as typeof CASCADE_ORDER[number])
-      if (idx === -1) return
+    const idx = CASCADE_ORDER.indexOf(field as typeof CASCADE_ORDER[number])
+    if (idx === -1) return
 
+    if (e.key === 'Enter' || e.key === 'ArrowRight') {
+      e.preventDefault()
       // 다음 필드로 이동
       for (let i = idx + 1; i < CASCADE_ORDER.length; i++) {
         const nextKey = CASCADE_ORDER[i]
@@ -372,9 +372,20 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           return
         }
       }
-
       // cascade 다 끝나면 처방 SPH로 이동
       focusRxField('R', 'sph')
+    }
+    else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      // 이전 필드로 이동
+      for (let i = idx - 1; i >= 0; i--) {
+        const prevKey = CASCADE_ORDER[i]
+        const prevEl = cascadeRefs.current[prevKey]
+        if (prevEl && !prevEl.disabled) {
+          focusCascade(prevKey)
+          return
+        }
+      }
     }
   }, [focusCascade, focusRxField])
 
