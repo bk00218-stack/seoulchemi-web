@@ -86,10 +86,10 @@ for (let i = -15; i <= 15; i += 0.25) {
   SPH_OPTIONS.push(i >= 0 ? `+${i.toFixed(2)}` : i.toFixed(2))
 }
 
-// CYL: -6.00 ~ 0.00 (0.25 단위)
+// CYL: -6.00 ~ +6.00 (0.25 단위)
 const CYL_OPTIONS: string[] = []
-for (let i = -6; i <= 0; i += 0.25) {
-  CYL_OPTIONS.push(i.toFixed(2))
+for (let i = -6; i <= 6; i += 0.25) {
+  CYL_OPTIONS.push(i >= 0 ? `+${i.toFixed(2)}` : i.toFixed(2))
 }
 
 // AXIS: 0 ~ 180
@@ -98,10 +98,10 @@ for (let i = 0; i <= 180; i++) {
   AXIS_OPTIONS.push(String(i))
 }
 
-// ADD: +0.50 ~ +4.00 (0.25 단위)
+// ADD: +050 ~ +400 (025 단위) - 정수 형식
 const ADD_OPTIONS: string[] = []
-for (let i = 0.5; i <= 4; i += 0.25) {
-  ADD_OPTIONS.push(`+${i.toFixed(2)}`)
+for (let i = 50; i <= 400; i += 25) {
+  ADD_OPTIONS.push(`+${String(i).padStart(3, '0')}`)
 }
 
 // 숫자 입력 → 도수 변환 (200 → -2.00, 225 → -2.25)
@@ -113,18 +113,17 @@ function parseRxInput(input: string, field: 'sph' | 'cyl'): string {
   if (trimmed.includes('.')) {
     const n = parseFloat(trimmed)
     if (isNaN(n)) return trimmed
-    if (field === 'sph') return n >= 0 ? `+${n.toFixed(2)}` : n.toFixed(2)
-    return n.toFixed(2)
+    return n >= 0 ? `+${n.toFixed(2)}` : n.toFixed(2)
   }
   
   // 3자리 숫자 입력 (200, 225 등) → 나누기 100
-  const num = parseInt(trimmed, 10)
-  if (!isNaN(num) && trimmed.length >= 2 && trimmed.length <= 4) {
+  const hasPlus = trimmed.startsWith('+')
+  const numStr = hasPlus ? trimmed.slice(1) : trimmed
+  const num = parseInt(numStr, 10)
+  if (!isNaN(num) && numStr.length >= 2 && numStr.length <= 4) {
     const val = num / 100
-    // CYL은 항상 음수 또는 0
-    if (field === 'cyl') return (-Math.abs(val)).toFixed(2)
-    // SPH는 기본 음수 (200 → -2.00), +붙이면 양수
-    if (trimmed.startsWith('+')) return `+${val.toFixed(2)}`
+    // +붙으면 양수, 아니면 음수
+    if (hasPlus) return `+${val.toFixed(2)}`
     return (-val).toFixed(2)
   }
   
@@ -141,7 +140,20 @@ function fmtSph(v: string): string {
 function fmtCyl(v: string): string {
   const n = parseFloat(v)
   if (isNaN(n)) return v
-  return n.toFixed(2)
+  return n >= 0 ? `+${n.toFixed(2)}` : n.toFixed(2)
+}
+
+// ADD: +050 형식으로 변환
+function fmtAdd(v: string): string {
+  const trimmed = v.trim().replace('+', '')
+  // 이미 3자리 정수 형식이면 그대로
+  if (/^\d{3}$/.test(trimmed)) return `+${trimmed}`
+  // 소수점 형식이면 정수로 변환 (0.50 -> 050)
+  const n = parseFloat(v)
+  if (isNaN(n)) return v
+  const intVal = Math.round(n * 100)
+  if (intVal >= 50 && intVal <= 400) return `+${String(intVal).padStart(3, '0')}`
+  return v
 }
 
 const emptyRx = { sph: '', cyl: '', axis: '', add: '', curve: '', pd: '', prism: '', base: '' }
@@ -582,8 +594,9 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     else              setRxL(p => ({ ...p, [f]: v }))
   }
   const blurRx = (side: 'R' | 'L', f: string, v: string) => {
-    if      (f === 'sph')                setRx(side, f, fmtSph(v))
-    else if (f === 'cyl' || f === 'add') setRx(side, f, fmtCyl(v))
+    if      (f === 'sph') setRx(side, f, fmtSph(v))
+    else if (f === 'cyl') setRx(side, f, fmtCyl(v))
+    else if (f === 'add') setRx(side, f, fmtAdd(v))
   }
 
   const toggleCoating = (k: string) =>
@@ -843,14 +856,14 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
               <thead>
                 <tr>
                   <th style={{ ...rxTh, width: 26 }}></th>
-                  <th style={rxTh}>SPH</th>
-                  <th style={rxTh}>CYL</th>
-                  <th style={rxTh}>AXIS</th>
-                  <th style={rxTh}>ADD</th>
-                  <th style={rxTh}>PD</th>
-                  <th style={rxTh}>PRISM</th>
-                  <th style={rxTh}>BASE</th>
-                  <th style={rxTh}>CURVE</th>
+                  <th style={{ ...rxTh, width: 60 }}>SPH</th>
+                  <th style={{ ...rxTh, width: 60 }}>CYL</th>
+                  <th style={{ ...rxTh, width: 45 }}>AXIS</th>
+                  <th style={{ ...rxTh, width: 50 }}>ADD</th>
+                  <th style={{ ...rxTh, width: 40 }}>PD</th>
+                  <th style={{ ...rxTh, width: 55 }}>PRISM</th>
+                  <th style={{ ...rxTh, width: 50 }}>BASE</th>
+                  <th style={{ ...rxTh, width: 45 }}>CURVE</th>
                 </tr>
               </thead>
               <tbody>
