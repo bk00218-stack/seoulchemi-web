@@ -231,6 +231,44 @@ export default function RxOrderForm({
   const needsCorridor = cType === '누진다초점'
   const fpd = fw && fb ? String(parseFloat(fw) + parseFloat(fb)) : ''
 
+  // ── ED (유효직경) 자동계산: √(A² + B²)
+  const frameED = useMemo(() => {
+    const a = parseFloat(frameA)
+    const b = parseFloat(frameB)
+    if (isNaN(a) || isNaN(b) || a <= 0 || b <= 0) return ''
+    return Math.sqrt(a * a + b * b).toFixed(1)
+  }, [frameA, frameB])
+
+  // ── 프레임 PD 계산 (A + DBL)
+  const framePD = useMemo(() => {
+    const a = parseFloat(frameA)
+    const dbl = parseFloat(frameDbl)
+    if (isNaN(a) || isNaN(dbl) || a <= 0 || dbl <= 0) return ''
+    return String(a + dbl)
+  }, [frameA, frameDbl])
+
+  // ── 디센터 계산 (처방PD - 프레임PD) / 2
+  const decenter = useMemo(() => {
+    const rxPdR = parseFloat(rxR.pd)
+    const rxPdL = parseFloat(rxL.pd)
+    const fpdVal = parseFloat(framePD)
+    if (isNaN(fpdVal) || fpdVal <= 0) return { r: '', l: '' }
+    const r = !isNaN(rxPdR) ? ((fpdVal / 2) - rxPdR).toFixed(1) : ''
+    const l = !isNaN(rxPdL) ? ((fpdVal / 2) - rxPdL).toFixed(1) : ''
+    return { r, l }
+  }, [rxR.pd, rxL.pd, framePD])
+
+  // ── 최소공경 계산 (ED + |디센터| + 여유2mm)
+  const minBlankSize = useMemo(() => {
+    const ed = parseFloat(frameED)
+    if (isNaN(ed) || ed <= 0) return { r: '', l: '' }
+    const decR = parseFloat(decenter.r)
+    const decL = parseFloat(decenter.l)
+    const r = !isNaN(decR) ? (ed + Math.abs(decR) + 2).toFixed(1) : ''
+    const l = !isNaN(decL) ? (ed + Math.abs(decL) + 2).toFixed(1) : ''
+    return { r, l }
+  }, [frameED, decenter])
+
   const badge = useMemo(() => {
     if (!cBrand || !cIdx) return ''
     const bn  = brands.find(b => b.id === cBrand)?.name ?? ''
@@ -753,6 +791,76 @@ export default function RxOrderForm({
                     />
                   </div>
                 </div>
+
+                {/* 자동계산 결과 */}
+                {(frameED || framePD) && (
+                  <div style={{
+                    marginTop: 10,
+                    padding: '10px 12px',
+                    background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                    borderRadius: 8,
+                    border: '1px solid #f59e0b',
+                  }}>
+                    <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {/* ED */}
+                      {frameED && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>ED</span>
+                          <span style={{
+                            fontSize: 15, fontWeight: 700, color: '#b45309',
+                            background: '#fff', padding: '2px 10px', borderRadius: 4,
+                            border: '1px solid #f59e0b',
+                          }}>{frameED}mm</span>
+                          <span style={{ fontSize: 10, color: '#a16207' }}>√(A²+B²)</span>
+                        </div>
+                      )}
+                      {/* Frame PD */}
+                      {framePD && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>프레임PD</span>
+                          <span style={{
+                            fontSize: 15, fontWeight: 700, color: '#b45309',
+                            background: '#fff', padding: '2px 10px', borderRadius: 4,
+                            border: '1px solid #f59e0b',
+                          }}>{framePD}mm</span>
+                          <span style={{ fontSize: 10, color: '#a16207' }}>A+DBL</span>
+                        </div>
+                      )}
+                      {/* Decenter */}
+                      {(decenter.r || decenter.l) && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>디센터</span>
+                          <span style={{
+                            fontSize: 13, fontWeight: 600, color: '#1d4ed8',
+                            background: '#fff', padding: '2px 8px', borderRadius: 4,
+                            border: '1px solid #93c5fd',
+                          }}>R {decenter.r || '-'}</span>
+                          <span style={{
+                            fontSize: 13, fontWeight: 600, color: '#15803d',
+                            background: '#fff', padding: '2px 8px', borderRadius: 4,
+                            border: '1px solid #86efac',
+                          }}>L {decenter.l || '-'}</span>
+                        </div>
+                      )}
+                      {/* Min Blank Size */}
+                      {(minBlankSize.r || minBlankSize.l) && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>최소공경</span>
+                          <span style={{
+                            fontSize: 13, fontWeight: 600, color: '#1d4ed8',
+                            background: '#fff', padding: '2px 8px', borderRadius: 4,
+                            border: '1px solid #93c5fd',
+                          }}>R {minBlankSize.r || '-'}</span>
+                          <span style={{
+                            fontSize: 13, fontWeight: 600, color: '#15803d',
+                            background: '#fff', padding: '2px 8px', borderRadius: 4,
+                            border: '1px solid #86efac',
+                          }}>L {minBlankSize.l || '-'}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 5-2. 가공 정보 */}
