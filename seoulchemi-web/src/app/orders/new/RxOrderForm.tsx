@@ -707,6 +707,8 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 onChange={e => {
                   const v = e.target.value ? parseInt(e.target.value) : '' as const
                   setCBrand(v); setCLine(''); setCType(''); setCIdx(''); setCCorr('')
+                  // 부모에게 브랜드 변경 알림
+                  onBrandChange?.(v || null)
                   // 다음 드롭다운으로 자동 이동
                   if (v) setTimeout(() => focusCascade('line'), 100)
                 }}
