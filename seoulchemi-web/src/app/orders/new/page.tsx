@@ -20,7 +20,7 @@ interface Store {
   address?: string | null
   paymentTermDays?: number | null
 }
-interface OrderItem { id: string; product: Product; sph: string; cyl: string; axis: string; quantity: number }
+interface OrderItem { id: string; product: Product; sph: string; cyl: string; axis: string; quantity: number; corridor?: string }
 
 function formatLegacy(value: number): string {
   return String(Math.round(Math.abs(value) * 100)).padStart(3, '0')
@@ -884,24 +884,24 @@ export default function NewOrderPage() {
           <div style={{ padding: '8px 10px', background: '#5d7a5d', color: '#fff', fontWeight: 600, fontSize: 13, display: 'flex', justifyContent: 'space-between', borderRadius: '3px 3px 0 0' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '4px 6px', background: '#e0e0e0', color: '#333', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
-            <span>품목</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(80px, 1fr) 34px 34px 32px 22px 46px', padding: '4px 6px', background: '#e0e0e0', color: '#333', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
             <span>상품</span>
             <span style={{ textAlign: 'center' }}>SPH</span>
             <span style={{ textAlign: 'center' }}>CYL</span>
+            <span style={{ textAlign: 'center' }}>누진</span>
             <span style={{ textAlign: 'center' }}>수량</span>
             <span style={{ textAlign: 'right' }}>금액</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
             {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#868e96' }}>도수표에서 수량 입력</div> : (
               orderItems.map((item, i) => (
-                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: '50px minmax(60px, 1fr) 36px 36px 24px 52px', padding: '5px 6px', borderBottom: '1px solid #ddd', background: item.quantity < 0 ? '#fff0f0' : (i % 2 === 0 ? '#fff' : '#fafafa'), color: '#212529', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu', borderLeft: item.quantity < 0 ? '3px solid #c0392b' : 'none' }}>
-                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#666' }}>{item.product.brand}</div>
-                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</div>
-                  <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>{(() => { const v = parseFloat(item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()}</div>
-                  <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>-{String(Math.round(Math.abs(parseFloat(item.cyl)) * 100)).padStart(3, '0')}</div>
+                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: 'minmax(80px, 1fr) 34px 34px 32px 22px 46px', padding: '4px 6px', borderBottom: '1px solid #ddd', background: item.quantity < 0 ? '#fff0f0' : (i % 2 === 0 ? '#fff' : '#fafafa'), color: '#212529', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu', borderLeft: item.quantity < 0 ? '3px solid #c0392b' : 'none' }}>
+                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${item.product.brand} ${item.product.name}`}><span style={{ color: '#888' }}>{item.product.brand.slice(0, 2)}</span> {item.product.name}</div>
+                  <div style={{ fontFamily: 'monospace', textAlign: 'center', fontSize: 9 }}>{(() => { const v = parseFloat(item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()}</div>
+                  <div style={{ fontFamily: 'monospace', textAlign: 'center', fontSize: 9 }}>-{String(Math.round(Math.abs(parseFloat(item.cyl)) * 100)).padStart(3, '0')}</div>
+                  <div style={{ textAlign: 'center', fontSize: 9, color: item.corridor ? '#333' : '#ccc' }}>{item.corridor || '-'}</div>
                   <div style={{ fontWeight: 600, textAlign: 'center', color: item.quantity < 0 ? '#c0392b' : 'inherit' }}>{item.quantity}</div>
-                  <div style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, color: item.quantity < 0 ? '#c0392b' : 'inherit' }}>{(item.product.sellingPrice * item.quantity).toLocaleString()}</div>
+                  <div style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, fontSize: 9, color: item.quantity < 0 ? '#c0392b' : 'inherit' }}>{(item.product.sellingPrice * item.quantity / 1000).toFixed(0)}k</div>
                 </div>
               ))
             )}
