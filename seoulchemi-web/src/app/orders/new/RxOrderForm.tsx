@@ -80,6 +80,45 @@ const SPECIAL_PROCESS_OPTIONS = ['홈파기', '면취', '경사면취', '기타'
 const PRISM_OPTIONS = Array.from({ length: 16 }, (_, i) => ((i + 1) * 0.5).toFixed(1))
 const BASE_OPTIONS  = ['BU', 'BD', 'BI', 'BO']
 
+// SPH: -15.00 ~ +15.00 (0.50 단위)
+const SPH_OPTIONS: string[] = []
+for (let i = -15; i <= 15; i += 0.5) {
+  SPH_OPTIONS.push(i >= 0 ? `+${i.toFixed(2)}` : i.toFixed(2))
+}
+
+// CYL: -6.00 ~ 0.00 (0.50 단위)
+const CYL_OPTIONS: string[] = []
+for (let i = -6; i <= 0; i += 0.5) {
+  CYL_OPTIONS.push(i.toFixed(2))
+}
+
+// 숫자 입력 → 도수 변환 (200 → -2.00, 225 → -2.25)
+function parseRxInput(input: string, field: 'sph' | 'cyl'): string {
+  const trimmed = input.trim()
+  if (!trimmed) return ''
+  
+  // 이미 소수점 포함이면 그대로
+  if (trimmed.includes('.')) {
+    const n = parseFloat(trimmed)
+    if (isNaN(n)) return trimmed
+    if (field === 'sph') return n >= 0 ? `+${n.toFixed(2)}` : n.toFixed(2)
+    return n.toFixed(2)
+  }
+  
+  // 3자리 숫자 입력 (200, 225 등) → 나누기 100
+  const num = parseInt(trimmed, 10)
+  if (!isNaN(num) && trimmed.length >= 2 && trimmed.length <= 4) {
+    const val = num / 100
+    // CYL은 항상 음수 또는 0
+    if (field === 'cyl') return (-Math.abs(val)).toFixed(2)
+    // SPH는 기본 음수 (200 → -2.00), +붙이면 양수
+    if (trimmed.startsWith('+')) return `+${val.toFixed(2)}`
+    return (-val).toFixed(2)
+  }
+  
+  return trimmed
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtSph(v: string): string {
@@ -821,8 +860,59 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                     <tr key={side}>
                       <td style={{ ...rxTd, background: '#f4f6f8', fontWeight: 700, fontSize: 11, color }}>{side}</td>
 
-                      {/* SPH / CYL / AXIS / ADD / CURVE — 휠+키보드 네비게이션 */}
-                      {(['sph', 'cyl', 'axis', 'add', 'curve'] as const).map(f => (
+                      {/* SPH — 드롭다운 + 직접입력 */}
+                      <td style={rxTd}>
+                        <select
+                          ref={setRxRef(`${side}-sph`) as React.Ref<HTMLSelectElement>}
+                          style={{ ...inpStyle, width: '100%', cursor: 'pointer', fontSize: 11 }}
+                          value={rx.sph}
+                          onChange={e => setRx(side, 'sph', e.target.value)}
+                          onKeyDown={e => {
+                            // 숫자 입력 감지 시 직접 입력 모드
+                            if (/^\d$/.test(e.key)) {
+                              e.preventDefault()
+                              const newVal = parseRxInput(e.key, 'sph')
+                              setRx(side, 'sph', e.key) // 일단 숫자만 넣고
+                              // 다음 입력 대기를 위해 input 모드 전환 (blur 시 변환)
+                            } else {
+                              handleRxKeyDown(side, 'sph', e)
+                            }
+                          }}
+                          onBlur={e => {
+                            const converted = parseRxInput(e.target.value, 'sph')
+                            if (converted !== e.target.value) setRx(side, 'sph', converted)
+                          }}>
+                          <option value="">-</option>
+                          {SPH_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                      </td>
+
+                      {/* CYL — 드롭다운 + 직접입력 */}
+                      <td style={rxTd}>
+                        <select
+                          ref={setRxRef(`${side}-cyl`) as React.Ref<HTMLSelectElement>}
+                          style={{ ...inpStyle, width: '100%', cursor: 'pointer', fontSize: 11 }}
+                          value={rx.cyl}
+                          onChange={e => setRx(side, 'cyl', e.target.value)}
+                          onKeyDown={e => {
+                            if (/^\d$/.test(e.key)) {
+                              e.preventDefault()
+                              setRx(side, 'cyl', e.key)
+                            } else {
+                              handleRxKeyDown(side, 'cyl', e)
+                            }
+                          }}
+                          onBlur={e => {
+                            const converted = parseRxInput(e.target.value, 'cyl')
+                            if (converted !== e.target.value) setRx(side, 'cyl', converted)
+                          }}>
+                          <option value="">-</option>
+                          {CYL_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+                        </select>
+                      </td>
+
+                      {/* AXIS / ADD / CURVE — 기존 input */}
+                      {(['axis', 'add', 'curve'] as const).map(f => (
                         <td key={f} style={rxTd}>
                           <input
                             ref={setRxRef(`${side}-${f}`)}
