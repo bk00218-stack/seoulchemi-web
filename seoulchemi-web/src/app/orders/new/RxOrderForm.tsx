@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useToast } from '@/contexts/ToastContext'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -146,6 +146,108 @@ export default function RxOrderForm({
   const [customerName, setCustomerName] = useState('')
   const [memo,         setMemo]         = useState('')
   const [loading,      setLoading]      = useState(false)
+
+  // ─── Keyboard Navigation ────────────────────────────────────────────────
+
+  // 처방 필드 순서: R행 → L행 순서로
+  const RX_FIELDS = ['sph', 'cyl', 'axis', 'add', 'curve', 'pd', 'prism', 'base'] as const
+  const rxRefs = useRef<Record<string, HTMLInputElement | HTMLSelectElement | null>>({})
+
+  const setRxRef = useCallback((key: string) => (el: HTMLInputElement | HTMLSelectElement | null) => {
+    rxRefs.current[key] = el
+  }, [])
+
+  const focusRxField = useCallback((side: 'R' | 'L', field: string) => {
+    const key = `${side}-${field}`
+    const el = rxRefs.current[key]
+    if (el) {
+      el.focus()
+      if ('select' in el && typeof el.select === 'function') el.select()
+    }
+  }, [])
+
+  const getNextRxField = useCallback((side: 'R' | 'L', field: string): { side: 'R' | 'L'; field: string } | null => {
+    const idx = RX_FIELDS.indexOf(field as typeof RX_FIELDS[number])
+    if (idx === -1) return null
+    if (idx < RX_FIELDS.length - 1) {
+      return { side, field: RX_FIELDS[idx + 1] }
+    } else if (side === 'R') {
+      return { side: 'L', field: RX_FIELDS[0] }
+    }
+    return null // L행 마지막
+  }, [])
+
+  const getPrevRxField = useCallback((side: 'R' | 'L', field: string): { side: 'R' | 'L'; field: string } | null => {
+    const idx = RX_FIELDS.indexOf(field as typeof RX_FIELDS[number])
+    if (idx === -1) return null
+    if (idx > 0) {
+      return { side, field: RX_FIELDS[idx - 1] }
+    } else if (side === 'L') {
+      return { side: 'R', field: RX_FIELDS[RX_FIELDS.length - 1] }
+    }
+    return null // R행 첫번째
+  }, [])
+
+  const handleRxKeyDown = useCallback((side: 'R' | 'L', field: string, e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const target = e.target as HTMLInputElement
+
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const next = getNextRxField(side, field)
+      if (next) focusRxField(next.side, next.field)
+    }
+    else if (e.key === 'ArrowRight') {
+      // 커서가 맨 끝이면 다음 필드로
+      if ('selectionStart' in target && target.selectionStart === target.value.length) {
+        e.preventDefault()
+        const next = getNextRxField(side, field)
+        if (next) focusRxField(next.side, next.field)
+      }
+    }
+    else if (e.key === 'ArrowLeft') {
+      // 커서가 맨 앞이면 이전 필드로
+      if ('selectionStart' in target && target.selectionStart === 0) {
+        e.preventDefault()
+        const prev = getPrevRxField(side, field)
+        if (prev) focusRxField(prev.side, prev.field)
+      }
+    }
+    else if (e.key === 'ArrowDown') {
+      // R→L 이동 또는 select에서 다음 옵션
+      if (side === 'R' && !(target.tagName === 'SELECT')) {
+        e.preventDefault()
+        focusRxField('L', field)
+      }
+    }
+    else if (e.key === 'ArrowUp') {
+      // L→R 이동 또는 select에서 이전 옵션
+      if (side === 'L' && !(target.tagName === 'SELECT')) {
+        e.preventDefault()
+        focusRxField('R', field)
+      }
+    }
+  }, [getNextRxField, getPrevRxField, focusRxField])
+
+  const handleRxWheel = useCallback((side: 'R' | 'L', field: string, e: React.WheelEvent<HTMLInputElement>) => {
+    if (field !== 'sph' && field !== 'cyl' && field !== 'add' && field !== 'axis' && field !== 'curve') return
+    e.preventDefault()
+    const target = e.target as HTMLInputElement
+    const val = parseFloat(target.value) || 0
+    const step = field === 'axis' ? 1 : 0.25
+    const delta = e.deltaY < 0 ? step : -step
+    let newVal = val + delta
+
+    // 범위 제한
+    if (field === 'axis') newVal = Math.max(1, Math.min(180, Math.round(newVal)))
+    else if (field === 'curve') newVal = Math.max(0, Math.min(10, newVal))
+    else if (field === 'add') newVal = Math.max(0, Math.min(4, newVal))
+
+    const formatted = field === 'axis' ? String(newVal) 
+      : field === 'sph' ? fmtSph(newVal.toFixed(2))
+      : newVal.toFixed(2)
+
+    setRx(side, field, formatted)
+  }, [])
 
   // ─── Load tint colors from DB ───────────────────────────────────────────
 
@@ -548,45 +650,55 @@ export default function RxOrderForm({
                     <tr key={side}>
                       <td style={{ ...rxTd, background: '#f4f6f8', fontWeight: 700, fontSize: 11, color }}>{side}</td>
 
-                      {/* SPH / CYL / AXIS / ADD / CURVE */}
+                      {/* SPH / CYL / AXIS / ADD / CURVE — 휠+키보드 네비게이션 */}
                       {(['sph', 'cyl', 'axis', 'add', 'curve'] as const).map(f => (
                         <td key={f} style={rxTd}>
                           <input
+                            ref={setRxRef(`${side}-${f}`)}
                             style={{ ...inpStyle, width: '100%' }}
                             value={rx[f]}
                             placeholder="-"
                             onChange={e => setRx(side, f, e.target.value)}
                             onBlur={e => blurRx(side, f, e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLElement).blur() }}
+                            onKeyDown={e => handleRxKeyDown(side, f, e)}
+                            onWheel={e => handleRxWheel(side, f, e)}
                           />
                         </td>
                       ))}
 
-                      {/* PD */}
+                      {/* PD — 키보드 네비게이션 */}
                       <td style={rxTd}>
                         <input
+                          ref={setRxRef(`${side}-pd`)}
                           style={{ ...inpStyle, width: '100%' }}
                           type="number" step="0.5" placeholder="-"
                           value={rx.pd}
                           onChange={e => setRx(side, 'pd', e.target.value)}
+                          onKeyDown={e => handleRxKeyDown(side, 'pd', e)}
                         />
                       </td>
 
-                      {/* PRISM */}
+                      {/* PRISM — 키보드 네비게이션 */}
                       <td style={rxTd}>
-                        <select style={{ ...inpStyle, width: '100%', cursor: 'pointer' }}
+                        <select
+                          ref={setRxRef(`${side}-prism`) as React.Ref<HTMLSelectElement>}
+                          style={{ ...inpStyle, width: '100%', cursor: 'pointer' }}
                           value={rx.prism}
-                          onChange={e => setRx(side, 'prism', e.target.value)}>
+                          onChange={e => setRx(side, 'prism', e.target.value)}
+                          onKeyDown={e => handleRxKeyDown(side, 'prism', e)}>
                           <option value="">-</option>
                           {PRISM_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
                         </select>
                       </td>
 
-                      {/* BASE */}
+                      {/* BASE — 키보드 네비게이션 */}
                       <td style={rxTd}>
-                        <select style={{ ...inpStyle, width: '100%', cursor: 'pointer' }}
+                        <select
+                          ref={setRxRef(`${side}-base`) as React.Ref<HTMLSelectElement>}
+                          style={{ ...inpStyle, width: '100%', cursor: 'pointer' }}
                           value={rx.base}
-                          onChange={e => setRx(side, 'base', e.target.value)}>
+                          onChange={e => setRx(side, 'base', e.target.value)}
+                          onKeyDown={e => handleRxKeyDown(side, 'base', e)}>
                           <option value="">-</option>
                           {BASE_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
                         </select>
