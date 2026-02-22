@@ -4,7 +4,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { useState, useEffect, useCallback, useRef, KeyboardEvent } from 'react'
 import Layout from '../../components/Layout'
 import { ORDER_SIDEBAR } from '../../constants/sidebar'
-import RxOrderForm from './RxOrderForm'
+import RxOrderForm, { RxOrderFormRef } from './RxOrderForm'
 
 interface Brand { id: number; name: string }
 interface Product { id: number; name: string; brand: string; brandId: number; optionType: string; refractiveIndex: string | null; sellingPrice: number; purchasePrice: number }
@@ -59,6 +59,7 @@ export default function NewOrderPage() {
   const productItemRefs = useRef<(HTMLDivElement | null)[]>([])
   const gridRef = useRef<HTMLDivElement>(null)
   const gridContainerRef = useRef<HTMLDivElement>(null)
+  const rxFormRef = useRef<RxOrderFormRef>(null)
   
   const [brands, setBrands] = useState<Brand[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -257,9 +258,16 @@ export default function NewOrderPage() {
       e.preventDefault()
       if (productFocusIndex >= 0 && productFocusIndex < filteredProducts.length) {
         setSelectedProductId(filteredProducts[productFocusIndex].id)
-        setGridFocus({ sphIndex: 0, colIndex: cylColsLeft.length - 1 }) // 왼쪽 끝(CYL 000)에서 시작
-        setCellInputValue('')
-        gridRef.current?.focus()
+        
+        // RX/착색이면 RxOrderForm으로 포커스 이동
+        if (orderType === 'RX' || orderType === '착색') {
+          setTimeout(() => rxFormRef.current?.focusCascade(), 100)
+        } else {
+          // 여벌이면 그리드로 포커스
+          setGridFocus({ sphIndex: 0, colIndex: cylColsLeft.length - 1 })
+          setCellInputValue('')
+          gridRef.current?.focus()
+        }
       }
     }
   }
@@ -849,11 +857,15 @@ export default function NewOrderPage() {
         </div>
         ) : orderType === '착색' || orderType === 'RX' ? (
           <RxOrderForm
+            ref={rxFormRef}
             orderType={orderType}
             products={products}
             selectedBrandId={selectedBrandId}
+            selectedProductId={selectedProductId}
             selectedStore={selectedStore}
             onOrderSubmitted={resetForm}
+            onBrandChange={setSelectedBrandId}
+            onProductChange={setSelectedProductId}
           />
         ) : (
           /* 기타 - 간단한 메모 폼 */

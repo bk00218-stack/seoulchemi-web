@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback, useImperativeHandle, forwardRef } from 'react'
 import { useToast } from '@/contexts/ToastContext'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -22,8 +22,15 @@ interface RxOrderFormProps {
   orderType: '착색' | 'RX'
   products: Product[]
   selectedBrandId: number | null
+  selectedProductId?: number | null
   selectedStore?: Store | null
   onOrderSubmitted?: () => void
+  onBrandChange?: (brandId: number | null) => void
+  onProductChange?: (productId: number | null) => void
+}
+
+export interface RxOrderFormRef {
+  focusCascade: () => void
 }
 
 interface TintColor {
@@ -90,13 +97,16 @@ const emptyRx = { sph: '', cyl: '', axis: '', add: '', curve: '', pd: '', prism:
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function RxOrderForm({
+const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   orderType,
   products,
   selectedBrandId: initBrand,
+  selectedProductId: initProduct,
   selectedStore,
   onOrderSubmitted,
-}: RxOrderFormProps) {
+  onBrandChange,
+  onProductChange,
+}, ref) => {
   const { toast } = useToast()
 
   // ── Cascade state
@@ -105,6 +115,48 @@ export default function RxOrderForm({
   const [cType,  setCType]  = useState('')
   const [cIdx,   setCIdx]   = useState('')
   const [cCorr,  setCCorr]  = useState('')
+
+  // ── Sync with parent's brand selection
+  useEffect(() => {
+    if (initBrand !== null && initBrand !== cBrand) {
+      setCBrand(initBrand)
+      setCLine(''); setCType(''); setCIdx(''); setCCorr('')
+    }
+  }, [initBrand])
+
+  // ── Sync with parent's product selection (find and set cascade values)
+  useEffect(() => {
+    if (!initProduct) return
+    const product = products.find(p => p.id === initProduct)
+    if (!product) return
+    
+    // Set brand if different
+    if (product.brandId !== cBrand) {
+      setCBrand(product.brandId)
+    }
+    
+    // Set product line if available
+    if (product.productLine?.id) {
+      setCLine(product.productLine.id)
+    }
+    
+    // Set option type if available
+    if (product.optionType) {
+      setCType(product.optionType)
+    }
+    
+    // Set refractive index if available
+    if (product.refractiveIndex) {
+      setCIdx(product.refractiveIndex)
+    }
+  }, [initProduct, products])
+
+  // ── Notify parent when brand changes
+  useEffect(() => {
+    if (onBrandChange && cBrand !== '' && cBrand !== initBrand) {
+      onBrandChange(cBrand)
+    }
+  }, [cBrand, onBrandChange, initBrand])
 
   // ── Prescription
   const [rxR, setRxR] = useState({ ...emptyRx })
@@ -333,6 +385,21 @@ export default function RxOrderForm({
     }
   }, [focusCascade, focusRxField])
 
+  // ─── Expose focusCascade to parent via ref ──────────────────────────────
+
+  useImperativeHandle(ref, () => ({
+    focusCascade: () => {
+      // 첫 번째 활성화된 cascade 필드에 포커스
+      for (const key of CASCADE_ORDER) {
+        const el = cascadeRefs.current[key]
+        if (el && !el.disabled) {
+          focusCascade(key)
+          return
+        }
+      }
+    }
+  }), [focusCascade])
+
   // ─── Load tint colors from DB ───────────────────────────────────────────
 
   useEffect(() => {
@@ -416,6 +483,13 @@ export default function RxOrderForm({
 
   const needsCorridor = cType === '누진다초점'
   const fpd = fw && fb ? String(parseFloat(fw) + parseFloat(fb)) : ''
+
+  // ── Notify parent when matched product changes
+  useEffect(() => {
+    if (onProductChange) {
+      onProductChange(matched?.id ?? null)
+    }
+  }, [matched, onProductChange])
 
   // ── ED (유효직경) 자동계산: √(A² + B²)
   const frameED = useMemo(() => {
@@ -1336,4 +1410,8 @@ export default function RxOrderForm({
       </div>
     </div>
   )
-}
+})
+
+RxOrderForm.displayName = 'RxOrderForm'
+
+export default RxOrderForm
