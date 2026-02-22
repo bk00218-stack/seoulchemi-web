@@ -116,69 +116,40 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   const [cIdx,   setCIdx]   = useState('')
   const [cCorr,  setCCorr]  = useState('')
 
-  // ── Track previous values to avoid circular updates
-  const prevInitBrand = useRef(initBrand)
-  const prevInitProduct = useRef(initProduct)
-  const isInternalChange = useRef(false)
-
-  // ── Sync with parent's brand selection
+  // ── Sync with parent's brand selection (always sync when initBrand changes)
   useEffect(() => {
-    if (initBrand !== prevInitBrand.current) {
-      prevInitBrand.current = initBrand
-      if (initBrand !== null) {
-        setCBrand(initBrand)
-        setCLine(''); setCType(''); setCIdx(''); setCCorr('')
-      }
+    if (initBrand !== null && initBrand !== cBrand) {
+      setCBrand(initBrand)
+      setCLine(''); setCType(''); setCIdx(''); setCCorr('')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initBrand])
 
   // ── Sync with parent's product selection (find and set cascade values)
   useEffect(() => {
-    if (initProduct === prevInitProduct.current) return
-    prevInitProduct.current = initProduct
-    
     if (!initProduct) return
     const product = products.find(p => p.id === initProduct)
     if (!product) return
     
-    isInternalChange.current = true
-    
-    // Set brand
-    setCBrand(product.brandId)
-    
-    // Set product line if available
-    if (product.productLine?.id) {
-      setCLine(product.productLine.id)
-    } else {
-      setCLine('')
+    // Only sync if brand matches (to avoid overwriting user's cascade selection)
+    if (product.brandId === cBrand) {
+      // Set product line if available
+      if (product.productLine?.id && product.productLine.id !== cLine) {
+        setCLine(product.productLine.id)
+      }
+      
+      // Set option type if available
+      if (product.optionType && product.optionType !== cType) {
+        setCType(product.optionType)
+      }
+      
+      // Set refractive index if available
+      if (product.refractiveIndex && product.refractiveIndex !== cIdx) {
+        setCIdx(product.refractiveIndex)
+      }
     }
-    
-    // Set option type if available
-    if (product.optionType) {
-      setCType(product.optionType)
-    } else {
-      setCType('')
-    }
-    
-    // Set refractive index if available
-    if (product.refractiveIndex) {
-      setCIdx(product.refractiveIndex)
-    } else {
-      setCIdx('')
-    }
-    
-    setCCorr('')
-    
-    setTimeout(() => { isInternalChange.current = false }, 100)
-  }, [initProduct, products])
-
-  // ── Notify parent when brand changes (only for user-initiated changes)
-  useEffect(() => {
-    if (isInternalChange.current) return
-    if (onBrandChange && cBrand !== '' && cBrand !== initBrand) {
-      onBrandChange(cBrand)
-    }
-  }, [cBrand, onBrandChange, initBrand])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initProduct])
 
   // ── Prescription
   const [rxR, setRxR] = useState({ ...emptyRx })
