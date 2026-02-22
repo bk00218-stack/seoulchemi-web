@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useToast } from '@/contexts/ToastContext'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -26,20 +26,35 @@ interface RxOrderFormProps {
   onOrderSubmitted?: () => void
 }
 
+interface TintColor {
+  key: string
+  label: string
+  hex: string
+}
+
+type TintBrandKey = 'hoya' | 'essilor' | 'chemiglas' | 'daemyung' | 'etc'
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CORRIDOR_OPTIONS = ['11mm', '12mm', '13mm', '14mm', '17mm', '18mm']
 
-const TINT_COLORS = [
-  { key: 'none',   label: '없음',    bg: 'linear-gradient(45deg,#fff 45%,#e5e7eb 45%,#e5e7eb 55%,#fff 55%)', border: '#e5e7eb' },
-  { key: 'gray',   label: '그레이',  bg: 'linear-gradient(180deg,#9ca3af,#6b7280)' },
-  { key: 'brown',  label: '브라운',  bg: 'linear-gradient(180deg,#d97706,#92400e)' },
-  { key: 'green',  label: '그린',    bg: 'linear-gradient(180deg,#22c55e,#15803d)' },
-  { key: 'blue',   label: '블루',    bg: 'linear-gradient(180deg,#3b82f6,#1d4ed8)' },
-  { key: 'pink',   label: '핑크',    bg: 'linear-gradient(180deg,#ec4899,#be185d)' },
-  { key: 'yellow', label: '옐로우',  bg: 'linear-gradient(180deg,#fbbf24,#d97706)' },
-  { key: 'orange', label: '오렌지',  bg: 'linear-gradient(180deg,#f97316,#c2410c)' },
-  { key: 'purple', label: '퍼플',    bg: 'linear-gradient(180deg,#a855f7,#7c3aed)' },
+const TINT_BRANDS: { key: TintBrandKey; label: string }[] = [
+  { key: 'hoya',      label: '호야' },
+  { key: 'essilor',   label: '에실로' },
+  { key: 'chemiglas', label: '케미그라스' },
+  { key: 'daemyung',  label: '대명' },
+  { key: 'etc',       label: '기타' },
+]
+
+const FALLBACK_COLORS: TintColor[] = [
+  { key: 'gray',   label: '그레이',  hex: '#8b8b8b' },
+  { key: 'brown',  label: '브라운',  hex: '#a0522d' },
+  { key: 'green',  label: '그린',    hex: '#2e8b57' },
+  { key: 'blue',   label: '블루',    hex: '#4169e1' },
+  { key: 'pink',   label: '핑크',    hex: '#e75480' },
+  { key: 'yellow', label: '옐로우',  hex: '#daa520' },
+  { key: 'orange', label: '오렌지',  hex: '#e8740c' },
+  { key: 'purple', label: '퍼플',    hex: '#8a2be2' },
 ]
 
 const COATING_OPTIONS = [
@@ -51,6 +66,9 @@ const COATING_OPTIONS = [
   { key: 'hydrophobic', label: '발수'          },
   { key: 'oleophobic',  label: '발유'          },
 ]
+
+const PROCESS_TYPES = ['풀프레임', '반무테(나이론)', '무테(드릴)']
+const SPECIAL_PROCESS_OPTIONS = ['홈파기', '면취', '경사면취', '기타']
 
 const PRISM_OPTIONS = Array.from({ length: 16 }, (_, i) => ((i + 1) * 0.5).toFixed(1))
 const BASE_OPTIONS  = ['BU', 'BD', 'BI', 'BO']
@@ -92,13 +110,31 @@ export default function RxOrderForm({
   const [rxR, setRxR] = useState({ ...emptyRx })
   const [rxL, setRxL] = useState({ ...emptyRx })
 
-  // ── Tint
+  // ── Tint (브랜드별)
+  const [tintBrand,    setTintBrand]    = useState<TintBrandKey>('hoya')
   const [tintColor,    setTintColor]    = useState('none')
   const [tintDensity,  setTintDensity]  = useState(0)
   const [tintGradient, setTintGradient] = useState(false)
+  const [tintColorsByBrand, setTintColorsByBrand] = useState<Record<TintBrandKey, TintColor[]>>({
+    hoya: [], essilor: [], chemiglas: [], daemyung: [], etc: [],
+  })
+  const [tintLoaded, setTintLoaded] = useState(false)
 
   // ── Coating
   const [coatings, setCoatings] = useState<string[]>([])
+
+  // ── Inframe (RX only)
+  const [frameModel,    setFrameModel]    = useState('')
+  const [frameA,        setFrameA]        = useState('')
+  const [frameB,        setFrameB]        = useState('')
+  const [frameDbl,      setFrameDbl]      = useState('')
+  const [frameTemple,   setFrameTemple]   = useState('')
+  const [processType,   setProcessType]   = useState('풀프레임')
+  const [specialProcess,setSpecialProcess]= useState<string[]>([])
+  const [processMemo,   setProcessMemo]   = useState('')
+  const [frameSent,     setFrameSent]     = useState(false)
+  const [frameSentDate, setFrameSentDate] = useState('')
+  const [frameReturn,   setFrameReturn]   = useState(false)
 
   // ── Fitting
   const [fw, setFw] = useState('')
@@ -110,6 +146,41 @@ export default function RxOrderForm({
   const [customerName, setCustomerName] = useState('')
   const [memo,         setMemo]         = useState('')
   const [loading,      setLoading]      = useState(false)
+
+  // ─── Load tint colors from DB ───────────────────────────────────────────
+
+  useEffect(() => {
+    fetch('/api/admin/settings?group=tint.colors')
+      .then(r => r.json())
+      .then(data => {
+        const settings: Record<string, string> = {}
+        ;(data.settings || []).forEach((s: { key: string; value: string }) => {
+          settings[s.key] = s.value
+        })
+        const result: Record<TintBrandKey, TintColor[]> = {
+          hoya: [], essilor: [], chemiglas: [], daemyung: [], etc: [],
+        }
+        let hasAny = false
+        for (const brand of TINT_BRANDS) {
+          const raw = settings[`tint.colors.${brand.key}`]
+          if (raw) {
+            try { result[brand.key] = JSON.parse(raw); hasAny = true } catch { /* skip */ }
+          }
+        }
+        if (!hasAny) {
+          for (const brand of TINT_BRANDS) result[brand.key] = [...FALLBACK_COLORS]
+        }
+        setTintColorsByBrand(result)
+      })
+      .catch(() => {
+        const result: Record<TintBrandKey, TintColor[]> = {
+          hoya: [], essilor: [], chemiglas: [], daemyung: [], etc: [],
+        }
+        for (const brand of TINT_BRANDS) result[brand.key] = [...FALLBACK_COLORS]
+        setTintColorsByBrand(result)
+      })
+      .finally(() => setTintLoaded(true))
+  }, [])
 
   // ─── Cascade Derivations ──────────────────────────────────────────────────
 
@@ -168,6 +239,8 @@ export default function RxOrderForm({
     return [bn, ln, cType, cIdx].filter(Boolean).join(' / ') + cor
   }, [cBrand, cIdx, brands, lines, cLine, cType, needsCorridor, cCorr])
 
+  const activeTintColors = tintColorsByBrand[tintBrand] || []
+
   // ─── Handlers ────────────────────────────────────────────────────────────
 
   const setRx = (side: 'R' | 'L', f: string, v: string) => {
@@ -182,11 +255,17 @@ export default function RxOrderForm({
   const toggleCoating = (k: string) =>
     setCoatings(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k])
 
+  const toggleSpecialProcess = (k: string) =>
+    setSpecialProcess(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k])
+
   const reset = () => {
     setCBrand(''); setCLine(''); setCType(''); setCIdx(''); setCCorr('')
     setRxR({ ...emptyRx }); setRxL({ ...emptyRx })
-    setTintColor('none'); setTintDensity(0); setTintGradient(false)
+    setTintBrand('hoya'); setTintColor('none'); setTintDensity(0); setTintGradient(false)
     setCoatings([])
+    setFrameModel(''); setFrameA(''); setFrameB(''); setFrameDbl(''); setFrameTemple('')
+    setProcessType('풀프레임'); setSpecialProcess([]); setProcessMemo('')
+    setFrameSent(false); setFrameSentDate(''); setFrameReturn(false)
     setFw(''); setFb(''); setFd(''); setFh('')
     setCustomerName(''); setMemo('')
   }
@@ -208,11 +287,20 @@ export default function RxOrderForm({
             productId: matched.id,
             corridor: cCorr,
             rxR, rxL,
-            tint: orderType === '착색'
-              ? { color: tintColor, density: tintDensity, gradient: tintGradient }
-              : null,
+            tint: {
+              brand: tintBrand,
+              color: tintColor,
+              density: tintDensity,
+              gradient: tintGradient,
+            },
             coatings,
             fitting: { fw, fb, fpd, fd, fh },
+            inframe: orderType === 'RX' ? {
+              model: frameModel,
+              sizeA: frameA, sizeB: frameB, dbl: frameDbl, temple: frameTemple,
+              processType, specialProcess, processMemo,
+              frameSent, frameSentDate, frameReturn,
+            } : null,
           },
           items: [{
             productId: matched.id,
@@ -224,7 +312,7 @@ export default function RxOrderForm({
         }),
       })
       if (res.ok) {
-        toast.success('주문 접수 완료! ✅')
+        toast.success('주문 접수 완료!')
         reset()
         onOrderSubmitted?.()
       } else {
@@ -270,6 +358,11 @@ export default function RxOrderForm({
   }
   const rxTd: React.CSSProperties = {
     border: '1px solid #dde1e7', padding: '2px', textAlign: 'center',
+  }
+  const fieldInputStyle: React.CSSProperties = {
+    width: '100%', padding: '5px 8px', fontSize: 12,
+    border: '1px solid #d1d5db', borderRadius: 4,
+    background: '#fff', outline: 'none', color: '#111',
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -468,34 +561,80 @@ export default function RxOrderForm({
           </div>
         </div>
 
-        {/* ③ 착색 (착색/RX 모두 표시) */}
+        {/* ③ 착색 — 브랜드별 색상 */}
         <div style={{ borderBottom: '1px solid #eee' }}>
           <div style={secHead}><span>🎨 착색</span></div>
           <div style={secBody}>
+            {/* 착색 브랜드 탭 */}
+            <div style={{ display: 'flex', gap: 3, marginBottom: 10 }}>
+              {TINT_BRANDS.map(tb => (
+                <button
+                  key={tb.key}
+                  onClick={() => { setTintBrand(tb.key); setTintColor('none') }}
+                  style={{
+                    padding: '4px 10px', fontSize: 11, fontWeight: tintBrand === tb.key ? 700 : 500,
+                    background: tintBrand === tb.key ? G : '#f3f4f6',
+                    color: tintBrand === tb.key ? '#fff' : '#374151',
+                    border: tintBrand === tb.key ? `1px solid ${G}` : '1px solid #e5e7eb',
+                    borderRadius: 4, cursor: 'pointer', transition: 'all 0.15s',
+                  }}
+                >
+                  {tb.label}
+                </button>
+              ))}
+            </div>
+
             <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               {/* 색상 스와치 */}
               <div>
                 <label style={labelSt}>색상</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-                  {TINT_COLORS.map(tc => (
-                    <div
-                      key={tc.key}
-                      title={tc.label}
-                      onClick={() => setTintColor(tc.key)}
-                      style={{
-                        width: 28, height: 28, borderRadius: 5, cursor: 'pointer',
-                        background: tc.bg,
-                        border:     tintColor === tc.key
-                          ? `3px solid ${G}`
-                          : `2px solid ${tc.border ?? 'transparent'}`,
-                        boxShadow:  tintColor === tc.key
-                          ? `0 0 0 1px white, 0 0 0 3px ${G}`
-                          : undefined,
-                        transition: 'transform 0.1s',
-                      }}
-                    />
-                  ))}
+                  {/* 없음 버튼 */}
+                  <div
+                    title="없음"
+                    onClick={() => setTintColor('none')}
+                    style={{
+                      width: 28, height: 28, borderRadius: 5, cursor: 'pointer',
+                      background: 'linear-gradient(45deg,#fff 45%,#e5e7eb 45%,#e5e7eb 55%,#fff 55%)',
+                      border: tintColor === 'none' ? `3px solid ${G}` : '2px solid #e5e7eb',
+                      boxShadow: tintColor === 'none' ? `0 0 0 1px white, 0 0 0 3px ${G}` : undefined,
+                      transition: 'transform 0.1s',
+                    }}
+                  />
+                  {/* DB 색상 */}
+                  {!tintLoaded ? (
+                    <span style={{ fontSize: 11, color: '#9ca3af', padding: '4px 0' }}>로딩...</span>
+                  ) : activeTintColors.length === 0 ? (
+                    <span style={{ fontSize: 11, color: '#9ca3af', padding: '4px 0' }}>
+                      설정된 색상 없음
+                    </span>
+                  ) : (
+                    activeTintColors.map(tc => (
+                      <div
+                        key={tc.key}
+                        title={tc.label}
+                        onClick={() => setTintColor(tc.key)}
+                        style={{
+                          width: 28, height: 28, borderRadius: 5, cursor: 'pointer',
+                          background: tc.hex,
+                          border: tintColor === tc.key
+                            ? `3px solid ${G}`
+                            : '2px solid transparent',
+                          boxShadow: tintColor === tc.key
+                            ? `0 0 0 1px white, 0 0 0 3px ${G}`
+                            : '0 0 0 1px rgba(0,0,0,0.1)',
+                          transition: 'transform 0.1s',
+                        }}
+                      />
+                    ))
+                  )}
                 </div>
+                {/* 선택된 색상 표시 */}
+                {tintColor !== 'none' && (
+                  <div style={{ marginTop: 4, fontSize: 10, color: '#6b7280' }}>
+                    {activeTintColors.find(c => c.key === tintColor)?.label || tintColor}
+                  </div>
+                )}
               </div>
 
               {/* 농도 */}
@@ -532,7 +671,7 @@ export default function RxOrderForm({
           </div>
         </div>
 
-        {/* ④ 코팅 (착색/RX 모두 표시) */}
+        {/* ④ 코팅 */}
         <div style={{ borderBottom: '1px solid #eee' }}>
           <div style={secHead}><span>✨ 코팅</span></div>
           <div style={secBody}>
@@ -557,7 +696,151 @@ export default function RxOrderForm({
           </div>
         </div>
 
-        {/* ⑤ 피팅 정보 */}
+        {/* ⑤ 인프레임 (RX만) */}
+        {orderType === 'RX' && (
+          <div style={{ borderBottom: '1px solid #eee' }}>
+            <div style={{ ...secHead, background: '#fff8f0', color: '#b45309', borderBottomColor: '#fde68a' }}>
+              <span>📦 인프레임</span>
+            </div>
+            <div style={secBody}>
+              {/* 5-1. 프레임 정보 */}
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ ...labelSt, color: '#b45309' }}>프레임 정보</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: 6, marginTop: 4 }}>
+                  <div>
+                    <label style={labelSt}>모델명</label>
+                    <input
+                      value={frameModel}
+                      onChange={e => setFrameModel(e.target.value)}
+                      placeholder="브랜드 / 모델"
+                      style={fieldInputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelSt}>A사이즈</label>
+                    <input
+                      type="number" value={frameA}
+                      onChange={e => setFrameA(e.target.value)}
+                      placeholder="mm"
+                      style={fieldInputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelSt}>B사이즈</label>
+                    <input
+                      type="number" value={frameB}
+                      onChange={e => setFrameB(e.target.value)}
+                      placeholder="mm"
+                      style={fieldInputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelSt}>DBL</label>
+                    <input
+                      type="number" value={frameDbl}
+                      onChange={e => setFrameDbl(e.target.value)}
+                      placeholder="mm"
+                      style={fieldInputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelSt}>템플</label>
+                    <input
+                      type="number" value={frameTemple}
+                      onChange={e => setFrameTemple(e.target.value)}
+                      placeholder="mm"
+                      style={fieldInputStyle}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 5-2. 가공 정보 */}
+              <div style={{ marginBottom: 10, paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
+                <label style={{ ...labelSt, color: '#b45309' }}>가공 정보</label>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginTop: 4 }}>
+                  <div>
+                    <label style={labelSt}>가공 유형</label>
+                    <select
+                      value={processType}
+                      onChange={e => setProcessType(e.target.value)}
+                      style={{ ...selStyle, width: 'auto', minWidth: 140 }}
+                    >
+                      {PROCESS_TYPES.map(pt => (
+                        <option key={pt} value={pt}>{pt}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelSt}>특수가공</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
+                      {SPECIAL_PROCESS_OPTIONS.map(sp => (
+                        <button
+                          key={sp}
+                          onClick={() => toggleSpecialProcess(sp)}
+                          style={{
+                            padding: '3px 8px', borderRadius: 10, fontSize: 11, cursor: 'pointer',
+                            background: specialProcess.includes(sp) ? '#fef3c7' : '#f3f4f6',
+                            color: specialProcess.includes(sp) ? '#92400e' : '#374151',
+                            border: specialProcess.includes(sp) ? '1px solid #f59e0b' : '1px solid #e5e7eb',
+                            fontWeight: specialProcess.includes(sp) ? 600 : 400,
+                          }}
+                        >
+                          {sp}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 120 }}>
+                    <label style={labelSt}>가공 메모</label>
+                    <input
+                      value={processMemo}
+                      onChange={e => setProcessMemo(e.target.value)}
+                      placeholder="특수가공 관련 메모..."
+                      style={fieldInputStyle}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 5-3. 발송 정보 */}
+              <div style={{ paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
+                <label style={{ ...labelSt, color: '#b45309' }}>발송 정보</label>
+                <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox" checked={frameSent}
+                      onChange={e => setFrameSent(e.target.checked)}
+                      style={{ accentColor: '#b45309' }}
+                    />
+                    프레임 발송 완료
+                  </label>
+                  {frameSent && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <label style={{ fontSize: 11, color: '#6b7280' }}>발송일:</label>
+                      <input
+                        type="date"
+                        value={frameSentDate}
+                        onChange={e => setFrameSentDate(e.target.value)}
+                        style={{ ...fieldInputStyle, width: 'auto', padding: '3px 6px', fontSize: 11 }}
+                      />
+                    </div>
+                  )}
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox" checked={frameReturn}
+                      onChange={e => setFrameReturn(e.target.checked)}
+                      style={{ accentColor: '#b45309' }}
+                    />
+                    가공 후 프레임 반송 요청
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ⑥ 피팅 정보 */}
         <div style={{ borderBottom: '1px solid #eee' }}>
           <div style={secHead}><span>👓 피팅</span></div>
           <div style={{
@@ -594,7 +877,7 @@ export default function RxOrderForm({
           </div>
         </div>
 
-        {/* ⑥ 고객명 + 메모 */}
+        {/* ⑦ 고객명 + 메모 */}
         <div style={secBody}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 8 }}>
             <div>

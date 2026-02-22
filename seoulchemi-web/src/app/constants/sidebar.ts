@@ -121,6 +121,7 @@ export const SETTINGS_SIDEBAR: SidebarMenu[] = [
       { label: '회사정보', href: '/settings' },
       { label: '사용자 관리', href: '/settings/users' },
       { label: '프린터 설정', href: '/settings/printer' },
+      { label: '착색 색상 관리', href: '/settings/tint-colors' },
     ]
   },
   {
