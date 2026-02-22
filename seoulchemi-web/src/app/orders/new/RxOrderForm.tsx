@@ -249,6 +249,48 @@ export default function RxOrderForm({
     setRx(side, field, formatted)
   }, [])
 
+  // ─── Inframe Keyboard Navigation ────────────────────────────────────────
+
+  const FRAME_FIELDS = ['model', 'a', 'b', 'dbl', 'temple', 'memo', 'fw', 'fb', 'fd', 'fh'] as const
+  const frameRefs = useRef<Record<string, HTMLInputElement | null>>({})
+
+  const setFrameRef = useCallback((key: string) => (el: HTMLInputElement | null) => {
+    frameRefs.current[key] = el
+  }, [])
+
+  const focusFrameField = useCallback((field: string) => {
+    const el = frameRefs.current[field]
+    if (el) {
+      el.focus()
+      if ('select' in el) el.select()
+    }
+  }, [])
+
+  const handleFrameKeyDown = useCallback((field: string, e: React.KeyboardEvent<HTMLInputElement>) => {
+    const target = e.target as HTMLInputElement
+    const idx = FRAME_FIELDS.indexOf(field as typeof FRAME_FIELDS[number])
+    if (idx === -1) return
+
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (idx < FRAME_FIELDS.length - 1) {
+        focusFrameField(FRAME_FIELDS[idx + 1])
+      }
+    }
+    else if (e.key === 'ArrowRight') {
+      if (target.selectionStart === target.value.length && idx < FRAME_FIELDS.length - 1) {
+        e.preventDefault()
+        focusFrameField(FRAME_FIELDS[idx + 1])
+      }
+    }
+    else if (e.key === 'ArrowLeft') {
+      if (target.selectionStart === 0 && idx > 0) {
+        e.preventDefault()
+        focusFrameField(FRAME_FIELDS[idx - 1])
+      }
+    }
+  }, [focusFrameField])
+
   // ─── Load tint colors from DB ───────────────────────────────────────────
 
   useEffect(() => {
@@ -860,8 +902,10 @@ export default function RxOrderForm({
                   <div>
                     <label style={labelSt}>모델명</label>
                     <input
+                      ref={setFrameRef('model')}
                       value={frameModel}
                       onChange={e => setFrameModel(e.target.value)}
+                      onKeyDown={e => handleFrameKeyDown('model', e)}
                       placeholder="브랜드 / 모델"
                       style={fieldInputStyle}
                     />
@@ -869,8 +913,10 @@ export default function RxOrderForm({
                   <div>
                     <label style={labelSt}>A사이즈</label>
                     <input
+                      ref={setFrameRef('a')}
                       type="number" value={frameA}
                       onChange={e => setFrameA(e.target.value)}
+                      onKeyDown={e => handleFrameKeyDown('a', e)}
                       placeholder="mm"
                       style={fieldInputStyle}
                     />
@@ -878,8 +924,10 @@ export default function RxOrderForm({
                   <div>
                     <label style={labelSt}>B사이즈</label>
                     <input
+                      ref={setFrameRef('b')}
                       type="number" value={frameB}
                       onChange={e => setFrameB(e.target.value)}
+                      onKeyDown={e => handleFrameKeyDown('b', e)}
                       placeholder="mm"
                       style={fieldInputStyle}
                     />
@@ -887,8 +935,10 @@ export default function RxOrderForm({
                   <div>
                     <label style={labelSt}>DBL</label>
                     <input
+                      ref={setFrameRef('dbl')}
                       type="number" value={frameDbl}
                       onChange={e => setFrameDbl(e.target.value)}
+                      onKeyDown={e => handleFrameKeyDown('dbl', e)}
                       placeholder="mm"
                       style={fieldInputStyle}
                     />
@@ -896,8 +946,10 @@ export default function RxOrderForm({
                   <div>
                     <label style={labelSt}>템플</label>
                     <input
+                      ref={setFrameRef('temple')}
                       type="number" value={frameTemple}
                       onChange={e => setFrameTemple(e.target.value)}
+                      onKeyDown={e => handleFrameKeyDown('temple', e)}
                       placeholder="mm"
                       style={fieldInputStyle}
                     />
@@ -1014,8 +1066,10 @@ export default function RxOrderForm({
                   <div style={{ flex: 1, minWidth: 120 }}>
                     <label style={labelSt}>가공 메모</label>
                     <input
+                      ref={setFrameRef('memo')}
                       value={processMemo}
                       onChange={e => setProcessMemo(e.target.value)}
+                      onKeyDown={e => handleFrameKeyDown('memo', e)}
                       placeholder="특수가공 관련 메모..."
                       style={fieldInputStyle}
                     />
@@ -1069,31 +1123,73 @@ export default function RxOrderForm({
             gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 8,
           }}>
-            {[
-              { label: '가로 (mm)',  val: fw,  set: setFw  },
-              { label: '브릿지 (mm)',val: fb,  set: setFb  },
-              { label: '프레임 PD', val: fpd, set: null    },
-              { label: '대각 (mm)', val: fd,  set: setFd  },
-              { label: '상하 (mm)', val: fh,  set: setFh  },
-            ].map(({ label, val, set }) => (
-              <div key={label}>
-                <label style={labelSt}>{label}</label>
-                <input
-                  type="number"
-                  value={val}
-                  readOnly={!set}
-                  onChange={e => set?.(e.target.value)}
-                  style={{
-                    width: '100%', padding: '5px 8px', fontSize: 12,
-                    border: '1px solid #d1d5db', borderRadius: 4,
-                    background: set ? '#fff' : '#f0faf5',
-                    color:      set ? '#111' : G,
-                    fontWeight: set ? 400 : 600,
-                    outline: 'none',
-                  }}
-                />
-              </div>
-            ))}
+            <div>
+              <label style={labelSt}>가로 (mm)</label>
+              <input
+                ref={setFrameRef('fw')}
+                type="number" value={fw}
+                onChange={e => setFw(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fw.length)) {
+                    e.preventDefault(); focusFrameField('fb')
+                  }
+                }}
+                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+              />
+            </div>
+            <div>
+              <label style={labelSt}>브릿지 (mm)</label>
+              <input
+                ref={setFrameRef('fb')}
+                type="number" value={fb}
+                onChange={e => setFb(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fb.length)) {
+                    e.preventDefault(); focusFrameField('fd')
+                  } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                    e.preventDefault(); focusFrameField('fw')
+                  }
+                }}
+                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+              />
+            </div>
+            <div>
+              <label style={labelSt}>프레임 PD</label>
+              <input
+                type="number" value={fpd} readOnly
+                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#f0faf5', color: G, fontWeight: 600, outline: 'none' }}
+              />
+            </div>
+            <div>
+              <label style={labelSt}>대각 (mm)</label>
+              <input
+                ref={setFrameRef('fd')}
+                type="number" value={fd}
+                onChange={e => setFd(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fd.length)) {
+                    e.preventDefault(); focusFrameField('fh')
+                  } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                    e.preventDefault(); focusFrameField('fb')
+                  }
+                }}
+                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+              />
+            </div>
+            <div>
+              <label style={labelSt}>상하 (mm)</label>
+              <input
+                ref={setFrameRef('fh')}
+                type="number" value={fh}
+                onChange={e => setFh(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                    e.preventDefault(); focusFrameField('fd')
+                  }
+                }}
+                style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+              />
+            </div>
           </div>
         </div>
 
