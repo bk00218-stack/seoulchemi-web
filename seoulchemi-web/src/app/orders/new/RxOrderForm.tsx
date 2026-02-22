@@ -291,6 +291,48 @@ export default function RxOrderForm({
     }
   }, [focusFrameField])
 
+  // ─── Cascade Dropdown Navigation ────────────────────────────────────────
+
+  const cascadeRefs = useRef<Record<string, HTMLSelectElement | null>>({})
+
+  const setCascadeRef = useCallback((key: string) => (el: HTMLSelectElement | null) => {
+    cascadeRefs.current[key] = el
+  }, [])
+
+  const focusCascade = useCallback((key: string) => {
+    const el = cascadeRefs.current[key]
+    if (el && !el.disabled) {
+      el.focus()
+      // 드롭다운 펼치기 시도
+      setTimeout(() => {
+        el.click()
+      }, 50)
+    }
+  }, [])
+
+  const CASCADE_ORDER = ['brand', 'line', 'type', 'idx', 'corr'] as const
+
+  const handleCascadeKeyDown = useCallback((field: string, e: React.KeyboardEvent<HTMLSelectElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const idx = CASCADE_ORDER.indexOf(field as typeof CASCADE_ORDER[number])
+      if (idx === -1) return
+
+      // 다음 필드로 이동
+      for (let i = idx + 1; i < CASCADE_ORDER.length; i++) {
+        const nextKey = CASCADE_ORDER[i]
+        const nextEl = cascadeRefs.current[nextKey]
+        if (nextEl && !nextEl.disabled) {
+          focusCascade(nextKey)
+          return
+        }
+      }
+
+      // cascade 다 끝나면 처방 SPH로 이동
+      focusRxField('R', 'sph')
+    }
+  }, [focusCascade, focusRxField])
+
   // ─── Load tint colors from DB ───────────────────────────────────────────
 
   useEffect(() => {
@@ -592,11 +634,16 @@ export default function RxOrderForm({
             {/* 브랜드 */}
             <div>
               <label style={labelSt}>브랜드</label>
-              <select style={selStyle} value={cBrand}
+              <select
+                ref={setCascadeRef('brand')}
+                style={selStyle} value={cBrand}
                 onChange={e => {
                   const v = e.target.value ? parseInt(e.target.value) : '' as const
                   setCBrand(v); setCLine(''); setCType(''); setCIdx(''); setCCorr('')
-                }}>
+                  // 다음 드롭다운으로 자동 이동
+                  if (v) setTimeout(() => focusCascade('line'), 100)
+                }}
+                onKeyDown={e => handleCascadeKeyDown('brand', e)}>
                 <option value="">선택</option>
                 {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
@@ -605,12 +652,16 @@ export default function RxOrderForm({
             {/* 상품(라인) */}
             <div>
               <label style={labelSt}>상품</label>
-              <select style={{ ...selStyle, color: !cBrand ? '#9ca3af' : '#111' }}
+              <select
+                ref={setCascadeRef('line')}
+                style={{ ...selStyle, color: !cBrand ? '#9ca3af' : '#111' }}
                 value={cLine} disabled={!cBrand || lines.length === 0}
                 onChange={e => {
                   const v = e.target.value ? parseInt(e.target.value) : '' as const
                   setCLine(v); setCType(''); setCIdx(''); setCCorr('')
-                }}>
+                  if (v) setTimeout(() => focusCascade('type'), 100)
+                }}
+                onKeyDown={e => handleCascadeKeyDown('line', e)}>
                 <option value="">{lines.length === 0 ? '-' : '선택'}</option>
                 {lines.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
@@ -619,9 +670,15 @@ export default function RxOrderForm({
             {/* 품목 */}
             <div>
               <label style={labelSt}>품목</label>
-              <select style={{ ...selStyle, color: !cBrand ? '#9ca3af' : '#111' }}
+              <select
+                ref={setCascadeRef('type')}
+                style={{ ...selStyle, color: !cBrand ? '#9ca3af' : '#111' }}
                 value={cType} disabled={!cBrand}
-                onChange={e => { setCType(e.target.value); setCIdx(''); setCCorr('') }}>
+                onChange={e => {
+                  setCType(e.target.value); setCIdx(''); setCCorr('')
+                  if (e.target.value) setTimeout(() => focusCascade('idx'), 100)
+                }}
+                onKeyDown={e => handleCascadeKeyDown('type', e)}>
                 <option value="">선택</option>
                 {types.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -630,9 +687,22 @@ export default function RxOrderForm({
             {/* 굴절률 */}
             <div>
               <label style={labelSt}>굴절률</label>
-              <select style={{ ...selStyle, color: !cType ? '#9ca3af' : '#111' }}
+              <select
+                ref={setCascadeRef('idx')}
+                style={{ ...selStyle, color: !cType ? '#9ca3af' : '#111' }}
                 value={cIdx} disabled={!cType}
-                onChange={e => { setCIdx(e.target.value); if (!needsCorridor) setCCorr('') }}>
+                onChange={e => {
+                  setCIdx(e.target.value)
+                  if (!needsCorridor) setCCorr('')
+                  // 누진다초점이면 누진대로, 아니면 처방으로
+                  if (e.target.value) {
+                    setTimeout(() => {
+                      if (needsCorridor) focusCascade('corr')
+                      else focusRxField('R', 'sph')
+                    }, 100)
+                  }
+                }}
+                onKeyDown={e => handleCascadeKeyDown('idx', e)}>
                 <option value="">선택</option>
                 {indices.map(i => <option key={i} value={i}>{i}</option>)}
               </select>
@@ -642,10 +712,16 @@ export default function RxOrderForm({
             <div>
               <label style={labelSt}>누진대</label>
               <select
+                ref={setCascadeRef('corr')}
                 style={{ ...selStyle, color: (!needsCorridor || !cIdx) ? '#9ca3af' : '#111' }}
                 value={cCorr}
                 disabled={!needsCorridor || !cIdx}
-                onChange={e => setCCorr(e.target.value)}>
+                onChange={e => {
+                  setCCorr(e.target.value)
+                  // 선택 후 처방으로 이동
+                  if (e.target.value) setTimeout(() => focusRxField('R', 'sph'), 100)
+                }}
+                onKeyDown={e => handleCascadeKeyDown('corr', e)}>
                 <option value="">{needsCorridor ? '선택' : '-'}</option>
                 {needsCorridor && CORRIDOR_OPTIONS.map(c =>
                   <option key={c} value={c}>{c}</option>)}
