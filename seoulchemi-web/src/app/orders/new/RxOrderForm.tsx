@@ -131,23 +131,31 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     const product = products.find(p => p.id === initProduct)
     if (!product) return
     
-    // Only sync if brand matches (to avoid overwriting user's cascade selection)
-    if (product.brandId === cBrand) {
-      // Set product line if available
-      if (product.productLine?.id && product.productLine.id !== cLine) {
-        setCLine(product.productLine.id)
-      }
-      
-      // Set option type if available
-      if (product.optionType && product.optionType !== cType) {
-        setCType(product.optionType)
-      }
-      
-      // Set refractive index if available
-      if (product.refractiveIndex && product.refractiveIndex !== cIdx) {
-        setCIdx(product.refractiveIndex)
-      }
+    // 상품 선택 시 모든 cascade 값 동기화
+    setCBrand(product.brandId)
+    
+    // Set product line if available
+    if (product.productLine?.id) {
+      setCLine(product.productLine.id)
+    } else {
+      setCLine('')
     }
+    
+    // Set option type if available
+    if (product.optionType) {
+      setCType(product.optionType)
+    } else {
+      setCType('')
+    }
+    
+    // Set refractive index if available
+    if (product.refractiveIndex) {
+      setCIdx(product.refractiveIndex)
+    } else {
+      setCIdx('')
+    }
+    
+    setCCorr('')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initProduct])
 
