@@ -743,10 +743,10 @@ export default function NewOrderPage() {
                   key={t} 
                   ref={el => { orderTypeRefs.current[t] = el }}
                   tabIndex={0}
+                  onFocus={() => setOrderType(t)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
-                      setOrderType(t)
                       // 여벌/착색/RX 선택 시 품목 드롭다운 열기
                       if (t !== '기타') {
                         setTimeout(() => {
@@ -754,12 +754,12 @@ export default function NewOrderPage() {
                           try { (brandSelectRef.current as any)?.showPicker?.() } catch {}
                         }, 50)
                       }
-                    } else if (e.key === 'ArrowRight') {
+                    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
                       e.preventDefault()
                       const types = ['여벌', '착색', 'RX', '기타'] as const
                       const idx = types.indexOf(t)
                       if (idx < 3) orderTypeRefs.current[types[idx + 1]]?.focus()
-                    } else if (e.key === 'ArrowLeft') {
+                    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
                       e.preventDefault()
                       const types = ['여벌', '착색', 'RX', '기타'] as const
                       const idx = types.indexOf(t)
@@ -776,7 +776,7 @@ export default function NewOrderPage() {
                       }, 50)
                     }
                   }}
-                  style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, outline: 'none' }}>
+                  style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: orderType === t ? '2px solid #4a6b4a' : '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, outline: 'none', boxShadow: orderType === t ? '0 0 0 2px rgba(93,122,93,0.3)' : 'none', transition: 'all 0.15s' }}>
                   <input type="radio" name="ot" checked={orderType === t} onChange={() => {}} style={{ display: 'none' }} />
                   <span style={{ color: 'inherit' }}>{t}</span>
                   <span style={{ fontSize: 10, color: orderType === t ? 'rgba(255,255,255,0.7)' : '#666' }}>[{key}]</span>
