@@ -348,9 +348,17 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     const el = cascadeRefs.current[key]
     if (el && !el.disabled) {
       el.focus()
-      // 드롭다운 펼치기 시도
+      // 드롭다운 펼치기 시도 (showPicker 우선, 없으면 click)
       setTimeout(() => {
-        el.click()
+        try {
+          if ('showPicker' in el && typeof el.showPicker === 'function') {
+            el.showPicker()
+          } else {
+            el.click()
+          }
+        } catch {
+          // showPicker 실패 시 무시
+        }
       }, 50)
     }
   }, [])
