@@ -156,8 +156,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     }
     
     setCCorr('')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initProduct])
+  }, [initProduct, products])
 
   // ── Prescription
   const [rxR, setRxR] = useState({ ...emptyRx })
@@ -356,18 +355,22 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     const el = cascadeRefs.current[key]
     if (el && !el.disabled) {
       el.focus()
-      // 드롭다운 펼치기 시도 (showPicker 우선, 없으면 click)
-      setTimeout(() => {
+      // 드롭다운 펼치기 시도
+      requestAnimationFrame(() => {
         try {
+          // showPicker가 가장 확실함 (Chrome 99+)
           if ('showPicker' in el && typeof el.showPicker === 'function') {
-            el.showPicker()
-          } else {
-            el.click()
+            (el as HTMLSelectElement).showPicker()
           }
         } catch {
-          // showPicker 실패 시 무시
+          // showPicker 실패 시 mousedown 이벤트로 시도
+          try {
+            el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+          } catch {
+            // 그래도 안 되면 그냥 focus만
+          }
         }
-      }, 50)
+      })
     }
   }, [])
 
