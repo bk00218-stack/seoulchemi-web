@@ -116,43 +116,65 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   const [cIdx,   setCIdx]   = useState('')
   const [cCorr,  setCCorr]  = useState('')
 
+  // ── Track previous values to avoid circular updates
+  const prevInitBrand = useRef(initBrand)
+  const prevInitProduct = useRef(initProduct)
+  const isInternalChange = useRef(false)
+
   // ── Sync with parent's brand selection
   useEffect(() => {
-    if (initBrand !== null && initBrand !== cBrand) {
-      setCBrand(initBrand)
-      setCLine(''); setCType(''); setCIdx(''); setCCorr('')
+    if (initBrand !== prevInitBrand.current) {
+      prevInitBrand.current = initBrand
+      if (initBrand !== null) {
+        setCBrand(initBrand)
+        setCLine(''); setCType(''); setCIdx(''); setCCorr('')
+      }
     }
   }, [initBrand])
 
   // ── Sync with parent's product selection (find and set cascade values)
   useEffect(() => {
+    if (initProduct === prevInitProduct.current) return
+    prevInitProduct.current = initProduct
+    
     if (!initProduct) return
     const product = products.find(p => p.id === initProduct)
     if (!product) return
     
-    // Set brand if different
-    if (product.brandId !== cBrand) {
-      setCBrand(product.brandId)
-    }
+    isInternalChange.current = true
+    
+    // Set brand
+    setCBrand(product.brandId)
     
     // Set product line if available
     if (product.productLine?.id) {
       setCLine(product.productLine.id)
+    } else {
+      setCLine('')
     }
     
     // Set option type if available
     if (product.optionType) {
       setCType(product.optionType)
+    } else {
+      setCType('')
     }
     
     // Set refractive index if available
     if (product.refractiveIndex) {
       setCIdx(product.refractiveIndex)
+    } else {
+      setCIdx('')
     }
+    
+    setCCorr('')
+    
+    setTimeout(() => { isInternalChange.current = false }, 100)
   }, [initProduct, products])
 
-  // ── Notify parent when brand changes
+  // ── Notify parent when brand changes (only for user-initiated changes)
   useEffect(() => {
+    if (isInternalChange.current) return
     if (onBrandChange && cBrand !== '' && cBrand !== initBrand) {
       onBrandChange(cBrand)
     }
