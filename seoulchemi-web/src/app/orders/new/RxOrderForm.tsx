@@ -80,16 +80,28 @@ const SPECIAL_PROCESS_OPTIONS = ['홈파기', '면취', '경사면취', '기타'
 const PRISM_OPTIONS = Array.from({ length: 16 }, (_, i) => ((i + 1) * 0.5).toFixed(1))
 const BASE_OPTIONS  = ['BU', 'BD', 'BI', 'BO']
 
-// SPH: -15.00 ~ +15.00 (0.50 단위)
+// SPH: -15.00 ~ +15.00 (0.25 단위)
 const SPH_OPTIONS: string[] = []
-for (let i = -15; i <= 15; i += 0.5) {
+for (let i = -15; i <= 15; i += 0.25) {
   SPH_OPTIONS.push(i >= 0 ? `+${i.toFixed(2)}` : i.toFixed(2))
 }
 
-// CYL: -6.00 ~ 0.00 (0.50 단위)
+// CYL: -6.00 ~ 0.00 (0.25 단위)
 const CYL_OPTIONS: string[] = []
-for (let i = -6; i <= 0; i += 0.5) {
+for (let i = -6; i <= 0; i += 0.25) {
   CYL_OPTIONS.push(i.toFixed(2))
+}
+
+// AXIS: 0 ~ 180
+const AXIS_OPTIONS: string[] = []
+for (let i = 0; i <= 180; i++) {
+  AXIS_OPTIONS.push(String(i))
+}
+
+// ADD: +0.50 ~ +4.00 (0.25 단위)
+const ADD_OPTIONS: string[] = []
+for (let i = 0.5; i <= 4; i += 0.25) {
+  ADD_OPTIONS.push(`+${i.toFixed(2)}`)
 }
 
 // 숫자 입력 → 도수 변환 (200 → -2.00, 225 → -2.25)
@@ -860,72 +872,99 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                     <tr key={side}>
                       <td style={{ ...rxTd, background: '#f4f6f8', fontWeight: 700, fontSize: 11, color }}>{side}</td>
 
-                      {/* SPH — 드롭다운 + 직접입력 */}
+                      {/* SPH — 입력+드롭다운 (0.25 단위) */}
                       <td style={rxTd}>
-                        <select
-                          ref={setRxRef(`${side}-sph`) as React.Ref<HTMLSelectElement>}
-                          style={{ ...inpStyle, width: '100%', cursor: 'pointer', fontSize: 11 }}
+                        <input
+                          ref={setRxRef(`${side}-sph`)}
+                          list={`sph-options-${side}`}
+                          style={{ ...inpStyle, width: '100%', fontSize: 11 }}
                           value={rx.sph}
+                          placeholder="-"
                           onChange={e => setRx(side, 'sph', e.target.value)}
-                          onKeyDown={e => {
-                            // 숫자 입력 감지 시 직접 입력 모드
-                            if (/^\d$/.test(e.key)) {
-                              e.preventDefault()
-                              const newVal = parseRxInput(e.key, 'sph')
-                              setRx(side, 'sph', e.key) // 일단 숫자만 넣고
-                              // 다음 입력 대기를 위해 input 모드 전환 (blur 시 변환)
-                            } else {
-                              handleRxKeyDown(side, 'sph', e)
-                            }
-                          }}
                           onBlur={e => {
                             const converted = parseRxInput(e.target.value, 'sph')
                             if (converted !== e.target.value) setRx(side, 'sph', converted)
-                          }}>
-                          <option value="">-</option>
-                          {SPH_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                          }}
+                          onKeyDown={e => handleRxKeyDown(side, 'sph', e)}
+                          onWheel={e => handleRxWheel(side, 'sph', e)}
+                        />
+                        <datalist id={`sph-options-${side}`}>
+                          {SPH_OPTIONS.map(v => <option key={v} value={v} />)}
+                        </datalist>
                       </td>
 
-                      {/* CYL — 드롭다운 + 직접입력 */}
+                      {/* CYL — 입력+드롭다운 (0.25 단위) */}
                       <td style={rxTd}>
-                        <select
-                          ref={setRxRef(`${side}-cyl`) as React.Ref<HTMLSelectElement>}
-                          style={{ ...inpStyle, width: '100%', cursor: 'pointer', fontSize: 11 }}
+                        <input
+                          ref={setRxRef(`${side}-cyl`)}
+                          list={`cyl-options-${side}`}
+                          style={{ ...inpStyle, width: '100%', fontSize: 11 }}
                           value={rx.cyl}
+                          placeholder="-"
                           onChange={e => setRx(side, 'cyl', e.target.value)}
-                          onKeyDown={e => {
-                            if (/^\d$/.test(e.key)) {
-                              e.preventDefault()
-                              setRx(side, 'cyl', e.key)
-                            } else {
-                              handleRxKeyDown(side, 'cyl', e)
-                            }
-                          }}
                           onBlur={e => {
                             const converted = parseRxInput(e.target.value, 'cyl')
                             if (converted !== e.target.value) setRx(side, 'cyl', converted)
-                          }}>
-                          <option value="">-</option>
-                          {CYL_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                          }}
+                          onKeyDown={e => handleRxKeyDown(side, 'cyl', e)}
+                          onWheel={e => handleRxWheel(side, 'cyl', e)}
+                        />
+                        <datalist id={`cyl-options-${side}`}>
+                          {CYL_OPTIONS.map(v => <option key={v} value={v} />)}
+                        </datalist>
                       </td>
 
-                      {/* AXIS / ADD / CURVE — 기존 input */}
-                      {(['axis', 'add', 'curve'] as const).map(f => (
-                        <td key={f} style={rxTd}>
-                          <input
-                            ref={setRxRef(`${side}-${f}`)}
-                            style={{ ...inpStyle, width: '100%' }}
-                            value={rx[f]}
-                            placeholder="-"
-                            onChange={e => setRx(side, f, e.target.value)}
-                            onBlur={e => blurRx(side, f, e.target.value)}
-                            onKeyDown={e => handleRxKeyDown(side, f, e)}
-                            onWheel={e => handleRxWheel(side, f, e)}
-                          />
-                        </td>
-                      ))}
+                      {/* AXIS — 드롭다운+입력 (0~180) */}
+                      <td style={rxTd}>
+                        <input
+                          ref={setRxRef(`${side}-axis`)}
+                          list={`axis-options-${side}`}
+                          style={{ ...inpStyle, width: '100%', fontSize: 11 }}
+                          value={rx.axis}
+                          placeholder="-"
+                          onChange={e => setRx(side, 'axis', e.target.value)}
+                          onKeyDown={e => handleRxKeyDown(side, 'axis', e)}
+                          onWheel={e => handleRxWheel(side, 'axis', e)}
+                        />
+                        <datalist id={`axis-options-${side}`}>
+                          {AXIS_OPTIONS.map(v => <option key={v} value={v} />)}
+                        </datalist>
+                      </td>
+
+                      {/* ADD — 드롭다운+입력 (+0.50~+4.00, 0.25단위) */}
+                      <td style={rxTd}>
+                        <input
+                          ref={setRxRef(`${side}-add`)}
+                          list={`add-options-${side}`}
+                          style={{ ...inpStyle, width: '100%', fontSize: 11 }}
+                          value={rx.add}
+                          placeholder="-"
+                          onChange={e => setRx(side, 'add', e.target.value)}
+                          onBlur={e => blurRx(side, 'add', e.target.value)}
+                          onKeyDown={e => handleRxKeyDown(side, 'add', e)}
+                          onWheel={e => handleRxWheel(side, 'add', e)}
+                        />
+                        <datalist id={`add-options-${side}`}>
+                          {ADD_OPTIONS.map(v => <option key={v} value={v} />)}
+                        </datalist>
+                      </td>
+
+                      {/* CURVE — 숫자 입력 */}
+                      <td style={rxTd}>
+                        <input
+                          ref={setRxRef(`${side}-curve`)}
+                          style={{ ...inpStyle, width: '100%' }}
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          max="10"
+                          value={rx.curve}
+                          placeholder="-"
+                          onChange={e => setRx(side, 'curve', e.target.value)}
+                          onKeyDown={e => handleRxKeyDown(side, 'curve', e)}
+                          onWheel={e => handleRxWheel(side, 'curve', e)}
+                        />
+                      </td>
 
                       {/* PD — 키보드 네비게이션 */}
                       <td style={rxTd}>
