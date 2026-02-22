@@ -111,16 +111,14 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
 
   // ── Cascade state
   const [cBrand, setCBrand] = useState<number | ''>(initBrand ?? '')
-  const [cLine,  setCLine]  = useState<number | ''>('')
-  const [cType,  setCType]  = useState('')
-  const [cIdx,   setCIdx]   = useState('')
+  const [cLine,  setCLine]  = useState<number | ''>('')  // 이제 productId 저장
   const [cCorr,  setCCorr]  = useState('')
 
   // ── Sync with parent's brand selection (always sync when initBrand changes)
   useEffect(() => {
     if (initBrand !== null && initBrand !== cBrand) {
       setCBrand(initBrand)
-      setCLine(''); setCType(''); setCIdx(''); setCCorr('')
+      setCLine(''); setCCorr('')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initBrand])
@@ -131,30 +129,9 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     const product = products.find(p => p.id === initProduct)
     if (!product) return
     
-    // 상품 선택 시 모든 cascade 값 동기화
+    // 상품 선택 시: 브랜드 + 상품ID 설정
     setCBrand(product.brandId)
-    
-    // Set product line if available
-    if (product.productLine?.id) {
-      setCLine(product.productLine.id)
-    } else {
-      setCLine('')
-    }
-    
-    // Set option type if available
-    if (product.optionType) {
-      setCType(product.optionType)
-    } else {
-      setCType('')
-    }
-    
-    // Set refractive index if available
-    if (product.refractiveIndex) {
-      setCIdx(product.refractiveIndex)
-    } else {
-      setCIdx('')
-    }
-    
+    setCLine(product.id)  // 이제 productId 직접 저장
     setCCorr('')
   }, [initProduct, products])
 
@@ -468,43 +445,28 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
       .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
   }, [products])
 
-  const lines = useMemo(() => {
+  // 브랜드별 상품 목록 (실제 제품명으로 표시)
+  const productList = useMemo(() => {
     if (!cBrand) return []
-    const map = new Map<number, string>()
-    products
-      .filter(p => p.brandId === cBrand && p.productLine)
-      .forEach(p => { if (p.productLine) map.set(p.productLine.id, p.productLine.name) })
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+    return products
+      .filter(p => p.brandId === cBrand)
+      .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
   }, [products, cBrand])
 
-  const types = useMemo(() => {
-    if (!cBrand) return []
-    let fp = products.filter(p => p.brandId === cBrand)
-    if (cLine !== '') fp = fp.filter(p => p.productLine?.id === cLine)
-    const set = new Set<string>()
-    fp.forEach(p => { if (p.optionType) set.add(p.optionType) })
-    return Array.from(set)
-  }, [products, cBrand, cLine])
+  // 선택된 상품 (cLine이 이제 productId를 저장)
+  const selectedProduct = useMemo((): Product | null => {
+    if (cLine === '') return null
+    return products.find(p => p.id === cLine) ?? null
+  }, [products, cLine])
 
-  const indices = useMemo(() => {
-    if (!cBrand) return []
-    let fp = products.filter(p => p.brandId === cBrand)
-    if (cLine !== '') fp = fp.filter(p => p.productLine?.id === cLine)
-    if (cType)        fp = fp.filter(p => p.optionType === cType)
-    const set = new Set<string>()
-    fp.forEach(p => { if (p.refractiveIndex) set.add(p.refractiveIndex) })
-    return Array.from(set).sort()
-  }, [products, cBrand, cLine, cType])
+  // 선택된 상품의 속성 표시용
+  const displayType = selectedProduct?.optionType ?? ''
+  const displayIdx = selectedProduct?.refractiveIndex ?? ''
 
-  const matched = useMemo((): Product | null => {
-    if (!cBrand || !cIdx) return null
-    let fp = products.filter(p => p.brandId === cBrand && p.refractiveIndex === cIdx)
-    if (cLine !== '') fp = fp.filter(p => p.productLine?.id === cLine)
-    if (cType)        fp = fp.filter(p => p.optionType === cType)
-    return fp[0] ?? null
-  }, [products, cBrand, cLine, cType, cIdx])
+  // matched는 이제 selectedProduct와 동일
+  const matched = selectedProduct
 
-  const needsCorridor = cType === '누진다초점'
+  const needsCorridor = displayType === '누진다초점'
   const fpd = fw && fb ? String(parseFloat(fw) + parseFloat(fb)) : ''
 
   // ── Notify parent when matched product changes
@@ -553,12 +515,12 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   }, [frameED, decenter])
 
   const badge = useMemo(() => {
-    if (!cBrand || !cIdx) return ''
-    const bn  = brands.find(b => b.id === cBrand)?.name ?? ''
-    const ln  = lines.find(l => l.id === cLine)?.name ?? ''
+    if (!selectedProduct) return ''
+    const bn = selectedProduct.brand ?? ''
+    const pn = selectedProduct.name ?? ''
     const cor = needsCorridor && cCorr ? ` / ${cCorr}` : ''
-    return [bn, ln, cType, cIdx].filter(Boolean).join(' / ') + cor
-  }, [cBrand, cIdx, brands, lines, cLine, cType, needsCorridor, cCorr])
+    return [bn, pn, displayIdx].filter(Boolean).join(' / ') + cor
+  }, [selectedProduct, displayIdx, needsCorridor, cCorr])
 
   const activeTintColors = tintColorsByBrand[tintBrand] || []
 
@@ -580,7 +542,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     setSpecialProcess(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k])
 
   const reset = () => {
-    setCBrand(''); setCLine(''); setCType(''); setCIdx(''); setCCorr('')
+    setCBrand(''); setCLine(''); setCCorr('')
     setRxR({ ...emptyRx }); setRxL({ ...emptyRx })
     setTintBrand('hoya'); setTintColor('none'); setTintDensity(0); setTintGradient(false)
     setCoatings([])
@@ -736,7 +698,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 style={selStyle} value={cBrand}
                 onChange={e => {
                   const v = e.target.value ? parseInt(e.target.value) : '' as const
-                  setCBrand(v); setCLine(''); setCType(''); setCIdx(''); setCCorr('')
+                  setCBrand(v); setCLine(''); setCCorr('')
                   // 부모에게 브랜드 변경 알림
                   onBrandChange?.(v || null)
                   // 다음 드롭다운으로 자동 이동
@@ -748,63 +710,55 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
               </select>
             </div>
 
-            {/* 상품(라인) */}
-            <div>
+            {/* 상품 (실제 제품 목록) */}
+            <div style={{ gridColumn: 'span 2' }}>
               <label style={labelSt}>상품</label>
               <select
                 ref={setCascadeRef('line')}
                 style={{ ...selStyle, color: !cBrand ? '#9ca3af' : '#111' }}
-                value={cLine} disabled={!cBrand || lines.length === 0}
+                value={cLine} disabled={!cBrand || productList.length === 0}
                 onChange={e => {
                   const v = e.target.value ? parseInt(e.target.value) : '' as const
-                  setCLine(v); setCType(''); setCIdx(''); setCCorr('')
-                  if (v) setTimeout(() => focusCascade('type'), 100)
-                }}
-                onKeyDown={e => handleCascadeKeyDown('line', e)}>
-                <option value="">{lines.length === 0 ? '-' : '선택'}</option>
-                {lines.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-              </select>
-            </div>
-
-            {/* 품목 */}
-            <div>
-              <label style={labelSt}>품목</label>
-              <select
-                ref={setCascadeRef('type')}
-                style={{ ...selStyle, color: !cBrand ? '#9ca3af' : '#111' }}
-                value={cType} disabled={!cBrand}
-                onChange={e => {
-                  setCType(e.target.value); setCIdx(''); setCCorr('')
-                  if (e.target.value) setTimeout(() => focusCascade('idx'), 100)
-                }}
-                onKeyDown={e => handleCascadeKeyDown('type', e)}>
-                <option value="">선택</option>
-                {types.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-
-            {/* 굴절률 */}
-            <div>
-              <label style={labelSt}>굴절률</label>
-              <select
-                ref={setCascadeRef('idx')}
-                style={{ ...selStyle, color: !cType ? '#9ca3af' : '#111' }}
-                value={cIdx} disabled={!cType}
-                onChange={e => {
-                  setCIdx(e.target.value)
-                  if (!needsCorridor) setCCorr('')
-                  // 누진다초점이면 누진대로, 아니면 처방으로
-                  if (e.target.value) {
+                  setCLine(v); setCCorr('')
+                  // 상품 선택하면 바로 처방으로 (누진다초점이면 누진대로)
+                  if (v) {
+                    const prod = products.find(p => p.id === v)
                     setTimeout(() => {
-                      if (needsCorridor) focusCascade('corr')
+                      if (prod?.optionType === '누진다초점') focusCascade('corr')
                       else focusRxField('R', 'sph')
                     }, 100)
                   }
                 }}
-                onKeyDown={e => handleCascadeKeyDown('idx', e)}>
-                <option value="">선택</option>
-                {indices.map(i => <option key={i} value={i}>{i}</option>)}
+                onKeyDown={e => handleCascadeKeyDown('line', e)}>
+                <option value="">{productList.length === 0 ? '-' : '선택'}</option>
+                {productList.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.refractiveIndex ? `(${p.refractiveIndex})` : ''}
+                  </option>
+                ))}
               </select>
+            </div>
+
+            {/* 품목 (읽기 전용 표시) */}
+            <div>
+              <label style={labelSt}>품목</label>
+              <input
+                style={{ ...selStyle, background: '#f9fafb', cursor: 'default' }}
+                value={displayType || '-'}
+                readOnly
+                tabIndex={-1}
+              />
+            </div>
+
+            {/* 굴절률 (읽기 전용 표시) */}
+            <div>
+              <label style={labelSt}>굴절률</label>
+              <input
+                style={{ ...selStyle, background: '#f9fafb', cursor: 'default' }}
+                value={displayIdx || '-'}
+                readOnly
+                tabIndex={-1}
+              />
             </div>
 
             {/* 누진대 */}
@@ -812,16 +766,16 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
               <label style={labelSt}>누진대</label>
               <select
                 ref={setCascadeRef('corr')}
-                style={{ ...selStyle, color: (!needsCorridor || !cIdx) ? '#9ca3af' : '#111' }}
+                style={{ ...selStyle, color: (displayType !== '누진다초점' || !selectedProduct) ? '#9ca3af' : '#111' }}
                 value={cCorr}
-                disabled={!needsCorridor || !cIdx}
+                disabled={displayType !== '누진다초점' || !selectedProduct}
                 onChange={e => {
                   setCCorr(e.target.value)
                   // 선택 후 처방으로 이동
                   if (e.target.value) setTimeout(() => focusRxField('R', 'sph'), 100)
                 }}
                 onKeyDown={e => handleCascadeKeyDown('corr', e)}>
-                <option value="">{needsCorridor ? '선택' : '-'}</option>
+                <option value="">{displayType === '누진다초점' ? '선택' : '-'}</option>
                 {needsCorridor && CORRIDOR_OPTIONS.map(c =>
                   <option key={c} value={c}>{c}</option>)}
               </select>
