@@ -230,7 +230,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   // ─── Keyboard Navigation ────────────────────────────────────────────────
 
   // 처방 필드 순서: R행 → L행 순서로
-  const RX_FIELDS = ['sph', 'cyl', 'axis', 'add', 'curve', 'pd', 'prism', 'base'] as const
+  const RX_FIELDS = ['sph', 'cyl', 'axis', 'add', 'pd', 'prism', 'base', 'curve'] as const
   const rxRefs = useRef<Record<string, HTMLInputElement | HTMLSelectElement | null>>({})
 
   const setRxRef = useCallback((key: string) => (el: HTMLInputElement | HTMLSelectElement | null) => {
@@ -738,7 +738,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           <div style={{
             ...secBody,
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
+            gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 8,
           }}>
             {/* 브랜드 */}
@@ -762,7 +762,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
             </div>
 
             {/* 상품 (실제 제품 목록) */}
-            <div style={{ gridColumn: 'span 2' }}>
+            <div>
               <label style={labelSt}>상품</label>
               <select
                 ref={setCascadeRef('line')}
@@ -788,17 +788,6 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   </option>
                 ))}
               </select>
-            </div>
-
-            {/* 품목 (읽기 전용 표시) */}
-            <div>
-              <label style={labelSt}>품목</label>
-              <input
-                style={{ ...selStyle, background: '#f9fafb', cursor: 'default' }}
-                value={displayType || '-'}
-                readOnly
-                tabIndex={-1}
-              />
             </div>
 
             {/* 굴절률 (읽기 전용 표시) */}
@@ -858,10 +847,10 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   <th style={rxTh}>CYL</th>
                   <th style={rxTh}>AXIS</th>
                   <th style={rxTh}>ADD</th>
-                  <th style={rxTh}>CURVE</th>
                   <th style={rxTh}>PD</th>
                   <th style={rxTh}>PRISM</th>
                   <th style={rxTh}>BASE</th>
+                  <th style={rxTh}>CURVE</th>
                 </tr>
               </thead>
               <tbody>
@@ -949,23 +938,6 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                         </datalist>
                       </td>
 
-                      {/* CURVE — 숫자 입력 */}
-                      <td style={rxTd}>
-                        <input
-                          ref={setRxRef(`${side}-curve`)}
-                          style={{ ...inpStyle, width: '100%' }}
-                          type="number"
-                          step="0.5"
-                          min="0"
-                          max="10"
-                          value={rx.curve}
-                          placeholder="-"
-                          onChange={e => setRx(side, 'curve', e.target.value)}
-                          onKeyDown={e => handleRxKeyDown(side, 'curve', e)}
-                          onWheel={e => handleRxWheel(side, 'curve', e)}
-                        />
-                      </td>
-
                       {/* PD — 키보드 네비게이션 */}
                       <td style={rxTd}>
                         <input
@@ -1002,6 +974,23 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                           <option value="">-</option>
                           {BASE_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
                         </select>
+                      </td>
+
+                      {/* CURVE — 숫자 입력 */}
+                      <td style={rxTd}>
+                        <input
+                          ref={setRxRef(`${side}-curve`)}
+                          style={{ ...inpStyle, width: '100%' }}
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          max="10"
+                          value={rx.curve}
+                          placeholder="-"
+                          onChange={e => setRx(side, 'curve', e.target.value)}
+                          onKeyDown={e => handleRxKeyDown(side, 'curve', e)}
+                          onWheel={e => handleRxWheel(side, 'curve', e)}
+                        />
                       </td>
                     </tr>
                   )
