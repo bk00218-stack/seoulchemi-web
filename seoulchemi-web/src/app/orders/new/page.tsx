@@ -54,6 +54,7 @@ export default function NewOrderPage() {
   const { toast } = useToast()
   const storeInputRef = useRef<HTMLInputElement>(null)
   const storeResultRefs = useRef<(HTMLDivElement | null)[]>([])
+  const orderTypeRefs = useRef<Record<string, HTMLLabelElement | null>>({})
   const brandSelectRef = useRef<HTMLSelectElement>(null)
   const productListRef = useRef<HTMLDivElement>(null)
   const productItemRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -634,7 +635,7 @@ export default function NewOrderPage() {
               🏪 상호 <span style={{ fontSize: 10, color: '#868e96', fontWeight: 400 }}>[Esc]</span>
             </label>
             <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
-              onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); brandSelectRef.current?.focus() } }}
+              onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); setTimeout(() => orderTypeRefs.current[orderType]?.focus(), 0) } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1); if (selectedStore) setSelectedStore(null) }}
               style={{ 
                 width: '100%', 
@@ -701,7 +702,7 @@ export default function NewOrderPage() {
             {storeSearchText && !selectedStore && storesLoaded && storeSearchResults.length > 0 && (
               <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #5d7a5d', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                 {storeSearchResults.map((s, i) => (
-                  <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); brandSelectRef.current?.focus() }}
+                  <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); setTimeout(() => orderTypeRefs.current[orderType]?.focus(), 0) }}
                     style={{ 
                       padding: '8px 12px', 
                       cursor: 'pointer', 
@@ -738,8 +739,45 @@ export default function NewOrderPage() {
                 { label: 'RX', key: 'F9' },
                 { label: '기타', key: 'F10' }
               ] as const).map(({ label: t, key }) => (
-                <label key={t} style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                  <input type="radio" name="ot" checked={orderType === t} onChange={() => setOrderType(t)} style={{ display: 'none' }} />
+                <label 
+                  key={t} 
+                  ref={el => { orderTypeRefs.current[t] = el }}
+                  tabIndex={0}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setOrderType(t)
+                      // 여벌/착색/RX 선택 시 품목 드롭다운 열기
+                      if (t !== '기타') {
+                        setTimeout(() => {
+                          brandSelectRef.current?.focus()
+                          try { (brandSelectRef.current as any)?.showPicker?.() } catch {}
+                        }, 50)
+                      }
+                    } else if (e.key === 'ArrowRight') {
+                      e.preventDefault()
+                      const types = ['여벌', '착색', 'RX', '기타'] as const
+                      const idx = types.indexOf(t)
+                      if (idx < 3) orderTypeRefs.current[types[idx + 1]]?.focus()
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault()
+                      const types = ['여벌', '착색', 'RX', '기타'] as const
+                      const idx = types.indexOf(t)
+                      if (idx > 0) orderTypeRefs.current[types[idx - 1]]?.focus()
+                    }
+                  }}
+                  onClick={() => {
+                    setOrderType(t)
+                    // 여벌/착색/RX 선택 시 품목 드롭다운 열기
+                    if (t !== '기타') {
+                      setTimeout(() => {
+                        brandSelectRef.current?.focus()
+                        try { (brandSelectRef.current as any)?.showPicker?.() } catch {}
+                      }, 50)
+                    }
+                  }}
+                  style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, outline: 'none' }}>
+                  <input type="radio" name="ot" checked={orderType === t} onChange={() => {}} style={{ display: 'none' }} />
                   <span style={{ color: 'inherit' }}>{t}</span>
                   <span style={{ fontSize: 10, color: orderType === t ? 'rgba(255,255,255,0.7)' : '#666' }}>[{key}]</span>
                 </label>
