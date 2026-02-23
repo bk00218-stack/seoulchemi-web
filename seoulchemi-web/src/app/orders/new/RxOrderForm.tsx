@@ -286,7 +286,12 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     if (e.key === 'Enter') {
       e.preventDefault()
       const next = getNextRxField(side, field)
-      if (next) focusRxField(next.side, next.field)
+      if (next) {
+        focusRxField(next.side, next.field)
+      } else if (side === 'L' && field === 'curve') {
+        // L-CURVE 다음은 피팅 PD로 이동
+        focusFrameField('fpd_input')
+      }
     }
     else if (e.key === 'ArrowRight') {
       // 커서가 맨 끝이면 다음 필드로
@@ -343,7 +348,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
 
   // ─── Inframe Keyboard Navigation ────────────────────────────────────────
 
-  const FRAME_FIELDS = ['model', 'a', 'b', 'dbl', 'temple', 'memo', 'fw', 'fb', 'fd', 'fh'] as const
+  const FRAME_FIELDS = ['model', 'a', 'b', 'dbl', 'temple', 'memo', 'fpd_input', 'fw', 'fb', 'fd', 'fh'] as const
   const frameRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   const setFrameRef = useCallback((key: string) => (el: HTMLInputElement | null) => {
@@ -803,15 +808,17 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
               </select>
             </div>
 
-            {/* 굴절률 (읽기 전용 표시) */}
+            {/* 굴절률 */}
             <div>
               <label style={labelSt}>굴절률</label>
-              <input
-                style={{ ...selStyle, background: '#f9fafb', cursor: 'default' }}
-                value={displayIdx || '-'}
-                readOnly
-                tabIndex={-1}
-              />
+              <select
+                ref={setCascadeRef('idx')}
+                style={{ ...selStyle, color: !selectedProduct ? '#9ca3af' : '#111' }}
+                value={displayIdx || ''}
+                disabled={!selectedProduct}
+                onKeyDown={e => handleCascadeKeyDown('idx', e)}>
+                <option value="">{selectedProduct ? displayIdx || '-' : '-'}</option>
+              </select>
             </div>
 
             {/* 누진대 */}
@@ -1019,10 +1026,33 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           <div style={secBody}>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(5, 1fr)',
+              gridTemplateColumns: 'repeat(6, 1fr)',
               gap: 8,
               marginBottom: 12,
             }}>
+              <div>
+                <label style={labelSt}>PD (양안)</label>
+                <input
+                  ref={setFrameRef('fpd_input')}
+                  type="number" 
+                  step="0.5"
+                  placeholder="64"
+                  onChange={e => {
+                    const val = parseFloat(e.target.value)
+                    if (!isNaN(val) && val > 0) {
+                      const half = (val / 2).toFixed(1)
+                      setRx('R', 'pd', half)
+                      setRx('L', 'pd', half)
+                    }
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault(); focusFrameField('fw')
+                    }
+                  }}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '2px solid #5d7a5d', borderRadius: 4, background: '#f0faf5', outline: 'none' }}
+                />
+              </div>
               <div>
                 <label style={labelSt}>가로 (mm)</label>
                 <input
@@ -1032,6 +1062,8 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   onKeyDown={e => {
                     if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fw.length)) {
                       e.preventDefault(); focusFrameField('fb')
+                    } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                      e.preventDefault(); focusFrameField('fpd_input')
                     }
                   }}
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
