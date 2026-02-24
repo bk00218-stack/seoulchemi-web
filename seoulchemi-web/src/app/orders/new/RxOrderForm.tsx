@@ -39,66 +39,159 @@ interface TintColor {
   hex: string
 }
 
-type TintBrandKey = 'common' | 'acute' | 'chemi'
+type TintBrandKey = 'common' | 'hoya' | 'guardian' | 'chemi' | 'essilor' | 'acute'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CORRIDOR_OPTIONS = ['11mm', '12mm', '13mm', '14mm', '17mm', '18mm']
 
 const TINT_BRANDS: { key: TintBrandKey; label: string }[] = [
-  { key: 'common', label: '공용' },
-  { key: 'acute',  label: 'ACUTE' },
-  { key: 'chemi',  label: '케미' },
+  { key: 'common',   label: '공용' },
+  { key: 'hoya',     label: '호야' },
+  { key: 'guardian', label: '가디안' },
+  { key: 'chemi',    label: '케미' },
+  { key: 'essilor',  label: '에실로' },
+  { key: 'acute',    label: 'ACUTE' },
 ]
 
 // 브랜드별 착색 색상 (레티나 기준)
 const TINT_COLORS_BY_BRAND: Record<TintBrandKey, TintColor[]> = {
-  // 공용 착색
+  // 공용 착색 (15개)
   common: [
-    { key: 'smog',        label: '스모그',       hex: '#696969' },
-    { key: 'brown',       label: '브라운',       hex: '#8B4513' },
-    { key: 'green_abin',  label: '그린(에이빈)', hex: '#228B22' },
-    { key: 'black',       label: 'BLACK',        hex: '#1a1a1a' },
-    { key: 'gray',        label: 'GRAY',         hex: '#808080' },
-    { key: 'guardian_y',  label: '가디안 Y',     hex: '#DAA520' },
-    { key: 'green',       label: '그린',         hex: '#2E8B57' },
-    { key: 'red',         label: '레드',         hex: '#CD5C5C' },
-    { key: 'blue',        label: '블루',         hex: '#4169E1' },
-    { key: 'yellow',      label: '옐로우',       hex: '#FFD700' },
-    { key: 'tint_green',  label: '틴트그린',     hex: '#90EE90' },
-    { key: 'tint_blue',   label: '틴트블루',     hex: '#87CEEB' },
-    { key: 'tint_yellow', label: '틴트옐로우',   hex: '#FFFACD' },
-    { key: 'tint_pink',   label: '틴트핑크',     hex: '#FFB6C1' },
+    { key: '스모그',       label: '스모그',       hex: '#696969' },
+    { key: '브라운',       label: '브라운',       hex: '#8B4513' },
+    { key: '그린(레이밴)', label: '그린(레이밴)', hex: '#228B22' },
+    { key: 'BLACK',        label: 'BLACK',        hex: '#1a1a1a' },
+    { key: 'GRAY',         label: 'GRAY',         hex: '#808080' },
+    { key: '가디안 Y',     label: '가디안 Y',     hex: '#DAA520' },
+    { key: '그린',         label: '그린',         hex: '#2E8B57' },
+    { key: '레드',         label: '레드',         hex: '#CD5C5C' },
+    { key: '블루',         label: '블루',         hex: '#4169E1' },
+    { key: '옐로우',       label: '옐로우',       hex: '#FFD700' },
+    { key: '틴트그린',     label: '틴트그린',     hex: '#90EE90' },
+    { key: '틴트블루',     label: '틴트블루',     hex: '#87CEEB' },
+    { key: '틴트옐로우',   label: '틴트옐로우',   hex: '#FFFACD' },
+    { key: '틴트퍼플',     label: '틴트퍼플',     hex: '#9370DB' },
+    { key: '틴트핑크',     label: '틴트핑크',     hex: '#FFB6C1' },
   ],
-  // ACUTE 착색
-  acute: [
-    { key: 'CPK', label: 'CPK', hex: '#FFB6C1' },  // 코랄핑크
-    { key: 'CPP', label: 'CPP', hex: '#DDA0DD' },  // 코랄퍼플
-    { key: 'DBR', label: 'DBR', hex: '#654321' },  // 다크브라운
-    { key: 'DGN', label: 'DGN', hex: '#006400' },  // 다크그린
-    { key: 'DGY', label: 'DGY', hex: '#404040' },  // 다크그레이
-    { key: 'GBL', label: 'GBL', hex: '#4682B4' },  // 그레이블루
-    { key: 'GGY', label: 'GGY', hex: '#696969' },  // 그린그레이
-    { key: 'GPK', label: 'GPK', hex: '#FFB6C1' },  // 그레이핑크
-    { key: 'GPP', label: 'GPP', hex: '#9370DB' },  // 그레이퍼플
-    { key: 'MGY', label: 'MGY', hex: '#808080' },  // 미디엄그레이
-    { key: 'NBR', label: 'NBR', hex: '#8B4513' },  // 내추럴브라운
-    { key: 'OBL', label: 'OBL', hex: '#4169E1' },  // 오션블루
-    { key: 'SBR', label: 'SBR', hex: '#A0522D' },  // 소프트브라운
-    { key: 'SYL', label: 'SYL', hex: '#F0E68C' },  // 소프트옐로우
-    { key: 'WBR', label: 'WBR', hex: '#D2B48C' },  // 웜브라운
+  // 호야 착색 (30개)
+  hoya: [
+    { key: 'ABL', label: 'ABL', hex: '#4169E1' },
+    { key: 'BLV', label: 'BLV', hex: '#8A2BE2' },
+    { key: 'CBL', label: 'CBL', hex: '#4682B4' },
+    { key: 'CCB', label: 'CCB', hex: '#5F9EA0' },
+    { key: 'CMB', label: 'CMB', hex: '#D2691E' },
+    { key: 'CPK', label: 'CPK', hex: '#FFB6C1' },
+    { key: 'IGY', label: 'IGY', hex: '#708090' },
+    { key: 'LGN', label: 'LGN', hex: '#90EE90' },
+    { key: 'MLP', label: 'MLP', hex: '#DDA0DD' },
+    { key: 'RGY', label: 'RGY', hex: '#BC8F8F' },
+    { key: 'RWN', label: 'RWN', hex: '#8B0000' },
+    { key: 'SBK', label: 'SBK', hex: '#1a1a1a' },
+    { key: 'SBL', label: 'SBL', hex: '#87CEEB' },
+    { key: 'SBR', label: 'SBR', hex: '#A0522D' },
+    { key: 'SDO', label: 'SDO', hex: '#FF8C00' },
+    { key: 'SG',  label: 'SG',  hex: '#2E8B57' },
+    { key: 'SGN', label: 'SGN', hex: '#3CB371' },
+    { key: 'SGY', label: 'SGY', hex: '#708090' },
+    { key: 'SNO', label: 'SNO', hex: '#FFFAFA' },
+    { key: 'SYL', label: 'SYL', hex: '#F0E68C' },
+    { key: 'VB',  label: 'VB',  hex: '#EE82EE' },
+    { key: 'CN',  label: 'CN',  hex: '#00CED1' },
+    { key: 'EB',  label: 'EB',  hex: '#4169E1' },
+    { key: 'FG',  label: 'FG',  hex: '#228B22' },
+    { key: 'LI',  label: 'LI',  hex: '#E6E6FA' },
+    { key: 'PP',  label: 'PP',  hex: '#9370DB' },
+    { key: 'PW',  label: 'PW',  hex: '#FFE4E1' },
+    { key: 'SB',  label: 'SB',  hex: '#87CEEB' },
+    { key: 'SBW', label: 'SBW', hex: '#DEB887' },
+    { key: 'SGE', label: 'SGE', hex: '#8FBC8F' },
   ],
-  // 케미 착색
+  // 가디안 착색 (12개)
+  guardian: [
+    { key: 'B1', label: 'B1', hex: '#8B4513' },
+    { key: 'B2', label: 'B2', hex: '#A0522D' },
+    { key: 'B3', label: 'B3', hex: '#D2691E' },
+    { key: 'G1', label: 'G1', hex: '#2E8B57' },
+    { key: 'G2', label: 'G2', hex: '#3CB371' },
+    { key: 'G3', label: 'G3', hex: '#90EE90' },
+    { key: 'K1', label: 'K1', hex: '#2F4F4F' },
+    { key: 'K2', label: 'K2', hex: '#696969' },
+    { key: 'K3', label: 'K3', hex: '#808080' },
+    { key: 'Y1', label: 'Y1', hex: '#DAA520' },
+    { key: 'Y2', label: 'Y2', hex: '#FFD700' },
+    { key: 'Y3', label: 'Y3', hex: '#F0E68C' },
+  ],
+  // 케미 착색 (24개)
   chemi: [
-    { key: 'SGN',  label: 'SGN',  hex: '#2E8B57' },  // 소프트그린
-    { key: 'SBK',  label: 'SBK',  hex: '#1a1a1a' },  // 소프트블랙
-    { key: 'SBR',  label: 'SBR',  hex: '#A0522D' },  // 소프트브라운
-    { key: 'S-1',  label: 'S-1',  hex: '#696969' },
-    { key: 'S-2',  label: 'S-2',  hex: '#808080' },
-    { key: 'S-3',  label: 'S-3',  hex: '#A9A9A9' },
-    { key: 'S-4',  label: 'S-4',  hex: '#8B4513' },
-    { key: 'S-5',  label: 'S-5',  hex: '#A0522D' },
-    { key: 'S-6',  label: 'S-6',  hex: '#D2B48C' },
+    { key: '1-ABL',  label: 'ABL',  hex: '#4169E1' },
+    { key: '2-VB',   label: 'VB',   hex: '#EE82EE' },
+    { key: '3-BLV',  label: 'BLV',  hex: '#8A2BE2' },
+    { key: '4-CBL',  label: 'CBL',  hex: '#4682B4' },
+    { key: '5-MLP',  label: 'MLP',  hex: '#DDA0DD' },
+    { key: '6-IGY',  label: 'IGY',  hex: '#708090' },
+    { key: '7-CMB',  label: 'CMB',  hex: '#D2691E' },
+    { key: '8-SNO',  label: 'SNO',  hex: '#FFFAFA' },
+    { key: '9-RWN',  label: 'RWN',  hex: '#8B0000' },
+    { key: '10-CPK', label: 'CPK',  hex: '#FFB6C1' },
+    { key: '11-RGY', label: 'RGY',  hex: '#BC8F8F' },
+    { key: '12-CCB', label: 'CCB',  hex: '#5F9EA0' },
+    { key: '13-SG',  label: 'SG',   hex: '#2E8B57' },
+    { key: '14-SGY', label: 'SGY',  hex: '#708090' },
+    { key: '15-SBL', label: 'SBL',  hex: '#87CEEB' },
+    { key: '16-SGN', label: 'SGN',  hex: '#3CB371' },
+    { key: '17-SBK', label: 'SBK',  hex: '#1a1a1a' },
+    { key: '18-SBR', label: 'SBR',  hex: '#A0522D' },
+    { key: 'S-1',    label: 'S-1',  hex: '#696969' },
+    { key: 'S-2',    label: 'S-2',  hex: '#808080' },
+    { key: 'S-3',    label: 'S-3',  hex: '#A9A9A9' },
+    { key: 'S-4',    label: 'S-4',  hex: '#8B4513' },
+    { key: 'S-5',    label: 'S-5',  hex: '#A0522D' },
+    { key: 'S-6',    label: 'S-6',  hex: '#D2B48C' },
+  ],
+  // 에실로-ACUTE(신) 착색 (21개)
+  essilor: [
+    { key: 'ABL',     label: 'ABL',     hex: '#4169E1' },
+    { key: 'BLV',     label: 'BLV',     hex: '#8A2BE2' },
+    { key: 'BTBR',    label: 'BTBR',    hex: '#8B4513' },
+    { key: 'CBLP',    label: 'CBLP',    hex: '#4682B4' },
+    { key: 'CCB',     label: 'CCB',     hex: '#5F9EA0' },
+    { key: 'CMB',     label: 'CMB',     hex: '#D2691E' },
+    { key: 'CPKP',    label: 'CPKP',    hex: '#FFB6C1' },
+    { key: 'IGY',     label: 'IGY',     hex: '#708090' },
+    { key: 'LGN',     label: 'LGN',     hex: '#90EE90' },
+    { key: 'MAS',     label: 'MAS',     hex: '#800000' },
+    { key: 'MBK',     label: 'MBK',     hex: '#1a1a1a' },
+    { key: 'MLP',     label: 'MLP',     hex: '#DDA0DD' },
+    { key: 'RGY',     label: 'RGY',     hex: '#BC8F8F' },
+    { key: 'RWN',     label: 'RWN',     hex: '#8B0000' },
+    { key: 'SBL',     label: 'SBL',     hex: '#87CEEB' },
+    { key: 'SDO',     label: 'SDO',     hex: '#FF8C00' },
+    { key: 'SGN',     label: 'SGN',     hex: '#3CB371' },
+    { key: 'SGY',     label: 'SGY',     hex: '#708090' },
+    { key: 'SNO',     label: 'SNO',     hex: '#FFFAFA' },
+    { key: 'TOU',     label: 'TOU',     hex: '#D2B48C' },
+    { key: 'X-perio', label: 'X-perio', hex: '#808080' },
+  ],
+  // ACUTE 착색 (17개)
+  acute: [
+    { key: 'CBL', label: 'CBL', hex: '#4682B4' },
+    { key: 'CGY', label: 'CGY', hex: '#708090' },
+    { key: 'CPK', label: 'CPK', hex: '#FFB6C1' },
+    { key: 'CPP', label: 'CPP', hex: '#DDA0DD' },
+    { key: 'DBR', label: 'DBR', hex: '#654321' },
+    { key: 'DGN', label: 'DGN', hex: '#006400' },
+    { key: 'DGY', label: 'DGY', hex: '#404040' },
+    { key: 'GBL', label: 'GBL', hex: '#4682B4' },
+    { key: 'GGY', label: 'GGY', hex: '#696969' },
+    { key: 'GPK', label: 'GPK', hex: '#FFB6C1' },
+    { key: 'GPP', label: 'GPP', hex: '#9370DB' },
+    { key: 'MGY', label: 'MGY', hex: '#808080' },
+    { key: 'NBR', label: 'NBR', hex: '#8B4513' },
+    { key: 'OBL', label: 'OBL', hex: '#4169E1' },
+    { key: 'SBR', label: 'SBR', hex: '#A0522D' },
+    { key: 'SYL', label: 'SYL', hex: '#F0E68C' },
+    { key: 'WBR', label: 'WBR', hex: '#D2B48C' },
   ],
 }
 
@@ -247,7 +340,14 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   const [tintColor,    setTintColor]    = useState('none')
   const [tintDensity,  setTintDensity]  = useState(0)
   const [tintGradient, setTintGradient] = useState(false)
-  const [tintColorsByBrand, setTintColorsByBrand] = useState<Record<TintBrandKey, TintColor[]>>(TINT_COLORS_BY_BRAND)
+  const [tintColorsByBrand, setTintColorsByBrand] = useState<Record<TintBrandKey, TintColor[]>>({
+    common: TINT_COLORS_BY_BRAND.common,
+    hoya: TINT_COLORS_BY_BRAND.hoya,
+    guardian: TINT_COLORS_BY_BRAND.guardian,
+    chemi: TINT_COLORS_BY_BRAND.chemi,
+    essilor: TINT_COLORS_BY_BRAND.essilor,
+    acute: TINT_COLORS_BY_BRAND.acute,
+  })
   const [tintLoaded, setTintLoaded] = useState(true)  // 기본값 사용
 
   // ── Coating
@@ -517,7 +617,14 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           settings[s.key] = s.value
         })
         // DB에 설정된 값이 있으면 오버라이드
-        const result = { ...TINT_COLORS_BY_BRAND }
+        const result: Record<TintBrandKey, TintColor[]> = {
+          common: [...TINT_COLORS_BY_BRAND.common],
+          hoya: [...TINT_COLORS_BY_BRAND.hoya],
+          guardian: [...TINT_COLORS_BY_BRAND.guardian],
+          chemi: [...TINT_COLORS_BY_BRAND.chemi],
+          essilor: [...TINT_COLORS_BY_BRAND.essilor],
+          acute: [...TINT_COLORS_BY_BRAND.acute],
+        }
         for (const brand of TINT_BRANDS) {
           const raw = settings[`tint.colors.${brand.key}`]
           if (raw) {
