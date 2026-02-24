@@ -723,15 +723,16 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     return { r, l }
   }, [fittingFPD, rxR.pd, rxL.pd])
 
-  // ── 최소 블랭크 직경: ED + |편심| + 여유(2mm)
+  // ── 최소 블랭크 직경: ED + |편심| × 2 + 여유(2mm)
+  // R/L 중 큰 값 하나만 표시 (양쪽 같은 블랭크 사용)
   const fittingMinBlank = useMemo(() => {
     const ed = parseFloat(fittingED)
-    if (isNaN(ed) || ed <= 0) return { r: '', l: '' }
-    const decR = parseFloat(fittingDecenter.r)
-    const decL = parseFloat(fittingDecenter.l)
-    const r = !isNaN(decR) ? (ed + Math.abs(decR) * 2 + 2).toFixed(1) : ''
-    const l = !isNaN(decL) ? (ed + Math.abs(decL) * 2 + 2).toFixed(1) : ''
-    return { r, l }
+    if (isNaN(ed) || ed <= 0) return ''
+    const decR = Math.abs(parseFloat(fittingDecenter.r) || 0)
+    const decL = Math.abs(parseFloat(fittingDecenter.l) || 0)
+    const maxDec = Math.max(decR, decL)
+    // 최소 블랭크 = ED + (편심 × 2) + 가공여유(2mm)
+    return (ed + maxDec * 2 + 2).toFixed(1)
   }, [fittingED, fittingDecenter])
 
   // ── 굴절률 추출 (상품명에서)
@@ -1394,9 +1395,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 <label style={labelSt}>최소블랭크</label>
                 <input
                   type="text" 
-                  value={fittingMinBlank.r && fittingMinBlank.l 
-                    ? `R${fittingMinBlank.r} / L${fittingMinBlank.l}` 
-                    : fittingMinBlank.r || fittingMinBlank.l || ''}
+                  value={fittingMinBlank ? `${fittingMinBlank}mm` : ''}
                   readOnly
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
@@ -1405,7 +1404,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                       e.preventDefault(); focusFrameField('fh')
                     }
                   }}
-                  placeholder="R-- / L--"
+                  placeholder="--mm"
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#f0faf5', color: '#5d7a5d', fontWeight: 600, outline: 'none' }}
                 />
               </div>
