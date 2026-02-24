@@ -734,6 +734,82 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     return { r, l }
   }, [fittingED, fittingDecenter])
 
+  // ── 굴절률 추출 (상품명에서)
+  const refractiveIndex = useMemo(() => {
+    if (!selectedProduct?.name) return 1.60 // 기본값
+    const name = selectedProduct.name
+    if (name.includes('1.74')) return 1.74
+    if (name.includes('1.67')) return 1.67
+    if (name.includes('1.60')) return 1.60
+    if (name.includes('1.56')) return 1.56
+    if (name.includes('1.50')) return 1.50
+    return 1.60
+  }, [selectedProduct?.name])
+
+  // ── 렌즈 두께 계산 (구면 기준 + 난시 고려)
+  const lensThickness = useMemo(() => {
+    const ed = parseFloat(fittingED)
+    const decR = parseFloat(fittingDecenter.r) || 0
+    const decL = parseFloat(fittingDecenter.l) || 0
+    
+    if (isNaN(ed) || ed <= 0) return { r: null, l: null }
+    
+    const n = refractiveIndex
+    const centerThickness = 1.2 // 최소 중심두께 (mm)
+    const edgeMin = 1.5 // 최소 가장자리 두께 (mm)
+    
+    const calcThickness = (sph: string, cyl: string, axis: string, dec: number) => {
+      const spherePower = parseFloat(sph) || 0
+      const cylPower = parseFloat(cyl) || 0
+      const axisVal = parseFloat(axis) || 0
+      
+      if (spherePower === 0 && cylPower === 0) return null
+      
+      // 실제 렌즈 반경 (ED/2 + 편심)
+      const radius = (ed / 2) + Math.abs(dec)
+      
+      // 합산 도수 (가장 강한 경선)
+      const maxPower = spherePower + cylPower
+      const minPower = spherePower
+      
+      // 난시 축에 따른 두께 방향 계산
+      // 0°/180° 축: 좌우 방향이 CYL 영향
+      // 90° 축: 상하 방향이 CYL 영향
+      const isHorizontalAxis = axisVal <= 30 || axisVal >= 150
+      
+      // Sag 공식 근사: thickness = power × radius² / (2000 × (n-1))
+      const sagFactor = (radius * radius) / (2000 * (n - 1))
+      
+      if (maxPower < 0) {
+        // 마이너스 렌즈 (근시) - 가장자리가 두꺼움
+        const edgeThickMax = centerThickness + Math.abs(maxPower) * sagFactor
+        const edgeThickMin = centerThickness + Math.abs(minPower) * sagFactor
+        return {
+          center: centerThickness.toFixed(1),
+          edgeMax: edgeThickMax.toFixed(1),
+          edgeMin: edgeThickMin.toFixed(1),
+          type: 'minus',
+          axis: isHorizontalAxis ? '좌우' : '상하'
+        }
+      } else {
+        // 플러스 렌즈 (원시) - 중심이 두꺼움
+        const centerThickCalc = edgeMin + maxPower * sagFactor
+        return {
+          center: centerThickCalc.toFixed(1),
+          edgeMax: edgeMin.toFixed(1),
+          edgeMin: edgeMin.toFixed(1),
+          type: 'plus',
+          axis: isHorizontalAxis ? '좌우' : '상하'
+        }
+      }
+    }
+    
+    return {
+      r: calcThickness(rxR.sph, rxR.cyl, rxR.axis, decR),
+      l: calcThickness(rxL.sph, rxL.cyl, rxL.axis, decL)
+    }
+  }, [fittingED, fittingDecenter, rxR, rxL, refractiveIndex])
+
   // ── ED (유효직경) 자동계산: √(A² + B²)
   const frameED = useMemo(() => {
     const a = parseFloat(frameA)
@@ -1338,7 +1414,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 display: 'flex', 
                 flexWrap: 'wrap',
                 gap: '8px 20px', 
-                marginBottom: 12, 
+                marginBottom: 8, 
                 padding: '8px 12px',
                 background: '#f8faf9',
                 borderRadius: 6,
@@ -1363,6 +1439,45 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                     </strong>
                   </span>
                 )}
+                <span>굴절률: <strong style={{ color: '#5d7a5d' }}>{refractiveIndex}</strong></span>
+              </div>
+            )}
+
+            {/* 렌즈 두께 예상 표시 */}
+            {(lensThickness.r || lensThickness.l) && (
+              <div style={{ 
+                marginBottom: 12, 
+                padding: '10px 12px',
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                borderRadius: 6,
+                border: '1px solid #f59e0b',
+                fontSize: 11
+              }}>
+                <div style={{ fontWeight: 600, color: '#92400e', marginBottom: 6 }}>
+                  📏 예상 렌즈 두께 (구면 기준, 비구면시 10~15% 감소)
+                </div>
+                <div style={{ display: 'flex', gap: 24, color: '#78350f' }}>
+                  {lensThickness.r && (
+                    <div>
+                      <strong>R:</strong>{' '}
+                      {lensThickness.r.type === 'minus' ? (
+                        <>중심 {lensThickness.r.center}mm → 가장자리 <strong>{lensThickness.r.edgeMax}mm</strong> ({lensThickness.r.axis} 최대)</>
+                      ) : (
+                        <>중심 <strong>{lensThickness.r.center}mm</strong> → 가장자리 {lensThickness.r.edgeMax}mm</>
+                      )}
+                    </div>
+                  )}
+                  {lensThickness.l && (
+                    <div>
+                      <strong>L:</strong>{' '}
+                      {lensThickness.l.type === 'minus' ? (
+                        <>중심 {lensThickness.l.center}mm → 가장자리 <strong>{lensThickness.l.edgeMax}mm</strong> ({lensThickness.l.axis} 최대)</>
+                      ) : (
+                        <>중심 <strong>{lensThickness.l.center}mm</strong> → 가장자리 {lensThickness.l.edgeMax}mm</>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
