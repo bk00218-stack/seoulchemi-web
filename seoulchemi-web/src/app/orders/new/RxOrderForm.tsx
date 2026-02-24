@@ -687,6 +687,30 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     return r > 0 || l > 0 ? String(r + l) : ''
   }, [rxR.pd, rxL.pd])
 
+  // ── 피팅 FPD 자동계산: 가로(A) + 브릿지(DBL)
+  const fittingFPD = useMemo(() => {
+    const a = parseFloat(fw)
+    const dbl = parseFloat(fb)
+    if (isNaN(a) || isNaN(dbl) || a <= 0 || dbl <= 0) return ''
+    return String(a + dbl)
+  }, [fw, fb])
+
+  // ── 피팅 ED 자동계산: √(가로² + 상하²)
+  const fittingED = useMemo(() => {
+    const a = parseFloat(fw)
+    const b = parseFloat(fh)
+    if (isNaN(a) || isNaN(b) || a <= 0 || b <= 0) return ''
+    return Math.sqrt(a * a + b * b).toFixed(1)
+  }, [fw, fh])
+
+  // ── 사이즈 표기 자동생성: 52□18 형식
+  const autoFrameSize = useMemo(() => {
+    const a = parseFloat(fw)
+    const dbl = parseFloat(fb)
+    if (isNaN(a) || isNaN(dbl) || a <= 0 || dbl <= 0) return ''
+    return `${Math.round(a)}□${Math.round(dbl)}`
+  }, [fw, fb])
+
   // ── ED (유효직경) 자동계산: √(A² + B²)
   const frameED = useMemo(() => {
     const a = parseFloat(frameA)
@@ -1268,7 +1292,8 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 <label style={labelSt}>사이즈</label>
                 <input
                   ref={setFrameRef('fsize')}
-                  type="text" value={frameSize}
+                  type="text" 
+                  value={frameSize || autoFrameSize}
                   onChange={e => setFrameSize(e.target.value)}
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
@@ -1277,11 +1302,23 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                       e.preventDefault(); focusFrameField('fh')
                     }
                   }}
-                  placeholder="52□18-140"
-                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+                  placeholder="52□18"
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: autoFrameSize && !frameSize ? '#f0faf5' : '#fff', outline: 'none' }}
                 />
               </div>
             </div>
+
+            {/* 자동 계산값 표시 */}
+            {(fittingFPD || fittingED) && (
+              <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 11, color: '#6b7280' }}>
+                {fittingFPD && (
+                  <span>FPD(프레임PD): <strong style={{ color: '#5d7a5d' }}>{fittingFPD}mm</strong></span>
+                )}
+                {fittingED && (
+                  <span>ED(유효직경): <strong style={{ color: '#5d7a5d' }}>{fittingED}mm</strong></span>
+                )}
+              </div>
+            )}
 
             {/* 가공 정보 */}
             <div style={{ paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
