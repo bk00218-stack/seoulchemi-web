@@ -54,14 +54,21 @@ const TINT_BRANDS: { key: TintBrandKey; label: string }[] = [
 ]
 
 const FALLBACK_COLORS: TintColor[] = [
-  { key: 'gray',   label: '그레이',  hex: '#8b8b8b' },
-  { key: 'brown',  label: '브라운',  hex: '#a0522d' },
-  { key: 'green',  label: '그린',    hex: '#2e8b57' },
-  { key: 'blue',   label: '블루',    hex: '#4169e1' },
-  { key: 'pink',   label: '핑크',    hex: '#e75480' },
-  { key: 'yellow', label: '옐로우',  hex: '#daa520' },
-  { key: 'orange', label: '오렌지',  hex: '#e8740c' },
-  { key: 'purple', label: '퍼플',    hex: '#8a2be2' },
+  // 레티나 기준 착색 코드
+  { key: 'smog',        label: '스모그',      hex: '#696969' },
+  { key: 'brown',       label: '브라운',      hex: '#8B4513' },
+  { key: 'green_abin',  label: '그린(에이빈)', hex: '#228B22' },
+  { key: 'black',       label: 'BLACK',       hex: '#1a1a1a' },
+  { key: 'gray',        label: 'GRAY',        hex: '#808080' },
+  { key: 'guardian_y',  label: '가디안 Y',    hex: '#DAA520' },
+  { key: 'green',       label: '그린',        hex: '#2E8B57' },
+  { key: 'red',         label: '레드',        hex: '#CD5C5C' },
+  { key: 'blue',        label: '블루',        hex: '#4169E1' },
+  { key: 'yellow',      label: '옐로우',      hex: '#FFD700' },
+  { key: 'tint_green',  label: '틴트그린',    hex: '#90EE90' },
+  { key: 'tint_blue',   label: '틴트블루',    hex: '#87CEEB' },
+  { key: 'tint_yellow', label: '틴트옐로우',  hex: '#FFFACD' },
+  { key: 'tint_pink',   label: '틴트핑크',    hex: '#FFB6C1' },
 ]
 
 const COATING_OPTIONS = [
