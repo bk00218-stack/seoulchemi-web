@@ -780,10 +780,13 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
       // Sag 공식 근사: thickness = power × radius² / (2000 × (n-1))
       const sagFactor = (radius * radius) / (2000 * (n - 1))
       
+      // 비구면 보정 계수 (구면 대비 약 15% 두께 감소)
+      const asphericalFactor = 0.85
+      
       if (maxPower < 0) {
         // 마이너스 렌즈 (근시) - 가장자리가 두꺼움
-        const edgeThickMax = centerThickness + Math.abs(maxPower) * sagFactor
-        const edgeThickMin = centerThickness + Math.abs(minPower) * sagFactor
+        const edgeThickMax = (centerThickness + Math.abs(maxPower) * sagFactor) * asphericalFactor
+        const edgeThickMin = (centerThickness + Math.abs(minPower) * sagFactor) * asphericalFactor
         return {
           center: centerThickness.toFixed(1),
           edgeMax: edgeThickMax.toFixed(1),
@@ -793,7 +796,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
         }
       } else {
         // 플러스 렌즈 (원시) - 중심이 두꺼움
-        const centerThickCalc = edgeMin + maxPower * sagFactor
+        const centerThickCalc = (edgeMin + maxPower * sagFactor) * asphericalFactor
         return {
           center: centerThickCalc.toFixed(1),
           edgeMax: edgeMin.toFixed(1),
@@ -1454,7 +1457,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 fontSize: 11
               }}>
                 <div style={{ fontWeight: 600, color: '#92400e', marginBottom: 6 }}>
-                  📏 예상 렌즈 두께 (구면 기준, 비구면시 10~15% 감소)
+                  📏 예상 렌즈 두께 (비구면 기준)
                 </div>
                 <div style={{ display: 'flex', gap: 24, color: '#78350f' }}>
                   {lensThickness.r && (
