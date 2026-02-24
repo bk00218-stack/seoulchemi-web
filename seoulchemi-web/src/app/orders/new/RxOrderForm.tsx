@@ -1312,12 +1312,13 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 />
               </div>
               <div>
-                <label style={labelSt}>사이즈</label>
+                <label style={labelSt}>최소블랭크</label>
                 <input
-                  ref={setFrameRef('fsize')}
                   type="text" 
-                  value={frameSize || autoFrameSize}
-                  onChange={e => setFrameSize(e.target.value)}
+                  value={fittingMinBlank.r && fittingMinBlank.l 
+                    ? `R${fittingMinBlank.r} / L${fittingMinBlank.l}` 
+                    : fittingMinBlank.r || fittingMinBlank.l || ''}
+                  readOnly
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
                       e.preventDefault(); focusFrameField('memo')
@@ -1325,14 +1326,14 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                       e.preventDefault(); focusFrameField('fh')
                     }
                   }}
-                  placeholder="52□18"
-                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: autoFrameSize && !frameSize ? '#f0faf5' : '#fff', outline: 'none' }}
+                  placeholder="R-- / L--"
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#f0faf5', color: '#5d7a5d', fontWeight: 600, outline: 'none' }}
                 />
               </div>
             </div>
 
             {/* 자동 계산값 표시 */}
-            {(fittingFPD || fittingED) && (
+            {(fittingFPD || fittingED || fittingDecenter.r || fittingDecenter.l) && (
               <div style={{ 
                 display: 'flex', 
                 flexWrap: 'wrap',
@@ -1344,6 +1345,9 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 fontSize: 11, 
                 color: '#6b7280' 
               }}>
+                {autoFrameSize && (
+                  <span>사이즈: <strong style={{ color: '#5d7a5d' }}>{autoFrameSize}</strong></span>
+                )}
                 {fittingFPD && (
                   <span>FPD: <strong style={{ color: '#5d7a5d' }}>{fittingFPD}</strong></span>
                 )}
@@ -1357,11 +1361,6 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                     </strong> / L <strong style={{ color: parseFloat(fittingDecenter.l) > 0 ? '#d97706' : '#5d7a5d' }}>
                       {fittingDecenter.l ? `${parseFloat(fittingDecenter.l) > 0 ? '+' : ''}${fittingDecenter.l}` : '-'}
                     </strong>
-                  </span>
-                )}
-                {(fittingMinBlank.r || fittingMinBlank.l) && (
-                  <span>
-                    최소블랭크: R <strong style={{ color: '#5d7a5d' }}>{fittingMinBlank.r || '-'}</strong> / L <strong style={{ color: '#5d7a5d' }}>{fittingMinBlank.l || '-'}</strong>
                   </span>
                 )}
               </div>
