@@ -544,6 +544,13 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     }
   }, [matched, onProductChange])
 
+  // ── 피팅 PD (양안) 자동계산: R PD + L PD
+  const fittingPdCalc = useMemo(() => {
+    const r = parseFloat(rxR.pd) || 0
+    const l = parseFloat(rxL.pd) || 0
+    return r > 0 || l > 0 ? String(r + l) : ''
+  }, [rxR.pd, rxL.pd])
+
   // ── ED (유효직경) 자동계산: √(A² + B²)
   const frameED = useMemo(() => {
     const a = parseFloat(frameA)
@@ -1037,12 +1044,16 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   type="number" 
                   step="0.5"
                   placeholder="64"
+                  value={fittingPdCalc}
                   onChange={e => {
                     const val = parseFloat(e.target.value)
                     if (!isNaN(val) && val > 0) {
                       const half = (val / 2).toFixed(1)
                       setRx('R', 'pd', half)
                       setRx('L', 'pd', half)
+                    } else if (e.target.value === '') {
+                      setRx('R', 'pd', '')
+                      setRx('L', 'pd', '')
                     }
                   }}
                   onKeyDown={e => {
