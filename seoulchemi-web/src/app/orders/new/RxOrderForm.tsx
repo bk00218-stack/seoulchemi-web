@@ -1272,7 +1272,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   onChange={e => setFrameSize(e.target.value)}
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
-                      e.preventDefault(); focusFrameField('processType')
+                      e.preventDefault(); focusFrameField('memo')
                     } else if (e.key === 'ArrowLeft') {
                       e.preventDefault(); focusFrameField('fh')
                     }
@@ -1289,7 +1289,6 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 <div>
                   <label style={labelSt}>가공 유형</label>
                   <select
-                    ref={setFrameRef('processType')}
                     value={processType}
                     onChange={e => setProcessType(e.target.value)}
                     onKeyDown={e => {
