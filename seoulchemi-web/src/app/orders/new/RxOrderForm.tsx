@@ -371,6 +371,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   const [fb, setFb] = useState('')
   const [fd, setFd] = useState('')
   const [fh, setFh] = useState('')
+  const [frameSize, setFrameSize] = useState('')  // 프레임 사이즈 (예: 52□18-140)
 
   // ── Misc
   const [customerName, setCustomerName] = useState('')
@@ -760,7 +761,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     setFrameModel(''); setFrameA(''); setFrameB(''); setFrameDbl(''); setFrameTemple('')
     setProcessType('풀프레임'); setSpecialProcess([]); setProcessMemo('')
     setFrameSent(false); setFrameSentDate(''); setFrameReturn(false)
-    setFw(''); setFb(''); setFd(''); setFh('')
+    setFw(''); setFb(''); setFd(''); setFh(''); setFrameSize('')
     setCustomerName(''); setMemo('')
   }
 
@@ -1192,7 +1193,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                     }
                   }}
                   onKeyDown={e => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
                       e.preventDefault(); focusFrameField('fw')
                     }
                   }}
@@ -1206,9 +1207,9 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   type="number" value={fw}
                   onChange={e => setFw(e.target.value)}
                   onKeyDown={e => {
-                    if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fw.length)) {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
                       e.preventDefault(); focusFrameField('fb')
-                    } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                    } else if (e.key === 'ArrowLeft') {
                       e.preventDefault(); focusFrameField('fpd_input')
                     }
                   }}
@@ -1222,20 +1223,13 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   type="number" value={fb}
                   onChange={e => setFb(e.target.value)}
                   onKeyDown={e => {
-                    if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fb.length)) {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
                       e.preventDefault(); focusFrameField('fd')
-                    } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                    } else if (e.key === 'ArrowLeft') {
                       e.preventDefault(); focusFrameField('fw')
                     }
                   }}
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
-                />
-              </div>
-              <div>
-                <label style={labelSt}>프레임 PD</label>
-                <input
-                  type="number" value={fpd} readOnly
-                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#f0faf5', color: G, fontWeight: 600, outline: 'none' }}
                 />
               </div>
               <div>
@@ -1245,9 +1239,9 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   type="number" value={fd}
                   onChange={e => setFd(e.target.value)}
                   onKeyDown={e => {
-                    if (e.key === 'Enter' || (e.key === 'ArrowRight' && (e.target as HTMLInputElement).selectionStart === fd.length)) {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
                       e.preventDefault(); focusFrameField('fh')
-                    } else if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                    } else if (e.key === 'ArrowLeft') {
                       e.preventDefault(); focusFrameField('fb')
                     }
                   }}
@@ -1261,10 +1255,29 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   type="number" value={fh}
                   onChange={e => setFh(e.target.value)}
                   onKeyDown={e => {
-                    if (e.key === 'ArrowLeft' && (e.target as HTMLInputElement).selectionStart === 0) {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
+                      e.preventDefault(); focusFrameField('fsize')
+                    } else if (e.key === 'ArrowLeft') {
                       e.preventDefault(); focusFrameField('fd')
                     }
                   }}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={labelSt}>사이즈</label>
+                <input
+                  ref={setFrameRef('fsize')}
+                  type="text" value={frameSize}
+                  onChange={e => setFrameSize(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault(); focusFrameField('processType')
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault(); focusFrameField('fh')
+                    }
+                  }}
+                  placeholder="52□18-140"
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
                 />
               </div>
@@ -1276,8 +1289,14 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 <div>
                   <label style={labelSt}>가공 유형</label>
                   <select
+                    ref={setFrameRef('processType')}
                     value={processType}
                     onChange={e => setProcessType(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault(); focusFrameField('memo')
+                      }
+                    }}
                     style={{ ...selStyle, width: 'auto', minWidth: 130 }}
                   >
                     {PROCESS_TYPES.map(pt => (
@@ -1285,34 +1304,19 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label style={labelSt}>특수가공</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
-                    {SPECIAL_PROCESS_OPTIONS.map(sp => (
-                      <button
-                        key={sp}
-                        onClick={() => toggleSpecialProcess(sp)}
-                        style={{
-                          padding: '3px 8px', borderRadius: 10, fontSize: 11, cursor: 'pointer',
-                          background: specialProcess.includes(sp) ? '#e8f5ee' : '#f3f4f6',
-                          color: specialProcess.includes(sp) ? G : '#374151',
-                          border: specialProcess.includes(sp) ? `1px solid ${G}` : '1px solid #e5e7eb',
-                          fontWeight: specialProcess.includes(sp) ? 600 : 400,
-                        }}
-                      >
-                        {sp}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ flex: 1, minWidth: 120 }}>
+                <div style={{ flex: 1, minWidth: 200 }}>
                   <label style={labelSt}>가공 메모</label>
                   <input
                     ref={setFrameRef('memo')}
                     value={processMemo}
                     onChange={e => setProcessMemo(e.target.value)}
-                    onKeyDown={e => handleFrameKeyDown('memo', e)}
-                    placeholder="특수가공 메모..."
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        // 착색 드롭다운으로 이동
+                      }
+                    }}
+                    placeholder="가공 메모..."
                     style={fieldInputStyle}
                   />
                 </div>
@@ -1346,112 +1350,74 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           </div>
         </div>
 
-        {/* ⑤ 착색 — 브랜드별 색상 */}
+        {/* ⑤ 착색 — 브랜드별 드롭다운 */}
         <div style={{ borderBottom: '1px solid #eee' }}>
           <div style={secHead}><span>🎨 착색</span></div>
           <div style={secBody}>
-            {/* 착색 브랜드 탭 */}
-            <div style={{ display: 'flex', gap: 3, marginBottom: 10 }}>
-              {TINT_BRANDS.map(tb => (
-                <button
-                  key={tb.key}
-                  onClick={() => { setTintBrand(tb.key); setTintColor('none') }}
-                  style={{
-                    padding: '4px 10px', fontSize: 11, fontWeight: tintBrand === tb.key ? 700 : 500,
-                    background: tintBrand === tb.key ? G : '#f3f4f6',
-                    color: tintBrand === tb.key ? '#fff' : '#374151',
-                    border: tintBrand === tb.key ? `1px solid ${G}` : '1px solid #e5e7eb',
-                    borderRadius: 4, cursor: 'pointer', transition: 'all 0.15s',
-                  }}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              {/* 브랜드 드롭다운 */}
+              <div>
+                <label style={labelSt}>브랜드</label>
+                <select
+                  value={tintBrand}
+                  onChange={e => { setTintBrand(e.target.value as TintBrandKey); setTintColor('none') }}
+                  style={{ ...selStyle, minWidth: 100 }}
                 >
-                  {tb.label}
-                </button>
-              ))}
-            </div>
+                  {TINT_BRANDS.map(tb => (
+                    <option key={tb.key} value={tb.key}>{tb.label}</option>
+                  ))}
+                </select>
+              </div>
 
-            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              {/* 색상 스와치 */}
+              {/* 착색 색상 드롭다운 */}
               <div>
                 <label style={labelSt}>색상</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-                  {/* 없음 버튼 */}
-                  <div
-                    title="없음"
-                    onClick={() => setTintColor('none')}
-                    style={{
-                      width: 28, height: 28, borderRadius: 5, cursor: 'pointer',
-                      background: 'linear-gradient(45deg,#fff 45%,#e5e7eb 45%,#e5e7eb 55%,#fff 55%)',
-                      border: tintColor === 'none' ? `3px solid ${G}` : '2px solid #e5e7eb',
-                      boxShadow: tintColor === 'none' ? `0 0 0 1px white, 0 0 0 3px ${G}` : undefined,
-                      transition: 'transform 0.1s',
-                    }}
-                  />
-                  {/* DB 색상 */}
-                  {!tintLoaded ? (
-                    <span style={{ fontSize: 11, color: '#9ca3af', padding: '4px 0' }}>로딩...</span>
-                  ) : activeTintColors.length === 0 ? (
-                    <span style={{ fontSize: 11, color: '#9ca3af', padding: '4px 0' }}>
-                      설정된 색상 없음
-                    </span>
-                  ) : (
-                    activeTintColors.map(tc => (
-                      <div
-                        key={tc.key}
-                        title={tc.label}
-                        onClick={() => setTintColor(tc.key)}
-                        style={{
-                          width: 28, height: 28, borderRadius: 5, cursor: 'pointer',
-                          background: tc.hex,
-                          border: tintColor === tc.key
-                            ? `3px solid ${G}`
-                            : '2px solid transparent',
-                          boxShadow: tintColor === tc.key
-                            ? `0 0 0 1px white, 0 0 0 3px ${G}`
-                            : '0 0 0 1px rgba(0,0,0,0.1)',
-                          transition: 'transform 0.1s',
-                        }}
-                      />
-                    ))
-                  )}
-                </div>
-                {/* 선택된 색상 표시 */}
-                {tintColor !== 'none' && (
-                  <div style={{ marginTop: 4, fontSize: 10, color: '#6b7280' }}>
-                    {activeTintColors.find(c => c.key === tintColor)?.label || tintColor}
-                  </div>
-                )}
+                <select
+                  value={tintColor}
+                  onChange={e => setTintColor(e.target.value)}
+                  style={{ ...selStyle, minWidth: 140 }}
+                >
+                  <option value="none">없음</option>
+                  {activeTintColors.map(tc => (
+                    <option key={tc.key} value={tc.key}>{tc.label}</option>
+                  ))}
+                </select>
               </div>
 
               {/* 농도 */}
-              <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <label style={labelSt}>농도</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                  <input
-                    type="range" min={0} max={85} step={5}
-                    value={tintDensity}
-                    onChange={e => setTintDensity(parseInt(e.target.value))}
-                    style={{ flex: 1, accentColor: G }}
-                  />
-                  <input
-                    type="number" min={0} max={85}
-                    value={tintDensity}
-                    onChange={e => setTintDensity(Math.max(0, Math.min(85, parseInt(e.target.value) || 0)))}
-                    style={{
-                      width: 52, padding: '4px 6px', fontSize: 12,
-                      border: '1px solid #ddd', borderRadius: 4, textAlign: 'center',
-                    }}
-                  />
-                  <span style={{ color: '#6b7280', fontSize: 12 }}>%</span>
-                </div>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 8, fontSize: 12, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox" checked={tintGradient}
-                    onChange={e => setTintGradient(e.target.checked)}
-                    style={{ accentColor: G }}
-                  />
-                  그라데이션
-                </label>
+                <input
+                  type="number" min={0} max={85} step={5}
+                  value={tintDensity}
+                  onChange={e => setTintDensity(Math.max(0, Math.min(85, parseInt(e.target.value) || 0)))}
+                  style={{
+                    width: 60, padding: '5px 8px', fontSize: 12,
+                    border: '1px solid #d1d5db', borderRadius: 4, textAlign: 'center',
+                  }}
+                />
+                <span style={{ color: '#6b7280', fontSize: 12 }}>%</span>
               </div>
+
+              {/* 그라데이션 */}
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer', paddingBottom: 4 }}>
+                <input
+                  type="checkbox" checked={tintGradient}
+                  onChange={e => setTintGradient(e.target.checked)}
+                  style={{ accentColor: G }}
+                />
+                그라데이션
+              </label>
+
+              {/* 선택된 색상 미리보기 */}
+              {tintColor !== 'none' && (
+                <div style={{ 
+                  width: 24, height: 24, borderRadius: 4, 
+                  background: activeTintColors.find(c => c.key === tintColor)?.hex || '#ccc',
+                  border: '1px solid #d1d5db',
+                  marginBottom: 4,
+                }} title={activeTintColors.find(c => c.key === tintColor)?.label} />
+              )}
             </div>
           </div>
         </div>
