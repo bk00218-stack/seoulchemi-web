@@ -711,6 +711,29 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     return `${Math.round(a)}□${Math.round(dbl)}`
   }, [fw, fb])
 
+  // ── 편심(디센터) 계산: (FPD/2 - 처방PD)
+  const fittingDecenter = useMemo(() => {
+    const fpd = parseFloat(fittingFPD)
+    const pdR = parseFloat(rxR.pd)
+    const pdL = parseFloat(rxL.pd)
+    if (isNaN(fpd) || fpd <= 0) return { r: '', l: '' }
+    const halfFpd = fpd / 2
+    const r = !isNaN(pdR) && pdR > 0 ? (halfFpd - pdR).toFixed(1) : ''
+    const l = !isNaN(pdL) && pdL > 0 ? (halfFpd - pdL).toFixed(1) : ''
+    return { r, l }
+  }, [fittingFPD, rxR.pd, rxL.pd])
+
+  // ── 최소 블랭크 직경: ED + |편심| + 여유(2mm)
+  const fittingMinBlank = useMemo(() => {
+    const ed = parseFloat(fittingED)
+    if (isNaN(ed) || ed <= 0) return { r: '', l: '' }
+    const decR = parseFloat(fittingDecenter.r)
+    const decL = parseFloat(fittingDecenter.l)
+    const r = !isNaN(decR) ? (ed + Math.abs(decR) * 2 + 2).toFixed(1) : ''
+    const l = !isNaN(decL) ? (ed + Math.abs(decL) * 2 + 2).toFixed(1) : ''
+    return { r, l }
+  }, [fittingED, fittingDecenter])
+
   // ── ED (유효직경) 자동계산: √(A² + B²)
   const frameED = useMemo(() => {
     const a = parseFloat(frameA)
@@ -1310,12 +1333,36 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
 
             {/* 자동 계산값 표시 */}
             {(fittingFPD || fittingED) && (
-              <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 11, color: '#6b7280' }}>
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap',
+                gap: '8px 20px', 
+                marginBottom: 12, 
+                padding: '8px 12px',
+                background: '#f8faf9',
+                borderRadius: 6,
+                fontSize: 11, 
+                color: '#6b7280' 
+              }}>
                 {fittingFPD && (
-                  <span>FPD(프레임PD): <strong style={{ color: '#5d7a5d' }}>{fittingFPD}mm</strong></span>
+                  <span>FPD: <strong style={{ color: '#5d7a5d' }}>{fittingFPD}</strong></span>
                 )}
                 {fittingED && (
-                  <span>ED(유효직경): <strong style={{ color: '#5d7a5d' }}>{fittingED}mm</strong></span>
+                  <span>ED: <strong style={{ color: '#5d7a5d' }}>{fittingED}</strong></span>
+                )}
+                {(fittingDecenter.r || fittingDecenter.l) && (
+                  <span>
+                    편심: R <strong style={{ color: parseFloat(fittingDecenter.r) > 0 ? '#d97706' : '#5d7a5d' }}>
+                      {fittingDecenter.r ? `${parseFloat(fittingDecenter.r) > 0 ? '+' : ''}${fittingDecenter.r}` : '-'}
+                    </strong> / L <strong style={{ color: parseFloat(fittingDecenter.l) > 0 ? '#d97706' : '#5d7a5d' }}>
+                      {fittingDecenter.l ? `${parseFloat(fittingDecenter.l) > 0 ? '+' : ''}${fittingDecenter.l}` : '-'}
+                    </strong>
+                  </span>
+                )}
+                {(fittingMinBlank.r || fittingMinBlank.l) && (
+                  <span>
+                    최소블랭크: R <strong style={{ color: '#5d7a5d' }}>{fittingMinBlank.r || '-'}</strong> / L <strong style={{ color: '#5d7a5d' }}>{fittingMinBlank.l || '-'}</strong>
+                  </span>
                 )}
               </div>
             )}
