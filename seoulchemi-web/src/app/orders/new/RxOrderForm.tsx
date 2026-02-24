@@ -39,37 +39,70 @@ interface TintColor {
   hex: string
 }
 
-type TintBrandKey = 'hoya' | 'essilor' | 'chemiglas' | 'daemyung' | 'etc'
+type TintBrandKey = 'common' | 'acute' | 'chemi'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CORRIDOR_OPTIONS = ['11mm', '12mm', '13mm', '14mm', '17mm', '18mm']
 
 const TINT_BRANDS: { key: TintBrandKey; label: string }[] = [
-  { key: 'hoya',      label: '호야' },
-  { key: 'essilor',   label: '에실로' },
-  { key: 'chemiglas', label: '케미그라스' },
-  { key: 'daemyung',  label: '대명' },
-  { key: 'etc',       label: '기타' },
+  { key: 'common', label: '공용' },
+  { key: 'acute',  label: 'ACUTE' },
+  { key: 'chemi',  label: '케미' },
 ]
 
-const FALLBACK_COLORS: TintColor[] = [
-  // 레티나 기준 착색 코드
-  { key: 'smog',        label: '스모그',      hex: '#696969' },
-  { key: 'brown',       label: '브라운',      hex: '#8B4513' },
-  { key: 'green_abin',  label: '그린(에이빈)', hex: '#228B22' },
-  { key: 'black',       label: 'BLACK',       hex: '#1a1a1a' },
-  { key: 'gray',        label: 'GRAY',        hex: '#808080' },
-  { key: 'guardian_y',  label: '가디안 Y',    hex: '#DAA520' },
-  { key: 'green',       label: '그린',        hex: '#2E8B57' },
-  { key: 'red',         label: '레드',        hex: '#CD5C5C' },
-  { key: 'blue',        label: '블루',        hex: '#4169E1' },
-  { key: 'yellow',      label: '옐로우',      hex: '#FFD700' },
-  { key: 'tint_green',  label: '틴트그린',    hex: '#90EE90' },
-  { key: 'tint_blue',   label: '틴트블루',    hex: '#87CEEB' },
-  { key: 'tint_yellow', label: '틴트옐로우',  hex: '#FFFACD' },
-  { key: 'tint_pink',   label: '틴트핑크',    hex: '#FFB6C1' },
-]
+// 브랜드별 착색 색상 (레티나 기준)
+const TINT_COLORS_BY_BRAND: Record<TintBrandKey, TintColor[]> = {
+  // 공용 착색
+  common: [
+    { key: 'smog',        label: '스모그',       hex: '#696969' },
+    { key: 'brown',       label: '브라운',       hex: '#8B4513' },
+    { key: 'green_abin',  label: '그린(에이빈)', hex: '#228B22' },
+    { key: 'black',       label: 'BLACK',        hex: '#1a1a1a' },
+    { key: 'gray',        label: 'GRAY',         hex: '#808080' },
+    { key: 'guardian_y',  label: '가디안 Y',     hex: '#DAA520' },
+    { key: 'green',       label: '그린',         hex: '#2E8B57' },
+    { key: 'red',         label: '레드',         hex: '#CD5C5C' },
+    { key: 'blue',        label: '블루',         hex: '#4169E1' },
+    { key: 'yellow',      label: '옐로우',       hex: '#FFD700' },
+    { key: 'tint_green',  label: '틴트그린',     hex: '#90EE90' },
+    { key: 'tint_blue',   label: '틴트블루',     hex: '#87CEEB' },
+    { key: 'tint_yellow', label: '틴트옐로우',   hex: '#FFFACD' },
+    { key: 'tint_pink',   label: '틴트핑크',     hex: '#FFB6C1' },
+  ],
+  // ACUTE 착색
+  acute: [
+    { key: 'CPK', label: 'CPK', hex: '#FFB6C1' },  // 코랄핑크
+    { key: 'CPP', label: 'CPP', hex: '#DDA0DD' },  // 코랄퍼플
+    { key: 'DBR', label: 'DBR', hex: '#654321' },  // 다크브라운
+    { key: 'DGN', label: 'DGN', hex: '#006400' },  // 다크그린
+    { key: 'DGY', label: 'DGY', hex: '#404040' },  // 다크그레이
+    { key: 'GBL', label: 'GBL', hex: '#4682B4' },  // 그레이블루
+    { key: 'GGY', label: 'GGY', hex: '#696969' },  // 그린그레이
+    { key: 'GPK', label: 'GPK', hex: '#FFB6C1' },  // 그레이핑크
+    { key: 'GPP', label: 'GPP', hex: '#9370DB' },  // 그레이퍼플
+    { key: 'MGY', label: 'MGY', hex: '#808080' },  // 미디엄그레이
+    { key: 'NBR', label: 'NBR', hex: '#8B4513' },  // 내추럴브라운
+    { key: 'OBL', label: 'OBL', hex: '#4169E1' },  // 오션블루
+    { key: 'SBR', label: 'SBR', hex: '#A0522D' },  // 소프트브라운
+    { key: 'SYL', label: 'SYL', hex: '#F0E68C' },  // 소프트옐로우
+    { key: 'WBR', label: 'WBR', hex: '#D2B48C' },  // 웜브라운
+  ],
+  // 케미 착색
+  chemi: [
+    { key: 'SGN',  label: 'SGN',  hex: '#2E8B57' },  // 소프트그린
+    { key: 'SBK',  label: 'SBK',  hex: '#1a1a1a' },  // 소프트블랙
+    { key: 'SBR',  label: 'SBR',  hex: '#A0522D' },  // 소프트브라운
+    { key: 'S-1',  label: 'S-1',  hex: '#696969' },
+    { key: 'S-2',  label: 'S-2',  hex: '#808080' },
+    { key: 'S-3',  label: 'S-3',  hex: '#A9A9A9' },
+    { key: 'S-4',  label: 'S-4',  hex: '#8B4513' },
+    { key: 'S-5',  label: 'S-5',  hex: '#A0522D' },
+    { key: 'S-6',  label: 'S-6',  hex: '#D2B48C' },
+  ],
+}
+
+const FALLBACK_COLORS: TintColor[] = TINT_COLORS_BY_BRAND.common
 
 const COATING_OPTIONS = [
   { key: 'ar',          label: '반사방지(AR)' },
@@ -210,14 +243,12 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   const [rxL, setRxL] = useState({ ...emptyRx })
 
   // ── Tint (브랜드별)
-  const [tintBrand,    setTintBrand]    = useState<TintBrandKey>('hoya')
+  const [tintBrand,    setTintBrand]    = useState<TintBrandKey>('common')
   const [tintColor,    setTintColor]    = useState('none')
   const [tintDensity,  setTintDensity]  = useState(0)
   const [tintGradient, setTintGradient] = useState(false)
-  const [tintColorsByBrand, setTintColorsByBrand] = useState<Record<TintBrandKey, TintColor[]>>({
-    hoya: [], essilor: [], chemiglas: [], daemyung: [], etc: [],
-  })
-  const [tintLoaded, setTintLoaded] = useState(false)
+  const [tintColorsByBrand, setTintColorsByBrand] = useState<Record<TintBrandKey, TintColor[]>>(TINT_COLORS_BY_BRAND)
+  const [tintLoaded, setTintLoaded] = useState(true)  // 기본값 사용
 
   // ── Coating
   const [coatings, setCoatings] = useState<string[]>([])
@@ -475,7 +506,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     }
   }), [focusCascade])
 
-  // ─── Load tint colors from DB ───────────────────────────────────────────
+  // ─── Load tint colors from DB (optional override) ────────────────────────
 
   useEffect(() => {
     fetch('/api/admin/settings?group=tint.colors')
@@ -485,29 +516,19 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
         ;(data.settings || []).forEach((s: { key: string; value: string }) => {
           settings[s.key] = s.value
         })
-        const result: Record<TintBrandKey, TintColor[]> = {
-          hoya: [], essilor: [], chemiglas: [], daemyung: [], etc: [],
-        }
-        let hasAny = false
+        // DB에 설정된 값이 있으면 오버라이드
+        const result = { ...TINT_COLORS_BY_BRAND }
         for (const brand of TINT_BRANDS) {
           const raw = settings[`tint.colors.${brand.key}`]
           if (raw) {
-            try { result[brand.key] = JSON.parse(raw); hasAny = true } catch { /* skip */ }
+            try { result[brand.key] = JSON.parse(raw) } catch { /* skip */ }
           }
-        }
-        if (!hasAny) {
-          for (const brand of TINT_BRANDS) result[brand.key] = [...FALLBACK_COLORS]
         }
         setTintColorsByBrand(result)
       })
       .catch(() => {
-        const result: Record<TintBrandKey, TintColor[]> = {
-          hoya: [], essilor: [], chemiglas: [], daemyung: [], etc: [],
-        }
-        for (const brand of TINT_BRANDS) result[brand.key] = [...FALLBACK_COLORS]
-        setTintColorsByBrand(result)
+        // 실패해도 기본값 유지
       })
-      .finally(() => setTintLoaded(true))
   }, [])
 
   // ─── Cascade Derivations ──────────────────────────────────────────────────
@@ -627,7 +648,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   const reset = () => {
     setCBrand(''); setCLine(''); setCCorr('')
     setRxR({ ...emptyRx }); setRxL({ ...emptyRx })
-    setTintBrand('hoya'); setTintColor('none'); setTintDensity(0); setTintGradient(false)
+    setTintBrand('common'); setTintColor('none'); setTintDensity(0); setTintGradient(false)
     setCoatings([])
     setFrameModel(''); setFrameA(''); setFrameB(''); setFrameDbl(''); setFrameTemple('')
     setProcessType('풀프레임'); setSpecialProcess([]); setProcessMemo('')
