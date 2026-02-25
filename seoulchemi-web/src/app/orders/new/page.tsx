@@ -902,6 +902,24 @@ export default function NewOrderPage() {
             selectedProductId={selectedProductId}
             selectedStore={selectedStore}
             onOrderSubmitted={resetForm}
+            onOrderAdded={(item) => setOrderItems(prev => [...prev, {
+              id: item.id,
+              product: {
+                id: item.product.id,
+                name: item.product.name,
+                brand: item.product.brand,
+                brandId: item.product.brandId,
+                optionType: item.product.optionType || 'RX',
+                refractiveIndex: item.product.refractiveIndex || null,
+                sellingPrice: item.product.sellingPrice,
+                purchasePrice: item.product.purchasePrice || 0,
+              },
+              sph: item.sph,
+              cyl: item.cyl,
+              axis: item.axis,
+              quantity: item.quantity,
+              corridor: item.corridor,
+            }])}
             onBrandChange={setSelectedBrandId}
             onProductChange={setSelectedProductId}
           />

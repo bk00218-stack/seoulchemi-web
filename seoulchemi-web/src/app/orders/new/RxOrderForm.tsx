@@ -14,9 +14,24 @@ interface Product {
   optionType?: string | null
   refractiveIndex?: string | null
   sellingPrice: number
+  purchasePrice?: number
 }
 
 interface Store { id: number; name: string }
+
+interface OrderItem {
+  id: string
+  product: Product
+  sph: string
+  cyl: string
+  axis: string
+  quantity: number
+  corridor?: string
+  add?: string
+  pd?: string
+  prism?: string
+  base?: string
+}
 
 interface RxOrderFormProps {
   orderType: '착색' | 'RX'
@@ -25,6 +40,7 @@ interface RxOrderFormProps {
   selectedProductId?: number | null
   selectedStore?: Store | null
   onOrderSubmitted?: () => void
+  onOrderAdded?: (item: OrderItem) => void
   onBrandChange?: (brandId: number | null) => void
   onProductChange?: (productId: number | null) => void
 }
@@ -300,6 +316,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   selectedProductId: initProduct,
   selectedStore,
   onOrderSubmitted,
+  onOrderAdded,
   onBrandChange,
   onProductChange,
 }, ref) => {
@@ -966,6 +983,20 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
       })
       if (res.ok) {
         toast.success('주문 접수 완료!')
+        // 주문 목록에 추가
+        if (onOrderAdded && matched) {
+          onOrderAdded({
+            id: `rx-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            product: matched,
+            sph: rxR.sph || '+0.00',
+            cyl: rxR.cyl || '0.00',
+            axis: rxR.axis || '0',
+            quantity: 1,
+            corridor: cCorr || undefined,
+            add: rxR.add || undefined,
+            pd: rxR.pd || undefined,
+          })
+        }
         reset()
         onOrderSubmitted?.()
       } else {

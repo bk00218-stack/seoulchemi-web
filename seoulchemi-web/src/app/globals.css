@@ -556,3 +556,25 @@ table {
     gap: 8px !important;
   }
 }
+
+/* ── 포커스 하이라이트 (RX 주문폼) ── */
+input:focus,
+select:focus,
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(93, 122, 93, 0.4), inset 0 0 0 1px #5d7a5d !important;
+  border-color: #5d7a5d !important;
+}
+
+/* 체크박스는 다르게 처리 */
+input[type="checkbox"]:focus {
+  box-shadow: 0 0 0 3px rgba(93, 122, 93, 0.4) !important;
+}
+
+/* 버튼 포커스 (코팅 버튼 등) */
+button[data-coating-btn]:focus,
+button[data-submit-btn]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(93, 122, 93, 0.5), inset 0 0 0 2px #fff !important;
+  transform: scale(1.02);
+}
