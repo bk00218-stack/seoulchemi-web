@@ -32,6 +32,42 @@ interface SpareOrder {
   unitPrice: number
   totalPrice: number
   orderedAt: string
+  // RX 상세 정보
+  rxDetailId?: number | null
+  rxSide?: string | null
+  sphR?: string | null
+  cylR?: string | null
+  axisR?: string | null
+  addR?: string | null
+  pdR?: string | null
+  sphL?: string | null
+  cylL?: string | null
+  axisL?: string | null
+  addL?: string | null
+  pdL?: string | null
+  rxCorridor?: string | null
+  tintBrand?: string | null
+  tintColor?: string | null
+  tintDensity?: number | null
+  tintGradient?: boolean
+  rxCoatings?: string | null
+  frameWidth?: string | null
+  frameBridge?: string | null
+  framePd?: string | null
+  frameDiagonal?: string | null
+  frameHeight?: string | null
+  frameModel?: string | null
+  frameSizeA?: string | null
+  frameSizeB?: string | null
+  frameDbl?: string | null
+  frameTemple?: string | null
+  processType?: string | null
+  specialProcess?: string | null
+  processMemo?: string | null
+  frameSent?: boolean
+  frameSentDate?: string | null
+  frameReturn?: boolean
+  customerName?: string | null
 }
 
 interface FilterOption {
@@ -697,12 +733,30 @@ export default function RxShipmentPage() {
                       <td style={{ width: columnWidths.date, padding: '8px 6px', textAlign: 'center', fontSize: 11, color: '#666' }}>
                         {new Date(order.orderedAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </td>
-                      <td style={{ width: columnWidths.product, padding: '8px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 3, background: '#eef4ee', fontSize: 12, marginRight: 6, color: '#5d7a5d', fontWeight: 500 }}>{order.brandName}</span>
-                        <span>{order.productName}</span>
+                      <td style={{ width: columnWidths.product, padding: '8px 8px' }}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span style={{ display: 'inline-block', padding: '2px 6px', borderRadius: 3, background: '#eef4ee', fontSize: 12, marginRight: 6, color: '#5d7a5d', fontWeight: 500 }}>{order.brandName}</span>
+                          <span>{order.productName}</span>
+                        </div>
+                        {/* RX 상세 정보 (있는 경우만) */}
+                        {order.rxDetailId && (
+                          <div style={{ fontSize: 10, color: '#666', marginTop: 4, background: '#f8f8f8', padding: '4px 6px', borderRadius: 3, lineHeight: 1.4 }}>
+                            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                              {order.sphR && <span><b>R:</b> {order.sphR}/{order.cylR || '0'} ax{order.axisR || '-'}{order.addR ? ` +${order.addR}` : ''}</span>}
+                              {order.sphL && <span><b>L:</b> {order.sphL}/{order.cylL || '0'} ax{order.axisL || '-'}{order.addL ? ` +${order.addL}` : ''}</span>}
+                              {order.rxCorridor && <span>누진:{order.rxCorridor}</span>}
+                            </div>
+                            {(order.tintColor && order.tintColor !== 'none') && (
+                              <div style={{ marginTop: 2 }}>착색: {order.tintBrand} {order.tintColor} {order.tintDensity}%{order.tintGradient ? ' 그라데이션' : ''}</div>
+                            )}
+                            {order.rxCoatings && <div style={{ marginTop: 2 }}>코팅: {order.rxCoatings}</div>}
+                            {order.processType && <div style={{ marginTop: 2 }}>가공: {order.processType} {order.frameModel ? `(${order.frameModel})` : ''}</div>}
+                            {order.customerName && <div style={{ marginTop: 2 }}>고객: {order.customerName}</div>}
+                          </div>
+                        )}
                       </td>
-                      <td style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{order.sph || '-'}</td>
-                      <td style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{order.cyl || '-'}</td>
+                      <td style={{ width: columnWidths.sph, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{order.sph || order.sphR || '-'}</td>
+                      <td style={{ width: columnWidths.cyl, padding: '8px 4px', textAlign: 'center', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{order.cyl || order.cylR || '-'}</td>
                       <td style={{ width: columnWidths.qty, padding: '4px 2px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                         {editingCell?.itemId === order.itemId && editingCell?.field === 'quantity' ? (
                           <input
