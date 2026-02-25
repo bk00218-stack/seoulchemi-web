@@ -37,7 +37,8 @@ export async function GET(
               include: {
                 brand: { select: { name: true } }
               }
-            }
+            },
+            rxDetail: true
           }
         }
       }
@@ -59,6 +60,7 @@ export async function GET(
       orderedAt: order.orderedAt.toISOString(),
       totalAmount: filterItemIds ? itemsTotal : order.totalAmount,
       memo: order.memo,
+      orderType: order.orderType,
       items: order.items.map(item => ({
         productName: item.product.name,
         brandName: item.product.brand.name,
@@ -66,7 +68,30 @@ export async function GET(
         cyl: item.cyl,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice
+        totalPrice: item.totalPrice,
+        // RX 상세 정보
+        rxDetail: item.rxDetail ? {
+          side: item.rxDetail.side,
+          sphR: item.rxDetail.sphR,
+          cylR: item.rxDetail.cylR,
+          axisR: item.rxDetail.axisR,
+          addR: item.rxDetail.addR,
+          pdR: item.rxDetail.pdR,
+          sphL: item.rxDetail.sphL,
+          cylL: item.rxDetail.cylL,
+          axisL: item.rxDetail.axisL,
+          addL: item.rxDetail.addL,
+          pdL: item.rxDetail.pdL,
+          corridor: item.rxDetail.corridor,
+          tintBrand: item.rxDetail.tintBrand,
+          tintColor: item.rxDetail.tintColor,
+          tintDensity: item.rxDetail.tintDensity,
+          tintGradient: item.rxDetail.tintGradient,
+          coatings: item.rxDetail.coatings,
+          processType: item.rxDetail.processType,
+          frameModel: item.rxDetail.frameModel,
+          customerName: item.rxDetail.customerName,
+        } : null
       }))
     })
 

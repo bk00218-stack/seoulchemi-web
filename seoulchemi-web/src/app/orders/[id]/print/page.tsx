@@ -3,6 +3,29 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
+interface RxDetail {
+  side?: string | null
+  sphR?: string | null
+  cylR?: string | null
+  axisR?: string | null
+  addR?: string | null
+  pdR?: string | null
+  sphL?: string | null
+  cylL?: string | null
+  axisL?: string | null
+  addL?: string | null
+  pdL?: string | null
+  corridor?: string | null
+  tintBrand?: string | null
+  tintColor?: string | null
+  tintDensity?: number | null
+  tintGradient?: boolean
+  coatings?: string | null
+  processType?: string | null
+  frameModel?: string | null
+  customerName?: string | null
+}
+
 interface OrderData {
   orderNo: string
   storeName: string
@@ -12,6 +35,7 @@ interface OrderData {
   orderedAt: string
   totalAmount: number
   memo?: string
+  orderType?: string
   items: {
     productName: string
     brandName: string
@@ -20,6 +44,7 @@ interface OrderData {
     quantity: number
     unitPrice: number
     totalPrice: number
+    rxDetail?: RxDetail | null
   }[]
 }
 
@@ -253,16 +278,34 @@ export default function PrintShippingSlipPage() {
           <span className="text-right">금액</span>
         </div>
 
-        {order.items.map((item, i) => (
-          <div key={i} className="item-row">
-            <span className="item-name" title={`${item.brandName} ${item.productName}`}>
-              {item.productName}
-            </span>
-            <span className="text-center" style={{ fontSize: 10 }}>
-              {item.sph && item.cyl ? `${item.sph}/${item.cyl}` : '-'}
-            </span>
-            <span className="text-center">{item.quantity}</span>
-            <span className="text-right">{item.totalPrice.toLocaleString()}</span>
+        {order.items.map((item: any, i) => (
+          <div key={i}>
+            <div className="item-row">
+              <span className="item-name" title={`${item.brandName} ${item.productName}`}>
+                {item.productName}
+              </span>
+              <span className="text-center" style={{ fontSize: 10 }}>
+                {item.sph && item.cyl ? `${item.sph}/${item.cyl}` : '-'}
+              </span>
+              <span className="text-center">{item.quantity}</span>
+              <span className="text-right">{item.totalPrice.toLocaleString()}</span>
+            </div>
+            {/* RX 상세 정보 (있는 경우) */}
+            {item.rxDetail && (
+              <div style={{ padding: '4px 4px 8px', fontSize: 10, background: '#f9f9f9', borderBottom: '1px dotted #ccc' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
+                  {item.rxDetail.sphR && <span>R: {item.rxDetail.sphR}/{item.rxDetail.cylR || '0'} ax{item.rxDetail.axisR || '-'}{item.rxDetail.addR ? ` +${item.rxDetail.addR}` : ''}</span>}
+                  {item.rxDetail.sphL && <span>L: {item.rxDetail.sphL}/{item.rxDetail.cylL || '0'} ax{item.rxDetail.axisL || '-'}{item.rxDetail.addL ? ` +${item.rxDetail.addL}` : ''}</span>}
+                  {item.rxDetail.corridor && <span>누진:{item.rxDetail.corridor}</span>}
+                </div>
+                {item.rxDetail.tintColor && item.rxDetail.tintColor !== 'none' && (
+                  <div>착색: {item.rxDetail.tintBrand} {item.rxDetail.tintColor} {item.rxDetail.tintDensity}%{item.rxDetail.tintGradient ? ' 그라데이션' : ''}</div>
+                )}
+                {item.rxDetail.coatings && <div>코팅: {item.rxDetail.coatings}</div>}
+                {item.rxDetail.processType && <div>가공: {item.rxDetail.processType} {item.rxDetail.frameModel ? `(${item.rxDetail.frameModel})` : ''}</div>}
+                {item.rxDetail.customerName && <div>고객: {item.rxDetail.customerName}</div>}
+              </div>
+            )}
           </div>
         ))}
 
