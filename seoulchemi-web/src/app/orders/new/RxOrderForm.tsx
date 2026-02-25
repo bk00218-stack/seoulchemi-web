@@ -723,6 +723,68 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     }
   }, [matched, onProductChange])
 
+  // ── 화살표 키 이동 핸들러: 왼쪽 → 이전 필드, 오른쪽 → 다음 필드
+  useEffect(() => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      const target = e.target as HTMLElement
+      const tagName = target.tagName.toLowerCase()
+      
+      // input, select에서만 동작
+      if (tagName !== 'input' && tagName !== 'select') return
+      
+      // 텍스트 입력 중인 경우 커서 이동과 구분
+      if (tagName === 'input') {
+        const input = target as HTMLInputElement
+        const cursorPos = input.selectionStart || 0
+        const valueLen = (input.value || '').length
+        
+        // ArrowLeft: 커서가 맨 앞에 있을 때만 이전 필드로
+        if (e.key === 'ArrowLeft' && cursorPos === 0) {
+          e.preventDefault()
+          const inputs = Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+            'input:not([type=hidden]):not([disabled]), select:not([disabled])'
+          ))
+          const currentIdx = inputs.indexOf(target as any)
+          if (currentIdx > 0) {
+            inputs[currentIdx - 1].focus()
+          }
+        }
+        // ArrowRight: 커서가 맨 뒤에 있을 때만 다음 필드로
+        else if (e.key === 'ArrowRight' && cursorPos === valueLen) {
+          e.preventDefault()
+          const inputs = Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+            'input:not([type=hidden]):not([disabled]), select:not([disabled])'
+          ))
+          const currentIdx = inputs.indexOf(target as any)
+          if (currentIdx < inputs.length - 1) {
+            inputs[currentIdx + 1].focus()
+          }
+        }
+      }
+      // select에서는 바로 이동
+      else if (tagName === 'select') {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault()
+          const inputs = Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+            'input:not([type=hidden]):not([disabled]), select:not([disabled])'
+          ))
+          const currentIdx = inputs.indexOf(target as any)
+          if (currentIdx > 0) inputs[currentIdx - 1].focus()
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault()
+          const inputs = Array.from(document.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+            'input:not([type=hidden]):not([disabled]), select:not([disabled])'
+          ))
+          const currentIdx = inputs.indexOf(target as any)
+          if (currentIdx < inputs.length - 1) inputs[currentIdx + 1].focus()
+        }
+      }
+    }
+    
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   // ── 피팅 PD (양안) 자동계산: R PD + L PD
   const fittingPdCalc = useMemo(() => {
     const r = parseFloat(rxR.pd) || 0
