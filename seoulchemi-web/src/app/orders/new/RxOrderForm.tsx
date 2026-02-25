@@ -439,7 +439,12 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
       if ('selectionStart' in target && target.selectionStart === target.value.length) {
         e.preventDefault()
         const next = getNextRxField(side, field)
-        if (next) focusRxField(next.side, next.field)
+        if (next) {
+          focusRxField(next.side, next.field)
+        } else if (side === 'L' && field === 'curve') {
+          // L-CURVE 다음은 피팅 PD로 이동
+          focusFrameField('fpd_input')
+        }
       }
     }
     else if (e.key === 'ArrowLeft') {
@@ -489,10 +494,11 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
 
   // ─── Inframe Keyboard Navigation ────────────────────────────────────────
 
-  const FRAME_FIELDS = ['model', 'a', 'b', 'dbl', 'temple', 'memo', 'fpd_input', 'fw', 'fb', 'fd', 'fh', 'decR', 'decL'] as const
-  const frameRefs = useRef<Record<string, HTMLInputElement | null>>({})
+  // 피팅 필드 순서 (UI 순서대로)
+  const FITTING_FIELDS = ['fpd_input', 'fw', 'fb', 'fd', 'fh', 'decR', 'decL', 'processType', 'processMemo'] as const
+  const frameRefs = useRef<Record<string, HTMLInputElement | HTMLSelectElement | null>>({})
 
-  const setFrameRef = useCallback((key: string) => (el: HTMLInputElement | null) => {
+  const setFrameRef = useCallback((key: string) => (el: HTMLInputElement | HTMLSelectElement | null) => {
     frameRefs.current[key] = el
   }, [])
 
@@ -504,30 +510,48 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     }
   }, [])
 
-  const handleFrameKeyDown = useCallback((field: string, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleFittingKeyDown = useCallback((field: string, e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement
-    const idx = FRAME_FIELDS.indexOf(field as typeof FRAME_FIELDS[number])
+    const idx = FITTING_FIELDS.indexOf(field as typeof FITTING_FIELDS[number])
     if (idx === -1) return
+
+    const isAtEnd = !('selectionStart' in target) || target.selectionStart === target.value.length
+    const isAtStart = !('selectionStart' in target) || target.selectionStart === 0
 
     if (e.key === 'Enter') {
       e.preventDefault()
-      if (idx < FRAME_FIELDS.length - 1) {
-        focusFrameField(FRAME_FIELDS[idx + 1])
+      if (idx < FITTING_FIELDS.length - 1) {
+        focusFrameField(FITTING_FIELDS[idx + 1])
+      } else {
+        // 마지막 필드 → 코팅 첫번째 버튼으로
+        const firstCoating = document.querySelector('[data-coating-btn]') as HTMLElement
+        if (firstCoating) firstCoating.focus()
       }
     }
     else if (e.key === 'ArrowRight') {
-      if (target.selectionStart === target.value.length && idx < FRAME_FIELDS.length - 1) {
+      if (isAtEnd) {
         e.preventDefault()
-        focusFrameField(FRAME_FIELDS[idx + 1])
+        if (idx < FITTING_FIELDS.length - 1) {
+          focusFrameField(FITTING_FIELDS[idx + 1])
+        } else {
+          // 마지막 필드 → 코팅 첫번째 버튼으로
+          const firstCoating = document.querySelector('[data-coating-btn]') as HTMLElement
+          if (firstCoating) firstCoating.focus()
+        }
       }
     }
     else if (e.key === 'ArrowLeft') {
-      if (target.selectionStart === 0 && idx > 0) {
+      if (isAtStart) {
         e.preventDefault()
-        focusFrameField(FRAME_FIELDS[idx - 1])
+        if (idx > 0) {
+          focusFrameField(FITTING_FIELDS[idx - 1])
+        } else {
+          // 첫번째 필드 → 처방 L-curve로
+          focusRxField('L', 'curve')
+        }
       }
     }
-  }, [focusFrameField])
+  }, [focusFrameField, focusRxField])
 
   // ─── Cascade Dropdown Navigation ────────────────────────────────────────
 
@@ -768,8 +792,10 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
       
       if (spherePower === 0 && cylPower === 0) return null
       
+      // ED 지점 반경 (편심 제외)
+      const radiusED = ed / 2
       // 실제 렌즈 반경 (ED/2 + 편심)
-      const radius = (ed / 2) + Math.abs(dec)
+      const radiusFull = (ed / 2) + Math.abs(dec)
       
       // 합산 도수 (가장 강한 경선)
       const maxPower = spherePower + cylPower
@@ -781,29 +807,32 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
       const isHorizontalAxis = axisVal <= 30 || axisVal >= 150
       
       // Sag 공식 근사: thickness = power × radius² / (2000 × (n-1))
-      const sagFactor = (radius * radius) / (2000 * (n - 1))
+      const sagFactorED = (radiusED * radiusED) / (2000 * (n - 1))
+      const sagFactorFull = (radiusFull * radiusFull) / (2000 * (n - 1))
       
       // 비구면 보정 계수 (구면 대비 약 15% 두께 감소)
       const asphericalFactor = 0.85
       
       if (maxPower < 0) {
         // 마이너스 렌즈 (근시) - 가장자리가 두꺼움
-        const edgeThickMax = (centerThickness + Math.abs(maxPower) * sagFactor) * asphericalFactor
-        const edgeThickMin = (centerThickness + Math.abs(minPower) * sagFactor) * asphericalFactor
+        const edgeAtED = (centerThickness + Math.abs(maxPower) * sagFactorED) * asphericalFactor
+        const edgeThickMax = (centerThickness + Math.abs(maxPower) * sagFactorFull) * asphericalFactor
         return {
           center: centerThickness.toFixed(1),
+          edgeAtED: edgeAtED.toFixed(1),
           edgeMax: edgeThickMax.toFixed(1),
-          edgeMin: edgeThickMin.toFixed(1),
           type: 'minus',
           axis: isHorizontalAxis ? '좌우' : '상하'
         }
       } else {
         // 플러스 렌즈 (원시) - 중심이 두꺼움
-        const centerThickCalc = (edgeMin + maxPower * sagFactor) * asphericalFactor
+        const centerThickCalc = (edgeMin + maxPower * sagFactorFull) * asphericalFactor
+        const centerAtED = (edgeMin + maxPower * sagFactorED) * asphericalFactor
         return {
           center: centerThickCalc.toFixed(1),
+          centerAtED: centerAtED.toFixed(1),
+          edgeAtED: edgeMin.toFixed(1),
           edgeMax: edgeMin.toFixed(1),
-          edgeMin: edgeMin.toFixed(1),
           type: 'plus',
           axis: isHorizontalAxis ? '좌우' : '상하'
         }
@@ -1321,11 +1350,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                       setRx('L', 'pd', '')
                     }
                   }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
-                      e.preventDefault(); focusFrameField('fw')
-                    }
-                  }}
+                  onKeyDown={e => handleFittingKeyDown('fpd_input', e)}
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '2px solid #5d7a5d', borderRadius: 4, background: '#f0faf5', outline: 'none' }}
                 />
               </div>
@@ -1335,13 +1360,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   ref={setFrameRef('fw')}
                   type="number" value={fw}
                   onChange={e => setFw(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
-                      e.preventDefault(); focusFrameField('fb')
-                    } else if (e.key === 'ArrowLeft') {
-                      e.preventDefault(); focusFrameField('fpd_input')
-                    }
-                  }}
+                  onKeyDown={e => handleFittingKeyDown('fw', e)}
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
                 />
               </div>
@@ -1351,13 +1370,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   ref={setFrameRef('fb')}
                   type="number" value={fb}
                   onChange={e => setFb(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
-                      e.preventDefault(); focusFrameField('fd')
-                    } else if (e.key === 'ArrowLeft') {
-                      e.preventDefault(); focusFrameField('fw')
-                    }
-                  }}
+                  onKeyDown={e => handleFittingKeyDown('fb', e)}
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
                 />
               </div>
@@ -1367,13 +1380,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   ref={setFrameRef('fd')}
                   type="number" value={fd}
                   onChange={e => setFd(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
-                      e.preventDefault(); focusFrameField('fh')
-                    } else if (e.key === 'ArrowLeft') {
-                      e.preventDefault(); focusFrameField('fb')
-                    }
-                  }}
+                  onKeyDown={e => handleFittingKeyDown('fd', e)}
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
                 />
               </div>
@@ -1383,13 +1390,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   ref={setFrameRef('fh')}
                   type="number" value={fh}
                   onChange={e => setFh(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
-                      e.preventDefault(); focusFrameField('fsize')
-                    } else if (e.key === 'ArrowLeft') {
-                      e.preventDefault(); focusFrameField('fd')
-                    }
-                  }}
+                  onKeyDown={e => handleFittingKeyDown('fh', e)}
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
                 />
               </div>
@@ -1420,13 +1421,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   step="0.5"
                   value={decR}
                   onChange={e => setDecR(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
-                      e.preventDefault(); focusFrameField('decL')
-                    } else if (e.key === 'ArrowLeft') {
-                      e.preventDefault(); focusFrameField('fh')
-                    }
-                  }}
+                  onKeyDown={e => handleFittingKeyDown('decR', e)}
                   placeholder="0"
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
                 />
@@ -1439,13 +1434,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   step="0.5"
                   value={decL}
                   onChange={e => setDecL(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
-                      e.preventDefault(); focusFrameField('memo')
-                    } else if (e.key === 'ArrowLeft') {
-                      e.preventDefault(); focusFrameField('decR')
-                    }
-                  }}
+                  onKeyDown={e => handleFittingKeyDown('decL', e)}
                   placeholder="0"
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
                 />
@@ -1508,14 +1497,14 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 <div style={{ fontWeight: 600, color: '#92400e', marginBottom: 6 }}>
                   📏 예상 렌즈 두께 (비구면 기준)
                 </div>
-                <div style={{ display: 'flex', gap: 24, color: '#78350f' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, color: '#78350f' }}>
                   {lensThickness.r && (
                     <div>
                       <strong>R:</strong>{' '}
                       {lensThickness.r.type === 'minus' ? (
-                        <>중심 {lensThickness.r.center}mm → 가장자리 <strong>{lensThickness.r.edgeMax}mm</strong> ({lensThickness.r.axis} 최대)</>
+                        <>중심 {lensThickness.r.center}mm → <span style={{ color: '#0369a1' }}>ED {lensThickness.r.edgeAtED}mm</span> → 가장자리 <strong>{lensThickness.r.edgeMax}mm</strong></>
                       ) : (
-                        <>중심 <strong>{lensThickness.r.center}mm</strong> → 가장자리 {lensThickness.r.edgeMax}mm</>
+                        <>중심 <strong>{lensThickness.r.center}mm</strong> → <span style={{ color: '#0369a1' }}>ED {lensThickness.r.edgeAtED}mm</span> → 가장자리 {lensThickness.r.edgeMax}mm</>
                       )}
                     </div>
                   )}
@@ -1523,9 +1512,9 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                     <div>
                       <strong>L:</strong>{' '}
                       {lensThickness.l.type === 'minus' ? (
-                        <>중심 {lensThickness.l.center}mm → 가장자리 <strong>{lensThickness.l.edgeMax}mm</strong> ({lensThickness.l.axis} 최대)</>
+                        <>중심 {lensThickness.l.center}mm → <span style={{ color: '#0369a1' }}>ED {lensThickness.l.edgeAtED}mm</span> → 가장자리 <strong>{lensThickness.l.edgeMax}mm</strong></>
                       ) : (
-                        <>중심 <strong>{lensThickness.l.center}mm</strong> → 가장자리 {lensThickness.l.edgeMax}mm</>
+                        <>중심 <strong>{lensThickness.l.center}mm</strong> → <span style={{ color: '#0369a1' }}>ED {lensThickness.l.edgeAtED}mm</span> → 가장자리 {lensThickness.l.edgeMax}mm</>
                       )}
                     </div>
                   )}
@@ -1539,13 +1528,10 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 <div>
                   <label style={labelSt}>가공 유형</label>
                   <select
+                    ref={setFrameRef('processType')}
                     value={processType}
                     onChange={e => setProcessType(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault(); focusFrameField('memo')
-                      }
-                    }}
+                    onKeyDown={e => handleFittingKeyDown('processType', e)}
                     style={{ ...selStyle, width: 'auto', minWidth: 130 }}
                   >
                     {PROCESS_TYPES.map(pt => (
@@ -1556,15 +1542,10 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <label style={labelSt}>가공 메모</label>
                   <input
-                    ref={setFrameRef('memo')}
+                    ref={setFrameRef('processMemo')}
                     value={processMemo}
                     onChange={e => setProcessMemo(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        // 착색 드롭다운으로 이동
-                      }
-                    }}
+                    onKeyDown={e => handleFittingKeyDown('processMemo', e)}
                     placeholder="가공 메모..."
                     style={fieldInputStyle}
                   />
@@ -1579,10 +1560,37 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           <div style={secHead}><span>✨ 코팅</span></div>
           <div style={secBody}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {COATING_OPTIONS.map(c => (
+              {COATING_OPTIONS.map((c, idx) => (
                 <button
                   key={c.key}
+                  data-coating-btn
+                  data-coating-idx={idx}
                   onClick={() => toggleCoating(c.key)}
+                  onKeyDown={e => {
+                    if (e.key === 'ArrowRight') {
+                      e.preventDefault()
+                      if (idx < COATING_OPTIONS.length - 1) {
+                        const next = document.querySelector(`[data-coating-idx="${idx + 1}"]`) as HTMLElement
+                        if (next) next.focus()
+                      } else {
+                        // 코팅 마지막 → 착색 브랜드로
+                        const tintBrandSelect = document.querySelector('[data-tint-brand]') as HTMLElement
+                        if (tintBrandSelect) tintBrandSelect.focus()
+                      }
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault()
+                      if (idx > 0) {
+                        const prev = document.querySelector(`[data-coating-idx="${idx - 1}"]`) as HTMLElement
+                        if (prev) prev.focus()
+                      } else {
+                        // 코팅 첫번째 → 피팅 마지막으로
+                        focusFrameField('processMemo')
+                      }
+                    } else if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      toggleCoating(c.key)
+                    }
+                  }}
                   style={{
                     padding: '4px 10px', borderRadius: 12, fontSize: 11, cursor: 'pointer',
                     background:  coatings.includes(c.key) ? '#e8f5ee' : '#f3f4f6',
@@ -1591,6 +1599,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                       ? `1px solid ${G}`
                       : '1px solid #e5e7eb',
                     fontWeight:  coatings.includes(c.key) ? 600 : 400,
+                    outline: 'none',
                   }}>
                   {c.label}
                 </button>
@@ -1608,8 +1617,17 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
               <div>
                 <label style={labelSt}>브랜드</label>
                 <select
+                  data-tint-brand
                   value={tintBrand}
                   onChange={e => { setTintBrand(e.target.value as TintBrandKey); setTintColor('none') }}
+                  onKeyDown={e => {
+                    if (e.key === 'ArrowLeft') {
+                      e.preventDefault()
+                      // 코팅 마지막 버튼으로
+                      const lastCoating = document.querySelector(`[data-coating-idx="${COATING_OPTIONS.length - 1}"]`) as HTMLElement
+                      if (lastCoating) lastCoating.focus()
+                    }
+                  }}
                   style={{ ...selStyle, minWidth: 100 }}
                 >
                   {TINT_BRANDS.map(tb => (
