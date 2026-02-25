@@ -69,7 +69,19 @@ export async function GET(request: Request) {
         p."brandId", br.name as "brandName",
         br."supplierId", sup.name as "supplierName",
         oi.sph, oi.cyl, oi.quantity, oi."unitPrice", oi."totalPrice",
-        o."orderType", o."orderedAt", o.status
+        o."orderType", o."orderedAt", o.status,
+        -- RX 상세 정보
+        rx.id as "rxDetailId", rx.side as "rxSide",
+        rx."sphR", rx."cylR", rx."axisR", rx."addR", rx."pdR",
+        rx."sphL", rx."cylL", rx."axisL", rx."addL", rx."pdL",
+        rx.corridor as "rxCorridor",
+        rx."tintBrand", rx."tintColor", rx."tintDensity", rx."tintGradient",
+        rx.coatings as "rxCoatings",
+        rx."frameWidth", rx."frameBridge", rx."framePd", rx."frameDiagonal", rx."frameHeight",
+        rx."frameModel", rx."frameSizeA", rx."frameSizeB", rx."frameDbl", rx."frameTemple",
+        rx."processType", rx."specialProcess", rx."processMemo",
+        rx."frameSent", rx."frameSentDate", rx."frameReturn",
+        rx."customerName"
       FROM "OrderItem" oi
       INNER JOIN "Order" o ON o.id = oi."orderId"
       INNER JOIN "Store" s ON s.id = o."storeId"
@@ -79,6 +91,7 @@ export async function GET(request: Request) {
       LEFT JOIN "StoreGroup" sg ON sg.id = s."groupId"
       LEFT JOIN "SalesStaff" ss ON ss.id = s."salesStaffId"
       LEFT JOIN "DeliveryStaff" ds ON ds.id = s."deliveryStaffId"
+      LEFT JOIN "RxOrderDetail" rx ON rx."orderItemId" = oi.id
       WHERE ${orderWhere.join(' AND ')}
         AND ${itemWhere.join(' AND ')}
         ${storeFilter}
