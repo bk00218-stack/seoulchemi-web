@@ -135,12 +135,34 @@ export async function POST(request: Request) {
               bc: item.bc || null,
               dia: item.dia || null,
               memo: item.memo || null,
+              // RX 상세 정보 (rxDetail이 있는 경우만)
+              ...(item.rxDetail ? {
+                rxDetail: {
+                  create: {
+                    side: item.rxDetail.side || null,
+                    // R 처방
+                    sphR: item.rxDetail.rxR?.sph || null,
+                    cylR: item.rxDetail.rxR?.cyl || null,
+                    axisR: item.rxDetail.rxR?.axis || null,
+                    addR: item.rxDetail.rxR?.add || null,
+                    pdR: item.rxDetail.rxR?.pd || null,
+                    // L 처방
+                    sphL: item.rxDetail.rxL?.sph || null,
+                    cylL: item.rxDetail.rxL?.cyl || null,
+                    axisL: item.rxDetail.rxL?.axis || null,
+                    addL: item.rxDetail.rxL?.add || null,
+                    pdL: item.rxDetail.rxL?.pd || null,
+                    // 누진
+                    corridor: item.rxDetail.corridor || null,
+                  }
+                }
+              } : {})
             }))
           }
         },
         include: {
           store: true,
-          items: { include: { product: { include: { brand: true } } } }
+          items: { include: { product: { include: { brand: true } }, rxDetail: true } }
         }
       })
 

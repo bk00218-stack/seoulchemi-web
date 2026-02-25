@@ -573,10 +573,13 @@ export default function NewOrderPage() {
               sph: item.sph, 
               cyl: item.cyl, 
               axis: item.axis,
-              // RX 추가 정보
-              add: item.add,
-              pd: item.pd,
-              corridor: item.corridor,
+              // RX 상세 정보 (RxOrderDetail용)
+              rxDetail: {
+                side: (item.rxR && item.rxL) ? 'R/L' : item.rxR ? 'R' : 'L',
+                rxR: item.rxR,
+                rxL: item.rxL,
+                corridor: item.corridor,
+              }
             })) 
           }) 
         })

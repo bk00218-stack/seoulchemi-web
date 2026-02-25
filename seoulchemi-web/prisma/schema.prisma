@@ -296,6 +296,9 @@ model OrderItem {
   shippedAt     DateTime? // 출고일시
 
   memo          String?
+  
+  // RX 상세 정보 (relation)
+  rxDetail      RxOrderDetail?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -303,6 +306,73 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
   @@index([status])
+}
+
+// RX 주문 상세 정보
+model RxOrderDetail {
+  id            Int       @id @default(autoincrement())
+  orderItemId   Int       @unique
+  orderItem     OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  
+  // R/L 구분
+  side          String?   // 'R', 'L', 'R/L'
+  
+  // R 처방 정보
+  sphR          String?
+  cylR          String?
+  axisR         String?
+  addR          String?
+  pdR           String?
+  prismR        String?
+  baseR         String?
+  
+  // L 처방 정보
+  sphL          String?
+  cylL          String?
+  axisL         String?
+  addL          String?
+  pdL           String?
+  prismL        String?
+  baseL         String?
+  
+  // 누진 정보
+  corridor      String?   // 누진대 길이
+  
+  // 착색 정보
+  tintBrand     String?
+  tintColor     String?
+  tintDensity   Int?
+  tintGradient  Boolean   @default(false)
+  
+  // 코팅 정보 (JSON 배열로 저장)
+  coatings      String?
+  
+  // 피팅 정보
+  frameWidth    String?
+  frameBridge   String?
+  framePd       String?
+  frameDiagonal String?
+  frameHeight   String?
+  
+  // 인프레임 정보
+  frameModel    String?
+  frameSizeA    String?
+  frameSizeB    String?
+  frameDbl      String?
+  frameTemple   String?
+  processType   String?   // 풀프레임, 반무테, 무테
+  specialProcess String?  // JSON 배열
+  processMemo   String?
+  frameSent     Boolean   @default(false)
+  frameSentDate String?
+  frameReturn   Boolean   @default(false)
+  
+  // 고객 정보
+  customerName  String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([orderItemId])
 }
 
 // ===== 입출금 내역 테이블 (OlwsPro) =====
