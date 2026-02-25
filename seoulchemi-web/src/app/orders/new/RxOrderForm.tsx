@@ -371,6 +371,8 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   const [fb, setFb] = useState('')
   const [fd, setFd] = useState('')
   const [fh, setFh] = useState('')
+  const [decR, setDecR] = useState('')  // 편심 R (직접 입력)
+  const [decL, setDecL] = useState('')  // 편심 L (직접 입력)
   const [frameSize, setFrameSize] = useState('')  // 프레임 사이즈 (예: 52□18-140)
 
   // ── Misc
@@ -487,7 +489,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
 
   // ─── Inframe Keyboard Navigation ────────────────────────────────────────
 
-  const FRAME_FIELDS = ['model', 'a', 'b', 'dbl', 'temple', 'memo', 'fpd_input', 'fw', 'fb', 'fd', 'fh'] as const
+  const FRAME_FIELDS = ['model', 'a', 'b', 'dbl', 'temple', 'memo', 'fpd_input', 'fw', 'fb', 'fd', 'fh', 'decR', 'decL'] as const
   const frameRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   const setFrameRef = useCallback((key: string) => (el: HTMLInputElement | null) => {
@@ -750,8 +752,8 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
   // ── 렌즈 두께 계산 (구면 기준 + 난시 고려)
   const lensThickness = useMemo(() => {
     const ed = parseFloat(fittingED)
-    const decR = parseFloat(fittingDecenter.r) || 0
-    const decL = parseFloat(fittingDecenter.l) || 0
+    const decRVal = parseFloat(decR) || 0
+    const decLVal = parseFloat(decL) || 0
     
     if (isNaN(ed) || ed <= 0) return { r: null, l: null }
     
@@ -809,10 +811,10 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     }
     
     return {
-      r: calcThickness(rxR.sph, rxR.cyl, rxR.axis, decR),
-      l: calcThickness(rxL.sph, rxL.cyl, rxL.axis, decL)
+      r: calcThickness(rxR.sph, rxR.cyl, rxR.axis, decRVal),
+      l: calcThickness(rxL.sph, rxL.cyl, rxL.axis, decLVal)
     }
-  }, [fittingED, fittingDecenter, rxR, rxL, refractiveIndex])
+  }, [fittingED, decR, decL, rxR, rxL, refractiveIndex])
 
   // ── ED (유효직경) 자동계산: √(A² + B²)
   const frameED = useMemo(() => {
@@ -888,7 +890,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     setFrameModel(''); setFrameA(''); setFrameB(''); setFrameDbl(''); setFrameTemple('')
     setProcessType('풀프레임'); setSpecialProcess([]); setProcessMemo('')
     setFrameSent(false); setFrameSentDate(''); setFrameReturn(false)
-    setFw(''); setFb(''); setFd(''); setFh(''); setFrameSize('')
+    setFw(''); setFb(''); setFd(''); setFh(''); setDecR(''); setDecL(''); setFrameSize('')
     setCustomerName(''); setMemo('')
   }
 
@@ -1392,30 +1394,90 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 />
               </div>
               <div>
-                <label style={labelSt}>최소블랭크</label>
+                <label style={labelSt}>ED (유효직경)</label>
                 <input
                   type="text" 
-                  value={fittingMinBlank ? `${fittingMinBlank}mm` : ''}
+                  value={fittingED ? `${fittingED}mm` : ''}
                   readOnly
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault(); focusFrameField('memo')
-                    } else if (e.key === 'ArrowLeft') {
-                      e.preventDefault(); focusFrameField('fh')
-                    }
-                  }}
                   placeholder="--mm"
                   style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#f0faf5', color: '#5d7a5d', fontWeight: 600, outline: 'none' }}
                 />
               </div>
             </div>
 
+            {/* 편심 입력 */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 8,
+              marginTop: 8,
+            }}>
+              <div>
+                <label style={labelSt}>편심 R</label>
+                <input
+                  ref={setFrameRef('decR')}
+                  type="number"
+                  step="0.5"
+                  value={decR}
+                  onChange={e => setDecR(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
+                      e.preventDefault(); focusFrameField('decL')
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault(); focusFrameField('fh')
+                    }
+                  }}
+                  placeholder="0"
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={labelSt}>편심 L</label>
+                <input
+                  ref={setFrameRef('decL')}
+                  type="number"
+                  step="0.5"
+                  value={decL}
+                  onChange={e => setDecL(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
+                      e.preventDefault(); focusFrameField('memo')
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault(); focusFrameField('decR')
+                    }
+                  }}
+                  placeholder="0"
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', outline: 'none' }}
+                />
+              </div>
+              {/* 최소블랭크 (자동계산, 표시만) */}
+              <div>
+                <label style={labelSt}>최소블랭크</label>
+                <input
+                  type="text" 
+                  value={(() => {
+                    const ed = parseFloat(fittingED)
+                    const dr = Math.abs(parseFloat(decR) || 0)
+                    const dl = Math.abs(parseFloat(decL) || 0)
+                    if (isNaN(ed) || ed <= 0) return ''
+                    const maxDec = Math.max(dr, dl)
+                    return `${(ed + maxDec * 2 + 2).toFixed(1)}mm`
+                  })()}
+                  readOnly
+                  placeholder="--mm"
+                  style={{ width: '100%', padding: '5px 8px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#f8f8f8', color: '#6b7280', outline: 'none' }}
+                />
+              </div>
+              <div />
+            </div>
+
             {/* 자동 계산값 표시 */}
-            {(fittingFPD || fittingED || fittingDecenter.r || fittingDecenter.l) && (
+            {(fittingFPD || autoFrameSize) && (
               <div style={{ 
                 display: 'flex', 
                 flexWrap: 'wrap',
                 gap: '8px 20px', 
+                marginTop: 12,
                 marginBottom: 8, 
                 padding: '8px 12px',
                 background: '#f8faf9',
@@ -1428,18 +1490,6 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 )}
                 {fittingFPD && (
                   <span>FPD: <strong style={{ color: '#5d7a5d' }}>{fittingFPD}</strong></span>
-                )}
-                {fittingED && (
-                  <span>ED: <strong style={{ color: '#5d7a5d' }}>{fittingED}</strong></span>
-                )}
-                {(fittingDecenter.r || fittingDecenter.l) && (
-                  <span>
-                    편심: R <strong style={{ color: parseFloat(fittingDecenter.r) > 0 ? '#d97706' : '#5d7a5d' }}>
-                      {fittingDecenter.r ? `${parseFloat(fittingDecenter.r) > 0 ? '+' : ''}${fittingDecenter.r}` : '-'}
-                    </strong> / L <strong style={{ color: parseFloat(fittingDecenter.l) > 0 ? '#d97706' : '#5d7a5d' }}>
-                      {fittingDecenter.l ? `${parseFloat(fittingDecenter.l) > 0 ? '+' : ''}${fittingDecenter.l}` : '-'}
-                    </strong>
-                  </span>
                 )}
                 <span>굴절률: <strong style={{ color: '#5d7a5d' }}>{refractiveIndex}</strong></span>
               </div>
