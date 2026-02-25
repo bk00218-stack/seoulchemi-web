@@ -104,27 +104,15 @@ export async function POST(request: Request) {
     
     // 트랜잭션으로 주문 생성 (주문번호 생성도 트랜잭션 내에서)
     const order = await prisma.$transaction(async (tx) => {
-      // 주문번호 생성 (월+순번: 021, 022... 매월 리셋)
+      // 주문번호 생성 (MMDD + 시분초 + 랜덤2자리)
       const today = new Date()
-      const month = String(today.getMonth() + 1).padStart(2, '0') // "02"
-      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
-      const nextMonthStart = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-      
-      // 이번 달 주문 중 가장 큰 번호 찾기 (트랜잭션 내에서 잠금)
-      const lastOrder = await tx.order.findFirst({
-        where: { 
-          orderNo: { startsWith: month },
-          orderedAt: { gte: monthStart, lt: nextMonthStart }
-        },
-        orderBy: { orderNo: 'desc' }
-      })
-      
-      let seq = 1
-      if (lastOrder && lastOrder.orderNo.length >= 3) {
-        const lastSeq = parseInt(lastOrder.orderNo.slice(2)) || 0
-        seq = lastSeq + 1
-      }
-      const orderNo = `${month}${seq}` // "021", "022"...
+      const month = String(today.getMonth() + 1).padStart(2, '0')
+      const day = String(today.getDate()).padStart(2, '0')
+      const hours = String(today.getHours()).padStart(2, '0')
+      const mins = String(today.getMinutes()).padStart(2, '0')
+      const secs = String(today.getSeconds()).padStart(2, '0')
+      const rand = String(Math.floor(Math.random() * 100)).padStart(2, '0')
+      const orderNo = `${month}${day}${hours}${mins}${secs}${rand}` // "0225230712345"
 
       // 주문 생성
       const newOrder = await tx.order.create({
