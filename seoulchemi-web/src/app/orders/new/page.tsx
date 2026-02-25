@@ -521,16 +521,74 @@ export default function NewOrderPage() {
     if (!selectedStore || orderItems.length === 0) { toast.warning('가맹점과 상품을 선택해주세요.'); return }
     setLoading(true)
     try {
-      const res = await fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeId: selectedStore.id, orderType, memo, items: orderItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) }) })
-      if (res.ok) {
-        const data = await res.json()
-        // 자동 인쇄 (인쇄창 없이 바로 프린터로)
-        if (data.order?.id) {
-          silentPrint(`/orders/${data.order.id}/print`)
+      // 여벌/RX 분리 (rxR 또는 rxL이 있으면 RX)
+      const stockItems = orderItems.filter((item: any) => !item.rxR && !item.rxL)
+      const rxItems = orderItems.filter((item: any) => item.rxR || item.rxL)
+      
+      // 1. 여벌 주문 처리 (접수 + 출고 + 인쇄)
+      if (stockItems.length > 0) {
+        const stockRes = await fetch('/api/orders/create', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ 
+            storeId: selectedStore.id, 
+            orderType: 'stock', 
+            memo, 
+            items: stockItems.map(item => ({ productId: item.product.id, quantity: item.quantity, sph: item.sph, cyl: item.cyl, axis: item.axis })) 
+          }) 
+        })
+        if (stockRes.ok) {
+          const stockData = await stockRes.json()
+          // 즉시 출고
+          if (stockData.order?.itemIds?.length > 0) {
+            const shipRes = await fetch('/api/orders/ship/spare', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ itemIds: stockData.order.itemIds })
+            })
+            if (shipRes.ok) {
+              const shipData = await shipRes.json()
+              if (shipData.shipped?.length > 0) {
+                const itemIds = shipData.shipped[0].shippedItemIds?.join(',') || ''
+                silentPrint(`/orders/${stockData.order.id}/print${itemIds ? `?itemIds=${itemIds}` : ''}`)
+              }
+            }
+          }
+          toast.success(`여벌 ${stockItems.length}건 접수+출고 완료`)
         }
-        // 폼 초기화하여 다음 주문 등록 준비 (출고 페이지 이동 안함)
-        resetForm()
-      } else toast.error('주문 생성 실패')
+      }
+      
+      // 2. RX 주문 처리 (접수만, 출고/인쇄 X)
+      if (rxItems.length > 0) {
+        const rxRes = await fetch('/api/orders/create', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ 
+            storeId: selectedStore.id, 
+            orderType: 'rx', 
+            memo, 
+            items: rxItems.map((item: any) => ({ 
+              productId: item.product.id, 
+              quantity: item.quantity, 
+              sph: item.sph, 
+              cyl: item.cyl, 
+              axis: item.axis,
+              // RX 추가 정보
+              add: item.add,
+              pd: item.pd,
+              corridor: item.corridor,
+            })) 
+          }) 
+        })
+        if (rxRes.ok) {
+          toast.success(`RX ${rxItems.length}건 접수 완료 (RX출고에서 확인)`)
+        } else {
+          const errData = await rxRes.json().catch(() => ({}))
+          toast.error(errData.error || 'RX 주문 생성 실패')
+        }
+      }
+      
+      resetForm()
     } catch { toast.error('오류가 발생했습니다.') }
     setLoading(false)
   }
