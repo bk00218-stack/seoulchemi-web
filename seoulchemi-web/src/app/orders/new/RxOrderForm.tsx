@@ -1621,9 +1621,12 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                   value={tintBrand}
                   onChange={e => { setTintBrand(e.target.value as TintBrandKey); setTintColor('none') }}
                   onKeyDown={e => {
-                    if (e.key === 'ArrowLeft') {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
                       e.preventDefault()
-                      // 코팅 마지막 버튼으로
+                      const next = document.querySelector('[data-tint-color]') as HTMLElement
+                      if (next) next.focus()
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault()
                       const lastCoating = document.querySelector(`[data-coating-idx="${COATING_OPTIONS.length - 1}"]`) as HTMLElement
                       if (lastCoating) lastCoating.focus()
                     }
@@ -1640,8 +1643,20 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
               <div>
                 <label style={labelSt}>색상</label>
                 <select
+                  data-tint-color
                   value={tintColor}
                   onChange={e => setTintColor(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
+                      e.preventDefault()
+                      const next = document.querySelector('[data-tint-density]') as HTMLElement
+                      if (next) next.focus()
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault()
+                      const prev = document.querySelector('[data-tint-brand]') as HTMLElement
+                      if (prev) prev.focus()
+                    }
+                  }}
                   style={{ ...selStyle, minWidth: 140 }}
                 >
                   <option value="none">없음</option>
@@ -1655,9 +1670,22 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <label style={labelSt}>농도</label>
                 <input
+                  data-tint-density
                   type="number" min={0} max={85} step={5}
                   value={tintDensity}
                   onChange={e => setTintDensity(Math.max(0, Math.min(85, parseInt(e.target.value) || 0)))}
+                  onKeyDown={e => {
+                    const target = e.target as HTMLInputElement
+                    if (e.key === 'Enter' || (e.key === 'ArrowRight' && target.selectionStart === target.value.length)) {
+                      e.preventDefault()
+                      const next = document.querySelector('[data-tint-gradient]') as HTMLElement
+                      if (next) next.focus()
+                    } else if (e.key === 'ArrowLeft' && target.selectionStart === 0) {
+                      e.preventDefault()
+                      const prev = document.querySelector('[data-tint-color]') as HTMLElement
+                      if (prev) prev.focus()
+                    }
+                  }}
                   style={{
                     width: 60, padding: '5px 8px', fontSize: 12,
                     border: '1px solid #d1d5db', borderRadius: 4, textAlign: 'center',
@@ -1669,8 +1697,20 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
               {/* 그라데이션 */}
               <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer', paddingBottom: 4 }}>
                 <input
+                  data-tint-gradient
                   type="checkbox" checked={tintGradient}
                   onChange={e => setTintGradient(e.target.checked)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === 'ArrowRight') {
+                      e.preventDefault()
+                      const next = document.querySelector('[data-customer-name]') as HTMLElement
+                      if (next) next.focus()
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault()
+                      const prev = document.querySelector('[data-tint-density]') as HTMLElement
+                      if (prev) prev.focus()
+                    }
+                  }}
                   style={{ accentColor: G }}
                 />
                 그라데이션
@@ -1695,6 +1735,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
             <div>
               <label style={labelSt}>고객명</label>
               <input
+                data-customer-name
                 style={{
                   width: '100%', padding: '5px 8px', fontSize: 12,
                   border: '1px solid #d1d5db', borderRadius: 4,
@@ -1702,12 +1743,25 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 }}
                 value={customerName}
                 onChange={e => setCustomerName(e.target.value)}
+                onKeyDown={e => {
+                  const target = e.target as HTMLInputElement
+                  if (e.key === 'Enter' || (e.key === 'ArrowRight' && target.selectionStart === target.value.length)) {
+                    e.preventDefault()
+                    const next = document.querySelector('[data-memo]') as HTMLElement
+                    if (next) next.focus()
+                  } else if (e.key === 'ArrowLeft' && target.selectionStart === 0) {
+                    e.preventDefault()
+                    const prev = document.querySelector('[data-tint-gradient]') as HTMLElement
+                    if (prev) prev.focus()
+                  }
+                }}
                 placeholder="홍길동"
               />
             </div>
             <div>
               <label style={labelSt}>메모</label>
               <input
+                data-memo
                 style={{
                   width: '100%', padding: '5px 8px', fontSize: 12,
                   border: '1px solid #d1d5db', borderRadius: 4,
@@ -1715,6 +1769,18 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
                 }}
                 value={memo}
                 onChange={e => setMemo(e.target.value)}
+                onKeyDown={e => {
+                  const target = e.target as HTMLInputElement
+                  if (e.key === 'Enter' || (e.key === 'ArrowRight' && target.selectionStart === target.value.length)) {
+                    e.preventDefault()
+                    const next = document.querySelector('[data-submit-btn]') as HTMLElement
+                    if (next) next.focus()
+                  } else if (e.key === 'ArrowLeft' && target.selectionStart === 0) {
+                    e.preventDefault()
+                    const prev = document.querySelector('[data-customer-name]') as HTMLElement
+                    if (prev) prev.focus()
+                  }
+                }}
                 placeholder="특이사항..."
               />
             </div>
@@ -1737,8 +1803,19 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
           초기화
         </button>
         <button
+          data-submit-btn
           onClick={handleSubmit}
           disabled={loading || !matched}
+          onKeyDown={e => {
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault()
+              const prev = document.querySelector('[data-memo]') as HTMLElement
+              if (prev) prev.focus()
+            } else if (e.key === 'Enter' && !loading && matched) {
+              // Enter로 주문 실행
+              handleSubmit()
+            }
+          }}
           style={{
             flex: 1, padding: '8px',
             background: loading || !matched ? '#9ca3af' : GL,
@@ -1746,6 +1823,7 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
             cursor: loading || !matched ? 'not-allowed' : 'pointer',
             fontSize: 13, fontWeight: 700,
             transition: 'background 0.2s',
+            outline: 'none',
           }}>
           {loading
             ? '처리 중...'
