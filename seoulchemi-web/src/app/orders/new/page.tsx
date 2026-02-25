@@ -940,26 +940,41 @@ export default function NewOrderPage() {
           <div style={{ padding: '8px 10px', background: '#5d7a5d', color: '#fff', fontWeight: 600, fontSize: 13, display: 'flex', justifyContent: 'space-between', borderRadius: '3px 3px 0 0' }}>
             <span>주문 목록</span><span>{orderItems.length}건</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(80px, 1fr) 34px 34px 32px 22px 54px', padding: '4px 6px', background: '#e0e0e0', color: '#333', fontWeight: 600, fontSize: 10, gap: '2px', alignItems: 'center' }}>
-            <span>상품</span>
-            <span style={{ textAlign: 'center' }}>SPH</span>
-            <span style={{ textAlign: 'center' }}>CYL</span>
-            <span style={{ textAlign: 'center' }}>누진</span>
-            <span style={{ textAlign: 'center' }}>수량</span>
-            <span style={{ textAlign: 'right' }}>금액</span>
+          <div style={{ padding: '4px 6px', background: '#e0e0e0', color: '#333', fontWeight: 600, fontSize: 10 }}>
+            <span>상품 / 도수정보</span>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
-            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#868e96' }}>도수표에서 수량 입력</div> : (
-              orderItems.map((item, i) => (
-                <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ display: 'grid', gridTemplateColumns: 'minmax(80px, 1fr) 34px 34px 32px 22px 54px', padding: '4px 6px', borderBottom: '1px solid #ddd', background: item.quantity < 0 ? '#fff0f0' : (i % 2 === 0 ? '#fff' : '#fafafa'), color: '#212529', alignItems: 'center', fontSize: 10, gap: '2px', cursor: 'context-menu', borderLeft: item.quantity < 0 ? '3px solid #c0392b' : 'none' }}>
-                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${item.product.brand} ${item.product.name}`}><span style={{ color: '#888' }}>{item.product.brand.slice(0, 2)}</span> {item.product.name}</div>
-                  <div style={{ fontFamily: 'monospace', textAlign: 'center', fontSize: 9 }}>{(() => { const v = parseFloat(item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()}</div>
-                  <div style={{ fontFamily: 'monospace', textAlign: 'center', fontSize: 9 }}>-{String(Math.round(Math.abs(parseFloat(item.cyl)) * 100)).padStart(3, '0')}</div>
-                  <div style={{ textAlign: 'center', fontSize: 9, color: item.corridor ? '#333' : '#ccc' }}>{item.corridor || '-'}</div>
-                  <div style={{ fontWeight: 600, textAlign: 'center', color: item.quantity < 0 ? '#c0392b' : 'inherit' }}>{item.quantity}</div>
-                  <div style={{ textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, fontSize: 8, color: item.quantity < 0 ? '#c0392b' : 'inherit' }}>{(item.product.sellingPrice * item.quantity).toLocaleString()}</div>
-                </div>
-              ))
+            {orderItems.length === 0 ? <div style={{ padding: 10, textAlign: 'center', color: '#868e96' }}>{orderType === 'RX' || orderType === '착색' ? 'RX 폼에서 주문 추가' : '도수표에서 수량 입력'}</div> : (
+              orderItems.map((item: any, i) => {
+                const isRx = item.rxR || item.rxL
+                return (
+                  <div key={item.id} onContextMenu={(e) => handleContextMenu(e, item)} style={{ padding: '4px 6px', borderBottom: '1px solid #ddd', background: item.quantity < 0 ? '#fff0f0' : (i % 2 === 0 ? '#fff' : '#fafafa'), color: '#212529', fontSize: 10, cursor: 'context-menu', borderLeft: item.quantity < 0 ? '3px solid #c0392b' : isRx ? '3px solid #5d7a5d' : 'none' }}>
+                    {/* 1줄: 상품명 + 금액 */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isRx ? 2 : 0 }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={`${item.product.brand} ${item.product.name}`}>
+                        <span style={{ color: '#888' }}>{item.product.brand?.slice(0, 2) || ''}</span> {item.product.name}
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: 9, marginLeft: 4 }}>{item.quantity}개 {(item.product.sellingPrice * item.quantity).toLocaleString()}원</div>
+                    </div>
+                    {/* 2줄: RX 정보 (있는 경우만) */}
+                    {isRx && (
+                      <div style={{ display: 'flex', gap: 8, fontSize: 9, color: '#555', background: '#f5f5f5', padding: '2px 4px', borderRadius: 2 }}>
+                        {item.rxR && <span>R: {item.rxR.sph}/{item.rxR.cyl} ax{item.rxR.axis || '-'}{item.rxR.add ? ` +${item.rxR.add}` : ''}</span>}
+                        {item.rxL && <span>L: {item.rxL.sph}/{item.rxL.cyl} ax{item.rxL.axis || '-'}{item.rxL.add ? ` +${item.rxL.add}` : ''}</span>}
+                        {item.corridor && <span>누진{item.corridor}</span>}
+                      </div>
+                    )}
+                    {/* 여벌 주문 (RX 아닌 경우) */}
+                    {!isRx && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '34px 34px 32px', gap: 4, fontSize: 9, color: '#666' }}>
+                        <span>S:{(() => { const v = parseFloat(item.sph); return (v <= 0 ? '-' : '+') + String(Math.round(Math.abs(v) * 100)).padStart(3, '0'); })()}</span>
+                        <span>C:-{String(Math.round(Math.abs(parseFloat(item.cyl)) * 100)).padStart(3, '0')}</span>
+                        <span>{item.corridor || ''}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
             )}
           </div>
           <div style={{ padding: 6, borderTop: '1px solid #ddd' }}>

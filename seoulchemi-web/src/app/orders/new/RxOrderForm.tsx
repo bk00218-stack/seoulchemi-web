@@ -945,43 +945,38 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     if (!selectedStore) { toast.warning('가맹점을 먼저 선택해주세요.'); return }
     if (!matched)       { toast.warning('렌즈를 선택해주세요.');         return }
     
-    // R 렌즈 추가
-    if (rxR.sph || rxR.cyl) {
-      onOrderAdded?.({
-        id: `rx-${Date.now()}-R-${Math.random().toString(36).slice(2)}`,
-        product: {
-          ...matched,
-          name: `${matched.name} (R)`,
-        },
-        sph: rxR.sph || '+0.00',
-        cyl: rxR.cyl || '0.00',
-        axis: rxR.axis || '0',
-        quantity: 0.5,
-        corridor: cCorr || undefined,
-        add: rxR.add || undefined,
-        pd: rxR.pd || undefined,
-      })
+    const hasR = !!(rxR.sph || rxR.cyl)
+    const hasL = !!(rxL.sph || rxL.cyl)
+    
+    if (!hasR && !hasL) {
+      toast.warning('R 또는 L 처방 정보를 입력해주세요.')
+      return
     }
     
-    // L 렌즈 추가
-    if (rxL.sph || rxL.cyl) {
-      onOrderAdded?.({
-        id: `rx-${Date.now()}-L-${Math.random().toString(36).slice(2)}`,
-        product: {
-          ...matched,
-          name: `${matched.name} (L)`,
-        },
-        sph: rxL.sph || '+0.00',
-        cyl: rxL.cyl || '0.00',
-        axis: rxL.axis || '0',
-        quantity: 0.5,
-        corridor: cCorr || undefined,
-        add: rxL.add || undefined,
-        pd: rxL.pd || undefined,
-      })
-    }
+    // R/L 합쳐서 1건으로 추가
+    const quantity = (hasR && hasL) ? 1 : 0.5
+    const sideName = (hasR && hasL) ? 'R/L' : hasR ? 'R' : 'L'
     
-    toast.success('주문 목록에 추가됨')
+    onOrderAdded?.({
+      id: `rx-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      product: {
+        ...matched,
+        name: `${matched.name} (${sideName})`,
+      },
+      // R 기준 (또는 L만 있으면 L 기준)
+      sph: hasR ? (rxR.sph || '+0.00') : (rxL.sph || '+0.00'),
+      cyl: hasR ? (rxR.cyl || '0.00') : (rxL.cyl || '0.00'),
+      axis: hasR ? (rxR.axis || '0') : (rxL.axis || '0'),
+      quantity,
+      corridor: cCorr || undefined,
+      add: hasR ? rxR.add : rxL.add,
+      pd: hasR ? rxR.pd : rxL.pd,
+      // 양쪽 정보 저장 (표시용)
+      rxR: hasR ? { sph: rxR.sph, cyl: rxR.cyl, axis: rxR.axis, add: rxR.add, pd: rxR.pd } : undefined,
+      rxL: hasL ? { sph: rxL.sph, cyl: rxL.cyl, axis: rxL.axis, add: rxL.add, pd: rxL.pd } : undefined,
+    } as any)
+    
+    toast.success(`주문 목록에 추가됨 (${sideName})`)
     reset()
   }
 
