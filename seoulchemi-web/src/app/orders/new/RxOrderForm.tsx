@@ -940,73 +940,49 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
     setCustomerName(''); setMemo('')
   }
 
-  const handleSubmit = async () => {
+  // 주문 목록에 추가 (API 호출 없이 목록에만 추가)
+  const handleAddToList = () => {
     if (!selectedStore) { toast.warning('가맹점을 먼저 선택해주세요.'); return }
     if (!matched)       { toast.warning('렌즈를 선택해주세요.');         return }
-    setLoading(true)
-    try {
-      const res = await fetch('/api/orders/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storeId: selectedStore.id,
-          orderType,
-          memo,
-          customerName,
-          rxData: {
-            productId: matched.id,
-            corridor: cCorr,
-            rxR, rxL,
-            tint: {
-              brand: tintBrand,
-              color: tintColor,
-              density: tintDensity,
-              gradient: tintGradient,
-            },
-            coatings,
-            fitting: { fw, fb, fpd, fd, fh },
-            inframe: orderType === 'RX' ? {
-              model: frameModel,
-              sizeA: frameA, sizeB: frameB, dbl: frameDbl, temple: frameTemple,
-              processType, specialProcess, processMemo,
-              frameSent, frameSentDate, frameReturn,
-            } : null,
-          },
-          items: [{
-            productId: matched.id,
-            quantity: 1,
-            sph:  rxR.sph  || '+0.00',
-            cyl:  rxR.cyl  || '0.00',
-            axis: rxR.axis || '0',
-          }],
-        }),
+    
+    // R 렌즈 추가
+    if (rxR.sph || rxR.cyl) {
+      onOrderAdded?.({
+        id: `rx-${Date.now()}-R-${Math.random().toString(36).slice(2)}`,
+        product: {
+          ...matched,
+          name: `${matched.name} (R)`,
+        },
+        sph: rxR.sph || '+0.00',
+        cyl: rxR.cyl || '0.00',
+        axis: rxR.axis || '0',
+        quantity: 0.5,
+        corridor: cCorr || undefined,
+        add: rxR.add || undefined,
+        pd: rxR.pd || undefined,
       })
-      if (res.ok) {
-        toast.success('주문 접수 완료!')
-        // 주문 목록에 추가
-        if (onOrderAdded && matched) {
-          onOrderAdded({
-            id: `rx-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-            product: matched,
-            sph: rxR.sph || '+0.00',
-            cyl: rxR.cyl || '0.00',
-            axis: rxR.axis || '0',
-            quantity: 1,
-            corridor: cCorr || undefined,
-            add: rxR.add || undefined,
-            pd: rxR.pd || undefined,
-          })
-        }
-        reset()
-        onOrderSubmitted?.()
-      } else {
-        const d = await res.json().catch(() => ({}))
-        toast.error(d.error || '주문 생성 실패')
-      }
-    } catch {
-      toast.error('오류가 발생했습니다.')
     }
-    setLoading(false)
+    
+    // L 렌즈 추가
+    if (rxL.sph || rxL.cyl) {
+      onOrderAdded?.({
+        id: `rx-${Date.now()}-L-${Math.random().toString(36).slice(2)}`,
+        product: {
+          ...matched,
+          name: `${matched.name} (L)`,
+        },
+        sph: rxL.sph || '+0.00',
+        cyl: rxL.cyl || '0.00',
+        axis: rxL.axis || '0',
+        quantity: 0.5,
+        corridor: cCorr || undefined,
+        add: rxL.add || undefined,
+        pd: rxL.pd || undefined,
+      })
+    }
+    
+    toast.success('주문 목록에 추가됨')
+    reset()
   }
 
   // ─── Styles ───────────────────────────────────────────────────────────────
@@ -1835,23 +1811,23 @@ const RxOrderForm = forwardRef<RxOrderFormRef, RxOrderFormProps>(({
         </button>
         <button
           data-submit-btn
-          onClick={handleSubmit}
-          disabled={loading || !matched}
+          onClick={handleAddToList}
+          disabled={!matched}
           onKeyDown={e => {
             if (e.key === 'ArrowLeft') {
               e.preventDefault()
               const prev = document.querySelector('[data-memo]') as HTMLElement
               if (prev) prev.focus()
-            } else if (e.key === 'Enter' && !loading && matched) {
-              // Enter로 주문 실행
-              handleSubmit()
+            } else if (e.key === 'Enter' && matched) {
+              // Enter로 목록에 추가
+              handleAddToList()
             }
           }}
           style={{
             flex: 1, padding: '8px',
-            background: loading || !matched ? '#9ca3af' : GL,
+            background: !matched ? '#9ca3af' : GL,
             color: '#fff', border: 'none', borderRadius: 4,
-            cursor: loading || !matched ? 'not-allowed' : 'pointer',
+            cursor: !matched ? 'not-allowed' : 'pointer',
             fontSize: 13, fontWeight: 700,
             transition: 'background 0.2s',
             outline: 'none',
