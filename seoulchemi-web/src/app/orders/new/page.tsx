@@ -902,7 +902,7 @@ export default function NewOrderPage() {
             selectedProductId={selectedProductId}
             selectedStore={selectedStore}
             onOrderSubmitted={resetForm}
-            onOrderAdded={(item) => setOrderItems(prev => [...prev, {
+            onOrderAdded={(item: any) => setOrderItems(prev => [...prev, {
               id: item.id,
               product: {
                 id: item.product.id,
@@ -919,6 +919,10 @@ export default function NewOrderPage() {
               axis: item.axis,
               quantity: item.quantity,
               corridor: item.corridor,
+              add: item.add,
+              pd: item.pd,
+              rxR: item.rxR,
+              rxL: item.rxL,
             }])}
             onBrandChange={setSelectedBrandId}
             onProductChange={setSelectedProductId}
