@@ -43,6 +43,7 @@ export async function POST(
         axis: body.axis?.toString(),
         optionName: body.optionName,
         stock: body.stock || 0,
+        stockType: body.stockType || 'local', // local=여벌, factory=공장여벌
         priceAdjustment: body.priceAdjustment || 0,
         barcode: body.barcode,
         location: body.location,

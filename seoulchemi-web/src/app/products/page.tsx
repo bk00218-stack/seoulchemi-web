@@ -117,7 +117,7 @@ function GenerateOptionsModal({
   productName: string
   existingOptions: ProductOption[]
   onClose: () => void
-  onGenerate: (options: { sph: string; cyl: string; priceAdjustment: number }[]) => void
+  onGenerate: (options: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[]) => void
   onUpdate?: (updates: { id: number; priceAdjustment: number }[]) => void
   mode?: 'create' | 'edit'
 }) {
@@ -139,6 +139,9 @@ function GenerateOptionsModal({
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState<{ sph: number; cyl: number } | null>(null)
   const [dragEnd, setDragEnd] = useState<{ sph: number; cyl: number } | null>(null)
+  
+  // 여벌/공장여벌 구분
+  const [stockType, setStockType] = useState<'local' | 'factory'>('local')
   
   // 가격 조정 규칙 (CYL 기준)
   const [priceRules, setPriceRules] = useState([
@@ -370,7 +373,7 @@ function GenerateOptionsModal({
       selectedCells.forEach((priceAdjustment, key) => {
         if (!existingMap.has(key)) {
           const [sph, cyl] = key.split(',')
-          newOptions.push({ sph, cyl, priceAdjustment })
+          newOptions.push({ sph, cyl, priceAdjustment, stockType })
         }
       })
       
@@ -387,7 +390,7 @@ function GenerateOptionsModal({
       // 생성 모드: 새로운 옵션만 생성
       const options = Array.from(selectedCells.entries()).map(([key, priceAdjustment]) => {
         const [sph, cyl] = key.split(',')
-        return { sph, cyl, priceAdjustment }
+        return { sph, cyl, priceAdjustment, stockType }
       })
       onGenerate(options)
     }
@@ -540,7 +543,7 @@ function GenerateOptionsModal({
           </div>
         </div>
         
-        {/* 빠른 범위 선택 프리셋 */}
+        {/* 빠른 범위 선택 프리셋 + 여벌/공장여벌 선택 */}
         <div style={{ padding: '8px 16px', background: '#f0f7ff', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: '#666', fontWeight: 600 }}>📐 빠른 선택:</span>
           {presets.map((preset, idx) => (
@@ -564,6 +567,41 @@ function GenerateOptionsModal({
           <span style={{ fontSize: 11, color: '#888', marginLeft: 8 }}>
             💡 드래그로 범위 선택
           </span>
+          
+          {/* 여벌/공장여벌 선택 */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 12, color: '#666', fontWeight: 600 }}>📦 재고타입:</span>
+            <button
+              onClick={() => setStockType('local')}
+              style={{
+                padding: '4px 12px',
+                fontSize: 11,
+                border: stockType === 'local' ? '2px solid #34c759' : '1px solid #ccc',
+                borderRadius: 4,
+                background: stockType === 'local' ? '#e8f5e9' : 'white',
+                color: stockType === 'local' ? '#2e7d32' : '#666',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              여벌 (자체재고)
+            </button>
+            <button
+              onClick={() => setStockType('factory')}
+              style={{
+                padding: '4px 12px',
+                fontSize: 11,
+                border: stockType === 'factory' ? '2px solid #ff9800' : '1px solid #ccc',
+                borderRadius: 4,
+                background: stockType === 'factory' ? '#fff3e0' : 'white',
+                color: stockType === 'factory' ? '#e65100' : '#666',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              공장여벌 (발주)
+            </button>
+          </div>
         </div>
         
         {/* 가격 규칙 패널 */}

@@ -133,6 +133,7 @@ model ProductOption {
   memo            String?   // 메모
   barcode         String?   // 바코드
   stock           Float     @default(0) // 재고 (안경렌즈: 0.5=한쪽, 1=양쪽)
+  stockType       String    @default("local") // local=여벌(자체재고), factory=공장여벌(발주)
   isActive        Boolean   @default(true) // 상태
   location        String?   // 재고 위치
   priceAdjustment Int       @default(0) // 가격 조정 (+ 또는 -)

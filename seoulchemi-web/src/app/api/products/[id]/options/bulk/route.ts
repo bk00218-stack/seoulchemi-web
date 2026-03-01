@@ -35,7 +35,7 @@ export async function POST(
     let updated = 0;
 
     for (const option of options) {
-      const { sph, cyl, stock, priceAdjustment, axis, barcode, location, memo } = option;
+      const { sph, cyl, stock, stockType, priceAdjustment, axis, barcode, location, memo } = option;
 
       // 기존 옵션 확인
       const existing = await prisma.productOption.findFirst({
@@ -52,11 +52,12 @@ export async function POST(
         await prisma.productOption.update({
           where: { id: existing.id },
           data: {
-            stock: stock || 0,
-            priceAdjustment: priceAdjustment || 0,
-            barcode,
-            location,
-            memo,
+            stock: stock ?? existing.stock,
+            stockType: stockType || existing.stockType || 'local',
+            priceAdjustment: priceAdjustment ?? existing.priceAdjustment,
+            barcode: barcode ?? existing.barcode,
+            location: location ?? existing.location,
+            memo: memo ?? existing.memo,
           },
         });
         updated++;
@@ -69,6 +70,7 @@ export async function POST(
             cyl: cyl?.toString(),
             axis: axis?.toString() || null,
             stock: stock || 0,
+            stockType: stockType || 'local', // local=여벌, factory=공장여벌
             priceAdjustment: priceAdjustment || 0,
             barcode,
             location,
