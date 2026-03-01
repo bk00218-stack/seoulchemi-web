@@ -125,12 +125,14 @@ function GenerateOptionsModal({
   // 탭: 근난시(-/-), 원난시(+/-)
   const [activeTab, setActiveTab] = useState<'minus' | 'plus'>('minus')
   
-  // 선택된 셀들과 가격 조정 (Map으로 관리, "sph,cyl" -> priceAdjustment)
+  // 선택된 셀들 (Map: "sph,cyl" -> { priceAdjustment, stockType })
   // 수정 모드에서는 기존 옵션도 포함
-  const [selectedCells, setSelectedCells] = useState<Map<string, number>>(() => {
+  const [selectedCells, setSelectedCells] = useState<Map<string, { priceAdjustment: number; stockType: string }>>(() => {
     if (mode === 'edit') {
-      // 수정 모드: 기존 옵션들을 선택된 상태로 초기화
-      return new Map(existingOptions.map(o => [`${o.sph},${o.cyl}`, o.priceAdjustment || 0]))
+      return new Map(existingOptions.map(o => [
+        `${o.sph},${o.cyl}`, 
+        { priceAdjustment: o.priceAdjustment || 0, stockType: (o as any).stockType || 'local' }
+      ]))
     }
     return new Map()
   })
@@ -140,8 +142,8 @@ function GenerateOptionsModal({
   const [dragStart, setDragStart] = useState<{ sph: number; cyl: number } | null>(null)
   const [dragEnd, setDragEnd] = useState<{ sph: number; cyl: number } | null>(null)
   
-  // 여벌/공장여벌 구분
-  const [stockType, setStockType] = useState<'local' | 'factory'>('local')
+  // 기본 재고타입 (새 셀 추가 시 사용)
+  const [defaultStockType, setDefaultStockType] = useState<'local' | 'factory'>('local')
   
   // 가격 조정 규칙 (CYL 기준)
   const [priceRules, setPriceRules] = useState([
@@ -208,7 +210,7 @@ function GenerateOptionsModal({
         if (mode === 'edit' && isExisting) return prev
         newMap.delete(key)
       } else {
-        newMap.set(key, getPriceByRules(cyl))
+        newMap.set(key, { priceAdjustment: getPriceByRules(cyl), stockType: defaultStockType })
       }
       return newMap
     })
@@ -238,7 +240,7 @@ function GenerateOptionsModal({
           if (mode === 'create' && isExisting) return
           
           if (action === 'select') {
-            newMap.set(key, getPriceByRules(cyl))
+            newMap.set(key, { priceAdjustment: getPriceByRules(cyl), stockType: defaultStockType })
           } else {
             if (mode === 'edit' && isExisting) return
             newMap.delete(key)
@@ -318,7 +320,7 @@ function GenerateOptionsModal({
       cylValues.forEach(cyl => {
         const key = `${formatValue(sph)},${formatValue(cyl)}`
         if (!existingMap.has(key)) {
-          newMap.set(key, getPriceByRules(cyl))
+          newMap.set(key, { priceAdjustment: getPriceByRules(cyl), stockType: defaultStockType })
         }
       })
     })
@@ -340,8 +342,8 @@ function GenerateOptionsModal({
   // 선택된 셀들에 일괄 가격 적용
   const handleApplyBulkPrice = () => {
     const newMap = new Map(selectedCells)
-    for (const key of newMap.keys()) {
-      newMap.set(key, bulkPrice)
+    for (const [key, value] of newMap.entries()) {
+      newMap.set(key, { ...value, priceAdjustment: bulkPrice })
     }
     setSelectedCells(newMap)
   }
@@ -349,10 +351,10 @@ function GenerateOptionsModal({
   // 규칙 재적용 (선택된 셀에만 적용)
   const handleApplyRules = () => {
     const newMap = new Map(selectedCells)
-    for (const key of newMap.keys()) {
+    for (const [key, value] of newMap.entries()) {
       const [, cylStr] = key.split(',')
       const cyl = parseValue(cylStr)
-      newMap.set(key, getPriceByRules(cyl))
+      newMap.set(key, { ...value, priceAdjustment: getPriceByRules(cyl) })
     }
     setSelectedCells(newMap)
   }
@@ -361,19 +363,19 @@ function GenerateOptionsModal({
     if (mode === 'edit' && onUpdate) {
       // 수정 모드: 기존 옵션의 가격 변경 사항만 전송
       const updates: { id: number; priceAdjustment: number }[] = []
-      selectedCells.forEach((newPrice, key) => {
+      selectedCells.forEach((cellData, key) => {
         const existing = existingMap.get(key)
-        if (existing && existing.priceAdjustment !== newPrice) {
-          updates.push({ id: existing.id, priceAdjustment: newPrice })
+        if (existing && existing.priceAdjustment !== cellData.priceAdjustment) {
+          updates.push({ id: existing.id, priceAdjustment: cellData.priceAdjustment })
         }
       })
       
       // 새로 추가된 옵션들
       const newOptions: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[] = []
-      selectedCells.forEach((priceAdjustment, key) => {
+      selectedCells.forEach((cellData, key) => {
         if (!existingMap.has(key)) {
           const [sph, cyl] = key.split(',')
-          newOptions.push({ sph, cyl, priceAdjustment, stockType })
+          newOptions.push({ sph, cyl, priceAdjustment: cellData.priceAdjustment, stockType: cellData.stockType })
         }
       })
       
@@ -388,9 +390,9 @@ function GenerateOptionsModal({
       }
     } else {
       // 생성 모드: 새로운 옵션만 생성
-      const options = Array.from(selectedCells.entries()).map(([key, priceAdjustment]) => {
+      const options = Array.from(selectedCells.entries()).map(([key, cellData]) => {
         const [sph, cyl] = key.split(',')
-        return { sph, cyl, priceAdjustment, stockType }
+        return { sph, cyl, priceAdjustment: cellData.priceAdjustment, stockType: cellData.stockType }
       })
       onGenerate(options)
     }
@@ -411,10 +413,13 @@ function GenerateOptionsModal({
     const key = `${formatValue(sph)},${formatValue(cyl)}`
     const isExisting = existingMap.has(key)
     const isSelected = selectedCells.has(key)
-    const priceAdj = selectedCells.get(key) || 0
+    const cellData = selectedCells.get(key)
+    const priceAdj = cellData?.priceAdjustment || 0
+    const cellStockType = cellData?.stockType || 'local'
     const originalPrice = existingMap.get(key)?.priceAdjustment || 0
     const isModified = isExisting && priceAdj !== originalPrice
     const inDragRange = isInDragRange(sph, cyl)
+    const isFactory = cellStockType === 'factory'
     
     let background = '#fff'
     let cursor = 'pointer'
@@ -428,7 +433,12 @@ function GenerateOptionsModal({
         background = 'var(--gray-300)'
         cursor = 'not-allowed'
       } else if (isSelected) {
-        background = priceAdj > 0 ? '#ff6b6b' : 'var(--primary)'
+        // 공장여벌은 주황색 계열, 여벌은 파랑/빨강 계열
+        if (isFactory) {
+          background = priceAdj > 0 ? '#ff9800' : '#ffb74d' // 공장여벌: 주황
+        } else {
+          background = priceAdj > 0 ? '#ff6b6b' : 'var(--primary)' // 여벌: 파랑/빨강
+        }
       }
     } else {
       // 수정 모드: 기존 옵션도 선택 가능
@@ -437,6 +447,8 @@ function GenerateOptionsModal({
       } else if (isSelected) {
         if (isModified) {
           background = '#ffeb3b'  // 수정됨: 노란색
+        } else if (isFactory) {
+          background = '#ff9800'  // 공장여벌: 주황
         } else if (priceAdj > 0) {
           background = '#ff6b6b'  // 추가금 있음
         } else if (isExisting) {
@@ -461,10 +473,21 @@ function GenerateOptionsModal({
   // 선택된 셀들의 가격 조정 요약
   const priceSummary = () => {
     const summary = new Map<number, number>()
-    for (const price of selectedCells.values()) {
+    for (const cellData of selectedCells.values()) {
+      const price = cellData.priceAdjustment
       summary.set(price, (summary.get(price) || 0) + 1)
     }
     return Array.from(summary.entries()).sort((a, b) => a[0] - b[0])
+  }
+  
+  // 선택된 셀들의 재고타입 요약
+  const stockTypeSummary = () => {
+    let local = 0, factory = 0
+    for (const cellData of selectedCells.values()) {
+      if (cellData.stockType === 'factory') factory++
+      else local++
+    }
+    return { local, factory }
   }
 
   return (
@@ -543,64 +566,89 @@ function GenerateOptionsModal({
           </div>
         </div>
         
-        {/* 빠른 범위 선택 프리셋 + 여벌/공장여벌 선택 */}
-        <div style={{ padding: '8px 16px', background: '#f0f7ff', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, color: '#666', fontWeight: 600 }}>📐 빠른 선택:</span>
-          {presets.map((preset, idx) => (
-            <button
-              key={idx}
-              onClick={() => applyPreset(preset)}
-              style={{
-                padding: '4px 10px',
-                fontSize: 11,
-                border: '1px solid var(--primary)',
-                borderRadius: 4,
-                background: 'white',
-                color: 'var(--primary)',
-                cursor: 'pointer',
-                fontWeight: 500,
-              }}
-            >
-              {preset.label}
-            </button>
-          ))}
-          <span style={{ fontSize: 11, color: '#888', marginLeft: 8 }}>
-            💡 드래그로 범위 선택
-          </span>
+        {/* 재고타입 설정 (새 셀 추가 시 기본값 + 선택된 셀 일괄 변경) */}
+        <div style={{ padding: '8px 16px', background: '#f0f7ff', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, color: '#666' }}>💡 드래그로 범위 선택</span>
           
-          {/* 여벌/공장여벌 선택 */}
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: '#666', fontWeight: 600 }}>📦 재고타입:</span>
+            <span style={{ fontSize: 12, color: '#666', fontWeight: 600 }}>📦 새 셀 기본타입:</span>
             <button
-              onClick={() => setStockType('local')}
+              onClick={() => setDefaultStockType('local')}
               style={{
                 padding: '4px 12px',
                 fontSize: 11,
-                border: stockType === 'local' ? '2px solid #34c759' : '1px solid #ccc',
+                border: defaultStockType === 'local' ? '2px solid #34c759' : '1px solid #ccc',
                 borderRadius: 4,
-                background: stockType === 'local' ? '#e8f5e9' : 'white',
-                color: stockType === 'local' ? '#2e7d32' : '#666',
+                background: defaultStockType === 'local' ? '#e8f5e9' : 'white',
+                color: defaultStockType === 'local' ? '#2e7d32' : '#666',
                 cursor: 'pointer',
                 fontWeight: 600,
               }}
             >
-              여벌 (자체재고)
+              📦 여벌
             </button>
             <button
-              onClick={() => setStockType('factory')}
+              onClick={() => setDefaultStockType('factory')}
               style={{
                 padding: '4px 12px',
                 fontSize: 11,
-                border: stockType === 'factory' ? '2px solid #ff9800' : '1px solid #ccc',
+                border: defaultStockType === 'factory' ? '2px solid #ff9800' : '1px solid #ccc',
                 borderRadius: 4,
-                background: stockType === 'factory' ? '#fff3e0' : 'white',
-                color: stockType === 'factory' ? '#e65100' : '#666',
+                background: defaultStockType === 'factory' ? '#fff3e0' : 'white',
+                color: defaultStockType === 'factory' ? '#e65100' : '#666',
                 cursor: 'pointer',
                 fontWeight: 600,
               }}
             >
-              공장여벌 (발주)
+              🏭 공장여벌
             </button>
+            
+            {/* 선택된 셀 일괄 변경 */}
+            {selectedCells.size > 0 && (
+              <>
+                <span style={{ marginLeft: 16, fontSize: 12, color: '#666' }}>선택 {selectedCells.size}개 →</span>
+                <button
+                  onClick={() => {
+                    const newMap = new Map(selectedCells)
+                    for (const [key, value] of newMap.entries()) {
+                      newMap.set(key, { ...value, stockType: 'local' })
+                    }
+                    setSelectedCells(newMap)
+                  }}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: 11,
+                    border: '1px solid #34c759',
+                    borderRadius: 4,
+                    background: 'white',
+                    color: '#2e7d32',
+                    cursor: 'pointer',
+                  }}
+                >
+                  여벌로
+                </button>
+                <button
+                  onClick={() => {
+                    const newMap = new Map(selectedCells)
+                    for (const [key, value] of newMap.entries()) {
+                      newMap.set(key, { ...value, stockType: 'factory' })
+                    }
+                    setSelectedCells(newMap)
+                  }}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: 11,
+                    border: '1px solid #ff9800',
+                    borderRadius: 4,
+                    background: 'white',
+                    color: '#e65100',
+                    cursor: 'pointer',
+                  }}
+                >
+                  공장으로
+                </button>
+              </>
+            )}
           </div>
         </div>
         
@@ -820,7 +868,7 @@ function GenerateOptionsModal({
                       onMouseDown={() => handleMouseDown(sph, cyl)}
                       onMouseEnter={() => handleMouseEnter(sph, cyl)}
                       title={selectedCells.has(`${formatValue(sph)},${formatValue(cyl)}`) 
-                        ? `+${selectedCells.get(`${formatValue(sph)},${formatValue(cyl)}`)?.toLocaleString()}원` 
+                        ? `${selectedCells.get(`${formatValue(sph)},${formatValue(cyl)}`)?.stockType === 'factory' ? '🏭공장' : '📦여벌'} +${selectedCells.get(`${formatValue(sph)},${formatValue(cyl)}`)?.priceAdjustment?.toLocaleString() || 0}원` 
                         : ''}
                     />
                   ))}
