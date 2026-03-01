@@ -1575,23 +1575,19 @@ export default function ProductsPage() {
   }
 
   // 상품 수정 모달 열기 (브랜드/품목 정보 포함)
-  async function openEditProductModal(product: Product) {
+  function openEditProductModal(product: Product) {
     setEditingProduct(product)
-    try {
-      // 전체 브랜드 목록
-      const brandsRes = await fetch('/api/brands')
-      const brandsData = await brandsRes.json()
-      setEditModalBrands(brandsData.brands || [])
-      // 현재 브랜드/품목
-      setEditModalBrandId(product.brandId)
-      const plRes = await fetch(`/api/product-lines?brandId=${product.brandId}`)
-      const plData = await plRes.json()
-      setEditModalProductLines(plData.productLines || [])
-      setEditModalProductLineId(product.productLineId)
-    } catch (e) {
-      console.error('모달 데이터 로드 실패:', e)
-    }
+    setEditModalBrandId(product.brandId)
+    setEditModalProductLineId(product.productLineId)
     setShowProductModal(true)
+    // 모달 먼저 열고 데이터 병렬 로드
+    Promise.all([
+      fetch('/api/brands').then(r => r.json()),
+      fetch(`/api/product-lines?brandId=${product.brandId}`).then(r => r.json()),
+    ]).then(([brandsData, plData]) => {
+      setEditModalBrands(brandsData.brands || [])
+      setEditModalProductLines(plData.productLines || [])
+    }).catch(e => console.error('모달 데이터 로드 실패:', e))
   }
 
   async function handleSaveProduct(formData: FormData) {
