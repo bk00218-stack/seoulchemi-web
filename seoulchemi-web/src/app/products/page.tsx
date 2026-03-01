@@ -82,8 +82,9 @@ const modalStyle: React.CSSProperties = {
   background: '#fff',
   borderRadius: 16,
   padding: 24,
-  width: 500,
-  maxHeight: '85vh',
+  width: 800,
+  maxWidth: '95vw',
+  maxHeight: '90vh',
   overflowY: 'auto',
 }
 
@@ -169,8 +170,8 @@ function GenerateOptionsModal({
   // SPH는 탭에 따라 다름
   const sphValues: number[] = []
   if (activeTab === 'minus') {
-    // 근난시: 0.00 ~ -8.00
-    for (let s = 0; s >= -8; s -= 0.25) {
+    // 근난시: 0.00 ~ -20.00
+    for (let s = 0; s >= -20; s -= 0.25) {
       sphValues.push(s)
     }
   } else {
@@ -282,9 +283,10 @@ function GenerateOptionsModal({
   // 프리셋 범위 선택
   const presets = activeTab === 'minus' 
     ? [
-        { label: '전체 (-8~0)', sphMin: -8, sphMax: 0, cylMin: -2, cylMax: 0 },
+        { label: '일반 (-8~0)', sphMin: -8, sphMax: 0, cylMin: -2, cylMax: 0 },
         { label: '저도수 (-4~0)', sphMin: -4, sphMax: 0, cylMin: -1, cylMax: 0 },
-        { label: '고도수 (-8~-4)', sphMin: -8, sphMax: -4, cylMin: -4, cylMax: 0 },
+        { label: '고도수 (-12~-4)', sphMin: -12, sphMax: -4, cylMin: -4, cylMax: 0 },
+        { label: '초고도수 (-20~-8)', sphMin: -20, sphMax: -8, cylMin: -4, cylMax: 0 },
       ]
     : [
         { label: '전체 (+0.25~+6)', sphMin: 0.25, sphMax: 6, cylMin: -2, cylMax: 0 },
