@@ -2706,19 +2706,23 @@ export default function ProductsPage() {
           onClose={() => setShowGenerateModal(false)}
           onGenerate={async (selectedCells) => {
             try {
+              console.log('생성 요청:', selectedCells.length, '개', selectedCells)
               const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ options: selectedCells }),
               })
-              if (res.ok) {
-                const data = await res.json()
+              const data = await res.json()
+              console.log('응답:', data)
+              if (res.ok && data.success !== false) {
                 setShowGenerateModal(false)
                 if (selectedProduct) handleSelectProduct(selectedProduct)
-                toast.success(`${data.created}개의 옵션이 생성되었습니다.`)
+                toast.success(`${data.created || 0}개 생성, ${data.updated || 0}개 수정`)
+              } else {
+                toast.error(data.error || '도수 생성 실패')
               }
             } catch (e) {
-              console.error(e)
+              console.error('도수 생성 에러:', e)
               toast.error('도수 생성 실패')
             }
           }}
