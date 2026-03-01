@@ -1876,33 +1876,37 @@ export default function ProductsPage() {
         {/* Panel 1: 대분류 + 브랜드 */}
         <div style={panelStyle}>
           {/* 대분류 탭 */}
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap',
-            gap: 4, 
-            padding: '8px 12px', 
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            padding: '8px 8px',
             borderBottom: '1px solid var(--gray-200)',
             background: 'var(--gray-50)'
           }}>
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => handleSelectCategory(cat)}
-                style={{
-                  padding: '4px 10px',
-                  fontSize: 11,
-                  fontWeight: selectedCategory?.id === cat.id ? 600 : 400,
-                  background: selectedCategory?.id === cat.id ? 'var(--primary)' : '#fff',
-                  color: selectedCategory?.id === cat.id ? '#fff' : 'var(--gray-600)',
-                  border: '1px solid',
-                  borderColor: selectedCategory?.id === cat.id ? 'var(--primary)' : 'var(--gray-200)',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                }}
-              >
-                {cat.name}
-              </button>
-            ))}
+            {categories.map(cat => {
+              const isActive = selectedCategory?.id === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => handleSelectCategory(cat)}
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: 13,
+                    fontWeight: isActive ? 700 : 500,
+                    background: isActive ? 'var(--primary)' : '#fff',
+                    color: isActive ? '#fff' : 'var(--gray-700)',
+                    border: isActive ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {cat.name}
+                </button>
+              )
+            })}
           </div>
           <div style={panelHeaderStyle}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--gray-800)' }}>
