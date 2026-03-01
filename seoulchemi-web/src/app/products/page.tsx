@@ -2728,7 +2728,7 @@ export default function ProductsPage() {
               const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ options: selectedCells }),
+                body: JSON.stringify({ options: optionsToCreate }),
               })
               const data = await res.json()
               console.log('응답:', data)
