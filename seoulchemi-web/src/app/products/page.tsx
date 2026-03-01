@@ -108,19 +108,19 @@ const labelStyle: React.CSSProperties = {
 // 매트릭스 도수 생성/수정 모달 컴포넌트
 function GenerateOptionsModal({
   productName,
+  productId,
   existingOptions,
   onClose,
   onGenerate,
-  onUpdate,
-  onDelete,
+  onSaveComplete,
   mode = 'create',
 }: {
   productName: string
+  productId?: number
   existingOptions: ProductOption[]
   onClose: () => void
   onGenerate: (options: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[]) => Promise<void> | void
-  onUpdate?: (updates: { id: number; priceAdjustment: number }[]) => Promise<void> | void
-  onDelete?: (ids: number[]) => Promise<void> | void
+  onSaveComplete?: () => void
   mode?: 'create' | 'edit'
 }) {
   const { toast } = useToast()
@@ -417,8 +417,8 @@ function GenerateOptionsModal({
   }
 
   const handleGenerate = async () => {
-    if (mode === 'edit' && onUpdate) {
-      // 수정 모드: 기존 옵션의 가격 변경 사항만 전송
+    if (mode === 'edit' && productId) {
+      // 수정 모드: 단일 API로 생성+수정+삭제 통합 처리
       const updates: { id: number; priceAdjustment: number }[] = []
       selectedCells.forEach((cellData, key) => {
         const existing = existingMap.get(key)
@@ -427,16 +427,14 @@ function GenerateOptionsModal({
         }
       })
 
-      // 새로 추가된 옵션들
-      const newOptions: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[] = []
+      const creates: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[] = []
       selectedCells.forEach((cellData, key) => {
         if (!existingMap.has(key)) {
           const [sph, cyl] = key.split(',')
-          newOptions.push({ sph, cyl, priceAdjustment: cellData.priceAdjustment, stockType: cellData.stockType })
+          creates.push({ sph, cyl, priceAdjustment: cellData.priceAdjustment, stockType: cellData.stockType })
         }
       })
 
-      // 삭제된 기존 옵션들 (existingMap에 있지만 selectedCells에 없는 것)
       const deleteIds: number[] = []
       existingMap.forEach((existing, key) => {
         if (!selectedCells.has(key)) {
@@ -444,20 +442,29 @@ function GenerateOptionsModal({
         }
       })
 
-      const hasChanges = updates.length > 0 || newOptions.length > 0 || deleteIds.length > 0
+      const hasChanges = updates.length > 0 || creates.length > 0 || deleteIds.length > 0
       if (!hasChanges) {
         toast.error('변경된 내용이 없습니다.')
         return
       }
 
-      // 모든 작업 완료 후 모달 닫기
       setIsSaving(true)
       try {
-        const promises: (Promise<void> | void)[] = []
-        if (updates.length > 0) promises.push(onUpdate(updates))
-        if (newOptions.length > 0) promises.push(onGenerate(newOptions))
-        if (deleteIds.length > 0 && onDelete) promises.push(onDelete(deleteIds))
-        await Promise.all(promises)
+        const res = await fetch(`/api/products/${productId}/options/bulk-edit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creates, updates, deleteIds }),
+        })
+        const data = await res.json()
+        if (res.ok && data.success !== false) {
+          toast.success(data.message || '저장 완료')
+          onSaveComplete?.()
+        } else {
+          toast.error(data.error || '저장 실패')
+        }
+      } catch (e) {
+        console.error(e)
+        toast.error('저장 실패')
       } finally {
         setIsSaving(false)
         onClose()
@@ -2796,66 +2803,13 @@ export default function ProductsPage() {
       {showEditPriceModal && (
         <GenerateOptionsModal
           productName={selectedProduct?.name || ''}
+          productId={selectedProduct?.id}
           existingOptions={options}
           mode="edit"
           onClose={() => setShowEditPriceModal(false)}
-          onGenerate={async (newOptions) => {
-            // 새로 추가된 옵션들 생성
-            if (newOptions.length > 0) {
-              try {
-                const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ options: newOptions }),
-                })
-                if (res.ok) {
-                  const data = await res.json()
-                  if (selectedProduct) handleSelectProduct(selectedProduct)
-                  const result = data.data || data
-                  toast.success(`${result.created || 0}개의 옵션이 추가되었습니다.`)
-                }
-              } catch (e) {
-                console.error(e)
-                toast.error('옵션 추가 실패')
-              }
-            }
-          }}
-          onUpdate={async (updates) => {
-            // 기존 옵션 가격 수정
-            try {
-              const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk-update`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ updates }),
-              })
-              if (res.ok) {
-                const data = await res.json()
-                if (selectedProduct) handleSelectProduct(selectedProduct)
-                const result = data.data || data
-                toast.success(`${result.updated || 0}개의 옵션이 수정되었습니다.`)
-              }
-            } catch (e) {
-              console.error(e)
-              toast.error('가격 수정 실패')
-            }
-          }}
-          onDelete={async (ids) => {
-            // 선택 해제된 기존 옵션 일괄 삭제
-            try {
-              const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk-update`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ids }),
-              })
-              if (res.ok) {
-                const data = await res.json()
-                if (selectedProduct) handleSelectProduct(selectedProduct)
-                toast.success(`${data.deleted || 0}개의 도수가 삭제되었습니다.`)
-              }
-            } catch (e) {
-              console.error(e)
-              toast.error('도수 삭제 실패')
-            }
+          onGenerate={() => {}}
+          onSaveComplete={() => {
+            if (selectedProduct) handleSelectProduct(selectedProduct)
           }}
         />
       )}
