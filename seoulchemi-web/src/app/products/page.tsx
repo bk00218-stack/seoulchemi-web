@@ -1413,7 +1413,7 @@ export default function ProductsPage() {
     try {
       const res = await fetch(`/api/products/${product.id}/options`)
       const data = await res.json()
-      setOptions(data.options || [])
+      setOptions(data.data || data.options || [])
     } catch (e) {
       console.error(e)
       setOptions([])
@@ -1437,7 +1437,7 @@ export default function ProductsPage() {
           // 옵션 목록 로드 후 해당 옵션 하이라이트
           const optRes = await fetch(`/api/products/${data.product.id}/options`)
           const optData = await optRes.json()
-          setOptions(optData.options || [])
+          setOptions(optData.data || optData.options || [])
         }
         setShowBarcodeModal(false)
         setBarcodeSearch('')
@@ -2735,7 +2735,8 @@ export default function ProductsPage() {
               if (res.ok && data.success !== false) {
                 setShowGenerateModal(false)
                 if (selectedProduct) handleSelectProduct(selectedProduct)
-                toast.success(`${data.created || 0}개 생성, ${data.updated || 0}개 수정`)
+                const result = data.data || data
+                toast.success(`${result.created || 0}개 생성, ${result.updated || 0}개 수정`)
               } else {
                 toast.error(data.error || '도수 생성 실패')
               }
@@ -2766,7 +2767,8 @@ export default function ProductsPage() {
                 if (res.ok) {
                   const data = await res.json()
                   if (selectedProduct) handleSelectProduct(selectedProduct)
-                  toast.success(`${data.created}개의 옵션이 추가되었습니다.`)
+                  const result = data.data || data
+                  toast.success(`${result.created || 0}개의 옵션이 추가되었습니다.`)
                 }
               } catch (e) {
                 console.error(e)
@@ -2786,7 +2788,8 @@ export default function ProductsPage() {
               if (res.ok) {
                 const data = await res.json()
                 if (selectedProduct) handleSelectProduct(selectedProduct)
-                toast.success(`${data.updated}개의 옵션이 수정되었습니다.`)
+                const result = data.data || data
+                toast.success(`${result.updated || 0}개의 옵션이 수정되었습니다.`)
               }
             } catch (e) {
               console.error(e)

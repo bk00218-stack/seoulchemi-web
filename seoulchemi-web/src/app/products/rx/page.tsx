@@ -102,7 +102,7 @@ export default function RxProductsPage() {
     try {
       const res = await fetch(`/api/products/${productId}/options`)
       const data = await res.json()
-      setProductOptions(data.options || [])
+      setProductOptions(data.data || data.options || [])
     } catch {
       setProductOptions([])
     } finally {
