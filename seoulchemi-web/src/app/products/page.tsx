@@ -386,6 +386,15 @@ function GenerateOptionsModal({
         }
       })
 
+      const hasChanges = updates.length > 0 || newOptions.length > 0 || deleteIds.length > 0
+      if (!hasChanges) {
+        toast.error('변경된 내용이 없습니다.')
+        return
+      }
+
+      // 모달 먼저 닫고 비동기 처리
+      onClose()
+
       if (updates.length > 0) {
         onUpdate(updates)
       }
@@ -394,9 +403,6 @@ function GenerateOptionsModal({
       }
       if (deleteIds.length > 0 && onDelete) {
         onDelete(deleteIds)
-      }
-      if (updates.length === 0 && newOptions.length === 0 && deleteIds.length === 0) {
-        toast.error('변경된 내용이 없습니다.')
       }
     } else {
       // 생성 모드: 새로운 옵션만 생성
@@ -2798,7 +2804,6 @@ export default function ProductsPage() {
                 toast.error('옵션 추가 실패')
               }
             }
-            setShowEditPriceModal(false)
           }}
           onUpdate={async (updates) => {
             // 기존 옵션 가격 수정
