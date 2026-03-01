@@ -28,9 +28,6 @@ export async function GET(request: NextRequest) {
         productLine: {
           select: { id: true, name: true }
         },
-        _count: {
-          select: { options: true }
-        }
       },
       orderBy: [
         { displayOrder: 'asc' },
@@ -39,17 +36,13 @@ export async function GET(request: NextRequest) {
       ...(limit ? { take: limit } : {})
     })
 
-    const brands = await prisma.brand.findMany({
-      orderBy: { name: 'asc' }
-    })
-
     const stats = {
       total: products.length,
       active: products.filter(p => p.isActive).length,
       inactive: products.filter(p => !p.isActive).length
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       products: products.map(p => ({
         id: p.id,
         code: `PRD${String(p.id).padStart(3, '0')}`,
@@ -69,9 +62,7 @@ export async function GET(request: NextRequest) {
         status: p.isActive ? 'active' : 'inactive',
         imageUrl: p.imageUrl,
         erpCode: p.erpCode,
-        _count: p._count
       })),
-      brands,
       stats
     })
   } catch (error) {

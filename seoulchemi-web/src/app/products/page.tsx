@@ -1424,9 +1424,6 @@ export default function ProductsPage() {
       data.products?.forEach((p: Product) => { orders[p.id] = p.displayOrder })
       setProductOrders(orders)
       setOrderChanged(false)
-      if (data.products?.length > 0) {
-        handleSelectProduct(data.products[0])
-      }
     } catch (e) {
       console.error(e)
       setProducts([])
@@ -1996,14 +1993,10 @@ export default function ProductsPage() {
                       />
                     </th>
                     <th style={gridHeaderStyle}>수정</th>
-                    <th style={gridHeaderStyle}>옵션타입</th>
                     <th style={gridHeaderStyle}>상품명</th>
-                    <th style={gridHeaderStyle}>묶음상품</th>
                     <th style={gridHeaderStyle}>굴절률</th>
                     <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>판매가</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'center', width: 50 }}>도수</th>
                     <th style={gridHeaderStyle}>상태</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'center', width: 60 }}>순서</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2032,26 +2025,14 @@ export default function ProductsPage() {
                         />
                       </td>
                       <td style={gridCellStyle} onClick={(e) => e.stopPropagation()}>
-                        <button 
+                        <button
                           onClick={() => openEditProductModal(product)}
                           style={{ ...actionBtnStyle, padding: '2px 8px' }}
                         >
                           수정
                         </button>
                       </td>
-                      <td style={gridCellStyle}>
-                        <span style={{ 
-                          fontSize: 11, 
-                          padding: '2px 6px', 
-                          borderRadius: 4,
-                          background: 'var(--gray-100)',
-                          color: 'var(--gray-600)',
-                        }}>
-                          {product.optionType}
-                        </span>
-                      </td>
                       <td style={{ ...gridCellStyle, fontWeight: 500 }}>{product.name}</td>
-                      <td style={{ ...gridCellStyle, color: 'var(--gray-500)' }}>{product.bundleName || '-'}</td>
                       <td style={gridCellStyle}>
                         {product.refractiveIndex ? (
                           <span style={{ fontFamily: 'monospace' }}>{product.refractiveIndex}</span>
@@ -2059,22 +2040,6 @@ export default function ProductsPage() {
                       </td>
                       <td style={{ ...gridCellStyle, textAlign: 'right', fontWeight: 500 }}>
                         {product.sellingPrice.toLocaleString()}원
-                      </td>
-                      <td style={{ ...gridCellStyle, textAlign: 'center' }}>
-                        {product._count?.options ? (
-                          <span style={{
-                            fontSize: 11,
-                            padding: '2px 8px',
-                            borderRadius: 10,
-                            background: '#eef4ee',
-                            color: '#4a6b4a',
-                            fontWeight: 500,
-                          }}>
-                            {product._count.options}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: 11, color: 'var(--gray-400)' }}>-</span>
-                        )}
                       </td>
                       <td style={gridCellStyle}>
                         <span style={{
@@ -2086,14 +2051,6 @@ export default function ProductsPage() {
                         }}>
                           {product.isActive ? '사용' : '미사용'}
                         </span>
-                      </td>
-                      <td style={{ ...gridCellStyle, textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="number"
-                          value={productOrders[product.id] ?? product.displayOrder}
-                          onChange={(e) => handleOrderChange(product.id, parseInt(e.target.value) || 0)}
-                          style={{ width: 50, padding: '2px 4px', textAlign: 'center', border: '1px solid var(--gray-200)', borderRadius: 4 }}
-                        />
                       </td>
                     </tr>
                   ))}
