@@ -599,9 +599,9 @@ function GenerateOptionsModal({
         style={{
           background: '#fff',
           borderRadius: 16,
-          width: '95vw',
-          maxWidth: 1400,
-          maxHeight: '95vh',
+          width: '85vw',
+          maxWidth: 1100,
+          maxHeight: '90vh',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -1817,10 +1817,12 @@ export default function ProductsPage() {
   })
 
   const gridCellStyle: React.CSSProperties = {
-    padding: '8px 12px',
+    padding: '8px 8px',
     borderBottom: '1px solid var(--gray-100)',
     fontSize: 13,
     whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   }
 
   const gridHeaderStyle: React.CSSProperties = {
@@ -2041,11 +2043,19 @@ export default function ProductsPage() {
             ) : filteredProducts.length === 0 ? (
               <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray-400)', fontSize: 13 }}>상품 없음</div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: 32 }} />
+                  <col style={{ width: 48 }} />
+                  <col />
+                  <col style={{ width: 56 }} />
+                  <col style={{ width: 80 }} />
+                  <col style={{ width: 56 }} />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th style={{ ...gridHeaderStyle, width: 30 }}>
-                      <input 
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>
+                      <input
                         type="checkbox"
                         checked={selectedProductIds.size === filteredProducts.length && filteredProducts.length > 0}
                         onChange={(e) => {
@@ -2057,11 +2067,11 @@ export default function ProductsPage() {
                         }}
                       />
                     </th>
-                    <th style={gridHeaderStyle}>수정</th>
-                    <th style={gridHeaderStyle}>상품명</th>
-                    <th style={gridHeaderStyle}>굴절률</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>판매가</th>
-                    <th style={gridHeaderStyle}>상태</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>수정</th>
+                    <th style={{ ...gridHeaderStyle, padding: '8px 6px' }}>상품명</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>굴절률</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'right', padding: '8px 6px' }}>판매가</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>상태</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2074,8 +2084,8 @@ export default function ProductsPage() {
                         background: selectedProduct?.id === product.id ? 'var(--primary-light)' : undefined,
                       }}
                     >
-                      <td style={gridCellStyle} onClick={(e) => e.stopPropagation()}>
-                        <input 
+                      <td style={{ ...gridCellStyle, textAlign: 'center', padding: '8px 4px' }} onClick={(e) => e.stopPropagation()}>
+                        <input
                           type="checkbox"
                           checked={selectedProductIds.has(product.id)}
                           onChange={(e) => {
@@ -2089,27 +2099,25 @@ export default function ProductsPage() {
                           }}
                         />
                       </td>
-                      <td style={gridCellStyle} onClick={(e) => e.stopPropagation()}>
+                      <td style={{ ...gridCellStyle, textAlign: 'center', padding: '8px 4px' }} onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => openEditProductModal(product)}
-                          style={{ ...actionBtnStyle, padding: '2px 8px' }}
+                          style={{ ...actionBtnStyle, padding: '2px 6px', fontSize: 11 }}
                         >
                           수정
                         </button>
                       </td>
-                      <td style={{ ...gridCellStyle, fontWeight: 500 }}>{product.name}</td>
-                      <td style={gridCellStyle}>
-                        {product.refractiveIndex ? (
-                          <span style={{ fontFamily: 'monospace' }}>{product.refractiveIndex}</span>
-                        ) : '-'}
+                      <td style={{ ...gridCellStyle, fontWeight: 500, padding: '8px 6px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</td>
+                      <td style={{ ...gridCellStyle, textAlign: 'center', padding: '8px 4px', fontFamily: 'monospace', fontSize: 12 }}>
+                        {product.refractiveIndex || '-'}
                       </td>
-                      <td style={{ ...gridCellStyle, textAlign: 'right', fontWeight: 500 }}>
-                        {product.sellingPrice.toLocaleString()}원
+                      <td style={{ ...gridCellStyle, textAlign: 'right', fontWeight: 500, padding: '8px 6px', fontSize: 12 }}>
+                        {product.sellingPrice.toLocaleString()}
                       </td>
-                      <td style={gridCellStyle}>
+                      <td style={{ ...gridCellStyle, textAlign: 'center', padding: '8px 4px' }}>
                         <span style={{
-                          fontSize: 11,
-                          padding: '2px 8px',
+                          fontSize: 10,
+                          padding: '2px 6px',
                           borderRadius: 10,
                           background: product.isActive ? 'var(--success-light)' : 'var(--gray-100)',
                           color: product.isActive ? 'var(--success)' : 'var(--gray-500)',
@@ -2182,42 +2190,54 @@ export default function ProductsPage() {
                 </button>
               </div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: 60 }} />
+                  <col style={{ width: 52 }} />
+                  <col style={{ width: 64 }} />
+                  <col style={{ width: 36 }} />
+                  <col style={{ width: 52 }} />
+                  <col style={{ width: 40 }} />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th style={gridHeaderStyle}>SPH</th>
-                    <th style={gridHeaderStyle}>CYL</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'right' }}>가격조정</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'center' }}>재고</th>
-                    <th style={gridHeaderStyle}>상태</th>
-                    <th style={gridHeaderStyle}>수정</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>SPH</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>CYL</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'right', padding: '8px 6px' }}>가격조정</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>재고</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>상태</th>
+                    <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>수정</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredOptions.map(option => (
                     <tr key={option.id}>
-                      <td style={{ ...gridCellStyle, fontFamily: 'monospace', fontWeight: 500 }}>{option.sph}</td>
-                      <td style={{ ...gridCellStyle, fontFamily: 'monospace' }}>{option.cyl}</td>
-                      <td style={{ 
-                        ...gridCellStyle, 
+                      <td style={{ ...gridCellStyle, fontFamily: 'monospace', fontWeight: 500, textAlign: 'center', padding: '6px 4px', fontSize: 12 }}>{option.sph}</td>
+                      <td style={{ ...gridCellStyle, fontFamily: 'monospace', textAlign: 'center', padding: '6px 4px', fontSize: 12 }}>{option.cyl}</td>
+                      <td style={{
+                        ...gridCellStyle,
                         textAlign: 'right',
+                        padding: '6px 6px',
+                        fontSize: 12,
                         fontWeight: option.priceAdjustment > 0 ? 600 : 400,
                         color: option.priceAdjustment > 0 ? '#ff6b6b' : 'var(--gray-500)',
                       }}>
                         {option.priceAdjustment > 0 ? `+${option.priceAdjustment.toLocaleString()}` : '-'}
                       </td>
-                      <td style={{ 
-                        ...gridCellStyle, 
+                      <td style={{
+                        ...gridCellStyle,
                         textAlign: 'center',
+                        padding: '6px 4px',
+                        fontSize: 12,
                         color: option.stock === 0 ? 'var(--error)' : 'var(--gray-700)',
                         fontWeight: option.stock === 0 ? 600 : 400,
                       }}>
                         {option.stock}
                       </td>
-                      <td style={gridCellStyle}>
+                      <td style={{ ...gridCellStyle, textAlign: 'center', padding: '6px 4px' }}>
                         <span style={{
-                          fontSize: 11,
-                          padding: '2px 8px',
+                          fontSize: 10,
+                          padding: '2px 6px',
                           borderRadius: 10,
                           background: option.status === '주문가능' ? 'var(--success-light)' : 'var(--gray-100)',
                           color: option.status === '주문가능' ? 'var(--success)' : 'var(--gray-500)',
@@ -2225,10 +2245,10 @@ export default function ProductsPage() {
                           {option.status}
                         </span>
                       </td>
-                      <td style={gridCellStyle}>
-                        <button 
+                      <td style={{ ...gridCellStyle, textAlign: 'center', padding: '6px 4px' }}>
+                        <button
                           onClick={() => { setEditingOption(option); setShowOptionModal(true) }}
-                          style={{ ...actionBtnStyle, padding: '2px 8px' }}
+                          style={{ ...actionBtnStyle, padding: '2px 6px', fontSize: 11 }}
                         >
                           수정
                         </button>
