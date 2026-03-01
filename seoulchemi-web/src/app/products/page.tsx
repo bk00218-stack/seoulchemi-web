@@ -369,7 +369,7 @@ function GenerateOptionsModal({
       })
       
       // 새로 추가된 옵션들
-      const newOptions: { sph: string; cyl: string; priceAdjustment: number }[] = []
+      const newOptions: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[] = []
       selectedCells.forEach((priceAdjustment, key) => {
         if (!existingMap.has(key)) {
           const [sph, cyl] = key.split(',')
