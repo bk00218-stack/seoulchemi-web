@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import NoticePopup from '../components/NoticePopup'
 import NoticeBanner from '../components/NoticeBanner'
+import DiopterSelectModal from '../components/DiopterSelectModal'
 import { useCart } from '@/contexts/StoreCartContext'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
@@ -27,7 +28,7 @@ interface Product {
 const PAGE_SIZE = 30
 
 export default function StoreProductsPage() {
-  const { items: cart, addItem, totalCount, totalPrice } = useCart()
+  const { items: cart, addItem, addItemWithDiopter, totalCount, totalPrice } = useCart()
   const isMobile = useIsMobile()
   const [brands, setBrands] = useState<Brand[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -36,6 +37,10 @@ export default function StoreProductsPage() {
   const [loading, setLoading] = useState(true)
   const [addedProduct, setAddedProduct] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  
+  // 도수 선택 모달
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [showDiopterModal, setShowDiopterModal] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -74,16 +79,51 @@ export default function StoreProductsPage() {
   const visibleProducts = filteredProducts.slice(0, visibleCount)
   const hasMore = filteredProducts.length > visibleCount
 
-  const addToCart = (product: Product) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      brand: product.brand,
-      optionType: product.optionType,
-      price: product.sellingPrice,
-    })
-    setAddedProduct(product.name)
-    setTimeout(() => setAddedProduct(null), 2000)
+  // 상품 클릭 처리
+  const handleProductClick = (product: Product) => {
+    // 여벌렌즈는 도수 선택 모달 표시
+    if (product.optionType === '안경렌즈 여벌') {
+      setSelectedProduct(product)
+      setShowDiopterModal(true)
+    } else {
+      // RX, 콘택트렌즈 등은 바로 장바구니에 담기
+      addItem({
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        optionType: product.optionType,
+        price: product.sellingPrice,
+      })
+      setAddedProduct(product.name)
+      setTimeout(() => setAddedProduct(null), 2000)
+    }
+  }
+
+  // 도수 선택 후 장바구니 담기
+  const handleAddWithDiopter = (sph: string, cyl: string, qty: number, price: number) => {
+    if (selectedProduct) {
+      addItemWithDiopter(
+        {
+          id: selectedProduct.id,
+          name: selectedProduct.name,
+          brand: selectedProduct.brand,
+          optionType: selectedProduct.optionType,
+          price: price,
+        },
+        sph,
+        cyl,
+        qty
+      )
+      setAddedProduct(`${selectedProduct.name} (${sph}/${cyl})`)
+      setTimeout(() => setAddedProduct(null), 2000)
+    }
+  }
+
+  // 장바구니에서 해당 상품 수량 가져오기
+  const getCartQty = (product: Product): number => {
+    return cart
+      .filter(c => c.id === product.id)
+      .reduce((sum, c) => sum + c.qty, 0)
   }
 
   const cardStyle = {
@@ -169,36 +209,34 @@ export default function StoreProductsPage() {
             </div>
           </div>
         ) : (
-          <div style={{ width: 200, flexShrink: 0 }}>
-            <div style={cardStyle}>
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', margin: '0 0 12px' }}>브랜드</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ ...cardStyle, width: 220, flexShrink: 0, height: 'fit-content', position: 'sticky', top: 80 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 12 }}>브랜드</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <button
+                onClick={() => setSelectedBrand(null)}
+                style={{
+                  padding: '10px 12px', borderRadius: 8, border: 'none',
+                  background: !selectedBrand ? '#007aff' : 'transparent',
+                  color: !selectedBrand ? 'white' : '#1d1d1f',
+                  fontSize: 14, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                전체 ({products.length})
+              </button>
+              {brands.map(brand => (
                 <button
-                  onClick={() => setSelectedBrand(null)}
+                  key={brand.id}
+                  onClick={() => setSelectedBrand(brand.id)}
                   style={{
                     padding: '10px 12px', borderRadius: 8, border: 'none',
-                    background: !selectedBrand ? '#007aff' : 'transparent',
-                    color: !selectedBrand ? 'white' : '#1d1d1f',
-                    fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
+                    background: selectedBrand === brand.id ? '#007aff' : 'transparent',
+                    color: selectedBrand === brand.id ? 'white' : '#1d1d1f',
+                    fontSize: 14, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
                   }}
                 >
-                  전체 ({products.length})
+                  {brand.name} ({brand.productCount})
                 </button>
-                {brands.map(brand => (
-                  <button
-                    key={brand.id}
-                    onClick={() => setSelectedBrand(brand.id)}
-                    style={{
-                      padding: '10px 12px', borderRadius: 8, border: 'none',
-                      background: selectedBrand === brand.id ? '#007aff' : 'transparent',
-                      color: selectedBrand === brand.id ? 'white' : '#1d1d1f',
-                      fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
-                    }}
-                  >
-                    {brand.name} ({brand.productCount})
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
         )}
@@ -239,26 +277,27 @@ export default function StoreProductsPage() {
                   gap: isMobile ? 8 : 16,
                 }}>
                   {visibleProducts.map(product => {
-                    const inCart = cart.find(c => c.id === product.id)
+                    const cartQty = getCartQty(product)
+                    const isSpare = product.optionType === '안경렌즈 여벌'
                     return (
                       <div
                         key={product.id}
                         style={{
-                          border: inCart ? '2px solid #007aff' : '1px solid #e9ecef',
+                          border: cartQty > 0 ? '2px solid #007aff' : '1px solid #e9ecef',
                           borderRadius: 12, padding: isMobile ? 12 : 16,
                           transition: 'all 0.2s', cursor: 'pointer',
                           position: 'relative',
                         }}
-                        onClick={() => addToCart(product)}
+                        onClick={() => handleProductClick(product)}
                       >
-                        {inCart && (
+                        {cartQty > 0 && (
                           <div style={{
                             position: 'absolute', top: 8, right: 8,
                             background: '#007aff', color: 'white',
                             fontSize: 11, fontWeight: 700,
                             padding: '2px 8px', borderRadius: 10,
                           }}>
-                            {inCart.qty}개
+                            {cartQty}개
                           </div>
                         )}
                         <div style={{ fontSize: 11, color: '#007aff', fontWeight: 600, marginBottom: 4 }}>
@@ -274,12 +313,16 @@ export default function StoreProductsPage() {
                           <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#1d1d1f' }}>
                             {product.sellingPrice?.toLocaleString()}원
                           </span>
-                          <button style={{
-                            padding: '6px 12px', fontSize: 12, fontWeight: 600,
-                            color: 'white', background: '#007aff',
-                            border: 'none', borderRadius: 6, cursor: 'pointer',
-                          }}>
-                            담기
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleProductClick(product) }}
+                            style={{
+                              padding: '6px 12px', fontSize: 12, fontWeight: 600,
+                              color: 'white', 
+                              background: isSpare ? '#34c759' : '#007aff',
+                              border: 'none', borderRadius: 6, cursor: 'pointer',
+                            }}
+                          >
+                            {isSpare ? '도수선택' : '담기'}
                           </button>
                         </div>
                       </div>
@@ -342,6 +385,18 @@ export default function StoreProductsPage() {
             </span>
           )}
         </Link>
+      )}
+
+      {/* Diopter Select Modal */}
+      {showDiopterModal && selectedProduct && (
+        <DiopterSelectModal
+          product={selectedProduct}
+          onClose={() => {
+            setShowDiopterModal(false)
+            setSelectedProduct(null)
+          }}
+          onAdd={handleAddWithDiopter}
+        />
       )}
     </div>
   )
