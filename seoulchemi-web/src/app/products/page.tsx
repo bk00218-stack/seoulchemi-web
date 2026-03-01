@@ -2649,7 +2649,17 @@ export default function ProductsPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => { setShowProductModal(false); setShowGenerateModal(true) }}
+                        onClick={() => {
+                          if (editingProduct) {
+                            handleSelectProduct(editingProduct)
+                          }
+                          setShowProductModal(false)
+                          if (options.length > 0) {
+                            setShowEditPriceModal(true)
+                          } else {
+                            setShowGenerateModal(true)
+                          }
+                        }}
                         style={{ ...actionBtnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}
                       >
                         도수 관리 →
