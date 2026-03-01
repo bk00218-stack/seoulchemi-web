@@ -112,6 +112,7 @@ function GenerateOptionsModal({
   onClose,
   onGenerate,
   onUpdate,
+  onDelete,
   mode = 'create',
 }: {
   productName: string
@@ -119,6 +120,7 @@ function GenerateOptionsModal({
   onClose: () => void
   onGenerate: (options: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[]) => void
   onUpdate?: (updates: { id: number; priceAdjustment: number }[]) => void
+  onDelete?: (ids: number[]) => void
   mode?: 'create' | 'edit'
 }) {
   const { toast } = useToast()
@@ -206,8 +208,6 @@ function GenerateOptionsModal({
     setSelectedCells(prev => {
       const newMap = new Map(prev)
       if (newMap.has(key)) {
-        // 수정 모드에서 기존 옵션은 선택 해제 불가 (삭제 방지)
-        if (mode === 'edit' && isExisting) return prev
         newMap.delete(key)
       } else {
         newMap.set(key, { priceAdjustment: getPriceByRules(cyl), stockType: defaultStockType })
@@ -242,7 +242,6 @@ function GenerateOptionsModal({
           if (action === 'select') {
             newMap.set(key, { priceAdjustment: getPriceByRules(cyl), stockType: defaultStockType })
           } else {
-            if (mode === 'edit' && isExisting) return
             newMap.delete(key)
           }
         })
@@ -369,7 +368,7 @@ function GenerateOptionsModal({
           updates.push({ id: existing.id, priceAdjustment: cellData.priceAdjustment })
         }
       })
-      
+
       // 새로 추가된 옵션들
       const newOptions: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[] = []
       selectedCells.forEach((cellData, key) => {
@@ -378,14 +377,25 @@ function GenerateOptionsModal({
           newOptions.push({ sph, cyl, priceAdjustment: cellData.priceAdjustment, stockType: cellData.stockType })
         }
       })
-      
+
+      // 삭제된 기존 옵션들 (existingMap에 있지만 selectedCells에 없는 것)
+      const deleteIds: number[] = []
+      existingMap.forEach((existing, key) => {
+        if (!selectedCells.has(key)) {
+          deleteIds.push(existing.id)
+        }
+      })
+
       if (updates.length > 0) {
         onUpdate(updates)
       }
       if (newOptions.length > 0) {
         onGenerate(newOptions)
       }
-      if (updates.length === 0 && newOptions.length === 0) {
+      if (deleteIds.length > 0 && onDelete) {
+        onDelete(deleteIds)
+      }
+      if (updates.length === 0 && newOptions.length === 0 && deleteIds.length === 0) {
         toast.error('변경된 내용이 없습니다.')
       }
     } else {
@@ -445,9 +455,12 @@ function GenerateOptionsModal({
         }
       }
     } else {
-      // 수정 모드: 기존 옵션도 선택 가능
+      // 수정 모드: 기존 옵션도 선택/해제 가능
       if (inDragRange) {
         background = 'rgba(0, 122, 255, 0.3)'
+      } else if (isExisting && !isSelected) {
+        // 기존 옵션이 해제됨 → 삭제 예정 (빨간 줄무늬)
+        background = 'repeating-linear-gradient(45deg, #ffcdd2, #ffcdd2 3px, #ef5350 3px, #ef5350 6px)'
       } else if (isSelected) {
         if (isModified) {
           background = '#ffeb3b'  // 수정됨: 노란색
@@ -930,7 +943,17 @@ function GenerateOptionsModal({
             </div>
             <span style={{ fontSize: 14, color: 'var(--gray-600)' }}>
               {mode === 'edit' ? (
-                <>기존 <strong style={{ color: '#81c784' }}>{existingOptions.length}</strong>개</>
+                <>
+                  기존 <strong style={{ color: '#81c784' }}>{existingOptions.length}</strong>개
+                  {(() => {
+                    const deleteCount = existingOptions.filter(o => !selectedCells.has(`${o.sph},${o.cyl}`)).length
+                    return deleteCount > 0 ? (
+                      <span style={{ color: '#ef5350', marginLeft: 8 }}>
+                        삭제 <strong>{deleteCount}</strong>개
+                      </span>
+                    ) : null
+                  })()}
+                </>
               ) : (
                 <>총 <strong style={{ color: 'var(--primary)' }}>{selectedCells.size}</strong>개 선택</>
               )}
@@ -2794,6 +2817,23 @@ export default function ProductsPage() {
             } catch (e) {
               console.error(e)
               toast.error('가격 수정 실패')
+            }
+          }}
+          onDelete={async (ids) => {
+            // 선택 해제된 기존 옵션 삭제
+            try {
+              let deleted = 0
+              for (const id of ids) {
+                const res = await fetch(`/api/products/${selectedProduct?.id}/options/${id}`, {
+                  method: 'DELETE',
+                })
+                if (res.ok) deleted++
+              }
+              if (selectedProduct) handleSelectProduct(selectedProduct)
+              toast.success(`${deleted}개의 도수가 삭제되었습니다.`)
+            } catch (e) {
+              console.error(e)
+              toast.error('도수 삭제 실패')
             }
           }}
         />
