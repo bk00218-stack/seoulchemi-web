@@ -134,9 +134,10 @@ function GenerateOptionsModal({
     return new Map()
   })
   
-  // 드래그 선택
+  // 드래그 범위 선택 (사각형)
   const [isDragging, setIsDragging] = useState(false)
-  const [dragMode, setDragMode] = useState<'select' | 'deselect'>('select')
+  const [dragStart, setDragStart] = useState<{ sph: number; cyl: number } | null>(null)
+  const [dragEnd, setDragEnd] = useState<{ sph: number; cyl: number } | null>(null)
   
   // 가격 조정 규칙 (CYL 기준)
   const [priceRules, setPriceRules] = useState([
@@ -209,42 +210,102 @@ function GenerateOptionsModal({
     })
   }
 
-  const handleMouseDown = (sph: number, cyl: number) => {
-    const key = `${formatValue(sph)},${formatValue(cyl)}`
-    const isExisting = existingMap.has(key)
-    
-    // 생성 모드에서는 기존 옵션 드래그 불가
-    if (mode === 'create' && isExisting) return
-    
-    setIsDragging(true)
-    setDragMode(selectedCells.has(key) ? 'deselect' : 'select')
-    toggleCell(sph, cyl)
+  // 드래그 범위 내 셀인지 확인
+  const isInDragRange = (sph: number, cyl: number) => {
+    if (!dragStart || !dragEnd) return false
+    const minSph = Math.min(dragStart.sph, dragEnd.sph)
+    const maxSph = Math.max(dragStart.sph, dragEnd.sph)
+    const minCyl = Math.min(dragStart.cyl, dragEnd.cyl)
+    const maxCyl = Math.max(dragStart.cyl, dragEnd.cyl)
+    return sph >= minSph && sph <= maxSph && cyl >= minCyl && cyl <= maxCyl
   }
 
-  const handleMouseEnter = (sph: number, cyl: number) => {
-    if (!isDragging) return
-    const key = `${formatValue(sph)},${formatValue(cyl)}`
-    const isExisting = existingMap.has(key)
-    
-    // 생성 모드에서는 기존 옵션 드래그 불가
-    if (mode === 'create' && isExisting) return
-    
+  // 범위 선택 적용
+  const applyRangeSelection = (sphMin: number, sphMax: number, cylMin: number, cylMax: number, action: 'select' | 'deselect') => {
     setSelectedCells(prev => {
       const newMap = new Map(prev)
-      if (dragMode === 'select') {
-        newMap.set(key, getPriceByRules(cyl))
-      } else {
-        // 수정 모드에서 기존 옵션은 드래그 해제 불가
-        if (mode === 'edit' && isExisting) return prev
-        newMap.delete(key)
-      }
+      sphValues.forEach(sph => {
+        if (sph < sphMin || sph > sphMax) return
+        cylValues.forEach(cyl => {
+          if (cyl < cylMin || cyl > cylMax) return
+          const key = `${formatValue(sph)},${formatValue(cyl)}`
+          const isExisting = existingMap.has(key)
+          
+          if (mode === 'create' && isExisting) return
+          
+          if (action === 'select') {
+            newMap.set(key, getPriceByRules(cyl))
+          } else {
+            if (mode === 'edit' && isExisting) return
+            newMap.delete(key)
+          }
+        })
+      })
       return newMap
     })
   }
 
-  const handleMouseUp = () => {
-    setIsDragging(false)
+  const handleMouseDown = (sph: number, cyl: number) => {
+    const key = `${formatValue(sph)},${formatValue(cyl)}`
+    const isExisting = existingMap.has(key)
+    
+    if (mode === 'create' && isExisting) return
+    
+    setDragStart({ sph, cyl })
+    setDragEnd({ sph, cyl })
+    setIsDragging(true)
   }
+
+  const handleMouseEnter = (sph: number, cyl: number) => {
+    if (!isDragging) return
+    setDragEnd({ sph, cyl })
+  }
+
+  const handleMouseUp = () => {
+    if (isDragging && dragStart && dragEnd) {
+      const minSph = Math.min(dragStart.sph, dragEnd.sph)
+      const maxSph = Math.max(dragStart.sph, dragEnd.sph)
+      const minCyl = Math.min(dragStart.cyl, dragEnd.cyl)
+      const maxCyl = Math.max(dragStart.cyl, dragEnd.cyl)
+      
+      // 시작점이 선택되어 있으면 해제, 아니면 선택
+      const startKey = `${formatValue(dragStart.sph)},${formatValue(dragStart.cyl)}`
+      const action = selectedCells.has(startKey) ? 'deselect' : 'select'
+      
+      applyRangeSelection(minSph, maxSph, minCyl, maxCyl, action)
+    }
+    setIsDragging(false)
+    setDragStart(null)
+    setDragEnd(null)
+  }
+  
+  // 프리셋 범위 선택
+  const presets = activeTab === 'minus' 
+    ? [
+        { label: '전체 (-8~0)', sphMin: -8, sphMax: 0, cylMin: -2, cylMax: 0 },
+        { label: '저도수 (-4~0)', sphMin: -4, sphMax: 0, cylMin: -1, cylMax: 0 },
+        { label: '고도수 (-8~-4)', sphMin: -8, sphMax: -4, cylMin: -4, cylMax: 0 },
+      ]
+    : [
+        { label: '전체 (+0.25~+6)', sphMin: 0.25, sphMax: 6, cylMin: -2, cylMax: 0 },
+        { label: '저도수 (+0.25~+2)', sphMin: 0.25, sphMax: 2, cylMin: -1, cylMax: 0 },
+        { label: '고도수 (+3~+6)', sphMin: 3, sphMax: 6, cylMin: -4, cylMax: 0 },
+      ]
+  
+  const applyPreset = (preset: typeof presets[0]) => {
+    applyRangeSelection(preset.sphMin, preset.sphMax, preset.cylMin, preset.cylMax, 'select')
+  }
+
+  // 전역 마우스업 이벤트 (드래그 종료 처리)
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        handleMouseUp()
+      }
+    }
+    document.addEventListener('mouseup', handleGlobalMouseUp)
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp)
+  }, [isDragging, dragStart, dragEnd, selectedCells])
 
   const handleSelectAll = () => {
     const newMap = new Map(selectedCells)
@@ -348,11 +409,15 @@ function GenerateOptionsModal({
     const priceAdj = selectedCells.get(key) || 0
     const originalPrice = existingMap.get(key)?.priceAdjustment || 0
     const isModified = isExisting && priceAdj !== originalPrice
+    const inDragRange = isInDragRange(sph, cyl)
     
     let background = '#fff'
     let cursor = 'pointer'
     
-    if (mode === 'create') {
+    // 드래그 범위 미리보기
+    if (inDragRange && !isExisting) {
+      background = 'rgba(0, 122, 255, 0.3)'
+    } else if (mode === 'create') {
       // 생성 모드: 기존 옵션은 회색, 선택불가
       if (isExisting) {
         background = 'var(--gray-300)'
@@ -362,7 +427,9 @@ function GenerateOptionsModal({
       }
     } else {
       // 수정 모드: 기존 옵션도 선택 가능
-      if (isSelected) {
+      if (inDragRange) {
+        background = 'rgba(0, 122, 255, 0.3)'
+      } else if (isSelected) {
         if (isModified) {
           background = '#ffeb3b'  // 수정됨: 노란색
         } else if (priceAdj > 0) {
@@ -469,6 +536,32 @@ function GenerateOptionsModal({
               ⚙️ 가격 규칙
             </button>
           </div>
+        </div>
+        
+        {/* 빠른 범위 선택 프리셋 */}
+        <div style={{ padding: '8px 16px', background: '#f0f7ff', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, color: '#666', fontWeight: 600 }}>📐 빠른 선택:</span>
+          {presets.map((preset, idx) => (
+            <button
+              key={idx}
+              onClick={() => applyPreset(preset)}
+              style={{
+                padding: '4px 10px',
+                fontSize: 11,
+                border: '1px solid var(--primary)',
+                borderRadius: 4,
+                background: 'white',
+                color: 'var(--primary)',
+                cursor: 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+          <span style={{ fontSize: 11, color: '#888', marginLeft: 8 }}>
+            💡 드래그로 범위 선택
+          </span>
         </div>
         
         {/* 가격 규칙 패널 */}
