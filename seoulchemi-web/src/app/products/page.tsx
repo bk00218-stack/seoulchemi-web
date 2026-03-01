@@ -1,7 +1,7 @@
 'use client'
 
 import { useToast } from '@/contexts/ToastContext'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Layout from '../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../constants/sidebar'
 
@@ -118,9 +118,9 @@ function GenerateOptionsModal({
   productName: string
   existingOptions: ProductOption[]
   onClose: () => void
-  onGenerate: (options: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[]) => void
-  onUpdate?: (updates: { id: number; priceAdjustment: number }[]) => void
-  onDelete?: (ids: number[]) => void
+  onGenerate: (options: { sph: string; cyl: string; priceAdjustment: number; stockType: string }[]) => Promise<void> | void
+  onUpdate?: (updates: { id: number; priceAdjustment: number }[]) => Promise<void> | void
+  onDelete?: (ids: number[]) => Promise<void> | void
   mode?: 'create' | 'edit'
 }) {
   const { toast } = useToast()
@@ -153,6 +153,12 @@ function GenerateOptionsModal({
   ])
   const [showRulePanel, setShowRulePanel] = useState(false)
   const [bulkPrice, setBulkPrice] = useState(0)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // 자동 스크롤 관련
+  const gridContainerRef = useRef<HTMLDivElement>(null)
+  const scrollStateRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 })
+  const rafRef = useRef<number | null>(null)
 
   // 기존 옵션들을 Map으로 (id와 가격조정 포함)
   const existingMap = new Map(existingOptions.map(o => [`${o.sph},${o.cyl}`, { id: o.id, priceAdjustment: o.priceAdjustment || 0 }]))
@@ -313,6 +319,58 @@ function GenerateOptionsModal({
     return () => document.removeEventListener('mouseup', handleGlobalMouseUp)
   }, [isDragging, dragStart, dragEnd, selectedCells])
 
+  // 드래그 중 자동 스크롤
+  useEffect(() => {
+    if (!isDragging) {
+      scrollStateRef.current = { dx: 0, dy: 0 }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
+      return
+    }
+
+    const tick = () => {
+      const container = gridContainerRef.current
+      const { dx, dy } = scrollStateRef.current
+      if (container && (dx !== 0 || dy !== 0)) {
+        container.scrollLeft += dx
+        container.scrollTop += dy
+      }
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    const handleDragMouseMove = (e: MouseEvent) => {
+      const container = gridContainerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+      const edgeSize = 50
+      const maxSpeed = 12
+      let dy = 0, dx = 0
+      if (e.clientY > rect.bottom - edgeSize) {
+        dy = maxSpeed * Math.min(1, (e.clientY - (rect.bottom - edgeSize)) / edgeSize)
+      } else if (e.clientY < rect.top + edgeSize) {
+        dy = -maxSpeed * Math.min(1, ((rect.top + edgeSize) - e.clientY) / edgeSize)
+      }
+      if (e.clientX > rect.right - edgeSize) {
+        dx = maxSpeed * Math.min(1, (e.clientX - (rect.right - edgeSize)) / edgeSize)
+      } else if (e.clientX < rect.left + edgeSize) {
+        dx = -maxSpeed * Math.min(1, ((rect.left + edgeSize) - e.clientX) / edgeSize)
+      }
+      scrollStateRef.current = { dx, dy }
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    document.addEventListener('mousemove', handleDragMouseMove)
+    return () => {
+      document.removeEventListener('mousemove', handleDragMouseMove)
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
+    }
+  }, [isDragging])
+
   const handleSelectAll = () => {
     const newMap = new Map(selectedCells)
     sphValues.forEach(sph => {
@@ -358,7 +416,7 @@ function GenerateOptionsModal({
     setSelectedCells(newMap)
   }
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (mode === 'edit' && onUpdate) {
       // 수정 모드: 기존 옵션의 가격 변경 사항만 전송
       const updates: { id: number; priceAdjustment: number }[] = []
@@ -392,17 +450,17 @@ function GenerateOptionsModal({
         return
       }
 
-      // 모달 먼저 닫고 비동기 처리
-      onClose()
-
-      if (updates.length > 0) {
-        onUpdate(updates)
-      }
-      if (newOptions.length > 0) {
-        onGenerate(newOptions)
-      }
-      if (deleteIds.length > 0 && onDelete) {
-        onDelete(deleteIds)
+      // 모든 작업 완료 후 모달 닫기
+      setIsSaving(true)
+      try {
+        const promises: (Promise<void> | void)[] = []
+        if (updates.length > 0) promises.push(onUpdate(updates))
+        if (newOptions.length > 0) promises.push(onGenerate(newOptions))
+        if (deleteIds.length > 0 && onDelete) promises.push(onDelete(deleteIds))
+        await Promise.all(promises)
+      } finally {
+        setIsSaving(false)
+        onClose()
       }
     } else {
       // 생성 모드: 새로운 옵션만 생성
@@ -527,16 +585,16 @@ function GenerateOptionsModal({
         justifyContent: 'center',
         zIndex: 1000,
       }}
-      onClick={onClose}
+      onClick={isSaving ? undefined : onClose}
       onMouseUp={handleMouseUp}
     >
-      <div 
+      <div
         style={{
           background: '#fff',
           borderRadius: 16,
-          width: 'auto',
-          maxWidth: '95vw',
-          maxHeight: '90vh',
+          width: '95vw',
+          maxWidth: 1400,
+          maxHeight: '95vh',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -549,9 +607,9 @@ function GenerateOptionsModal({
             <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
               {mode === 'edit' ? '도수표 수정' : '도수 생성 및 가격 설정'}
             </h3>
-            <button 
-              onClick={onClose}
-              style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--gray-400)' }}
+            <button
+              onClick={isSaving ? undefined : onClose}
+              style={{ background: 'none', border: 'none', fontSize: 20, cursor: isSaving ? 'not-allowed' : 'pointer', color: 'var(--gray-400)' }}
             >
               ×
             </button>
@@ -799,7 +857,7 @@ function GenerateOptionsModal({
         )}
 
         {/* 매트릭스 */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+        <div ref={gridContainerRef} style={{ flex: 1, overflow: 'auto', padding: 16 }}>
           <div style={{ marginBottom: 8, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
             {mode === 'edit' ? (
               <>
@@ -966,19 +1024,19 @@ function GenerateOptionsModal({
             </span>
             <button
               onClick={handleGenerate}
-              disabled={mode === 'create' && selectedCells.size === 0}
+              disabled={isSaving || (mode === 'create' && selectedCells.size === 0)}
               style={{
                 padding: '8px 20px',
                 fontSize: 14,
                 fontWeight: 600,
                 border: 'none',
                 borderRadius: 8,
-                background: (mode === 'edit' || selectedCells.size > 0) ? 'var(--primary)' : 'var(--gray-300)',
+                background: isSaving ? 'var(--gray-400)' : (mode === 'edit' || selectedCells.size > 0) ? 'var(--primary)' : 'var(--gray-300)',
                 color: '#fff',
-                cursor: (mode === 'edit' || selectedCells.size > 0) ? 'pointer' : 'not-allowed',
+                cursor: isSaving ? 'wait' : (mode === 'edit' || selectedCells.size > 0) ? 'pointer' : 'not-allowed',
               }}
             >
-              {mode === 'edit' ? '저장하기' : '생성하기'}
+              {isSaving ? '저장 중...' : mode === 'edit' ? '저장하기' : '생성하기'}
             </button>
           </div>
         </div>
