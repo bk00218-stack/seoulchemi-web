@@ -2138,8 +2138,7 @@ export default function ProductsPage() {
           <div style={panelHeaderStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-800)' }}>
-                도수옵션 {options.length > 0 && <span style={{ fontWeight: 400, color: 'var(--gray-500)' }}>({options.length})</span>}
-                {selectedProduct && <span style={{ fontWeight: 400, color: 'var(--gray-500)', marginLeft: 8 }}>({filteredOptions.length}개)</span>}
+                도수옵션
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
                 <button 
@@ -2192,10 +2191,9 @@ export default function ProductsPage() {
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                 <colgroup>
-                  <col style={{ width: 60 }} />
-                  <col style={{ width: 52 }} />
                   <col style={{ width: 64 }} />
-                  <col style={{ width: 36 }} />
+                  <col style={{ width: 56 }} />
+                  <col style={{ width: 40 }} />
                   <col style={{ width: 52 }} />
                   <col style={{ width: 40 }} />
                 </colgroup>
@@ -2203,7 +2201,6 @@ export default function ProductsPage() {
                   <tr>
                     <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>SPH</th>
                     <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>CYL</th>
-                    <th style={{ ...gridHeaderStyle, textAlign: 'right', padding: '8px 6px' }}>가격조정</th>
                     <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>재고</th>
                     <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>상태</th>
                     <th style={{ ...gridHeaderStyle, textAlign: 'center', padding: '8px 4px' }}>수정</th>
@@ -2214,16 +2211,6 @@ export default function ProductsPage() {
                     <tr key={option.id}>
                       <td style={{ ...gridCellStyle, fontFamily: 'monospace', fontWeight: 500, textAlign: 'center', padding: '6px 4px', fontSize: 12 }}>{option.sph}</td>
                       <td style={{ ...gridCellStyle, fontFamily: 'monospace', textAlign: 'center', padding: '6px 4px', fontSize: 12 }}>{option.cyl}</td>
-                      <td style={{
-                        ...gridCellStyle,
-                        textAlign: 'right',
-                        padding: '6px 6px',
-                        fontSize: 12,
-                        fontWeight: option.priceAdjustment > 0 ? 600 : 400,
-                        color: option.priceAdjustment > 0 ? '#ff6b6b' : 'var(--gray-500)',
-                      }}>
-                        {option.priceAdjustment > 0 ? `+${option.priceAdjustment.toLocaleString()}` : '-'}
-                      </td>
                       <td style={{
                         ...gridCellStyle,
                         textAlign: 'center',
