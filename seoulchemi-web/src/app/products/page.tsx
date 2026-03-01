@@ -390,10 +390,14 @@ function GenerateOptionsModal({
       }
     } else {
       // 생성 모드: 새로운 옵션만 생성
+      console.log('handleGenerate: selectedCells size =', selectedCells.size)
+      console.log('handleGenerate: selectedCells entries =', Array.from(selectedCells.entries()))
       const options = Array.from(selectedCells.entries()).map(([key, cellData]) => {
         const [sph, cyl] = key.split(',')
+        console.log('option:', { sph, cyl, priceAdjustment: cellData.priceAdjustment, stockType: cellData.stockType })
         return { sph, cyl, priceAdjustment: cellData.priceAdjustment, stockType: cellData.stockType }
       })
+      console.log('handleGenerate: calling onGenerate with', options.length, 'options')
       onGenerate(options)
     }
   }
@@ -2704,10 +2708,24 @@ export default function ProductsPage() {
           productName={selectedProduct?.name || ''}
           existingOptions={options}
           onClose={() => setShowGenerateModal(false)}
-          onGenerate={async (selectedCells) => {
+          onGenerate={async (optionsToCreate) => {
             try {
-              console.log('생성 요청:', selectedCells.length, '개', selectedCells)
-              const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk`, {
+              console.log('=== onGenerate 호출됨 ===')
+              console.log('selectedProduct:', selectedProduct)
+              console.log('selectedProduct.id:', selectedProduct?.id)
+              console.log('옵션 개수:', optionsToCreate.length)
+              console.log('옵션 데이터:', optionsToCreate)
+              
+              if (!selectedProduct?.id) {
+                console.error('selectedProduct.id가 없음!')
+                toast.error('상품이 선택되지 않았습니다.')
+                return
+              }
+              
+              const url = `/api/products/${selectedProduct.id}/options/bulk`
+              console.log('API URL:', url)
+              
+              const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ options: selectedCells }),
