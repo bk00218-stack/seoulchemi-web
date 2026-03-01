@@ -2825,17 +2825,18 @@ export default function ProductsPage() {
             }
           }}
           onDelete={async (ids) => {
-            // 선택 해제된 기존 옵션 삭제
+            // 선택 해제된 기존 옵션 일괄 삭제
             try {
-              let deleted = 0
-              for (const id of ids) {
-                const res = await fetch(`/api/products/${selectedProduct?.id}/options/${id}`, {
-                  method: 'DELETE',
-                })
-                if (res.ok) deleted++
+              const res = await fetch(`/api/products/${selectedProduct?.id}/options/bulk-update`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids }),
+              })
+              if (res.ok) {
+                const data = await res.json()
+                if (selectedProduct) handleSelectProduct(selectedProduct)
+                toast.success(`${data.deleted || 0}개의 도수가 삭제되었습니다.`)
               }
-              if (selectedProduct) handleSelectProduct(selectedProduct)
-              toast.success(`${deleted}개의 도수가 삭제되었습니다.`)
             } catch (e) {
               console.error(e)
               toast.error('도수 삭제 실패')

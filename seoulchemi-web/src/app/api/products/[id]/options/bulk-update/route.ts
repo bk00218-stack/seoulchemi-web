@@ -1,6 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// 도수 옵션 일괄 삭제
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const productId = parseInt(id)
+    const body = await request.json()
+    const { ids } = body // [optionId, ...]
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'No ids provided' }, { status: 400 })
+    }
+
+    const result = await prisma.productOption.deleteMany({
+      where: {
+        id: { in: ids },
+        productId, // 보안: 해당 상품의 옵션만 삭제
+      },
+    })
+
+    return NextResponse.json({
+      deleted: result.count,
+      message: `${result.count}개의 옵션이 삭제되었습니다.`,
+    })
+  } catch (error) {
+    console.error('Error bulk deleting options:', error)
+    return NextResponse.json({ error: 'Failed to delete options' }, { status: 500 })
+  }
+}
+
+// 도수 옵션 일괄 수정
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
