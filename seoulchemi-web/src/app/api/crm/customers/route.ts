@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const storeId = searchParams.get('storeId') || '1' // TODO: 세션에서 가져오기
+    const storeId = request.headers.get('x-user-store') || searchParams.get('storeId') || '1'
     const search = searchParams.get('search') || ''
     const sortBy = searchParams.get('sortBy') || 'lastVisitAt'
     const limit = parseInt(searchParams.get('limit') || '50')
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const storeId = body.storeId || 1 // TODO: 세션에서 가져오기
+    const storeId = body.storeId || parseInt(request.headers.get('x-user-store') || '1')
 
     // 필수 값 검증
     if (!body.name?.trim()) {

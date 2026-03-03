@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           depositor: depositor || memo || null,
           bankName: bankName || null,
           memo,
-          processedBy: currentUser, // TODO: 실제 로그인 사용자
+          processedBy: currentUser,
           processedAt: new Date(),
         }
       })
