@@ -671,14 +671,14 @@ export default function Layout({ children, sidebarMenus, activeNav }: LayoutProp
           role="main"
           aria-label="메인 콘텐츠"
           className="main-content"
-          style={{ 
-            flex: 1, 
-            padding: 28, 
-            display: 'flex', 
-            flexDirection: 'column', 
+          style={{
+            flex: 1,
+            padding: 28,
+            display: 'flex',
+            flexDirection: 'column',
             gap: 24,
             overflowY: 'auto',
-            height: 'calc(100vh - 60px)',
+            minHeight: 0,
             background: '#f8f9fa',
             outline: 'none'
           }}
