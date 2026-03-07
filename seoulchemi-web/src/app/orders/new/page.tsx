@@ -887,7 +887,7 @@ export default function NewOrderPage() {
             <div ref={productListRef} tabIndex={0} onKeyDown={handleProductListKeyDown} style={{ marginTop: 1, border: '1px solid #ccc', borderRadius: 2, background: '#fff', color: '#212529', flex: 1, overflow: 'auto', outline: 'none' }}>
               {filteredProducts.length === 0 ? <div style={{ padding: 4, textAlign: 'center', color: '#868e96' }}>{selectedBrandId ? '없음' : '선택'}</div> : (
                 filteredProducts.map((p, i) => (
-                  <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i) }}
+                  <div key={p.id} ref={el => { productItemRefs.current[i] = el }} onClick={() => { setSelectedProductId(p.id); setProductFocusIndex(i); if (orderType === 'RX' || orderType === '착색') { setTimeout(() => rxFormRef.current?.focusCascade(), 100) } else { setGridFocus({ sphIndex: 0, colIndex: cylColsLeft.length - 1 }); setCellInputValue(''); setTimeout(() => gridRef.current?.focus(), 50) } }}
                     style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #eee', background: selectedProductId === p.id ? '#eef4ee' : productFocusIndex === i ? '#fff3e0' : '#fff', color: '#212529', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                     <span style={{ color: '#5d7a5d', fontWeight: 600 }}>{(p.sellingPrice/1000).toFixed(0)}k</span>
