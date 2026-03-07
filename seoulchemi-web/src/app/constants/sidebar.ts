@@ -24,6 +24,13 @@ export const ORDER_SIDEBAR: SidebarMenu[] = [
       { label: '여벌 출고', href: '/orders/shipping/spare' },
       { label: 'RX 출고', href: '/orders/delivery' },
     ]
+  },
+  {
+    title: '처리현황',
+    items: [
+      { label: '착색/RX 현황', href: '/orders/rx-status' },
+      { label: '여벌 미처리', href: '/orders/spare-pending' },
+    ]
   }
 ]
 
@@ -47,6 +54,14 @@ export const PURCHASE_SIDEBAR: SidebarMenu[] = [
     items: [
       { label: '정산 관리', href: '/purchase/settlement' },
     ]
+  },
+  {
+    title: '보고서',
+    items: [
+      { label: '매입/지급 원장', href: '/purchase/ledger' },
+      { label: '매입 집계표', href: '/purchase/summary' },
+      { label: '입출금 조회', href: '/purchase/cash-flow' },
+    ]
   }
 ]
 
@@ -65,6 +80,14 @@ export const PRODUCTS_SIDEBAR: SidebarMenu[] = [
       { label: '재고 현황', href: '/products/inventory' },
       { label: '수불대장', href: '/products/inventory/ledger' },
       { label: '재고 조정', href: '/products/stock-adjust' },
+    ]
+  },
+  {
+    title: '조회/보고서',
+    items: [
+      { label: '단가 조회', href: '/products/price-list' },
+      { label: '입출고 내역', href: '/products/stock-history' },
+      { label: '거래처별 출고', href: '/products/shipment-by-store' },
     ]
   }
 ]
@@ -111,6 +134,13 @@ export const STATS_SIDEBAR: SidebarMenu[] = [
     items: [
       { label: '일별 리포트', href: '/stats/daily' },
       { label: '월별 리포트', href: '/stats/monthly' },
+    ]
+  },
+  {
+    title: '보고서',
+    items: [
+      { label: '매출 원장', href: '/stats/sales-ledger' },
+      { label: '매출 집계표', href: '/stats/sales-summary' },
     ]
   }
 ]
