@@ -97,8 +97,9 @@ model Product {
   hasDia          Boolean   @default(false) // DIA 사용 여부
   
   // 가격
-  purchasePrice   Int       @default(0)     // 매입단가 (VAT포함)
-  sellingPrice    Int       @default(0)     // 판매단가 (VAT포함)
+  purchasePrice   Int       @default(0)     // 매입가 (VAT포함)
+  sellingPrice    Int       @default(0)     // 도매가 (VAT포함)
+  retailPrice     Int       @default(0)     // 소매가 (VAT포함)
   
   isActive        Boolean   @default(true)  // 상태
   displayOrder    Int       @default(0)     // 순서
