@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const categoryId = searchParams.get('categoryId')
 
-    const where = categoryId ? { categoryId: parseInt(categoryId) } : {}
+    const includeInactive = searchParams.get('includeInactive') === 'true'
+    const where: Record<string, unknown> = {}
+    if (categoryId) where.categoryId = parseInt(categoryId)
+    if (!includeInactive) where.isActive = true
 
     const brands = await prisma.brand.findMany({
       where,
@@ -19,11 +22,14 @@ export async function GET(request: NextRequest) {
           where: { isActive: true },
           orderBy: { displayOrder: 'asc' },
           include: {
-            _count: { select: { products: true } }
+            _count: { select: { products: { where: { isActive: true } } } }
           }
         },
         _count: {
-          select: { products: true, productLines: true }
+          select: {
+            products: { where: { isActive: true } },
+            productLines: { where: { isActive: true } }
+          }
         }
       },
       orderBy: { displayOrder: 'asc' }
