@@ -36,6 +36,11 @@ export async function GET(request: NextRequest) {
       ...(limit ? { take: limit } : {})
     })
 
+    const brands = await prisma.brand.findMany({
+      select: { id: true, name: true },
+      orderBy: { displayOrder: 'asc' }
+    })
+
     const stats = {
       total: products.length,
       active: products.filter(p => p.isActive).length,
@@ -43,6 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
+      brands,
       products: products.map(p => ({
         id: p.id,
         code: `PRD${String(p.id).padStart(3, '0')}`,

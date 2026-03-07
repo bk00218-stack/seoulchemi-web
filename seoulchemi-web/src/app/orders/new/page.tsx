@@ -115,8 +115,7 @@ export default function NewOrderPage() {
   const totalCols = cylColsLeft.length + 1 + cylColsRight.length
 
   useEffect(() => {
-    fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []) })
-    fetch('/api/brands').then(r => r.json()).then(data => { setBrands((data.brands || data || []).map((b: any) => ({ id: b.id, name: b.name }))) })
+    fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
     // 거래처 전체 로드 (백그라운드)
     fetch('/api/stores?limit=10000').then(r => r.json()).then(data => {
       setAllStores(data.stores || [])
