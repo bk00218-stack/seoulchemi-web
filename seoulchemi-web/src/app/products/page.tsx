@@ -4,6 +4,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Layout from '../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../constants/sidebar'
+import BulkManageModal from './BulkManageModal'
 
 // 대분류
 interface MainCategory {
@@ -1373,6 +1374,7 @@ export default function ProductsPage() {
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [showEditPriceModal, setShowEditPriceModal] = useState(false)
   const [showBrandModal, setShowBrandModal] = useState(false)
+  const [showBulkManageModal, setShowBulkManageModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [editingOption, setEditingOption] = useState<ProductOption | null>(null)
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
@@ -1858,12 +1860,20 @@ export default function ProductsPage() {
             대분류 → 브랜드 → 품목 → 상품 → 도수옵션
           </p>
         </div>
-        <button 
-          onClick={() => setShowBarcodeModal(true)}
-          style={{ ...actionBtnStyle, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
-        >
-          🔍 바코드 검색
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setShowBulkManageModal(true)}
+            style={{ ...actionBtnStyle, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, background: '#f0f4f0', color: '#2d5a2d', border: '1px solid #c8d8c8' }}
+          >
+            ⚙️ 일괄 관리
+          </button>
+          <button
+            onClick={() => setShowBarcodeModal(true)}
+            style={{ ...actionBtnStyle, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+          >
+            🔍 바코드 검색
+          </button>
+        </div>
       </div>
 
       {/* 4-Panel Layout: 대분류+브랜드 | 품목 | 상품 | 도수옵션 */}
@@ -2933,6 +2943,14 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+      {/* 일괄 관리 모달 */}
+      <BulkManageModal
+        isOpen={showBulkManageModal}
+        onClose={() => setShowBulkManageModal(false)}
+        onComplete={() => { if (selectedCategory) handleSelectCategory(selectedCategory) }}
+        toast={toast}
+        categoryId={selectedCategory?.id || null}
+      />
     </Layout>
   )
 }
