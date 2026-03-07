@@ -55,7 +55,8 @@ export default function NewOrderPage() {
   const storeInputRef = useRef<HTMLInputElement>(null)
   const storeResultRefs = useRef<(HTMLDivElement | null)[]>([])
   const orderTypeRefs = useRef<Record<string, HTMLLabelElement | null>>({})
-  const brandSelectRef = useRef<HTMLSelectElement>(null)
+  const brandSelectRef = useRef<HTMLDivElement>(null)
+  const brandItemRefs = useRef<(HTMLDivElement | null)[]>([])
   const productListRef = useRef<HTMLDivElement>(null)
   const productItemRefs = useRef<(HTMLDivElement | null)[]>([])
   const gridRef = useRef<HTMLDivElement>(null)
@@ -72,6 +73,8 @@ export default function NewOrderPage() {
   const [orderType, setOrderType] = useState<'여벌' | '착색' | 'RX' | '기타'>('여벌')
   const [productFocusIndex, setProductFocusIndex] = useState<number>(-1)
   const [storeFocusIndex, setStoreFocusIndex] = useState<number>(-1)
+  const [brandDropdownOpen, setBrandDropdownOpen] = useState(false)
+  const [brandFocusIndex, setBrandFocusIndex] = useState<number>(-1)
   
   // 그리드: colIndex = 전체 열 인덱스 (0 = 맨 왼쪽 CYL 400, 중앙 = CYL 000, 맨 오른쪽 = CYL 400)
   const [gridFocus, setGridFocus] = useState<{sphIndex: number, colIndex: number} | null>(null)
@@ -112,9 +115,10 @@ export default function NewOrderPage() {
   const totalCols = cylColsLeft.length + 1 + cylColsRight.length
 
   useEffect(() => {
-    fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []); setBrands(data.brands || []) })
+    fetch('/api/products').then(r => r.json()).then(data => { setProducts(data.products || []) })
+    fetch('/api/brands').then(r => r.json()).then(data => { setBrands((data.brands || data || []).map((b: any) => ({ id: b.id, name: b.name }))) })
     // 거래처 전체 로드 (백그라운드)
-    fetch('/api/stores?limit=10000').then(r => r.json()).then(data => { 
+    fetch('/api/stores?limit=10000').then(r => r.json()).then(data => {
       setAllStores(data.stores || [])
       setStoresLoaded(true)
     })
@@ -173,6 +177,13 @@ export default function NewOrderPage() {
     }
   }, [storeFocusIndex])
 
+  // 브랜드 목록 키보드 이동 시 스크롤
+  useEffect(() => {
+    if (brandFocusIndex >= 0 && brandItemRefs.current[brandFocusIndex]) {
+      brandItemRefs.current[brandFocusIndex]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [brandFocusIndex])
+
   // 상품 목록 키보드 이동 시 스크롤
   useEffect(() => {
     if (productFocusIndex >= 0 && productItemRefs.current[productFocusIndex]) {
@@ -200,22 +211,16 @@ export default function NewOrderPage() {
 
   useEffect(() => {
     const handleGlobalKeys = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'F5') { 
+      if (e.key === 'F5') {
         e.preventDefault()
         setGridFocus(null)
         setCellInputValue('')
         setSelectedBrandId(null)  // 품목 초기화
         setSelectedProductId(null)  // 상품 초기화
         setProductFocusIndex(-1)
-        setTimeout(() => {
-          brandSelectRef.current?.focus()
-          // 드롭다운 열기
-          try {
-            (brandSelectRef.current as any)?.showPicker?.()
-          } catch {
-            // showPicker 미지원 브라우저
-          }
-        }, 0)
+        setBrandDropdownOpen(true)
+        setBrandFocusIndex(0)
+        setTimeout(() => brandSelectRef.current?.focus(), 0)
       }
       else if (e.key === 'F6') { 
         e.preventDefault()
@@ -227,6 +232,8 @@ export default function NewOrderPage() {
           setTimeout(() => productListRef.current?.focus(), 0)
         } else {
           // 품목이 선택 안 됐으면 품목 선택으로
+          setBrandDropdownOpen(true)
+          setBrandFocusIndex(0)
           setTimeout(() => brandSelectRef.current?.focus(), 0)
         }
       }
@@ -696,7 +703,7 @@ export default function NewOrderPage() {
               🏪 상호 <span style={{ fontSize: 10, color: '#868e96', fontWeight: 400 }}>[Esc]</span>
             </label>
             <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
-              onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); setTimeout(() => brandSelectRef.current?.focus(), 0) } }}
+              onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); setTimeout(() => orderTypeRefs.current[orderType]?.focus(), 0) } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1); if (selectedStore) setSelectedStore(null) }}
               style={{ 
                 width: '100%', 
@@ -763,7 +770,7 @@ export default function NewOrderPage() {
             {storeSearchText && !selectedStore && storesLoaded && storeSearchResults.length > 0 && (
               <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #5d7a5d', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                 {storeSearchResults.map((s, i) => (
-                  <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); setTimeout(() => brandSelectRef.current?.focus(), 0) }}
+                  <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); setTimeout(() => orderTypeRefs.current[orderType]?.focus(), 0) }}
                     style={{ 
                       padding: '8px 12px', 
                       cursor: 'pointer', 
@@ -809,9 +816,10 @@ export default function NewOrderPage() {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
                       // 여벌/착색/RX 선택 시 품목 드롭다운 열기
-                      if (t !== '기타' && brandSelectRef.current) {
-                        brandSelectRef.current.focus()
-                        try { brandSelectRef.current.showPicker() } catch {}
+                      if (t !== '기타') {
+                        setBrandDropdownOpen(true)
+                        setBrandFocusIndex(0)
+                        setTimeout(() => brandSelectRef.current?.focus(), 0)
                       }
                     } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
                       e.preventDefault()
@@ -828,9 +836,10 @@ export default function NewOrderPage() {
                   onClick={() => {
                     setOrderType(t)
                     // 여벌/착색/RX 선택 시 품목 드롭다운 열기
-                    if (t !== '기타' && brandSelectRef.current) {
-                      brandSelectRef.current.focus()
-                      try { brandSelectRef.current.showPicker() } catch {}
+                    if (t !== '기타') {
+                      setBrandDropdownOpen(true)
+                      setBrandFocusIndex(0)
+                      setTimeout(() => brandSelectRef.current?.focus(), 0)
                     }
                   }}
                   style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: orderType === t ? '2px solid #4a6b4a' : '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, outline: 'none', boxShadow: orderType === t ? '0 0 0 2px rgba(93,122,93,0.3)' : 'none', transition: 'all 0.15s' }}>
@@ -841,13 +850,37 @@ export default function NewOrderPage() {
               ))}
             </div>
           </section>
-          <section>
+          <section style={{ position: 'relative' }}>
             <label style={{ fontWeight: 600, color: '#212529' }}>품목 [F5]</label>
-            <select ref={brandSelectRef} value={selectedBrandId || ''} onChange={e => { const bid = e.target.value ? parseInt(e.target.value) : null; setSelectedBrandId(bid); setSelectedProductId(null); if (bid) setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
-              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: '#fff', color: '#212529' }}>
-              <option value="">브랜드...</option>
-              {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+            <div ref={brandSelectRef} tabIndex={0}
+              onClick={() => { setBrandDropdownOpen(o => !o); setBrandFocusIndex(0) }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBrandDropdownOpen(o => !o); setBrandFocusIndex(0) }
+                else if (e.key === 'ArrowDown' && brandDropdownOpen) { e.preventDefault(); setBrandFocusIndex(i => Math.min(i + 1, brands.length - 1)) }
+                else if (e.key === 'ArrowUp' && brandDropdownOpen) { e.preventDefault(); setBrandFocusIndex(i => Math.max(i - 1, 0)) }
+                else if (e.key === 'Enter' && brandDropdownOpen && brandFocusIndex >= 0 && brands[brandFocusIndex]) {
+                  e.preventDefault(); const bid = brands[brandFocusIndex].id; setSelectedBrandId(bid); setSelectedProductId(null); setBrandDropdownOpen(false)
+                  setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50)
+                }
+                else if (e.key === 'Escape') { setBrandDropdownOpen(false) }
+              }}
+              onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setBrandDropdownOpen(false) }}
+              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: '#fff', color: selectedBrandId ? '#212529' : '#868e96', cursor: 'pointer', userSelect: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>{selectedBrandId ? brands.find(b => b.id === selectedBrandId)?.name || '브랜드...' : '브랜드...'}</span>
+              <span style={{ fontSize: 10, color: '#868e96' }}>{brandDropdownOpen ? '▲' : '▼'}</span>
+            </div>
+            {brandDropdownOpen && brands.length > 0 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, maxHeight: 200, overflow: 'auto', border: '2px solid #5d7a5d', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', marginTop: 2 }}>
+                {brands.map((b, i) => (
+                  <div key={b.id} ref={el => { brandItemRefs.current[i] = el }}
+                    onMouseEnter={() => setBrandFocusIndex(i)}
+                    onClick={() => { setSelectedBrandId(b.id); setSelectedProductId(null); setBrandDropdownOpen(false); setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
+                    style={{ padding: '8px 12px', cursor: 'pointer', background: brandFocusIndex === i ? '#eef4ee' : selectedBrandId === b.id ? '#f0f7f0' : '#fff', color: '#212529', fontSize: 13, borderBottom: '1px solid #eee' }}>
+                    {b.name}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
           <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <label style={{ fontWeight: 600, color: '#212529' }}>상품 [F6]</label>
