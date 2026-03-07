@@ -696,7 +696,7 @@ export default function NewOrderPage() {
               🏪 상호 <span style={{ fontSize: 10, color: '#868e96', fontWeight: 400 }}>[Esc]</span>
             </label>
             <input ref={storeInputRef} type="text" placeholder="거래처명, 코드, 전화번호로 검색..." value={storeSearchText}
-              onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); setTimeout(() => orderTypeRefs.current[orderType]?.focus(), 0) } }}
+              onKeyDown={e => { const vs = storeSearchResults; if (e.key === 'ArrowDown' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.min(p + 1, vs.length - 1)) } else if (e.key === 'ArrowUp' && storeSearchText && !selectedStore) { e.preventDefault(); setStoreFocusIndex(p => Math.max(p - 1, 0)) } else if (e.key === 'Enter' && storeSearchText && vs.length > 0 && !selectedStore) { setSelectedStore(vs[storeFocusIndex >= 0 ? storeFocusIndex : 0]); setStoreSearchText(''); setStoreFocusIndex(-1); setTimeout(() => brandSelectRef.current?.focus(), 0) } }}
               onChange={e => { setStoreSearchText(e.target.value); setStoreFocusIndex(-1); if (selectedStore) setSelectedStore(null) }}
               style={{ 
                 width: '100%', 
@@ -763,7 +763,7 @@ export default function NewOrderPage() {
             {storeSearchText && !selectedStore && storesLoaded && storeSearchResults.length > 0 && (
               <div style={{ maxHeight: 280, overflow: 'auto', marginTop: 4, border: '2px solid #5d7a5d', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                 {storeSearchResults.map((s, i) => (
-                  <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); setTimeout(() => orderTypeRefs.current[orderType]?.focus(), 0) }}
+                  <div key={s.id} ref={el => { storeResultRefs.current[i] = el }} onClick={() => { setSelectedStore(s); setStoreSearchText(''); setTimeout(() => brandSelectRef.current?.focus(), 0) }}
                     style={{ 
                       padding: '8px 12px', 
                       cursor: 'pointer', 
@@ -809,11 +809,9 @@ export default function NewOrderPage() {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
                       // 여벌/착색/RX 선택 시 품목 드롭다운 열기
-                      if (t !== '기타') {
-                        setTimeout(() => {
-                          brandSelectRef.current?.focus()
-                          try { (brandSelectRef.current as any)?.showPicker?.() } catch {}
-                        }, 50)
+                      if (t !== '기타' && brandSelectRef.current) {
+                        brandSelectRef.current.focus()
+                        try { brandSelectRef.current.showPicker() } catch {}
                       }
                     } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
                       e.preventDefault()
@@ -830,11 +828,9 @@ export default function NewOrderPage() {
                   onClick={() => {
                     setOrderType(t)
                     // 여벌/착색/RX 선택 시 품목 드롭다운 열기
-                    if (t !== '기타') {
-                      setTimeout(() => {
-                        brandSelectRef.current?.focus()
-                        try { (brandSelectRef.current as any)?.showPicker?.() } catch {}
-                      }, 50)
+                    if (t !== '기타' && brandSelectRef.current) {
+                      brandSelectRef.current.focus()
+                      try { brandSelectRef.current.showPicker() } catch {}
                     }
                   }}
                   style={{ flex: 1, padding: '10px 8px', background: orderType === t ? '#5d7a5d' : '#fff', color: orderType === t ? '#fff' : '#333', border: orderType === t ? '2px solid #4a6b4a' : '1px solid #ccc', borderRadius: 4, cursor: 'pointer', fontSize: 16, fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, outline: 'none', boxShadow: orderType === t ? '0 0 0 2px rgba(93,122,93,0.3)' : 'none', transition: 'all 0.15s' }}>
