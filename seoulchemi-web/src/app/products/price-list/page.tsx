@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Layout, { btnStyle, thStyle, tdStyle, cardStyle, selectStyle, inputStyle } from '../../components/Layout'
 import { PRODUCTS_SIDEBAR } from '../../constants/sidebar'
 import { exportToCSV } from '../../components/ExcelExport'
@@ -180,8 +180,8 @@ export default function PriceListPage() {
                 </td>
               </tr>
             ) : products.map((p, i) => (
-              <>
-                <tr key={p.id} style={{ background: i % 2 === 0 ? '#fff' : '#f9fafb', cursor: p.options && p.options.length > 0 ? 'pointer' : 'default' }}
+              <React.Fragment key={p.id}>
+                <tr style={{ background: i % 2 === 0 ? '#fff' : '#f9fafb', cursor: p.options && p.options.length > 0 ? 'pointer' : 'default' }}
                   onClick={() => p.options && p.options.length > 0 && toggleExpand(p.id)}
                 >
                   <td style={{ ...tdStyle, textAlign: 'center', fontSize: '11px', color: '#9ca3af' }}>
@@ -211,7 +211,7 @@ export default function PriceListPage() {
                     <td style={tdStyle}></td>
                   </tr>
                 ))}
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
