@@ -854,32 +854,34 @@ export default function NewOrderPage() {
             <div ref={brandSelectRef} tabIndex={0}
               onClick={() => { setBrandDropdownOpen(o => !o); setBrandFocusIndex(0) }}
               onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBrandDropdownOpen(o => !o); setBrandFocusIndex(0) }
-                else if (e.key === 'ArrowDown' && brandDropdownOpen) { e.preventDefault(); setBrandFocusIndex(i => Math.min(i + 1, brands.length - 1)) }
-                else if (e.key === 'ArrowUp' && brandDropdownOpen) { e.preventDefault(); setBrandFocusIndex(i => Math.max(i - 1, 0)) }
-                else if (e.key === 'Enter' && brandDropdownOpen && brandFocusIndex >= 0 && brands[brandFocusIndex]) {
+                if (brandDropdownOpen && (e.key === 'Enter' || e.key === ' ') && brandFocusIndex >= 0 && brands[brandFocusIndex]) {
                   e.preventDefault(); const bid = brands[brandFocusIndex].id; setSelectedBrandId(bid); setSelectedProductId(null); setBrandDropdownOpen(false)
                   setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50)
                 }
+                else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setBrandDropdownOpen(o => !o); setBrandFocusIndex(0) }
+                else if (e.key === 'ArrowDown' && brandDropdownOpen) { e.preventDefault(); setBrandFocusIndex(i => Math.min(i + 1, brands.length - 1)) }
+                else if (e.key === 'ArrowUp' && brandDropdownOpen) { e.preventDefault(); setBrandFocusIndex(i => Math.max(i - 1, 0)) }
                 else if (e.key === 'Escape') { setBrandDropdownOpen(false) }
               }}
               onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setBrandDropdownOpen(false) }}
-              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: '#fff', color: selectedBrandId ? '#212529' : '#868e96', cursor: 'pointer', userSelect: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>{selectedBrandId ? brands.find(b => b.id === selectedBrandId)?.name || '브랜드...' : '브랜드...'}</span>
-              <span style={{ fontSize: 10, color: '#868e96' }}>{brandDropdownOpen ? '▲' : '▼'}</span>
-            </div>
-            {brandDropdownOpen && brands.length > 0 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, maxHeight: 200, overflow: 'auto', border: '2px solid #5d7a5d', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', marginTop: 2 }}>
-                {brands.map((b, i) => (
-                  <div key={b.id} ref={el => { brandItemRefs.current[i] = el }}
-                    onMouseEnter={() => setBrandFocusIndex(i)}
-                    onClick={() => { setSelectedBrandId(b.id); setSelectedProductId(null); setBrandDropdownOpen(false); setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
-                    style={{ padding: '8px 12px', cursor: 'pointer', background: brandFocusIndex === i ? '#eef4ee' : selectedBrandId === b.id ? '#f0f7f0' : '#fff', color: '#212529', fontSize: 13, borderBottom: '1px solid #eee' }}>
-                    {b.name}
-                  </div>
-                ))}
+              style={{ width: '100%', padding: 10, border: '2px solid #5d7a5d', borderRadius: 8, fontSize: 14, marginTop: 4, background: '#fff', color: selectedBrandId ? '#212529' : '#868e96', cursor: 'pointer', userSelect: 'none', position: 'relative' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{selectedBrandId ? brands.find(b => b.id === selectedBrandId)?.name || '브랜드...' : '브랜드...'}</span>
+                <span style={{ fontSize: 10, color: '#868e96' }}>{brandDropdownOpen ? '▲' : '▼'}</span>
               </div>
-            )}
+              {brandDropdownOpen && brands.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: -2, right: -2, zIndex: 100, maxHeight: 200, overflow: 'auto', border: '2px solid #5d7a5d', borderRadius: 8, background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', marginTop: 2 }}>
+                  {brands.map((b, i) => (
+                    <div key={b.id} ref={el => { brandItemRefs.current[i] = el }}
+                      onMouseEnter={() => setBrandFocusIndex(i)}
+                      onClick={ev => { ev.stopPropagation(); setSelectedBrandId(b.id); setSelectedProductId(null); setBrandDropdownOpen(false); setTimeout(() => { setProductFocusIndex(0); productListRef.current?.focus() }, 50) }}
+                      style={{ padding: '8px 12px', cursor: 'pointer', background: brandFocusIndex === i ? '#eef4ee' : selectedBrandId === b.id ? '#f0f7f0' : '#fff', color: '#212529', fontSize: 13, borderBottom: '1px solid #eee' }}>
+                      {b.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
           <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <label style={{ fontWeight: 600, color: '#212529' }}>상품 [F6]</label>
