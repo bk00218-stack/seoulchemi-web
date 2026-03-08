@@ -65,6 +65,42 @@ export default function BrandsPage() {
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all')
   const [expandedBrand, setExpandedBrand] = useState<number | null>(null)
+  const [tableDensity, setTableDensity] = useState<'compact' | 'normal' | 'wide'>('normal')
+
+  // 테이블 밀도 설정
+  const densityConfig = {
+    compact: {
+      cellPy: 6, cellPx: 6, fontSize: 12, badgeFontSize: 10, badgePad: '2px 6px',
+      minWidth: 780,
+      cols: { order: 35, category: 90, stock: 70, check: 35, line: 35, product: 80, status: 45, action: 85 },
+    },
+    normal: {
+      cellPy: 10, cellPx: 10, fontSize: 13, badgeFontSize: 11, badgePad: '3px 8px',
+      minWidth: 880,
+      cols: { order: 40, category: 105, stock: 80, check: 40, line: 40, product: 90, status: 50, action: 95 },
+    },
+    wide: {
+      cellPy: 14, cellPx: 14, fontSize: 14, badgeFontSize: 12, badgePad: '4px 12px',
+      minWidth: 1020,
+      cols: { order: 50, category: 130, stock: 100, check: 50, line: 55, product: 110, status: 65, action: 120 },
+    },
+  }
+  const d = densityConfig[tableDensity]
+  const thStyle = (width?: number, align: string = 'center'): React.CSSProperties => ({
+    padding: `${d.cellPy}px ${d.cellPx}px`,
+    textAlign: align as 'center' | 'left',
+    fontWeight: 600,
+    color: 'var(--gray-600)',
+    fontSize: d.fontSize,
+    whiteSpace: 'nowrap',
+    ...(width ? { width } : {}),
+  })
+  const tdStyle = (align: string = 'center'): React.CSSProperties => ({
+    padding: `${d.cellPy}px ${d.cellPx}px`,
+    textAlign: align as 'center' | 'left',
+    whiteSpace: 'nowrap',
+    fontSize: d.fontSize,
+  })
 
   const [formData, setFormData] = useState({
     name: '',
@@ -303,7 +339,7 @@ export default function BrandsPage() {
       </div>
 
       {/* 검색 및 등록 버튼 */}
-      <div style={{ ...cardStyle, padding: 16, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ ...cardStyle, padding: 16, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <div style={{ position: 'relative' }}>
             <input
@@ -316,7 +352,7 @@ export default function BrandsPage() {
                 borderRadius: 8,
                 border: '1px solid var(--gray-200)',
                 fontSize: 14,
-                width: 300,
+                width: 250,
                 outline: 'none',
                 background: 'var(--gray-50)',
               }}
@@ -326,6 +362,29 @@ export default function BrandsPage() {
           <span style={{ fontSize: 13, color: 'var(--gray-500)' }}>
             {filteredBrands.length}개 표시
           </span>
+          {/* 테이블 간격 조절 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 4, background: 'var(--gray-100)', borderRadius: 6, padding: 2 }}>
+            {([['compact', '좁게'], ['normal', '보통'], ['wide', '넓게']] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setTableDensity(key)}
+                style={{
+                  padding: '5px 10px',
+                  borderRadius: 4,
+                  fontSize: 12,
+                  fontWeight: tableDensity === key ? 600 : 400,
+                  background: tableDensity === key ? '#fff' : 'transparent',
+                  color: tableDensity === key ? 'var(--primary)' : 'var(--gray-500)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  boxShadow: tableDensity === key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <button
           onClick={() => openEditModal(null)}
@@ -366,19 +425,19 @@ export default function BrandsPage() {
             </div>
           </div>
         ) : (
-          <table style={{ width: '100%', minWidth: 900, borderCollapse: 'collapse', fontSize: 14, tableLayout: 'fixed' }}>
+          <table style={{ width: '100%', minWidth: d.minWidth, borderCollapse: 'collapse', fontSize: d.fontSize, tableLayout: 'fixed' }}>
             <thead>
               <tr style={{ background: 'var(--gray-50)', borderBottom: '2px solid var(--gray-200)' }}>
-                <th style={{ padding: '12px 10px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 45, fontSize: 13, whiteSpace: 'nowrap' }}>순서</th>
-                <th style={{ padding: '12px 10px', textAlign: 'left', fontWeight: 600, color: 'var(--gray-600)', fontSize: 13, whiteSpace: 'nowrap' }}>브랜드명</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 110, fontSize: 13, whiteSpace: 'nowrap' }}>대분류</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 85, fontSize: 13, whiteSpace: 'nowrap' }}>출고관리</th>
-                <th style={{ padding: '12px 6px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 45, fontSize: 13, whiteSpace: 'nowrap' }}>교환</th>
-                <th style={{ padding: '12px 6px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 45, fontSize: 13, whiteSpace: 'nowrap' }}>반품</th>
-                <th style={{ padding: '12px 6px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 45, fontSize: 13, whiteSpace: 'nowrap' }}>품목</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 95, fontSize: 13, whiteSpace: 'nowrap' }}>상품</th>
-                <th style={{ padding: '12px 6px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 55, fontSize: 13, whiteSpace: 'nowrap' }}>상태</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center', fontWeight: 600, color: 'var(--gray-600)', width: 100, fontSize: 13, whiteSpace: 'nowrap' }}>관리</th>
+                <th style={thStyle(d.cols.order)}>순서</th>
+                <th style={thStyle(undefined, 'left')}>브랜드명</th>
+                <th style={thStyle(d.cols.category)}>대분류</th>
+                <th style={thStyle(d.cols.stock)}>출고관리</th>
+                <th style={thStyle(d.cols.check)}>교환</th>
+                <th style={thStyle(d.cols.check)}>반품</th>
+                <th style={thStyle(d.cols.line)}>품목</th>
+                <th style={thStyle(d.cols.product)}>상품</th>
+                <th style={thStyle(d.cols.status)}>상태</th>
+                <th style={thStyle(d.cols.action)}>관리</th>
               </tr>
             </thead>
             <tbody>
@@ -395,15 +454,15 @@ export default function BrandsPage() {
                     onMouseEnter={e => { if (expandedBrand !== brand.id) (e.currentTarget as HTMLElement).style.background = 'var(--gray-50)' }}
                     onMouseLeave={e => { if (expandedBrand !== brand.id) (e.currentTarget as HTMLElement).style.background = '' }}
                   >
-                    <td style={{ padding: '12px 10px', textAlign: 'center', color: 'var(--gray-400)', fontSize: 13, whiteSpace: 'nowrap' }}>
+                    <td style={{ ...tdStyle(), color: 'var(--gray-400)' }}>
                       {brand.displayOrder}
                     </td>
-                    <td style={{ padding: '12px 10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <td style={{ ...tdStyle('left'), overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{brand.name}</span>
                         {(brand.productLines?.length || 0) > 0 && (
                           <span style={{
-                            fontSize: 11,
+                            fontSize: d.fontSize - 2,
                             color: 'var(--gray-400)',
                             transform: expandedBrand === brand.id ? 'rotate(180deg)' : 'rotate(0deg)',
                             transition: 'transform 0.2s',
@@ -411,13 +470,13 @@ export default function BrandsPage() {
                         )}
                       </div>
                     </td>
-                    <td style={{ padding: '12px 10px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    <td style={tdStyle()}>
                       {brand.category ? (
                         <span style={{
                           display: 'inline-block',
-                          padding: '3px 8px',
+                          padding: d.badgePad,
                           borderRadius: 12,
-                          fontSize: 11,
+                          fontSize: d.badgeFontSize,
                           fontWeight: 500,
                           whiteSpace: 'nowrap',
                           background: brand.category.code === 'SPARE' ? '#e3f2fd' :
@@ -430,54 +489,56 @@ export default function BrandsPage() {
                           {brand.category.name}
                         </span>
                       ) : (
-                        <span style={{ color: 'var(--gray-300)', fontSize: 12 }}>-</span>
+                        <span style={{ color: 'var(--gray-300)', fontSize: d.badgeFontSize }}>-</span>
                       )}
                     </td>
-                    <td style={{ padding: '12px 10px', textAlign: 'center', whiteSpace: 'nowrap', color: 'var(--gray-600)', fontSize: 13 }}>
+                    <td style={tdStyle()}>
                       {brand.stockManage === 'barcode' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 7px', borderRadius: 6, background: '#f3e5f5', color: '#7b1fa2', fontSize: 11, whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: d.badgePad, borderRadius: 6, background: '#f3e5f5', color: '#7b1fa2', fontSize: d.badgeFontSize, whiteSpace: 'nowrap' }}>
                           📊 바코드
                         </span>
                       ) : brand.stockManage === 'manual' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 7px', borderRadius: 6, background: '#fff3e0', color: '#e65100', fontSize: 11, whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: d.badgePad, borderRadius: 6, background: '#fff3e0', color: '#e65100', fontSize: d.badgeFontSize, whiteSpace: 'nowrap' }}>
                           ✋ 수동
                         </span>
                       ) : (
-                        <span style={{ color: 'var(--gray-300)', fontSize: 12 }}>-</span>
+                        <span style={{ color: 'var(--gray-300)', fontSize: d.badgeFontSize }}>-</span>
                       )}
                     </td>
-                    <td style={{ padding: '12px 6px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    <td style={tdStyle()}>
                       <span style={{
                         display: 'inline-block',
-                        width: 22, height: 22,
+                        width: tableDensity === 'compact' ? 18 : 22,
+                        height: tableDensity === 'compact' ? 18 : 22,
                         borderRadius: '50%',
-                        lineHeight: '22px',
-                        fontSize: 12,
+                        lineHeight: tableDensity === 'compact' ? '18px' : '22px',
+                        fontSize: d.badgeFontSize,
                         background: brand.canExchange ? '#e8f5e9' : 'var(--gray-100)',
                         color: brand.canExchange ? '#2e7d32' : 'var(--gray-300)',
                       }}>
                         {brand.canExchange ? '✓' : '−'}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 6px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    <td style={tdStyle()}>
                       <span style={{
                         display: 'inline-block',
-                        width: 22, height: 22,
+                        width: tableDensity === 'compact' ? 18 : 22,
+                        height: tableDensity === 'compact' ? 18 : 22,
                         borderRadius: '50%',
-                        lineHeight: '22px',
-                        fontSize: 12,
+                        lineHeight: tableDensity === 'compact' ? '18px' : '22px',
+                        fontSize: d.badgeFontSize,
                         background: brand.canReturn ? '#e8f5e9' : 'var(--gray-100)',
                         color: brand.canReturn ? '#2e7d32' : 'var(--gray-300)',
                       }}>
                         {brand.canReturn ? '✓' : '−'}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 6px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    <td style={tdStyle()}>
                       <span style={{
                         display: 'inline-block',
-                        padding: '3px 8px',
+                        padding: d.badgePad,
                         borderRadius: 12,
-                        fontSize: 12,
+                        fontSize: d.badgeFontSize,
                         fontWeight: 500,
                         background: '#ede7f6',
                         color: '#5856d6',
@@ -485,24 +546,24 @@ export default function BrandsPage() {
                         {brand.productLineCount || 0}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 10px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    <td style={tdStyle()}>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: 4, alignItems: 'center' }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#007aff' }}>
+                        <span style={{ fontSize: d.fontSize, fontWeight: 600, color: '#007aff' }}>
                           {brand.productCount || 0}
                         </span>
                         {brand.activeCount > 0 && (
-                          <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
+                          <span style={{ fontSize: d.badgeFontSize - 1, color: 'var(--gray-400)' }}>
                             ({brand.activeCount}/{brand.inactiveCount || 0})
                           </span>
                         )}
                       </div>
                     </td>
-                    <td style={{ padding: '12px 6px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    <td style={tdStyle()}>
                       <span style={{
                         display: 'inline-block',
-                        padding: '4px 8px',
+                        padding: d.badgePad,
                         borderRadius: 6,
-                        fontSize: 11,
+                        fontSize: d.badgeFontSize,
                         fontWeight: 500,
                         background: brand.isActive ? '#e8f5e9' : '#fef3e7',
                         color: brand.isActive ? '#2e7d32' : '#e65100'
@@ -510,17 +571,17 @@ export default function BrandsPage() {
                         {brand.isActive ? '활성' : '비활성'}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 10px', textAlign: 'center', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
+                    <td style={tdStyle()} onClick={e => e.stopPropagation()}>
                       <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                         <button
                           onClick={() => openEditModal(brand)}
                           style={{
-                            padding: '5px 10px',
+                            padding: tableDensity === 'compact' ? '3px 8px' : '5px 10px',
                             borderRadius: 6,
                             background: 'var(--gray-100)',
                             color: '#007aff',
                             border: 'none',
-                            fontSize: 12,
+                            fontSize: d.badgeFontSize,
                             fontWeight: 500,
                             cursor: 'pointer',
                             transition: 'background 0.2s',
@@ -532,12 +593,12 @@ export default function BrandsPage() {
                         <button
                           onClick={() => handleDelete(brand.id)}
                           style={{
-                            padding: '5px 10px',
+                            padding: tableDensity === 'compact' ? '3px 8px' : '5px 10px',
                             borderRadius: 6,
                             background: '#fff0f0',
                             color: '#ff3b30',
                             border: 'none',
-                            fontSize: 12,
+                            fontSize: d.badgeFontSize,
                             fontWeight: 500,
                             cursor: 'pointer',
                             transition: 'background 0.2s',
