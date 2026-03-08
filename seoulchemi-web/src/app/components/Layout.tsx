@@ -34,8 +34,13 @@ interface SearchResult {
 export default function Layout({ children, sidebarMenus, activeNav }: LayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const now = new Date()
-  const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+  const [timeStr, setTimeStr] = useState('')
+  useEffect(() => {
+    const update = () => setTimeStr(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }))
+    update()
+    const timer = setInterval(update, 60000)
+    return () => clearInterval(timer)
+  }, [])
 
   // Search state
   const [searchOpen, setSearchOpen] = useState(false)
