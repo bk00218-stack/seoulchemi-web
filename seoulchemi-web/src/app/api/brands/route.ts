@@ -27,32 +27,27 @@ export async function GET(request: NextRequest) {
         },
         _count: {
           select: {
-            products: { where: { isActive: true } },
+            products: true,
             productLines: { where: { isActive: true } }
           }
         }
       },
       orderBy: { displayOrder: 'asc' }
     })
-    
-    // 브랜드별 통계 추가
-    const brandsWithStats = await Promise.all(brands.map(async (brand) => {
-      const activeProducts = await prisma.product.count({
-        where: { brandId: brand.id, isActive: true }
-      })
-      const inactiveProducts = await prisma.product.count({
-        where: { brandId: brand.id, isActive: false }
-      })
-      
+
+    // _count에서 직접 계산 (N+1 쿼리 제거)
+    const brandsWithStats = brands.map(brand => {
+      const totalProducts = brand._count.products
+      const activeProducts = brand.productLines.reduce((sum, pl) => sum + pl._count.products, 0)
       return {
         ...brand,
-        productCount: brand._count.products,
+        productCount: totalProducts,
         productLineCount: brand._count.productLines,
         activeCount: activeProducts,
-        inactiveCount: inactiveProducts
+        inactiveCount: totalProducts - activeProducts
       }
-    }))
-    
+    })
+
     return NextResponse.json({ brands: brandsWithStats })
   } catch (error) {
     console.error('Error fetching brands:', error)

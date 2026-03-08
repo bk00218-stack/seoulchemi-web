@@ -6,13 +6,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const brandId = searchParams.get('brandId')
     const productLineId = searchParams.get('productLineId')
-    
+    const categoryId = searchParams.get('categoryId')
+    const includeOptions = searchParams.get('includeOptions') === 'true'
+    const includeInactive = searchParams.get('includeInactive')
+
     const search = searchParams.get('search') || ''
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
 
     const where: Record<string, unknown> = {}
     if (brandId) where.brandId = parseInt(brandId)
     if (productLineId) where.productLineId = parseInt(productLineId)
+    if (categoryId) where.brand = { categoryId: parseInt(categoryId) }
+    if (includeInactive === 'false') where.isActive = true
     if (search) {
       where.OR = [
         { name: { contains: search } },
@@ -21,31 +26,41 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        brand: true,
-        productLine: {
-          select: { id: true, name: true }
+    // 병렬 실행: 상품 + 브랜드 + 통계
+    const [products, brands, stats] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: {
+          brand: { select: { id: true, name: true } },
+          productLine: { select: { id: true, name: true } },
+          ...(includeOptions ? {
+            options: {
+              where: { isActive: true },
+              orderBy: [{ sph: 'asc' as const }, { cyl: 'asc' as const }],
+              select: { id: true, optionName: true, sph: true, cyl: true, priceAdjustment: true, stock: true }
+            }
+          } : {}),
         },
-      },
-      orderBy: [
-        { displayOrder: 'asc' },
-        { name: 'asc' }
-      ],
-      ...(limit ? { take: limit } : {})
-    })
+        orderBy: [
+          { displayOrder: 'asc' },
+          { name: 'asc' }
+        ],
+        ...(limit ? { take: limit } : {})
+      }),
+      prisma.brand.findMany({
+        select: { id: true, name: true },
+        where: { isActive: true },
+        orderBy: { displayOrder: 'asc' }
+      }),
+      prisma.product.groupBy({
+        by: ['isActive'],
+        where,
+        _count: true,
+      })
+    ])
 
-    const brands = await prisma.brand.findMany({
-      select: { id: true, name: true },
-      orderBy: { displayOrder: 'asc' }
-    })
-
-    const stats = {
-      total: products.length,
-      active: products.filter(p => p.isActive).length,
-      inactive: products.filter(p => !p.isActive).length
-    }
+    const activeCount = stats.find(s => s.isActive)?._count || 0
+    const inactiveCount = stats.find(s => !s.isActive)?._count || 0
 
     return NextResponse.json({
       brands,
@@ -63,13 +78,19 @@ export async function GET(request: NextRequest) {
         refractiveIndex: p.refractiveIndex,
         sellingPrice: p.sellingPrice,
         purchasePrice: p.purchasePrice,
+        retailPrice: p.retailPrice,
         isActive: p.isActive,
         displayOrder: p.displayOrder || 0,
         status: p.isActive ? 'active' : 'inactive',
         imageUrl: p.imageUrl,
         erpCode: p.erpCode,
+        ...(includeOptions ? { options: p.options } : {}),
       })),
-      stats
+      stats: {
+        total: activeCount + inactiveCount,
+        active: activeCount,
+        inactive: inactiveCount
+      }
     })
   } catch (error) {
     console.error('Error fetching products:', error)

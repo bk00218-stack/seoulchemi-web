@@ -119,6 +119,9 @@ model Product {
   @@index([brandId])
   @@index([productLineId])
   @@index([optionType])
+  @@index([isActive])
+  @@index([name])
+  @@index([isActive, brandId])
 }
 
 // 상품 옵션 (재고 관리용)
