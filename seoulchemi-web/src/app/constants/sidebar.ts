@@ -72,6 +72,7 @@ export const PRODUCTS_SIDEBAR: SidebarMenu[] = [
       { label: '브랜드 관리', href: '/products/brands' },
       { label: '판매상품 관리', href: '/products' },
       { label: 'RX상품 관리', href: '/products/rx' },
+      { label: '도수 일괄 생성', href: '/products/options-bulk' },
     ]
   },
   {
