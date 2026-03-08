@@ -16,7 +16,7 @@ interface DiopterSelectModalProps {
     name: string
     brand: string
     optionType?: string
-    sellingPrice: number
+    retailPrice: number
   }
   onClose: () => void
   onAdd: (sph: string, cyl: string, qty: number, price: number) => void
@@ -77,7 +77,7 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
     : null
 
   // 최종 가격 계산
-  const finalPrice = product.sellingPrice + (selectedOption?.priceAdjustment || 0)
+  const finalPrice = product.retailPrice + (selectedOption?.priceAdjustment || 0)
 
   const handleAdd = () => {
     if (selectedSph && selectedCyl) {

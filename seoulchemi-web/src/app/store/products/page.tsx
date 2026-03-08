@@ -23,6 +23,7 @@ interface Product {
   bundleName: string | null
   refractiveIndex: string | null
   sellingPrice: number
+  retailPrice: number
 }
 
 const PAGE_SIZE = 30
@@ -92,7 +93,7 @@ export default function StoreProductsPage() {
         name: product.name,
         brand: product.brand,
         optionType: product.optionType,
-        price: product.sellingPrice,
+        price: product.retailPrice,
       })
       setAddedProduct(product.name)
       setTimeout(() => setAddedProduct(null), 2000)
@@ -311,7 +312,7 @@ export default function StoreProductsPage() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#1d1d1f' }}>
-                            {product.sellingPrice?.toLocaleString()}원
+                            {product.retailPrice?.toLocaleString()}원
                           </span>
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleProductClick(product) }}
