@@ -34,16 +34,31 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
-    
+
+    // 허용된 필드만 추출 (Prisma strict mode 대응)
+    const data: any = {}
+    if (body.name !== undefined) data.name = body.name
+    if (body.categoryId !== undefined) data.categoryId = body.categoryId || null
+    if (body.supplierId !== undefined) data.supplierId = body.supplierId || null
+    if (body.stockManage !== undefined) data.stockManage = body.stockManage || null
+    if (body.canExchange !== undefined) data.canExchange = Boolean(body.canExchange)
+    if (body.canReturn !== undefined) data.canReturn = Boolean(body.canReturn)
+    if (body.isActive !== undefined) data.isActive = Boolean(body.isActive)
+    if (body.displayOrder !== undefined) data.displayOrder = parseInt(body.displayOrder) || 0
+
     const brand = await prisma.brand.update({
       where: { id: parseInt(id) },
-      data: body
+      data
     })
     
     return NextResponse.json(brand)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating brand:', error)
-    return NextResponse.json({ error: 'Failed to update brand' }, { status: 500 })
+    // Unique constraint violation
+    if (error?.code === 'P2002') {
+      return NextResponse.json({ error: '같은 대분류에 동일한 브랜드명이 이미 존재합니다.' }, { status: 409 })
+    }
+    return NextResponse.json({ error: error?.message || 'Failed to update brand' }, { status: 500 })
   }
 }
 
