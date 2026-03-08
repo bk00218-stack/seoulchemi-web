@@ -63,8 +63,8 @@ export default function PriceListPage() {
       const prods: Product[] = (data.products || data || []).map((p: any) => ({
         id: p.id,
         name: p.name,
-        brandName: p.brand?.name || p.brandName || '',
-        productLineName: p.productLine?.name || p.productLineName || '',
+        brandName: (typeof p.brand === 'object' ? p.brand?.name : p.brand) || p.brandName || '',
+        productLineName: (typeof p.productLine === 'object' ? p.productLine?.name : p.productLine) || p.productLineName || '',
         purchasePrice: p.purchasePrice || 0,
         sellingPrice: p.sellingPrice || 0,
         retailPrice: p.retailPrice || 0,
