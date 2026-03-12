@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// 도수 옵션 일괄 등록/수정
+// 도수 옵션 일괄 등록/수정 (배치 처리 최적화)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -31,26 +31,32 @@ export async function POST(
       );
     }
 
-    let created = 0;
-    let updated = 0;
+    // 기존 옵션 전체를 한 번에 조회 (N+1 방지)
+    const existingOptions = await prisma.productOption.findMany({
+      where: { productId },
+      select: { id: true, sph: true, cyl: true, axis: true, stock: true, stockType: true, priceAdjustment: true, barcode: true, location: true, memo: true },
+    });
+
+    // "sph,cyl,axis" 키로 맵 생성
+    const existingMap = new Map(
+      existingOptions.map(o => [
+        `${o.sph || ''},${o.cyl || ''},${o.axis || ''}`,
+        o
+      ])
+    );
+
+    // 신규 생성 / 업데이트 분류
+    const toCreate: typeof options = [];
+    const toUpdate: { id: number; data: Record<string, any> }[] = [];
 
     for (const option of options) {
       const { sph, cyl, stock, stockType, priceAdjustment, axis, barcode, location, memo } = option;
-
-      // 기존 옵션 확인
-      const existing = await prisma.productOption.findFirst({
-        where: {
-          productId,
-          sph: sph?.toString(),
-          cyl: cyl?.toString(),
-          axis: axis?.toString() || null,
-        },
-      });
+      const key = `${sph?.toString() || ''},${cyl?.toString() || ''},${axis?.toString() || ''}`;
+      const existing = existingMap.get(key);
 
       if (existing) {
-        // 업데이트
-        await prisma.productOption.update({
-          where: { id: existing.id },
+        toUpdate.push({
+          id: existing.id,
           data: {
             stock: stock ?? existing.stock,
             stockType: stockType || existing.stockType || 'local',
@@ -60,27 +66,55 @@ export async function POST(
             memo: memo ?? existing.memo,
           },
         });
-        updated++;
       } else {
-        // 새로 생성
-        await prisma.productOption.create({
-          data: {
-            productId,
-            sph: sph?.toString(),
-            cyl: cyl?.toString(),
-            axis: axis?.toString() || null,
-            stock: stock || 0,
-            stockType: stockType || 'local', // local=여벌, factory=공장여벌
-            priceAdjustment: priceAdjustment || 0,
-            barcode,
-            location,
-            memo,
-            isActive: true,
-          },
+        toCreate.push({
+          productId,
+          sph: sph?.toString(),
+          cyl: cyl?.toString(),
+          axis: axis?.toString() || null,
+          stock: stock || 0,
+          stockType: stockType || 'local',
+          priceAdjustment: priceAdjustment || 0,
+          barcode,
+          location,
+          memo,
+          isActive: true,
         });
-        created++;
       }
     }
+
+    let created = 0;
+    let updated = 0;
+
+    await prisma.$transaction(async (tx) => {
+      // 배치 생성 (단일 쿼리)
+      if (toCreate.length > 0) {
+        const result = await tx.productOption.createMany({
+          data: toCreate,
+        });
+        created = result.count;
+      }
+
+      // 업데이트: priceAdjustment 기준으로 그룹핑하여 updateMany
+      if (toUpdate.length > 0) {
+        // 동일한 데이터로 업데이트할 수 있는 건 그룹핑
+        const priceGroups = new Map<number, number[]>();
+        for (const item of toUpdate) {
+          const price = item.data.priceAdjustment ?? 0;
+          const ids = priceGroups.get(price) || [];
+          ids.push(item.id);
+          priceGroups.set(price, ids);
+        }
+
+        for (const [price, ids] of priceGroups) {
+          await tx.productOption.updateMany({
+            where: { id: { in: ids }, productId },
+            data: { priceAdjustment: price },
+          });
+        }
+        updated = toUpdate.length;
+      }
+    });
 
     // 작업 로그
     await prisma.workLog.create({
@@ -122,9 +156,6 @@ export async function GET(
     const cylMax = searchParams.get('cylMax');
 
     const where: any = { productId };
-
-    // SPH 범위 필터 (문자열 비교 - 숫자로 변환 필요)
-    // SQLite에서는 CAST 사용이 어려우므로 전체 조회 후 필터링
 
     const options = await prisma.productOption.findMany({
       where,
