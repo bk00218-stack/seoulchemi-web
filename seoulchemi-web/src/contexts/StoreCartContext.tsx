@@ -100,7 +100,7 @@ export function StoreCartProvider({ children }: { children: ReactNode }) {
 
   const updateQty = (cartKey: string, delta: number) => {
     setItems(prev => prev.map(item =>
-      getCartKey(item) === cartKey ? { ...item, qty: Math.max(1, item.qty + delta) } : item
+      getCartKey(item) === cartKey ? { ...item, qty: Math.max(0.5, item.qty + delta) } : item
     ))
   }
 
