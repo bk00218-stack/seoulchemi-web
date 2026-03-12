@@ -6,7 +6,6 @@ import NoticePopup from '../components/NoticePopup'
 import NoticeBanner from '../components/NoticeBanner'
 import DiopterSelectModal from '../components/DiopterSelectModal'
 import { useCart } from '@/contexts/StoreCartContext'
-import { useRouter } from 'next/navigation'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface Brand {
@@ -31,8 +30,7 @@ interface Product {
 const PAGE_SIZE = 30
 
 export default function StoreProductsPage() {
-  const { items: cart, addItem, addItemWithDiopter, updateQty, removeItem, totalCount, totalPrice } = useCart()
-  const router = useRouter()
+  const { items: cart, addItem, addItemWithDiopter, totalCount, totalPrice } = useCart()
   const isMobile = useIsMobile()
   const [brands, setBrands] = useState<Brand[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -138,7 +136,7 @@ export default function StoreProductsPage() {
   }
 
   return (
-    <div style={{ marginRight: isMobile ? 0 : 280 }}>
+    <div>
       <NoticePopup />
       <NoticeBanner />
 
@@ -418,80 +416,6 @@ export default function StoreProductsPage() {
           <span>🛒</span>
           <span>장바구니 ({totalCount})</span>
         </Link>
-      )}
-
-      {/* Desktop: Fixed Cart Sidebar */}
-      {!isMobile && (
-        <div style={{
-          position: 'fixed', top: 64, right: 0, bottom: 0,
-          width: 280, background: 'white',
-          borderLeft: '1px solid #e9ecef',
-          display: 'flex', flexDirection: 'column',
-          zIndex: 100,
-        }}>
-          <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #e9ecef' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: '#1d1d1f' }}>🛒 장바구니</span>
-              <span style={{ fontSize: 12, color: '#007aff', fontWeight: 600 }}>{totalCount}개</span>
-            </div>
-          </div>
-
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}>
-            {cart.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 12px', color: '#86868b', fontSize: 13 }}>
-                장바구니가 비어있습니다
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {cart.map((item) => {
-                  const cartKey = item.sph && item.cyl ? `${item.id}-${item.sph}-${item.cyl}` : `${item.id}`
-                  return (
-                    <div key={cartKey} style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '5px 8px', background: '#f8f9fa', borderRadius: 6, fontSize: 11,
-                    }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {item.name}
-                          {item.sph && item.cyl && <span style={{ color: '#86868b', fontWeight: 400 }}> {item.sph}/{item.cyl}</span>}
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                        <button onClick={() => updateQty(cartKey, -0.5)} style={{ width: 18, height: 18, border: '1px solid #e0e0e0', borderRadius: 3, background: 'white', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>−</button>
-                        <span style={{ width: 22, textAlign: 'center', fontWeight: 700, fontSize: 11 }}>{item.qty % 1 === 0 ? item.qty : item.qty.toFixed(1)}</span>
-                        <button onClick={() => updateQty(cartKey, 0.5)} style={{ width: 18, height: 18, border: '1px solid #e0e0e0', borderRadius: 3, background: 'white', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>+</button>
-                      </div>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: '#1d1d1f', flexShrink: 0, minWidth: 48, textAlign: 'right' }}>{(item.price * item.qty).toLocaleString()}</span>
-                      <button
-                        onClick={() => removeItem(cartKey)}
-                        style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 13, cursor: 'pointer', padding: '0 1px', flexShrink: 0 }}
-                      >×</button>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {totalCount > 0 && (
-            <div style={{ padding: 12, borderTop: '1px solid #e9ecef' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{ fontSize: 13, color: '#86868b' }}>합계</span>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f' }}>{totalPrice.toLocaleString()}원</span>
-              </div>
-              <button
-                onClick={() => router.push('/store/cart')}
-                style={{
-                  width: '100%', padding: '12px', fontSize: 14, fontWeight: 700,
-                  background: 'linear-gradient(135deg, #007aff, #0056b3)',
-                  color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer',
-                }}
-              >
-                주문하기
-              </button>
-            </div>
-          )}
-        </div>
       )}
 
       {/* Diopter Select Modal */}

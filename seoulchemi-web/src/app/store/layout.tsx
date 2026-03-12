@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { StoreCartProvider, useCart } from '@/contexts/StoreCartContext'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
+const CART_WIDTH = 260
+
 function StoreHeader() {
   const pathname = usePathname()
   const router = useRouter()
@@ -187,9 +189,93 @@ function StoreHeader() {
   )
 }
 
+function CartSidebar() {
+  const { items: cart, updateQty, removeItem, totalCount, totalPrice } = useCart()
+  const router = useRouter()
+  const isMobile = useIsMobile()
+  const pathname = usePathname()
+
+  // 상품주문 페이지에서만 데스크톱일 때 표시
+  if (isMobile || !pathname.startsWith('/store/products')) return null
+
+  return (
+    <div style={{
+      width: CART_WIDTH, flexShrink: 0,
+      background: 'white', borderLeft: '1px solid #e9ecef',
+      position: 'sticky', top: 60, height: 'calc(100vh - 60px)',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{ padding: '12px 12px 10px', borderBottom: '1px solid #e9ecef' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#1d1d1f' }}>🛒 장바구니</span>
+          <span style={{ fontSize: 12, color: '#007aff', fontWeight: 600 }}>{totalCount}개</span>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '6px 8px' }}>
+        {cart.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 8px', color: '#86868b', fontSize: 13 }}>
+            장바구니가 비어있습니다
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {cart.map((item) => {
+              const cartKey = item.sph && item.cyl ? `${item.id}-${item.sph}-${item.cyl}` : `${item.id}`
+              return (
+                <div key={cartKey} style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  padding: '4px 6px', background: '#f8f9fa', borderRadius: 6, fontSize: 11,
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.name}
+                      {item.sph && item.cyl && <span style={{ color: '#86868b', fontWeight: 400 }}> {item.sph}/{item.cyl}</span>}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                    <button onClick={() => updateQty(cartKey, -0.5)} style={{ width: 18, height: 18, border: '1px solid #e0e0e0', borderRadius: 3, background: 'white', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>−</button>
+                    <span style={{ width: 22, textAlign: 'center', fontWeight: 700, fontSize: 11 }}>{item.qty % 1 === 0 ? item.qty : item.qty.toFixed(1)}</span>
+                    <button onClick={() => updateQty(cartKey, 0.5)} style={{ width: 18, height: 18, border: '1px solid #e0e0e0', borderRadius: 3, background: 'white', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>+</button>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#1d1d1f', flexShrink: 0, minWidth: 45, textAlign: 'right' }}>{(item.price * item.qty).toLocaleString()}</span>
+                  <button
+                    onClick={() => removeItem(cartKey)}
+                    style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 13, cursor: 'pointer', padding: '0 1px', flexShrink: 0 }}
+                  >×</button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {totalCount > 0 && (
+        <div style={{ padding: 10, borderTop: '1px solid #e9ecef' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 12, color: '#86868b' }}>합계</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#1d1d1f' }}>{totalPrice.toLocaleString()}원</span>
+          </div>
+          <button
+            onClick={() => router.push('/store/cart')}
+            style={{
+              width: '100%', padding: '10px', fontSize: 13, fontWeight: 700,
+              background: 'linear-gradient(135deg, #007aff, #0056b3)',
+              color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer',
+            }}
+          >
+            주문하기
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const isMobile = useIsMobile()
   const isLoginPage = pathname === '/store/login'
+  const showCart = !isMobile && pathname.startsWith('/store/products')
 
   if (isLoginPage) {
     return <>{children}</>
@@ -200,10 +286,15 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       <div style={{ minHeight: '100vh', background: '#f5f5f7' }}>
         <StoreHeader />
 
-        {/* Main Content */}
-        <main style={{ maxWidth: 1200, margin: '0 auto', padding: 20 }}>
-          {children}
-        </main>
+        <div style={{ display: 'flex' }}>
+          {/* Main Content */}
+          <main style={{ flex: 1, minWidth: 0, maxWidth: showCart ? undefined : 1200, margin: showCart ? 0 : '0 auto', padding: 20 }}>
+            {children}
+          </main>
+
+          {/* Cart Sidebar */}
+          <CartSidebar />
+        </div>
 
         {/* Footer */}
         <footer style={{
