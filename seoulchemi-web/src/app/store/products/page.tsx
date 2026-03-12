@@ -317,13 +317,15 @@ export default function StoreProductsPage() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            padding: 8,
                           }}>
                             <img
                               src={product.imageUrl!}
                               alt={product.name}
                               style={{
                                 width: '100%', height: '100%',
-                                objectFit: 'cover',
+                                objectFit: 'contain',
+                                borderRadius: 6,
                               }}
                             />
                           </div>
