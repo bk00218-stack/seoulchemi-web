@@ -39,7 +39,6 @@ function parseValue(str: string): number {
 export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterSelectModalProps) {
   const [options, setOptions] = useState<ProductOption[]>([])
   const [loading, setLoading] = useState(true)
-  const [mode, setMode] = useState<'grid' | 'dropdown'>('dropdown')
 
   // 다중 선택 (드롭다운/그리드 공용)
   const [selectedItems, setSelectedItems] = useState<SelectedDiopter[]>([])
@@ -59,11 +58,6 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
         const json = await res.json()
         const opts = json.data || json.options || []
         setOptions(opts)
-        if (opts.length > 100) {
-          setMode('dropdown')
-        } else {
-          setMode('grid')
-        }
       }
     } catch (e) {
       console.error('Failed to fetch options:', e)
@@ -105,7 +99,6 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
     if (!selectedSph || !selectedCyl) return
     const opt = options.find(o => o.sph === selectedSph && o.cyl === selectedCyl)
     if (!opt) return
-    // 이미 추가된 건 무시
     if (selectedItems.some(i => i.sph === selectedSph && i.cyl === selectedCyl)) return
     setSelectedItems(prev => [...prev, {
       sph: selectedSph, cyl: selectedCyl, qty: 1,
@@ -163,12 +156,12 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
     }} onClick={onClose}>
       <div style={{
         background: 'white', borderRadius: 16,
-        width: '100%', maxWidth: 640, maxHeight: '92vh',
+        width: '100%', maxWidth: 960, maxHeight: '92vh',
         display: 'flex', flexDirection: 'column',
       }} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={{
-          padding: '20px 24px', borderBottom: '1px solid #e9ecef',
+          padding: '16px 24px', borderBottom: '1px solid #e9ecef',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           flexShrink: 0,
         }}>
@@ -187,8 +180,8 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#86868b', padding: 8, margin: -8 }}>×</button>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: 24, overflow: 'auto', flex: 1 }}>
+        {/* Body - 2 Column */}
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: 40, color: '#86868b' }}>도수 정보 로딩 중...</div>
           ) : options.length === 0 ? (
@@ -198,202 +191,175 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
               <div style={{ fontSize: 14, color: '#86868b' }}>관리자에게 문의해주세요.</div>
             </div>
           ) : (
-            <>
-              {/* Mode Toggle */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 20, background: '#f5f5f7', padding: 4, borderRadius: 8 }}>
-                <button
-                  onClick={() => setMode('dropdown')}
-                  style={{
-                    flex: 1, padding: '8px 16px', border: 'none', borderRadius: 6,
-                    background: mode === 'dropdown' ? 'white' : 'transparent',
-                    color: mode === 'dropdown' ? '#007aff' : '#86868b',
-                    fontWeight: 600, fontSize: 14, cursor: 'pointer',
-                    boxShadow: mode === 'dropdown' ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
-                  }}
-                >
-                  드롭다운
-                </button>
-                <button
-                  onClick={() => setMode('grid')}
-                  style={{
-                    flex: 1, padding: '8px 16px', border: 'none', borderRadius: 6,
-                    background: mode === 'grid' ? 'white' : 'transparent',
-                    color: mode === 'grid' ? '#007aff' : '#86868b',
-                    fontWeight: 600, fontSize: 14, cursor: 'pointer',
-                    boxShadow: mode === 'grid' ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
-                  }}
-                >
-                  그리드
-                </button>
-              </div>
-
-              {/* Selected Items (공용 - 상단) */}
-              {selectedItems.length > 0 && (
-                <div style={{ background: '#f0f7ff', padding: 16, borderRadius: 12, marginBottom: 16 }}>
-                  <div style={{ fontSize: 13, color: '#007aff', fontWeight: 600, marginBottom: 10 }}>
-                    선택한 도수 ({selectedItems.length}개, {formatQty(totalQty)}짝)
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+              {/* 왼쪽: 드롭다운 선택 */}
+              <div style={{
+                width: 280, flexShrink: 0, padding: 20,
+                borderRight: '1px solid #e9ecef',
+                display: 'flex', flexDirection: 'column',
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', marginBottom: 12 }}>드롭다운 선택</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 11, color: '#86868b', display: 'block', marginBottom: 4 }}>SPH (구면)</label>
+                    <select
+                      value={selectedSph || ''}
+                      onChange={(e) => setSelectedSph(e.target.value || null)}
+                      style={{ width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #e9ecef', borderRadius: 8, background: 'white', cursor: 'pointer' }}
+                    >
+                      <option value="">선택</option>
+                      {sphValues.map(sph => (
+                        <option key={sph} value={sph}>{sph}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
-                    {selectedItems.map((item) => (
-                      <div key={`${item.sph}-${item.cyl}`} style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        background: 'white', padding: '8px 12px', borderRadius: 8, fontSize: 13,
-                      }}>
-                        <div style={{ flex: 1, fontWeight: 600, color: '#1d1d1f' }}>
-                          {item.sph} / {item.cyl}
-                          {item.stockType === 'factory' && (
-                            <span style={{ fontSize: 10, padding: '1px 4px', borderRadius: 3, background: '#ff9500', color: 'white', fontWeight: 600, marginLeft: 4 }}>공장</span>
-                          )}
-                          {item.priceAdjustment > 0 && (
-                            <span style={{ fontSize: 11, color: '#ff9500', marginLeft: 4 }}>+{item.priceAdjustment.toLocaleString()}</span>
-                          )}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <button onClick={() => updateItemQty(item.sph, item.cyl, item.qty - 0.5)} style={{ width: 24, height: 24, border: '1px solid #e9ecef', borderRadius: 4, background: 'white', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                          <span style={{ width: 28, textAlign: 'center', fontWeight: 700, fontSize: 12 }}>{formatQty(item.qty)}</span>
-                          <button onClick={() => updateItemQty(item.sph, item.cyl, item.qty + 0.5)} style={{ width: 24, height: 24, border: '1px solid #e9ecef', borderRadius: 4, background: 'white', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                        </div>
-                        <div style={{ fontSize: 12, color: '#86868b', minWidth: 65, textAlign: 'right' }}>
-                          {(item.price * item.qty).toLocaleString()}원
-                        </div>
-                        <button onClick={() => removeItem(item.sph, item.cyl)} style={{ background: 'none', border: 'none', color: '#ff3b30', fontSize: 16, cursor: 'pointer', padding: '0 4px' }}>×</button>
-                      </div>
-                    ))}
+                  <div>
+                    <label style={{ fontSize: 11, color: '#86868b', display: 'block', marginBottom: 4 }}>CYL (난시)</label>
+                    <select
+                      value={selectedCyl || ''}
+                      onChange={(e) => setSelectedCyl(e.target.value || null)}
+                      style={{ width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #e9ecef', borderRadius: 8, background: 'white', cursor: 'pointer' }}
+                    >
+                      <option value="">선택</option>
+                      {cylValues.map(cyl => (
+                        <option key={cyl} value={cyl}>{cyl}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-              )}
 
-              {mode === 'dropdown' ? (
-                <>
-                  {/* Dropdown Mode */}
-                  <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: 12, color: '#86868b', display: 'block', marginBottom: 6 }}>SPH (구면)</label>
-                      <select
-                        value={selectedSph || ''}
-                        onChange={(e) => setSelectedSph(e.target.value || null)}
-                        style={{ width: '100%', padding: '12px 16px', fontSize: 16, border: '1px solid #e9ecef', borderRadius: 10, background: 'white', cursor: 'pointer' }}
-                      >
-                        <option value="">선택</option>
-                        {sphValues.map(sph => (
-                          <option key={sph} value={sph}>{sph}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: 12, color: '#86868b', display: 'block', marginBottom: 6 }}>CYL (난시)</label>
-                      <select
-                        value={selectedCyl || ''}
-                        onChange={(e) => setSelectedCyl(e.target.value || null)}
-                        style={{ width: '100%', padding: '12px 16px', fontSize: 16, border: '1px solid #e9ecef', borderRadius: 10, background: 'white', cursor: 'pointer' }}
-                      >
-                        <option value="">선택</option>
-                        {cylValues.map(cyl => (
-                          <option key={cyl} value={cyl}>{cyl}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* 추가 버튼 */}
-                  {selectedSph && selectedCyl && (
-                    <div style={{ marginBottom: 16 }}>
-                      {currentOption ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <div style={{ flex: 1, fontSize: 14, color: '#1d1d1f' }}>
-                            <span style={{ fontWeight: 600 }}>SPH {selectedSph} / CYL {selectedCyl}</span>
-                            {currentOption.stockType === 'factory' && (
-                              <span style={{ fontSize: 10, padding: '1px 4px', borderRadius: 3, background: '#ff9500', color: 'white', fontWeight: 600, marginLeft: 6 }}>공장</span>
-                            )}
-                            {currentOption.priceAdjustment > 0 && (
-                              <span style={{ fontSize: 12, color: '#ff9500', marginLeft: 6 }}>+{currentOption.priceAdjustment.toLocaleString()}원</span>
-                            )}
-                          </div>
-                          <button
-                            onClick={handleDropdownAdd}
-                            disabled={alreadyAdded}
-                            style={{
-                              padding: '8px 20px', fontSize: 14, fontWeight: 600, border: 'none', borderRadius: 8,
-                              background: alreadyAdded ? '#e9ecef' : '#34c759',
-                              color: alreadyAdded ? '#86868b' : 'white',
-                              cursor: alreadyAdded ? 'not-allowed' : 'pointer',
-                            }}
-                          >
-                            {alreadyAdded ? '추가됨' : '추가'}
-                          </button>
+                {/* 추가 버튼 */}
+                {selectedSph && selectedCyl && (
+                  <div style={{ marginBottom: 12 }}>
+                    {currentOption ? (
+                      <div>
+                        <div style={{ fontSize: 12, color: '#1d1d1f', marginBottom: 6 }}>
+                          <span style={{ fontWeight: 600 }}>{selectedSph} / {selectedCyl}</span>
+                          {currentOption.stockType === 'factory' && (
+                            <span style={{ fontSize: 10, padding: '1px 4px', borderRadius: 3, background: '#ff9500', color: 'white', fontWeight: 600, marginLeft: 6 }}>공장</span>
+                          )}
+                          {currentOption.priceAdjustment > 0 && (
+                            <span style={{ fontSize: 11, color: '#ff9500', marginLeft: 4 }}>+{currentOption.priceAdjustment.toLocaleString()}원</span>
+                          )}
                         </div>
-                      ) : (
-                        <div style={{ fontSize: 13, color: '#ff3b30' }}>해당 도수 옵션이 없습니다.</div>
-                      )}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Grid */}
-                  <div style={{ overflowX: 'auto' }}>
-                    <div style={{ fontSize: 12, color: '#86868b', marginBottom: 8 }}>
-                      SPH/CYL 선택 (가로: CYL, 세로: SPH)
-                      {hasFactory && <span style={{ marginLeft: 8, color: '#ff9500' }}>■ 공장여벌</span>}
-                    </div>
-                    <div style={{ minWidth: cylValues.length * 50 + 60 }}>
-                      <div style={{ display: 'flex' }}>
-                        <div style={{ width: 60, flexShrink: 0 }} />
-                        {cylValues.map(cyl => (
-                          <div key={cyl} style={{ width: 50, textAlign: 'center', fontSize: 10, color: '#86868b', padding: '4px 0' }}>{cyl}</div>
-                        ))}
+                        <button
+                          onClick={handleDropdownAdd}
+                          disabled={alreadyAdded}
+                          style={{
+                            width: '100%', padding: '8px', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8,
+                            background: alreadyAdded ? '#e9ecef' : '#34c759',
+                            color: alreadyAdded ? '#86868b' : 'white',
+                            cursor: alreadyAdded ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          {alreadyAdded ? '추가됨' : '추가'}
+                        </button>
                       </div>
-                      <div style={{ maxHeight: 350, overflowY: 'auto' }}>
-                        {sphValues.map(sph => (
-                          <div key={sph} style={{ display: 'flex' }}>
-                            <div style={{ width: 60, flexShrink: 0, fontSize: 11, color: '#86868b', display: 'flex', alignItems: 'center', paddingRight: 8 }}>{sph}</div>
-                            {cylValues.map(cyl => {
-                              const opt = options.find(o => o.sph === sph && o.cyl === cyl)
-                              const selected = isGridSelected(sph, cyl)
-                              const isFactory = opt?.stockType === 'factory'
-                              return (
-                                <div
-                                  key={`${sph}-${cyl}`}
-                                  onClick={() => { if (opt) addOrToggleItem(sph, cyl, opt) }}
-                                  style={{
-                                    width: 50, height: 28,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 11,
-                                    cursor: opt ? 'pointer' : 'not-allowed',
-                                    background: selected ? '#007aff' : opt ? (isFactory ? '#fff3e0' : '#e8f5e9') : '#f5f5f7',
-                                    color: selected ? 'white' : opt ? '#1d1d1f' : '#ccc',
-                                    border: selected ? '2px solid #0056b3' : '1px solid #e9ecef',
-                                    margin: 1, borderRadius: 4, transition: 'all 0.1s',
-                                  }}
-                                >
-                                  {opt ? (selected ? '✓' : '○') : ''}
-                                </div>
-                              )
-                            })}
+                    ) : (
+                      <div style={{ fontSize: 12, color: '#ff3b30' }}>해당 도수 옵션이 없습니다.</div>
+                    )}
+                  </div>
+                )}
+
+                {/* 선택 목록 */}
+                {selectedItems.length > 0 && (
+                  <div style={{ flex: 1, overflow: 'auto', marginTop: 4 }}>
+                    <div style={{ fontSize: 12, color: '#007aff', fontWeight: 600, marginBottom: 8 }}>
+                      선택 목록 ({selectedItems.length}개, {formatQty(totalQty)}짝)
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {selectedItems.map((item) => (
+                        <div key={`${item.sph}-${item.cyl}`} style={{
+                          display: 'flex', alignItems: 'center', gap: 4,
+                          background: '#f0f7ff', padding: '6px 8px', borderRadius: 6, fontSize: 12,
+                        }}>
+                          <div style={{ flex: 1, fontWeight: 600, color: '#1d1d1f', fontSize: 11 }}>
+                            {item.sph}/{item.cyl}
+                            {item.stockType === 'factory' && (
+                              <span style={{ fontSize: 9, padding: '0 3px', borderRadius: 2, background: '#ff9500', color: 'white', marginLeft: 2 }}>공장</span>
+                            )}
                           </div>
-                        ))}
-                      </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <button onClick={() => updateItemQty(item.sph, item.cyl, item.qty - 0.5)} style={{ width: 20, height: 20, border: '1px solid #e9ecef', borderRadius: 3, background: 'white', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                            <span style={{ width: 24, textAlign: 'center', fontWeight: 700, fontSize: 11 }}>{formatQty(item.qty)}</span>
+                            <button onClick={() => updateItemQty(item.sph, item.cyl, item.qty + 0.5)} style={{ width: 20, height: 20, border: '1px solid #e9ecef', borderRadius: 3, background: 'white', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                          </div>
+                          <div style={{ fontSize: 11, color: '#86868b', minWidth: 52, textAlign: 'right' }}>
+                            {(item.price * item.qty).toLocaleString()}원
+                          </div>
+                          <button onClick={() => removeItem(item.sph, item.cyl)} style={{ background: 'none', border: 'none', color: '#ff3b30', fontSize: 14, cursor: 'pointer', padding: '0 2px' }}>×</button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </>
-              )}
-            </>
+                )}
+              </div>
+
+              {/* 오른쪽: 그리드 */}
+              <div style={{ flex: 1, padding: 20, overflow: 'auto' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', marginBottom: 8 }}>
+                  그리드 선택
+                  {hasFactory && <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 8, color: '#ff9500' }}>■ 공장여벌</span>}
+                </div>
+                <div style={{ fontSize: 11, color: '#86868b', marginBottom: 8 }}>가로: CYL / 세로: SPH — 클릭하여 선택</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <div style={{ minWidth: cylValues.length * 46 + 56 }}>
+                    <div style={{ display: 'flex', position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
+                      <div style={{ width: 56, flexShrink: 0 }} />
+                      {cylValues.map(cyl => (
+                        <div key={cyl} style={{ width: 46, textAlign: 'center', fontSize: 10, color: '#86868b', padding: '4px 0', fontWeight: 600 }}>{cyl}</div>
+                      ))}
+                    </div>
+                    <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                      {sphValues.map(sph => (
+                        <div key={sph} style={{ display: 'flex' }}>
+                          <div style={{ width: 56, flexShrink: 0, fontSize: 10, color: '#86868b', display: 'flex', alignItems: 'center', paddingRight: 6, fontWeight: 600 }}>{sph}</div>
+                          {cylValues.map(cyl => {
+                            const opt = options.find(o => o.sph === sph && o.cyl === cyl)
+                            const selected = isGridSelected(sph, cyl)
+                            const isFactory = opt?.stockType === 'factory'
+                            return (
+                              <div
+                                key={`${sph}-${cyl}`}
+                                onClick={() => { if (opt) addOrToggleItem(sph, cyl, opt) }}
+                                style={{
+                                  width: 46, height: 26,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: 11,
+                                  cursor: opt ? 'pointer' : 'not-allowed',
+                                  background: selected ? '#007aff' : opt ? (isFactory ? '#fff3e0' : '#e8f5e9') : '#f5f5f7',
+                                  color: selected ? 'white' : opt ? '#1d1d1f' : '#ccc',
+                                  border: selected ? '2px solid #0056b3' : '1px solid #e9ecef',
+                                  margin: 1, borderRadius: 4, transition: 'all 0.1s',
+                                }}
+                              >
+                                {opt ? (selected ? '✓' : '○') : ''}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
         {/* Footer */}
         <div style={{
-          padding: '16px 24px', borderTop: '1px solid #e9ecef',
+          padding: '14px 24px', borderTop: '1px solid #e9ecef',
           display: 'flex', gap: 12, flexShrink: 0,
         }}>
-          <button onClick={onClose} style={{ flex: 1, padding: '14px', fontSize: 16, fontWeight: 600, border: '1px solid #e9ecef', borderRadius: 12, background: 'white', color: '#1d1d1f', cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '12px', fontSize: 15, fontWeight: 600, border: '1px solid #e9ecef', borderRadius: 12, background: 'white', color: '#1d1d1f', cursor: 'pointer' }}>
             취소
           </button>
           <button
             onClick={handleAddAll}
             disabled={selectedItems.length === 0}
             style={{
-              flex: 2, padding: '14px', fontSize: 16, fontWeight: 600, border: 'none', borderRadius: 12,
+              flex: 2, padding: '12px', fontSize: 15, fontWeight: 600, border: 'none', borderRadius: 12,
               background: selectedItems.length > 0 ? '#007aff' : '#e9ecef',
               color: selectedItems.length > 0 ? 'white' : '#86868b',
               cursor: selectedItems.length > 0 ? 'pointer' : 'not-allowed',
