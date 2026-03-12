@@ -38,7 +38,7 @@ function generateRange(min: number, max: number, step: number): number[] {
 }
 
 export default function OptionsBulkPage() {
-  const { showToast } = useToast()
+  const { toast } = useToast()
 
   // 상품 목록
   const [products, setProducts] = useState<Product[]>([])
@@ -164,11 +164,11 @@ export default function OptionsBulkPage() {
   // 일괄 생성 실행
   const handleGenerate = async () => {
     if (selectedProducts.length === 0) {
-      showToast('상품을 선택해주세요.', 'error')
+      toast.error('상품을 선택해주세요.')
       return
     }
     if (totalOptionsPerProduct === 0) {
-      showToast('도수 범위를 설정해주세요.', 'error')
+      toast.error('도수 범위를 설정해주세요.')
       return
     }
 
@@ -237,9 +237,9 @@ export default function OptionsBulkPage() {
     const totalUpdated = newResults.reduce((s, r) => s + r.updated, 0)
     const errors = newResults.filter(r => r.error).length
     if (errors > 0) {
-      showToast(`완료: ${totalCreated}개 생성, ${totalUpdated}개 수정 (${errors}개 오류)`, 'error')
+      toast.error(`완료: ${totalCreated}개 생성, ${totalUpdated}개 수정 (${errors}개 오류)`)
     } else {
-      showToast(`완료: ${totalCreated}개 생성, ${totalUpdated}개 수정`, 'success')
+      toast.success(`완료: ${totalCreated}개 생성, ${totalUpdated}개 수정`)
     }
   }
 
