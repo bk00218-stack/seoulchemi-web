@@ -2284,8 +2284,8 @@ export default function ProductsPage() {
       {/* 상품 추가/수정 모달 */}
       {showProductModal && (
         <div style={modalOverlayStyle} onClick={() => setShowProductModal(false)}>
-          <div style={{ ...modalStyle, width: 560 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ ...modalStyle, width: 900, maxHeight: '95vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
                 {editingProduct ? '상품 수정' : '상품 추가'}
               </h3>
@@ -2330,428 +2330,423 @@ export default function ProductsPage() {
               )}
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleSaveProduct(new FormData(e.currentTarget)) }}>
-              <div style={{ display: 'grid', gap: 16 }}>
-                {/* 상품 코드 (수정시에만 표시) */}
-                {editingProduct && (
-                  <div style={{
-                    padding: '10px 14px',
-                    background: 'var(--gray-50)',
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12
-                  }}>
-                    <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>상품코드</span>
-                    <code style={{
-                      fontSize: 13,
-                      fontFamily: 'monospace',
-                      color: 'var(--gray-700)',
-                      background: '#fff',
-                      padding: '2px 8px',
-                      borderRadius: 4
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                {/* 왼쪽 컬럼: 기본 정보 */}
+                <div style={{ display: 'grid', gap: 14 }}>
+                  {/* 상품 코드 (수정시에만 표시) */}
+                  {editingProduct && (
+                    <div style={{
+                      padding: '8px 14px',
+                      background: 'var(--gray-50)',
+                      borderRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12
                     }}>
-                      {editingProduct.code || `P${String(editingProduct.id).padStart(5, '0')}`}
-                    </code>
-                  </div>
-                )}
+                      <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>상품코드</span>
+                      <code style={{
+                        fontSize: 13,
+                        fontFamily: 'monospace',
+                        color: 'var(--gray-700)',
+                        background: '#fff',
+                        padding: '2px 8px',
+                        borderRadius: 4
+                      }}>
+                        {editingProduct.code || `P${String(editingProduct.id).padStart(5, '0')}`}
+                      </code>
+                    </div>
+                  )}
 
-                {/* 📂 소속 변경 (수정 모드에서만 표시) */}
-                {editingProduct && (
+                  {/* 📂 소속 변경 (수정 모드에서만 표시) */}
+                  {editingProduct && (
+                    <div style={{
+                      padding: '10px 14px',
+                      background: '#fff8f0',
+                      border: '1px solid #fed7aa',
+                      borderRadius: 8,
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#c2410c', marginBottom: 8 }}>
+                        📂 소속 변경
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <div>
+                          <label style={{ ...labelStyle, fontSize: 11 }}>브랜드</label>
+                          <select
+                            value={editModalBrandId ?? ''}
+                            onChange={async (e) => {
+                              const newBrandId = parseInt(e.target.value)
+                              setEditModalBrandId(newBrandId)
+                              setEditModalProductLineId(null)
+                              try {
+                                const plRes = await fetch(`/api/product-lines?brandId=${newBrandId}`)
+                                const plData = await plRes.json()
+                                setEditModalProductLines(plData.productLines || [])
+                              } catch (err) {
+                                console.error('품목 로드 실패:', err)
+                                setEditModalProductLines([])
+                              }
+                            }}
+                            style={{ ...inputStyle, fontSize: 12, padding: '6px 10px' }}
+                          >
+                            <option value="">브랜드 선택</option>
+                            {editModalBrands.map(b => (
+                              <option key={b.id} value={b.id}>{b.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ ...labelStyle, fontSize: 11 }}>품목</label>
+                          <select
+                            value={editModalProductLineId ?? ''}
+                            onChange={(e) => setEditModalProductLineId(parseInt(e.target.value))}
+                            style={{ ...inputStyle, fontSize: 12, padding: '6px 10px' }}
+                          >
+                            <option value="">품목 선택</option>
+                            {editModalProductLines.map(pl => (
+                              <option key={pl.id} value={pl.id}>{pl.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label style={labelStyle}>상품명 *</label>
+                    <input
+                      name="name"
+                      defaultValue={editingProduct?.name}
+                      required
+                      style={inputStyle}
+                      placeholder="예: 블루라이트 차단 렌즈 1.60"
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <label style={labelStyle}>옵션타입 *</label>
+                      <select name="optionType" defaultValue={editingProduct?.optionType || '안경렌즈 RX'} required style={inputStyle}>
+                        <option value="안경렌즈 RX">안경렌즈 RX</option>
+                        <option value="안경렌즈 여벌">안경렌즈 여벌</option>
+                        <option value="콘택트렌즈">콘택트렌즈</option>
+                        <option value="안경테">안경테</option>
+                        <option value="선글라스">선글라스</option>
+                        <option value="소모품">소모품</option>
+                        <option value="액세서리">액세서리</option>
+                        <option value="기타">기타</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>상품분류</label>
+                      <select name="productType" defaultValue={editingProduct?.productType || ''} style={inputStyle}>
+                        <option value="">선택 안함</option>
+                        <option value="단초점">단초점</option>
+                        <option value="다초점">다초점</option>
+                        <option value="누진다초점">누진다초점</option>
+                        <option value="실내용">실내용</option>
+                        <option value="스포츠">스포츠</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <label style={labelStyle}>굴절률</label>
+                      <select name="refractiveIndex" defaultValue={editingProduct?.refractiveIndex || ''} style={inputStyle}>
+                        <option value="">선택</option>
+                        <option value="1.50">1.50 (표준)</option>
+                        <option value="1.56">1.56</option>
+                        <option value="1.60">1.60 (중도수)</option>
+                        <option value="1.67">1.67 (고도수)</option>
+                        <option value="1.74">1.74 (초고도수)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>묶음상품명</label>
+                      <input
+                        name="bundleName"
+                        defaultValue={editingProduct?.bundleName || ''}
+                        style={inputStyle}
+                        placeholder="묶음 표시명"
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <label style={labelStyle}>상태</label>
+                      <select name="isActive" defaultValue={editingProduct?.isActive !== false ? 'true' : 'false'} style={inputStyle}>
+                        <option value="true">사용</option>
+                        <option value="false">미사용</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>표시 순서</label>
+                      <input
+                        name="displayOrder"
+                        type="number"
+                        defaultValue={editingProduct?.displayOrder || 0}
+                        style={inputStyle}
+                        placeholder="숫자가 작을수록 먼저 표시"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 오른쪽 컬럼: 가격 + 이미지 + 도수 */}
+                <div style={{ display: 'grid', gap: 14, alignContent: 'start' }}>
+                  {/* 가격 섹션 */}
                   <div style={{
-                    padding: '12px 14px',
-                    background: '#fff8f0',
-                    border: '1px solid #fed7aa',
-                    borderRadius: 8,
+                    padding: 14,
+                    background: 'var(--gray-50)',
+                    borderRadius: 10,
+                    border: '1px solid var(--gray-200)'
                   }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#c2410c', marginBottom: 10 }}>
-                      📂 소속 변경
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--gray-700)' }}>
+                      💰 가격 설정
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       <div>
-                        <label style={{ ...labelStyle, fontSize: 11 }}>브랜드</label>
-                        <select
-                          value={editModalBrandId ?? ''}
-                          onChange={async (e) => {
-                            const newBrandId = parseInt(e.target.value)
-                            setEditModalBrandId(newBrandId)
-                            setEditModalProductLineId(null)
-                            try {
-                              const plRes = await fetch(`/api/product-lines?brandId=${newBrandId}`)
-                              const plData = await plRes.json()
-                              setEditModalProductLines(plData.productLines || [])
-                            } catch (err) {
-                              console.error('품목 로드 실패:', err)
-                              setEditModalProductLines([])
-                            }
-                          }}
-                          style={{ ...inputStyle, fontSize: 12, padding: '6px 10px' }}
-                        >
-                          <option value="">브랜드 선택</option>
-                          {editModalBrands.map(b => (
-                            <option key={b.id} value={b.id}>{b.name}</option>
-                          ))}
-                        </select>
+                        <label style={{ ...labelStyle, fontSize: 12 }}>판매가</label>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            name="sellingPrice"
+                            type="number"
+                            defaultValue={editingProduct?.sellingPrice || 0}
+                            style={{ ...inputStyle, paddingRight: 30 }}
+                          />
+                          <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>원</span>
+                        </div>
                       </div>
                       <div>
-                        <label style={{ ...labelStyle, fontSize: 11 }}>품목</label>
-                        <select
-                          value={editModalProductLineId ?? ''}
-                          onChange={(e) => setEditModalProductLineId(parseInt(e.target.value))}
-                          style={{ ...inputStyle, fontSize: 12, padding: '6px 10px' }}
-                        >
-                          <option value="">품목 선택</option>
-                          {editModalProductLines.map(pl => (
-                            <option key={pl.id} value={pl.id}>{pl.name}</option>
-                          ))}
-                        </select>
+                        <label style={{ ...labelStyle, fontSize: 12 }}>매입가</label>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            name="purchasePrice"
+                            type="number"
+                            defaultValue={editingProduct?.purchasePrice || 0}
+                            style={{ ...inputStyle, paddingRight: 30 }}
+                          />
+                          <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>원</span>
+                        </div>
                       </div>
                     </div>
+                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, border: '1px solid var(--gray-200)', fontSize: 13, color: 'var(--success)', fontWeight: 600, textAlign: 'center' }}>
+                      마진율: {editingProduct?.sellingPrice && editingProduct?.purchasePrice
+                        ? `${Math.round((1 - editingProduct.purchasePrice / editingProduct.sellingPrice) * 100)}%`
+                        : '-'
+                      }
+                    </div>
                   </div>
-                )}
 
-                <div>
-                  <label style={labelStyle}>상품명 *</label>
-                  <input 
-                    name="name" 
-                    defaultValue={editingProduct?.name} 
-                    required 
-                    style={inputStyle}
-                    placeholder="예: 블루라이트 차단 렌즈 1.60"
-                  />
-                </div>
+                  {/* 상품 이미지 (수정 모드에서만) */}
+                  {editingProduct && (
+                    <div style={{ padding: 14, background: 'var(--gray-50)', borderRadius: 10, border: '1px solid var(--gray-200)' }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-600)', display: 'block', marginBottom: 8 }}>상품 이미지</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {editingProduct.imageUrl ? (
+                          <div style={{ position: 'relative' }}>
+                            <img
+                              src={editingProduct.imageUrl}
+                              alt={editingProduct.name}
+                              style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--gray-200)' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!confirm('이미지를 삭제하시겠습니까?')) return
+                                try {
+                                  const res = await fetch(`/api/products/${editingProduct.id}/image`, { method: 'DELETE' })
+                                  if (res.ok) {
+                                    setEditingProduct({ ...editingProduct, imageUrl: null })
+                                    toast.success('이미지 삭제됨')
+                                  }
+                                } catch (e) {
+                                  console.error(e)
+                                  toast.error('이미지 삭제 실패')
+                                }
+                              }}
+                              style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ff3b30', color: 'white', border: 'none', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >×</button>
+                          </div>
+                        ) : (
+                          <div style={{ width: 80, height: 80, borderRadius: 8, border: '2px dashed var(--gray-300)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)', fontSize: 11 }}>
+                            No Image
+                          </div>
+                        )}
+                        <div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="product-image-upload"
+                            style={{ display: 'none' }}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (!file) return
+                              const formData = new FormData()
+                              formData.append('image', file)
+                              try {
+                                const res = await fetch(`/api/products/${editingProduct.id}/image`, { method: 'POST', body: formData })
+                                const data = await res.json()
+                                if (res.ok && data.imageUrl) {
+                                  setEditingProduct({ ...editingProduct, imageUrl: data.imageUrl })
+                                  toast.success('이미지 업로드 완료')
+                                } else {
+                                  toast.error(data.error || '업로드 실패')
+                                }
+                              } catch (err) {
+                                console.error(err)
+                                toast.error('이미지 업로드 실패')
+                              }
+                              e.target.value = ''
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById('product-image-upload')?.click()}
+                            style={{ ...actionBtnStyle, fontSize: 12 }}
+                          >
+                            {editingProduct.imageUrl ? '변경' : '업로드'}
+                          </button>
+                          <div style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 4 }}>JPG, PNG</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={labelStyle}>옵션타입 *</label>
-                    <select name="optionType" defaultValue={editingProduct?.optionType || '안경렌즈 RX'} required style={inputStyle}>
-                      <option value="안경렌즈 RX">안경렌즈 RX</option>
-                      <option value="안경렌즈 여벌">안경렌즈 여벌</option>
-                      <option value="콘택트렌즈">콘택트렌즈</option>
-                      <option value="안경테">안경테</option>
-                      <option value="선글라스">선글라스</option>
-                      <option value="소모품">소모품</option>
-                      <option value="액세서리">액세서리</option>
-                      <option value="기타">기타</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>상품분류</label>
-                    <select name="productType" defaultValue={editingProduct?.productType || ''} style={inputStyle}>
-                      <option value="">선택 안함</option>
-                      <option value="단초점">단초점</option>
-                      <option value="다초점">다초점</option>
-                      <option value="누진다초점">누진다초점</option>
-                      <option value="실내용">실내용</option>
-                      <option value="스포츠">스포츠</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={labelStyle}>굴절률</label>
-                    <select name="refractiveIndex" defaultValue={editingProduct?.refractiveIndex || ''} style={inputStyle}>
-                      <option value="">선택</option>
-                      <option value="1.50">1.50 (표준)</option>
-                      <option value="1.56">1.56</option>
-                      <option value="1.60">1.60 (중도수)</option>
-                      <option value="1.67">1.67 (고도수)</option>
-                      <option value="1.74">1.74 (초고도수)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>묶음상품명</label>
-                    <input 
-                      name="bundleName" 
-                      defaultValue={editingProduct?.bundleName || ''} 
-                      style={inputStyle}
-                      placeholder="묶음 표시명"
-                    />
-                  </div>
-                </div>
-
-                {/* 가격 섹션 */}
-                <div style={{ 
-                  padding: 14, 
-                  background: 'var(--gray-50)', 
-                  borderRadius: 10,
-                  border: '1px solid var(--gray-200)'
-                }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--gray-700)' }}>
-                    💰 가격 설정
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                    <div>
-                      <label style={{ ...labelStyle, fontSize: 12 }}>판매가</label>
-                      <div style={{ position: 'relative' }}>
-                        <input 
-                          name="sellingPrice" 
-                          type="number" 
-                          defaultValue={editingProduct?.sellingPrice || 0} 
-                          style={{ ...inputStyle, paddingRight: 30 }}
+                  {/* 도수 옵션 함께 생성 (신규 등록시에만) */}
+                  {!editingProduct && (
+                    <div style={{
+                      padding: 14,
+                      background: generateWithProduct ? 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)' : 'var(--gray-50)',
+                      borderRadius: 10,
+                      border: generateWithProduct ? '1px solid #81c784' : '1px solid var(--gray-200)'
+                    }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={generateWithProduct}
+                          onChange={(e) => setGenerateWithProduct(e.target.checked)}
+                          style={{ width: 18, height: 18 }}
                         />
-                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>원</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label style={{ ...labelStyle, fontSize: 12 }}>매입가</label>
-                      <div style={{ position: 'relative' }}>
-                        <input 
-                          name="purchasePrice" 
-                          type="number" 
-                          defaultValue={editingProduct?.purchasePrice || 0} 
-                          style={{ ...inputStyle, paddingRight: 30 }}
-                        />
-                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--gray-400)' }}>원</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label style={{ ...labelStyle, fontSize: 12 }}>마진율</label>
-                      <div style={{ 
-                        padding: '10px 12px', 
-                        background: '#fff', 
-                        borderRadius: 8, 
-                        border: '1px solid var(--gray-200)',
-                        fontSize: 14,
-                        color: 'var(--success)',
-                        fontWeight: 600
-                      }}>
-                        {editingProduct?.sellingPrice && editingProduct?.purchasePrice 
-                          ? `${Math.round((1 - editingProduct.purchasePrice / editingProduct.sellingPrice) * 100)}%`
-                          : '-'
-                        }
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
+                          📋 도수 옵션 함께 생성 (여벌용)
+                        </span>
+                      </label>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={labelStyle}>상태</label>
-                    <select name="isActive" defaultValue={editingProduct?.isActive !== false ? 'true' : 'false'} style={inputStyle}>
-                      <option value="true">✅ 사용</option>
-                      <option value="false">⛔ 미사용</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>표시 순서</label>
-                    <input 
-                      name="displayOrder" 
-                      type="number" 
-                      defaultValue={editingProduct?.displayOrder || 0} 
-                      style={inputStyle}
-                      placeholder="숫자가 작을수록 먼저 표시"
-                    />
-                  </div>
-                </div>
-
-                {/* 도수 옵션 함께 생성 (신규 등록시에만) */}
-                {!editingProduct && (
-                  <div style={{ 
-                    padding: 14, 
-                    background: generateWithProduct ? 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)' : 'var(--gray-50)', 
-                    borderRadius: 10,
-                    border: generateWithProduct ? '1px solid #81c784' : '1px solid var(--gray-200)'
-                  }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={generateWithProduct}
-                        onChange={(e) => setGenerateWithProduct(e.target.checked)}
-                        style={{ width: 18, height: 18 }}
-                      />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
-                        📋 도수 옵션 함께 생성 (여벌용)
-                      </span>
-                    </label>
-                    
-                    {generateWithProduct && (
-                      <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                          <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 최소</label>
-                            <input 
-                              type="number" step="0.25" value={diopterRange.sphMin}
-                              onChange={(e) => setDiopterRange(prev => ({ ...prev, sphMin: parseFloat(e.target.value) }))}
-                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
-                            />
+                      {generateWithProduct && (
+                        <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                            <div>
+                              <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 최소</label>
+                              <input
+                                type="number" step="0.25" value={diopterRange.sphMin}
+                                onChange={(e) => setDiopterRange(prev => ({ ...prev, sphMin: parseFloat(e.target.value) }))}
+                                style={{ ...inputStyle, padding: '5px 6px', fontSize: 12 }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 최대</label>
+                              <input
+                                type="number" step="0.25" value={diopterRange.sphMax}
+                                onChange={(e) => setDiopterRange(prev => ({ ...prev, sphMax: parseFloat(e.target.value) }))}
+                                style={{ ...inputStyle, padding: '5px 6px', fontSize: 12 }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 단위</label>
+                              <select
+                                value={diopterRange.sphStep}
+                                onChange={(e) => setDiopterRange(prev => ({ ...prev, sphStep: parseFloat(e.target.value) }))}
+                                style={{ ...inputStyle, padding: '5px 6px', fontSize: 12 }}
+                              >
+                                <option value={0.25}>0.25</option>
+                                <option value={0.5}>0.50</option>
+                              </select>
+                            </div>
                           </div>
-                          <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 최대</label>
-                            <input 
-                              type="number" step="0.25" value={diopterRange.sphMax}
-                              onChange={(e) => setDiopterRange(prev => ({ ...prev, sphMax: parseFloat(e.target.value) }))}
-                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
-                            />
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                            <div>
+                              <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 최소</label>
+                              <input
+                                type="number" step="0.25" value={diopterRange.cylMin}
+                                onChange={(e) => setDiopterRange(prev => ({ ...prev, cylMin: parseFloat(e.target.value) }))}
+                                style={{ ...inputStyle, padding: '5px 6px', fontSize: 12 }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 최대</label>
+                              <input
+                                type="number" step="0.25" value={diopterRange.cylMax}
+                                onChange={(e) => setDiopterRange(prev => ({ ...prev, cylMax: parseFloat(e.target.value) }))}
+                                style={{ ...inputStyle, padding: '5px 6px', fontSize: 12 }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 단위</label>
+                              <select
+                                value={diopterRange.cylStep}
+                                onChange={(e) => setDiopterRange(prev => ({ ...prev, cylStep: parseFloat(e.target.value) }))}
+                                style={{ ...inputStyle, padding: '5px 6px', fontSize: 12 }}
+                              >
+                                <option value={0.25}>0.25</option>
+                                <option value={0.5}>0.50</option>
+                              </select>
+                            </div>
                           </div>
-                          <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>SPH 단위</label>
-                            <select 
-                              value={diopterRange.sphStep}
-                              onChange={(e) => setDiopterRange(prev => ({ ...prev, sphStep: parseFloat(e.target.value) }))}
-                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
-                            >
-                              <option value={0.25}>0.25</option>
-                              <option value={0.5}>0.50</option>
-                            </select>
+                          <div style={{ fontSize: 11, color: 'var(--gray-600)', background: '#fff', padding: 6, borderRadius: 6 }}>
+                            📊 생성될 옵션: 약 {Math.ceil((diopterRange.sphMax - diopterRange.sphMin) / diopterRange.sphStep + 1) * Math.ceil((diopterRange.cylMax - diopterRange.cylMin) / diopterRange.cylStep + 1)}개
+                            <br />
+                            SPH: {diopterRange.sphMin} ~ {diopterRange.sphMax > 0 ? '+' : ''}{diopterRange.sphMax} | CYL: {diopterRange.cylMin} ~ {diopterRange.cylMax}
                           </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                          <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 최소</label>
-                            <input 
-                              type="number" step="0.25" value={diopterRange.cylMin}
-                              onChange={(e) => setDiopterRange(prev => ({ ...prev, cylMin: parseFloat(e.target.value) }))}
-                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 최대</label>
-                            <input 
-                              type="number" step="0.25" value={diopterRange.cylMax}
-                              onChange={(e) => setDiopterRange(prev => ({ ...prev, cylMax: parseFloat(e.target.value) }))}
-                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ fontSize: 11, color: 'var(--gray-500)' }}>CYL 단위</label>
-                            <select 
-                              value={diopterRange.cylStep}
-                              onChange={(e) => setDiopterRange(prev => ({ ...prev, cylStep: parseFloat(e.target.value) }))}
-                              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12 }}
-                            >
-                              <option value={0.25}>0.25</option>
-                              <option value={0.5}>0.50</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--gray-600)', background: '#fff', padding: 8, borderRadius: 6 }}>
-                          📊 생성될 옵션: 약 {Math.ceil((diopterRange.sphMax - diopterRange.sphMin) / diopterRange.sphStep + 1) * Math.ceil((diopterRange.cylMax - diopterRange.cylMin) / diopterRange.cylStep + 1)}개
-                          <br />
-                          SPH: {diopterRange.sphMin} ~ {diopterRange.sphMax > 0 ? '+' : ''}{diopterRange.sphMax} | CYL: {diopterRange.cylMin} ~ {diopterRange.cylMax}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* 도수 옵션 요약 (수정시에만) */}
-                {editingProduct && options.length > 0 && (
-                  <div style={{ 
-                    padding: 14, 
-                    background: 'linear-gradient(135deg, #eef4ee 0%, #f3e5f5 100%)', 
-                    borderRadius: 10,
-                    border: '1px solid #e1bee7'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
-                          📋 등록된 도수: {options.length}개
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>
-                          SPH: {options.length > 0 ? `${Math.min(...options.map(o => parseFloat(o.sph.replace('+', ''))))} ~ ${Math.max(...options.map(o => parseFloat(o.sph.replace('+', ''))))}` : '-'}
-                          {' | '}
-                          CYL: {options.length > 0 ? `${Math.min(...options.map(o => parseFloat(o.cyl.replace('+', ''))))} ~ ${Math.max(...options.map(o => parseFloat(o.cyl.replace('+', ''))))}` : '-'}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (editingProduct) {
-                            handleSelectProduct(editingProduct)
-                          }
-                          setShowProductModal(false)
-                          if (options.length > 0) {
-                            setShowEditPriceModal(true)
-                          } else {
-                            setShowGenerateModal(true)
-                          }
-                        }}
-                        style={{ ...actionBtnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}
-                      >
-                        도수 관리 →
-                      </button>
+                      )}
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
 
-              {/* 상품 이미지 (수정 모드에서만) */}
-              {editingProduct && (
-                <div style={{ padding: 14, background: 'var(--gray-50)', borderRadius: 10, border: '1px solid var(--gray-200)' }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-600)', display: 'block', marginBottom: 8 }}>상품 이미지</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    {editingProduct.imageUrl ? (
-                      <div style={{ position: 'relative' }}>
-                        <img
-                          src={editingProduct.imageUrl}
-                          alt={editingProduct.name}
-                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--gray-200)' }}
-                        />
+                  {/* 도수 옵션 요약 (수정시에만) */}
+                  {editingProduct && options.length > 0 && (
+                    <div style={{
+                      padding: 14,
+                      background: 'linear-gradient(135deg, #eef4ee 0%, #f3e5f5 100%)',
+                      borderRadius: 10,
+                      border: '1px solid #e1bee7'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
+                            📋 등록된 도수: {options.length}개
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>
+                            SPH: {options.length > 0 ? `${Math.min(...options.map(o => parseFloat(o.sph.replace('+', ''))))} ~ ${Math.max(...options.map(o => parseFloat(o.sph.replace('+', ''))))}` : '-'}
+                            {' | '}
+                            CYL: {options.length > 0 ? `${Math.min(...options.map(o => parseFloat(o.cyl.replace('+', ''))))} ~ ${Math.max(...options.map(o => parseFloat(o.cyl.replace('+', ''))))}` : '-'}
+                          </div>
+                        </div>
                         <button
                           type="button"
-                          onClick={async () => {
-                            if (!confirm('이미지를 삭제하시겠습니까?')) return
-                            try {
-                              const res = await fetch(`/api/products/${editingProduct.id}/image`, { method: 'DELETE' })
-                              if (res.ok) {
-                                setEditingProduct({ ...editingProduct, imageUrl: null })
-                                toast.success('이미지 삭제됨')
-                              }
-                            } catch (e) {
-                              console.error(e)
-                              toast.error('이미지 삭제 실패')
+                          onClick={() => {
+                            if (editingProduct) {
+                              handleSelectProduct(editingProduct)
+                            }
+                            setShowProductModal(false)
+                            if (options.length > 0) {
+                              setShowEditPriceModal(true)
+                            } else {
+                              setShowGenerateModal(true)
                             }
                           }}
-                          style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ff3b30', color: 'white', border: 'none', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >×</button>
+                          style={{ ...actionBtnStyle, background: 'var(--primary)', color: '#fff', border: 'none' }}
+                        >
+                          도수 관리 →
+                        </button>
                       </div>
-                    ) : (
-                      <div style={{ width: 80, height: 80, borderRadius: 8, border: '2px dashed var(--gray-300)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)', fontSize: 11 }}>
-                        No Image
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        id="product-image-upload"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          if (!file) return
-                          const formData = new FormData()
-                          formData.append('image', file)
-                          try {
-                            const res = await fetch(`/api/products/${editingProduct.id}/image`, { method: 'POST', body: formData })
-                            const data = await res.json()
-                            if (res.ok && data.imageUrl) {
-                              setEditingProduct({ ...editingProduct, imageUrl: data.imageUrl })
-                              toast.success('이미지 업로드 완료')
-                            } else {
-                              toast.error(data.error || '업로드 실패')
-                            }
-                          } catch (err) {
-                            console.error(err)
-                            toast.error('이미지 업로드 실패')
-                          }
-                          e.target.value = ''
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => document.getElementById('product-image-upload')?.click()}
-                        style={{ ...actionBtnStyle, fontSize: 12 }}
-                      >
-                        {editingProduct.imageUrl ? '변경' : '업로드'}
-                      </button>
-                      <div style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 4 }}>JPG, PNG (최대 2MB)</div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
 
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--gray-200)' }}>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 20, paddingTop: 14, borderTop: '1px solid var(--gray-200)' }}>
                 <button type="button" onClick={() => setShowProductModal(false)} style={actionBtnStyle}>취소</button>
                 <button type="submit" style={{ ...primaryBtnStyle, padding: '10px 24px' }}>
                   {editingProduct ? '저장' : '등록'}
