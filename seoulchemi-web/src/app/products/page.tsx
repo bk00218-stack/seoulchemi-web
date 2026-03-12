@@ -1966,7 +1966,10 @@ export default function ProductsPage() {
           </div>
           <div style={{ padding: 8, borderTop: '1px solid var(--gray-200)' }}>
             <button 
-              onClick={() => { setEditingBrand(null); setShowBrandModal(true) }}
+              onClick={() => {
+                if (!selectedCategory) { toast.error('먼저 대분류를 선택해주세요.'); return }
+                setEditingBrand(null); setShowBrandModal(true)
+              }}
               style={{ ...primaryBtnStyle, width: '100%', fontSize: 12, padding: '6px 12px' }}
             >
               + 브랜드
@@ -2927,9 +2930,16 @@ export default function ProductsPage() {
         <div style={modalOverlayStyle} onClick={() => setShowBrandModal(false)}>
           <div style={{ ...modalStyle, width: 420 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
-                {editingBrand ? '브랜드 수정' : '브랜드 추가'}
-              </h3>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
+                  {editingBrand ? '브랜드 수정' : '브랜드 추가'}
+                </h3>
+                {!editingBrand && selectedCategory && (
+                  <div style={{ fontSize: 12, color: '#007aff', marginTop: 4 }}>
+                    대분류: {selectedCategory.name}
+                  </div>
+                )}
+              </div>
               {editingBrand && (
                 <button
                   type="button"
