@@ -314,7 +314,7 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                         const cylNum = parseValue(cyl)
                         const isMajor = cylNum !== 0 && cylNum % 1 === 0
                         return (
-                          <div key={cyl} style={{ width: 46, textAlign: 'center', fontSize: 11, color: isMajor ? '#1d1d1f' : '#555', padding: '6px 0', fontWeight: 700, background: isMajor ? '#f0f4ff' : 'transparent' }}>{cyl}</div>
+                          <div key={cyl} style={{ width: 46, textAlign: 'center', fontSize: 11, color: isMajor ? '#1d1d1f' : '#555', padding: '6px 0', fontWeight: 700, background: isMajor ? '#e8eef6' : 'transparent', borderLeft: isMajor ? '2px solid #b0c4de' : 'none' }}>{cyl}</div>
                         )
                       })}
                     </div>
@@ -324,8 +324,8 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                         const sphNum = parseValue(sph)
                         const isMajorRow = sphNum !== 0 && sphNum % 1 === 0
                         return (
-                          <div key={sph} style={{ display: 'flex', background: isMajorRow ? '#f8faff' : 'transparent' }}>
-                            <div style={{ width: 60, flexShrink: 0, fontSize: 11, color: isMajorRow ? '#1d1d1f' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8, fontWeight: 700, background: isMajorRow ? '#f0f4ff' : 'transparent' }}>{sph}</div>
+                          <div key={sph} style={{ display: 'flex', borderTop: isMajorRow ? '2px solid #b0c4de' : 'none' }}>
+                            <div style={{ width: 60, flexShrink: 0, fontSize: 11, color: isMajorRow ? '#1d1d1f' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8, fontWeight: 700, background: isMajorRow ? '#e8eef6' : 'transparent' }}>{sph}</div>
                             {cylValues.map(cyl => {
                               const opt = options.find(o => o.sph === sph && o.cyl === cyl)
                               const selected = isGridSelected(sph, cyl)
@@ -333,6 +333,9 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                               const cylNum = parseValue(cyl)
                               const isMajorCol = cylNum !== 0 && cylNum % 1 === 0
                               const isMajorCell = isMajorRow || isMajorCol
+                              const cellBg = selected ? '#007aff'
+                                : opt ? (isMajorCell ? (isFactory ? '#f5e6c8' : '#d4e8d6') : (isFactory ? '#fff3e0' : '#e8f5e9'))
+                                : (isMajorCell ? '#e8eef6' : '#f5f5f7')
                               return (
                                 <div
                                   key={`${sph}-${cyl}`}
@@ -342,9 +345,10 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: 11,
                                     cursor: opt ? 'pointer' : 'not-allowed',
-                                    background: selected ? '#007aff' : opt ? (isFactory ? '#fff3e0' : '#e8f5e9') : (isMajorCell ? '#f0f4ff' : '#f5f5f7'),
+                                    background: cellBg,
                                     color: selected ? 'white' : opt ? '#1d1d1f' : (isMajorCell ? '#b0b8c8' : '#ccc'),
                                     border: selected ? '2px solid #0056b3' : '1px solid #e9ecef',
+                                    borderLeft: !selected && isMajorCol ? '2px solid #b0c4de' : (selected ? '2px solid #0056b3' : '1px solid #e9ecef'),
                                     margin: 1, borderRadius: 4, transition: 'all 0.1s',
                                   }}
                                 >
