@@ -1565,7 +1565,16 @@ export default function ProductsPage() {
       if (res.ok) {
         setShowBrandModal(false)
         setEditingBrand(null)
-        if (selectedCategory) handleSelectCategory(selectedCategory)
+        if (selectedCategory) {
+          // 브랜드 목록만 갱신 (선택 상태 유지)
+          try {
+            const brandRes = await fetch(`/api/brands?categoryId=${selectedCategory.id}`)
+            const brandData = await brandRes.json()
+            setBrands(brandData.brands || [])
+          } catch (e) {
+            console.error(e)
+          }
+        }
         toast.success(editingBrand ? '브랜드가 수정되었습니다.' : '브랜드가 추가되었습니다.')
       } else {
         const err = await res.json()
