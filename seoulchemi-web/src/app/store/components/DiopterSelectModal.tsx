@@ -78,6 +78,9 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
 
   const cylValues = [...new Set(options.map(o => o.cyl))].sort((a, b) => parseValue(b) - parseValue(a))
 
+  const isSpare = product.optionType === '안경렌즈 여벌' || product.optionType === '여벌'
+  const defaultQty = isSpare ? 0.5 : 1
+
   // 항목 추가/토글
   const addOrToggleItem = (sph: string, cyl: string, opt: ProductOption) => {
     setSelectedItems(prev => {
@@ -86,7 +89,7 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
         return prev.filter((_, i) => i !== idx)
       }
       return [...prev, {
-        sph, cyl, qty: 1,
+        sph, cyl, qty: defaultQty,
         price: product.retailPrice + (opt.priceAdjustment || 0),
         priceAdjustment: opt.priceAdjustment || 0,
         stockType: opt.stockType || 'local',
@@ -101,7 +104,7 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
     if (!opt) return
     if (selectedItems.some(i => i.sph === selectedSph && i.cyl === selectedCyl)) return
     setSelectedItems(prev => [...prev, {
-      sph: selectedSph, cyl: selectedCyl, qty: 1,
+      sph: selectedSph, cyl: selectedCyl, qty: defaultQty,
       price: product.retailPrice + (opt.priceAdjustment || 0),
       priceAdjustment: opt.priceAdjustment || 0,
       stockType: opt.stockType || 'local',
