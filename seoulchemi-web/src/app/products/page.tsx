@@ -50,6 +50,7 @@ interface Product {
   purchasePrice: number
   isActive: boolean
   displayOrder: number
+  imageUrl?: string | null
   _count?: { options: number }
 }
 
@@ -2674,6 +2675,81 @@ export default function ProductsPage() {
                   </div>
                 )}
               </div>
+
+              {/* 상품 이미지 (수정 모드에서만) */}
+              {editingProduct && (
+                <div style={{ padding: 14, background: 'var(--gray-50)', borderRadius: 10, border: '1px solid var(--gray-200)' }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-600)', display: 'block', marginBottom: 8 }}>상품 이미지</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {editingProduct.imageUrl ? (
+                      <div style={{ position: 'relative' }}>
+                        <img
+                          src={editingProduct.imageUrl}
+                          alt={editingProduct.name}
+                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--gray-200)' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!confirm('이미지를 삭제하시겠습니까?')) return
+                            try {
+                              const res = await fetch(`/api/products/${editingProduct.id}/image`, { method: 'DELETE' })
+                              if (res.ok) {
+                                setEditingProduct({ ...editingProduct, imageUrl: null })
+                                toast.success('이미지 삭제됨')
+                              }
+                            } catch (e) {
+                              console.error(e)
+                              toast.error('이미지 삭제 실패')
+                            }
+                          }}
+                          style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ff3b30', color: 'white', border: 'none', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >×</button>
+                      </div>
+                    ) : (
+                      <div style={{ width: 80, height: 80, borderRadius: 8, border: '2px dashed var(--gray-300)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-400)', fontSize: 11 }}>
+                        No Image
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="product-image-upload"
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          const formData = new FormData()
+                          formData.append('image', file)
+                          try {
+                            const res = await fetch(`/api/products/${editingProduct.id}/image`, { method: 'POST', body: formData })
+                            const data = await res.json()
+                            if (res.ok && data.imageUrl) {
+                              setEditingProduct({ ...editingProduct, imageUrl: data.imageUrl })
+                              toast.success('이미지 업로드 완료')
+                            } else {
+                              toast.error(data.error || '업로드 실패')
+                            }
+                          } catch (err) {
+                            console.error(err)
+                            toast.error('이미지 업로드 실패')
+                          }
+                          e.target.value = ''
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('product-image-upload')?.click()}
+                        style={{ ...actionBtnStyle, fontSize: 12 }}
+                      >
+                        {editingProduct.imageUrl ? '변경' : '업로드'}
+                      </button>
+                      <div style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 4 }}>JPG, PNG (최대 2MB)</div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--gray-200)' }}>
                 <button type="button" onClick={() => setShowProductModal(false)} style={actionBtnStyle}>취소</button>

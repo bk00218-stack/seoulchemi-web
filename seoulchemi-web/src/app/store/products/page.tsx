@@ -24,6 +24,7 @@ interface Product {
   refractiveIndex: string | null
   sellingPrice: number
   retailPrice: number
+  imageUrl?: string | null
 }
 
 const PAGE_SIZE = 30
@@ -297,18 +298,30 @@ export default function StoreProductsPage() {
                             background: '#007aff', color: 'white',
                             fontSize: 11, fontWeight: 700,
                             padding: '2px 8px', borderRadius: 10,
+                            zIndex: 1,
                           }}>
                             {cartQty}개
                           </div>
                         )}
-                        <div style={{ fontSize: 11, color: '#007aff', fontWeight: 600, marginBottom: 4 }}>
-                          {product.brand}
-                        </div>
-                        <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 4 }}>
-                          {product.name}
-                        </div>
-                        <div style={{ fontSize: 12, color: '#86868b', marginBottom: 8 }}>
-                          {product.bundleName || product.optionType}
+                        <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+                          {product.imageUrl && (
+                            <img
+                              src={product.imageUrl}
+                              alt={product.name}
+                              style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }}
+                            />
+                          )}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 11, color: '#007aff', fontWeight: 600, marginBottom: 2 }}>
+                              {product.brand}
+                            </div>
+                            <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {product.name}
+                            </div>
+                            <div style={{ fontSize: 12, color: '#86868b' }}>
+                              {product.bundleName || product.optionType}
+                            </div>
+                          </div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#1d1d1f' }}>
