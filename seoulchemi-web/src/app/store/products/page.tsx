@@ -281,14 +281,18 @@ export default function StoreProductsPage() {
                   {visibleProducts.map(product => {
                     const cartQty = getCartQty(product)
                     const isSpare = product.optionType === '안경렌즈 여벌' || product.optionType === '여벌'
+                    const hasImage = !!product.imageUrl
                     return (
                       <div
                         key={product.id}
                         style={{
                           border: cartQty > 0 ? '2px solid #007aff' : '1px solid #e9ecef',
-                          borderRadius: 12, padding: isMobile ? 12 : 16,
+                          borderRadius: 12,
                           transition: 'all 0.2s', cursor: 'pointer',
                           position: 'relative',
+                          display: 'flex',
+                          flexDirection: hasImage && !isMobile ? 'row' : 'column',
+                          overflow: 'hidden',
                         }}
                         onClick={() => handleProductClick(product)}
                       >
@@ -303,41 +307,57 @@ export default function StoreProductsPage() {
                             {cartQty}개
                           </div>
                         )}
-                        <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
-                          {product.imageUrl && (
+                        {hasImage && (
+                          <div style={{
+                            flexShrink: 0,
+                            width: isMobile ? '100%' : 110,
+                            height: isMobile ? 100 : 'auto',
+                            minHeight: isMobile ? undefined : 110,
+                            background: '#f8f9fa',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
                             <img
-                              src={product.imageUrl}
+                              src={product.imageUrl!}
                               alt={product.name}
-                              style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }}
+                              style={{
+                                width: '100%', height: '100%',
+                                objectFit: 'cover',
+                              }}
                             />
-                          )}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 11, color: '#007aff', fontWeight: 600, marginBottom: 2 }}>
-                              {product.brand}
-                            </div>
-                            <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {product.name}
-                            </div>
-                            <div style={{ fontSize: 12, color: '#86868b' }}>
-                              {product.bundleName || product.optionType}
-                            </div>
                           </div>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#1d1d1f' }}>
-                            {product.retailPrice?.toLocaleString()}원
-                          </span>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleProductClick(product) }}
-                            style={{
-                              padding: '6px 12px', fontSize: 12, fontWeight: 600,
-                              color: 'white', 
-                              background: isSpare ? '#34c759' : '#007aff',
-                              border: 'none', borderRadius: 6, cursor: 'pointer',
-                            }}
-                          >
-                            {isSpare ? '도수선택' : '담기'}
-                          </button>
+                        )}
+                        <div style={{
+                          flex: 1, minWidth: 0,
+                          padding: isMobile ? 10 : 14,
+                          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                        }}>
+                          <div style={{ fontSize: 11, color: '#007aff', fontWeight: 600, marginBottom: 2 }}>
+                            {product.brand}
+                          </div>
+                          <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {product.name}
+                          </div>
+                          <div style={{ fontSize: 12, color: '#86868b', marginBottom: 8 }}>
+                            {product.bundleName || product.optionType}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#1d1d1f' }}>
+                              {product.retailPrice?.toLocaleString()}원
+                            </span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleProductClick(product) }}
+                              style={{
+                                padding: '6px 12px', fontSize: 12, fontWeight: 600,
+                                color: 'white',
+                                background: isSpare ? '#34c759' : '#007aff',
+                                border: 'none', borderRadius: 6, cursor: 'pointer',
+                              }}
+                            >
+                              {isSpare ? '도수선택' : '담기'}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )
