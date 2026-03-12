@@ -7,6 +7,7 @@ interface ProductOption {
   sph: string
   cyl: string
   stock: number
+  stockType?: string
   priceAdjustment: number
 }
 
@@ -16,6 +17,7 @@ interface SelectedDiopter {
   qty: number
   price: number
   priceAdjustment: number
+  stockType: string
 }
 
 interface DiopterSelectModalProps {
@@ -72,14 +74,16 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
     }
   }
 
-  // SPH: 0.00 기준 절대값 오름차순 (0.00, -0.25, +0.25, -0.50, ...)
-  // 실제로는 0.00이 맨 위, 그다음 마이너스가 내려가는 순서가 자연스러움
+  // 공장여벌 포함 여부 확인
+  const hasFactory = options.some(o => o.stockType === 'factory')
+  const hasLocal = options.some(o => !o.stockType || o.stockType === 'local')
+
+  // SPH: 0.00이 맨 위, 절대값 오름차순
   const sphValues = [...new Set(options.map(o => o.sph))].sort((a, b) => {
     const av = parseValue(a)
     const bv = parseValue(b)
-    // 0에 가까운 것이 먼저, 같으면 양수 우선
     if (Math.abs(av) !== Math.abs(bv)) return Math.abs(av) - Math.abs(bv)
-    return bv - av // 양수 우선
+    return bv - av
   })
 
   const cylValues = [...new Set(options.map(o => o.cyl))].sort((a, b) => parseValue(b) - parseValue(a))
@@ -103,16 +107,15 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
     setSelectedItems(prev => {
       const idx = prev.findIndex(i => i.sph === sph && i.cyl === cyl)
       if (idx >= 0) {
-        // 이미 선택됨 → 제거
         return prev.filter((_, i) => i !== idx)
       } else {
-        // 추가
         return [...prev, {
           sph,
           cyl,
           qty: 1,
           price: product.retailPrice + (opt.priceAdjustment || 0),
           priceAdjustment: opt.priceAdjustment || 0,
+          stockType: opt.stockType || 'local',
         }]
       }
     })
@@ -157,16 +160,24 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
       <div style={{
         background: 'white', borderRadius: 16,
         width: '100%', maxWidth: 640, maxHeight: '92vh',
-        overflow: 'auto',
+        display: 'flex', flexDirection: 'column',
       }} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={{
           padding: '20px 24px', borderBottom: '1px solid #e9ecef',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          position: 'sticky', top: 0, background: 'white', zIndex: 1,
+          flexShrink: 0,
         }}>
           <div>
-            <div style={{ fontSize: 12, color: '#007aff', fontWeight: 600 }}>{product.brand}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#007aff', fontWeight: 600 }}>{product.brand}</span>
+              {hasFactory && hasLocal && (
+                <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#fff3cd', color: '#856404', fontWeight: 600 }}>여벌+공장</span>
+              )}
+              {hasFactory && !hasLocal && (
+                <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#ff9500', color: 'white', fontWeight: 600 }}>공장여벌</span>
+              )}
+            </div>
             <div style={{ fontSize: 18, fontWeight: 700, color: '#1d1d1f' }}>{product.name}</div>
           </div>
           <button
@@ -177,8 +188,8 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
           </button>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: 24 }}>
+        {/* Body - scrollable */}
+        <div style={{ padding: 24, overflow: 'auto', flex: 1 }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: 40, color: '#86868b' }}>도수 정보 로딩 중...</div>
           ) : options.length === 0 ? (
@@ -263,7 +274,12 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                   {selectedSph && selectedCyl && (
                     <div style={{ background: '#f0f7ff', padding: 16, borderRadius: 12, marginBottom: 20 }}>
                       <div style={{ fontSize: 14, color: '#007aff', marginBottom: 8 }}>선택한 도수</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f' }}>SPH {selectedSph} / CYL {selectedCyl}</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f' }}>
+                        SPH {selectedSph} / CYL {selectedCyl}
+                        {selectedOption?.stockType === 'factory' && (
+                          <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 4, background: '#ff9500', color: 'white', fontWeight: 600, marginLeft: 8, verticalAlign: 'middle' }}>공장</span>
+                        )}
+                      </div>
                       {selectedOption?.priceAdjustment ? (
                         <div style={{ fontSize: 12, color: '#ff9500', marginTop: 4 }}>고도수 추가금: +{selectedOption.priceAdjustment.toLocaleString()}원</div>
                       ) : null}
@@ -272,10 +288,53 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                 </>
               ) : (
                 <>
-                  {/* Grid Mode - Multi Select */}
-                  <div style={{ marginBottom: 16, overflowX: 'auto' }}>
+                  {/* Grid Mode - Selected Items (상단 고정) */}
+                  {selectedItems.length > 0 && (
+                    <div style={{ background: '#f0f7ff', padding: 16, borderRadius: 12, marginBottom: 16 }}>
+                      <div style={{ fontSize: 13, color: '#007aff', fontWeight: 600, marginBottom: 10 }}>
+                        선택한 도수 ({selectedItems.length}개, {totalQty}짝)
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
+                        {selectedItems.map((item) => (
+                          <div key={`${item.sph}-${item.cyl}`} style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            background: 'white', padding: '8px 12px', borderRadius: 8,
+                            fontSize: 13,
+                          }}>
+                            <div style={{ flex: 1, fontWeight: 600, color: '#1d1d1f' }}>
+                              {item.sph} / {item.cyl}
+                              {item.stockType === 'factory' && (
+                                <span style={{ fontSize: 10, padding: '1px 4px', borderRadius: 3, background: '#ff9500', color: 'white', fontWeight: 600, marginLeft: 4 }}>공장</span>
+                              )}
+                              {item.priceAdjustment > 0 && (
+                                <span style={{ fontSize: 11, color: '#ff9500', marginLeft: 4 }}>+{item.priceAdjustment.toLocaleString()}</span>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <button onClick={() => updateItemQty(item.sph, item.cyl, item.qty - 1)} style={{ width: 24, height: 24, border: '1px solid #e9ecef', borderRadius: 4, background: 'white', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                              <span style={{ width: 24, textAlign: 'center', fontWeight: 700 }}>{item.qty}</span>
+                              <button onClick={() => updateItemQty(item.sph, item.cyl, item.qty + 1)} style={{ width: 24, height: 24, border: '1px solid #e9ecef', borderRadius: 4, background: 'white', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                            </div>
+                            <div style={{ fontSize: 12, color: '#86868b', minWidth: 65, textAlign: 'right' }}>
+                              {(item.price * item.qty).toLocaleString()}원
+                            </div>
+                            <button
+                              onClick={() => removeItem(item.sph, item.cyl)}
+                              style={{ background: 'none', border: 'none', color: '#ff3b30', fontSize: 16, cursor: 'pointer', padding: '0 4px' }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Grid */}
+                  <div style={{ overflowX: 'auto' }}>
                     <div style={{ fontSize: 12, color: '#86868b', marginBottom: 8 }}>
-                      SPH/CYL 선택 (가로: CYL, 세로: SPH) - 여러 도수를 선택할 수 있습니다
+                      SPH/CYL 선택 (가로: CYL, 세로: SPH)
+                      {hasFactory && <span style={{ marginLeft: 8, color: '#ff9500' }}>■ 공장여벌</span>}
                     </div>
                     <div style={{ minWidth: cylValues.length * 50 + 60 }}>
                       {/* CYL Header */}
@@ -294,6 +353,7 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                             {cylValues.map(cyl => {
                               const opt = options.find(o => o.sph === sph && o.cyl === cyl)
                               const selected = isGridSelected(sph, cyl)
+                              const isFactory = opt?.stockType === 'factory'
                               return (
                                 <div
                                   key={`${sph}-${cyl}`}
@@ -306,7 +366,7 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                                     background: selected
                                       ? '#007aff'
                                       : opt
-                                        ? (opt.priceAdjustment > 0 ? '#fff3cd' : '#e8f5e9')
+                                        ? (isFactory ? '#fff3e0' : '#e8f5e9')
                                         : '#f5f5f7',
                                     color: selected ? 'white' : opt ? '#1d1d1f' : '#ccc',
                                     border: selected ? '2px solid #0056b3' : '1px solid #e9ecef',
@@ -314,7 +374,7 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                                     transition: 'all 0.1s',
                                   }}
                                 >
-                                  {opt ? (selected ? '✓' : (opt.priceAdjustment > 0 ? `+${(opt.priceAdjustment/1000).toFixed(0)}k` : '○')) : ''}
+                                  {opt ? (selected ? '✓' : '○') : ''}
                                 </div>
                               )
                             })}
@@ -323,45 +383,6 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                       </div>
                     </div>
                   </div>
-
-                  {/* Selected Items List */}
-                  {selectedItems.length > 0 && (
-                    <div style={{ background: '#f0f7ff', padding: 16, borderRadius: 12, marginBottom: 16 }}>
-                      <div style={{ fontSize: 13, color: '#007aff', fontWeight: 600, marginBottom: 10 }}>
-                        선택한 도수 ({selectedItems.length}개)
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 160, overflowY: 'auto' }}>
-                        {selectedItems.map((item) => (
-                          <div key={`${item.sph}-${item.cyl}`} style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            background: 'white', padding: '8px 12px', borderRadius: 8,
-                            fontSize: 13,
-                          }}>
-                            <div style={{ flex: 1, fontWeight: 600, color: '#1d1d1f' }}>
-                              {item.sph} / {item.cyl}
-                              {item.priceAdjustment > 0 && (
-                                <span style={{ fontSize: 11, color: '#ff9500', marginLeft: 4 }}>+{item.priceAdjustment.toLocaleString()}</span>
-                              )}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <button onClick={() => updateItemQty(item.sph, item.cyl, item.qty - 1)} style={{ width: 24, height: 24, border: '1px solid #e9ecef', borderRadius: 4, background: 'white', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                              <span style={{ width: 24, textAlign: 'center', fontWeight: 700 }}>{item.qty}</span>
-                              <button onClick={() => updateItemQty(item.sph, item.cyl, item.qty + 1)} style={{ width: 24, height: 24, border: '1px solid #e9ecef', borderRadius: 4, background: 'white', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                            </div>
-                            <div style={{ fontSize: 12, color: '#86868b', minWidth: 60, textAlign: 'right' }}>
-                              {(item.price * item.qty).toLocaleString()}원
-                            </div>
-                            <button
-                              onClick={() => removeItem(item.sph, item.cyl)}
-                              style={{ background: 'none', border: 'none', color: '#ff3b30', fontSize: 16, cursor: 'pointer', padding: '0 4px' }}
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </>
               )}
             </>
@@ -371,8 +392,7 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
         {/* Footer */}
         <div style={{
           padding: '16px 24px', borderTop: '1px solid #e9ecef',
-          display: 'flex', gap: 12,
-          position: 'sticky', bottom: 0, background: 'white',
+          display: 'flex', gap: 12, flexShrink: 0,
         }}>
           <button
             onClick={onClose}
