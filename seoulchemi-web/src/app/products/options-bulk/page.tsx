@@ -18,7 +18,8 @@ interface Product {
 
 interface PriceRule {
   id: number
-  sphMin: number  // |SPH| >= 이 값이면 적용
+  type: 'sph' | 'cyl'  // 기준: SPH 또는 CYL
+  threshold: number  // |값| >= 이 값이면 적용
   adjustment: number  // 추가금액
 }
 
@@ -59,8 +60,8 @@ export default function OptionsBulkPage() {
 
   // 고도수 추가금 규칙
   const [priceRules, setPriceRules] = useState<PriceRule[]>([
-    { id: 1, sphMin: 6.0, adjustment: 5000 },
-    { id: 2, sphMin: 8.0, adjustment: 10000 },
+    { id: 1, type: 'cyl', threshold: 2.25, adjustment: 5000 },
+    { id: 2, type: 'cyl', threshold: 3.0, adjustment: 10000 },
   ])
   const [nextRuleId, setNextRuleId] = useState(3)
 
@@ -121,17 +122,26 @@ export default function OptionsBulkPage() {
   const totalOptionsPerProduct = sphValues.length * cylValues.length
   const totalOptionsAll = totalOptionsPerProduct * selectedProducts.length
 
-  // 추가금 계산
-  const getPriceAdjustment = (sph: number): number => {
-    const absSph = Math.abs(sph)
-    // 높은 임계값부터 확인 (더 높은 도수 = 더 높은 추가금)
-    const sorted = [...priceRules].sort((a, b) => b.sphMin - a.sphMin)
-    for (const rule of sorted) {
-      if (absSph >= rule.sphMin) {
-        return rule.adjustment
+  // 추가금 계산 (SPH, CYL 각각 매칭되는 최고 추가금의 합산)
+  const getPriceAdjustment = (sph: number, cyl: number): number => {
+    let total = 0
+    // SPH 규칙 중 가장 높은 매칭
+    const sphRules = priceRules.filter(r => r.type === 'sph').sort((a, b) => b.threshold - a.threshold)
+    for (const rule of sphRules) {
+      if (Math.abs(sph) >= rule.threshold) {
+        total += rule.adjustment
+        break
       }
     }
-    return 0
+    // CYL 규칙 중 가장 높은 매칭
+    const cylRules = priceRules.filter(r => r.type === 'cyl').sort((a, b) => b.threshold - a.threshold)
+    for (const rule of cylRules) {
+      if (Math.abs(cyl) >= rule.threshold) {
+        total += rule.adjustment
+        break
+      }
+    }
+    return total
   }
 
   // 전체 선택/해제
@@ -152,7 +162,7 @@ export default function OptionsBulkPage() {
 
   // 추가금 규칙 추가
   const addPriceRule = () => {
-    setPriceRules(prev => [...prev, { id: nextRuleId, sphMin: 10, adjustment: 15000 }])
+    setPriceRules(prev => [...prev, { id: nextRuleId, type: 'cyl', threshold: 4.0, adjustment: 15000 }])
     setNextRuleId(prev => prev + 1)
   }
 
@@ -194,7 +204,7 @@ export default function OptionsBulkPage() {
             cyl: formatDiopter(cyl),
             stock: 0,
             stockType: 'local',
-            priceAdjustment: getPriceAdjustment(sph),
+            priceAdjustment: getPriceAdjustment(sph, cyl),
           })
         }
       }
@@ -496,19 +506,30 @@ export default function OptionsBulkPage() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {priceRules
-                  .sort((a, b) => a.sphMin - b.sphMin)
+                  .sort((a, b) => a.type.localeCompare(b.type) || a.threshold - b.threshold)
                   .map(rule => (
-                  <div key={rule.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ fontSize: 13, color: '#1d1d1f', whiteSpace: 'nowrap' }}>|SPH| ≥</span>
+                  <div key={rule.id} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <select
+                      value={rule.type}
+                      onChange={(e) => {
+                        const val = e.target.value as 'sph' | 'cyl'
+                        setPriceRules(prev => prev.map(r => r.id === rule.id ? { ...r, type: val } : r))
+                      }}
+                      style={{ ...selectStyle, width: 70, padding: '6px 4px', fontSize: 13 }}
+                    >
+                      <option value="cyl">|CYL|</option>
+                      <option value="sph">|SPH|</option>
+                    </select>
+                    <span style={{ fontSize: 13, color: '#1d1d1f' }}>≥</span>
                     <input
                       type="number"
-                      value={rule.sphMin}
+                      value={rule.threshold}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value) || 0
-                        setPriceRules(prev => prev.map(r => r.id === rule.id ? { ...r, sphMin: val } : r))
+                        setPriceRules(prev => prev.map(r => r.id === rule.id ? { ...r, threshold: val } : r))
                       }}
-                      step={0.5}
-                      style={{ ...inputStyle, width: 70 }}
+                      step={0.25}
+                      style={{ ...inputStyle, width: 65 }}
                     />
                     <span style={{ fontSize: 13, color: '#1d1d1f' }}>→</span>
                     <input
@@ -519,7 +540,7 @@ export default function OptionsBulkPage() {
                         setPriceRules(prev => prev.map(r => r.id === rule.id ? { ...r, adjustment: val } : r))
                       }}
                       step={1000}
-                      style={{ ...inputStyle, width: 90 }}
+                      style={{ ...inputStyle, width: 85 }}
                     />
                     <span style={{ fontSize: 12, color: '#86868b' }}>원</span>
                     <button
@@ -565,11 +586,14 @@ export default function OptionsBulkPage() {
             {priceRules.length > 0 && (
               <div style={{ fontSize: 12, color: '#86868b', marginBottom: 12, background: 'white', padding: 10, borderRadius: 8 }}>
                 <div style={{ fontWeight: 600, marginBottom: 4, color: '#1d1d1f' }}>추가금 적용 현황:</div>
-                {priceRules.sort((a, b) => a.sphMin - b.sphMin).map(rule => {
-                  const count = sphValues.filter(s => Math.abs(s) >= rule.sphMin).length * cylValues.length
+                {priceRules.sort((a, b) => a.type.localeCompare(b.type) || a.threshold - b.threshold).map(rule => {
+                  const label = rule.type === 'sph' ? '|SPH|' : '|CYL|'
+                  const count = rule.type === 'sph'
+                    ? sphValues.filter(s => Math.abs(s) >= rule.threshold).length * cylValues.length
+                    : sphValues.length * cylValues.filter(c => Math.abs(c) >= rule.threshold).length
                   return (
                     <div key={rule.id}>
-                      |SPH| ≥ {rule.sphMin}: {count}개 옵션에 +{rule.adjustment.toLocaleString()}원
+                      {label} ≥ {rule.threshold}: {count}개 옵션에 +{rule.adjustment.toLocaleString()}원
                     </div>
                   )
                 })}
