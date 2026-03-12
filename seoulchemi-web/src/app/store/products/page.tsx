@@ -83,7 +83,7 @@ export default function StoreProductsPage() {
   // 상품 클릭 처리
   const handleProductClick = (product: Product) => {
     // 여벌렌즈는 도수 선택 모달 표시
-    if (product.optionType === '안경렌즈 여벌') {
+    if (product.optionType === '안경렌즈 여벌' || product.optionType === '여벌') {
       setSelectedProduct(product)
       setShowDiopterModal(true)
     } else {
@@ -279,7 +279,7 @@ export default function StoreProductsPage() {
                 }}>
                   {visibleProducts.map(product => {
                     const cartQty = getCartQty(product)
-                    const isSpare = product.optionType === '안경렌즈 여벌'
+                    const isSpare = product.optionType === '안경렌즈 여벌' || product.optionType === '여벌'
                     return (
                       <div
                         key={product.id}
