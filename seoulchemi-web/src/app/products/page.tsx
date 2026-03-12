@@ -1552,6 +1552,7 @@ export default function ProductsPage() {
       name: formData.get('name'),
       stockManage: formData.get('stockManage') || null,
       isActive: formData.get('isActive') === 'true',
+      ...((!editingBrand && selectedCategory) ? { categoryId: selectedCategory.id } : {}),
     }
 
     try {
