@@ -95,6 +95,7 @@ export default function StoreProductsPage() {
         brand: product.brand,
         optionType: product.optionType,
         price: product.retailPrice,
+        imageUrl: product.imageUrl,
       })
       setAddedProduct(product.name)
       setTimeout(() => setAddedProduct(null), 2000)
@@ -111,6 +112,7 @@ export default function StoreProductsPage() {
           brand: selectedProduct.brand,
           optionType: selectedProduct.optionType,
           price: price,
+          imageUrl: selectedProduct.imageUrl,
         },
         sph,
         cyl,

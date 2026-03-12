@@ -9,6 +9,7 @@ interface CartItem {
   optionType?: string
   price: number
   qty: number
+  imageUrl?: string
   // 도수 정보 (여벌렌즈용)
   sph?: string
   cyl?: string

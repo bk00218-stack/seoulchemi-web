@@ -226,11 +226,20 @@ function CartSidebar() {
                   display: 'flex', alignItems: 'center', gap: 4,
                   padding: '4px 6px', background: '#f8f9fa', borderRadius: 6, fontSize: 11,
                 }}>
+                  {/* 이미지 or 이니셜 */}
+                  <div style={{ width: 28, height: 28, flexShrink: 0, borderRadius: 4, overflow: 'hidden', background: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <span style={{ fontSize: 9, color: '#86868b', fontWeight: 600 }}>{item.name.slice(0, 2)}</span>
+                    )}
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.name}
-                      {item.sph && item.cyl && <span style={{ color: '#86868b', fontWeight: 400 }}> {item.sph}/{item.cyl}</span>}
-                    </div>
+                    {item.sph && item.cyl ? (
+                      <div style={{ fontWeight: 600, color: '#1d1d1f', fontSize: 10 }}>{item.sph}/{item.cyl}</div>
+                    ) : (
+                      <div style={{ fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10 }}>{item.name}</div>
+                    )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
                     <button onClick={() => updateQty(cartKey, -0.5)} style={{ width: 18, height: 18, border: '1px solid #e0e0e0', borderRadius: 3, background: 'white', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>−</button>

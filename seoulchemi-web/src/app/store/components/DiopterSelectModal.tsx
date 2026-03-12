@@ -330,6 +330,9 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                               const opt = options.find(o => o.sph === sph && o.cyl === cyl)
                               const selected = isGridSelected(sph, cyl)
                               const isFactory = opt?.stockType === 'factory'
+                              const cylNum = parseValue(cyl)
+                              const isMajorCol = cylNum !== 0 && cylNum % 1 === 0
+                              const isMajorCell = isMajorRow || isMajorCol
                               return (
                                 <div
                                   key={`${sph}-${cyl}`}
@@ -339,8 +342,8 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: 11,
                                     cursor: opt ? 'pointer' : 'not-allowed',
-                                    background: selected ? '#007aff' : opt ? (isFactory ? '#fff3e0' : '#e8f5e9') : '#f5f5f7',
-                                    color: selected ? 'white' : opt ? '#1d1d1f' : '#ccc',
+                                    background: selected ? '#007aff' : opt ? (isFactory ? '#fff3e0' : '#e8f5e9') : (isMajorCell ? '#f0f4ff' : '#f5f5f7'),
+                                    color: selected ? 'white' : opt ? '#1d1d1f' : (isMajorCell ? '#b0b8c8' : '#ccc'),
                                     border: selected ? '2px solid #0056b3' : '1px solid #e9ecef',
                                     margin: 1, borderRadius: 4, transition: 'all 0.1s',
                                   }}
