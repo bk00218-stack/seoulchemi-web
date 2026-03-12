@@ -300,48 +300,58 @@ export default function DiopterSelectModal({ product, onClose, onAdd }: DiopterS
 
               {/* 오른쪽: 그리드 */}
               <div style={{ flex: 1, padding: 20, overflow: 'auto' }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', marginBottom: 8 }}>
-                  그리드 선택
-                  {hasFactory && <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 8, color: '#ff9500' }}>■ 공장여벌</span>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f' }}>그리드 선택</span>
+                  {hasFactory && <span style={{ fontSize: 11, color: '#ff9500' }}>■ 공장여벌</span>}
+                  <span style={{ fontSize: 11, color: '#86868b' }}>클릭하여 선택</span>
                 </div>
-                <div style={{ fontSize: 11, color: '#86868b', marginBottom: 8 }}>가로: CYL / 세로: SPH — 클릭하여 선택</div>
                 <div style={{ overflowX: 'auto' }}>
-                  <div style={{ minWidth: cylValues.length * 46 + 56 }}>
-                    <div style={{ display: 'flex', position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
-                      <div style={{ width: 56, flexShrink: 0 }} />
-                      {cylValues.map(cyl => (
-                        <div key={cyl} style={{ width: 46, textAlign: 'center', fontSize: 10, color: '#86868b', padding: '4px 0', fontWeight: 600 }}>{cyl}</div>
-                      ))}
+                  <div style={{ minWidth: cylValues.length * 46 + 60 }}>
+                    {/* CYL Header */}
+                    <div style={{ display: 'flex', position: 'sticky', top: 0, background: 'white', zIndex: 1, borderBottom: '2px solid #e0e0e0' }}>
+                      <div style={{ width: 60, flexShrink: 0, fontSize: 11, fontWeight: 700, color: '#1d1d1f', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px 0' }}>SPH\CYL</div>
+                      {cylValues.map(cyl => {
+                        const cylNum = parseValue(cyl)
+                        const isMajor = cylNum !== 0 && cylNum % 1 === 0
+                        return (
+                          <div key={cyl} style={{ width: 46, textAlign: 'center', fontSize: 11, color: isMajor ? '#1d1d1f' : '#555', padding: '6px 0', fontWeight: 700, background: isMajor ? '#f0f4ff' : 'transparent' }}>{cyl}</div>
+                        )
+                      })}
                     </div>
+                    {/* Grid Rows */}
                     <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-                      {sphValues.map(sph => (
-                        <div key={sph} style={{ display: 'flex' }}>
-                          <div style={{ width: 56, flexShrink: 0, fontSize: 10, color: '#86868b', display: 'flex', alignItems: 'center', paddingRight: 6, fontWeight: 600 }}>{sph}</div>
-                          {cylValues.map(cyl => {
-                            const opt = options.find(o => o.sph === sph && o.cyl === cyl)
-                            const selected = isGridSelected(sph, cyl)
-                            const isFactory = opt?.stockType === 'factory'
-                            return (
-                              <div
-                                key={`${sph}-${cyl}`}
-                                onClick={() => { if (opt) addOrToggleItem(sph, cyl, opt) }}
-                                style={{
-                                  width: 46, height: 26,
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: 11,
-                                  cursor: opt ? 'pointer' : 'not-allowed',
-                                  background: selected ? '#007aff' : opt ? (isFactory ? '#fff3e0' : '#e8f5e9') : '#f5f5f7',
-                                  color: selected ? 'white' : opt ? '#1d1d1f' : '#ccc',
-                                  border: selected ? '2px solid #0056b3' : '1px solid #e9ecef',
-                                  margin: 1, borderRadius: 4, transition: 'all 0.1s',
-                                }}
-                              >
-                                {opt ? (selected ? '✓' : '○') : ''}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      ))}
+                      {sphValues.map(sph => {
+                        const sphNum = parseValue(sph)
+                        const isMajorRow = sphNum !== 0 && sphNum % 1 === 0
+                        return (
+                          <div key={sph} style={{ display: 'flex', background: isMajorRow ? '#f8faff' : 'transparent' }}>
+                            <div style={{ width: 60, flexShrink: 0, fontSize: 11, color: isMajorRow ? '#1d1d1f' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8, fontWeight: 700, background: isMajorRow ? '#f0f4ff' : 'transparent' }}>{sph}</div>
+                            {cylValues.map(cyl => {
+                              const opt = options.find(o => o.sph === sph && o.cyl === cyl)
+                              const selected = isGridSelected(sph, cyl)
+                              const isFactory = opt?.stockType === 'factory'
+                              return (
+                                <div
+                                  key={`${sph}-${cyl}`}
+                                  onClick={() => { if (opt) addOrToggleItem(sph, cyl, opt) }}
+                                  style={{
+                                    width: 46, height: 26,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 11,
+                                    cursor: opt ? 'pointer' : 'not-allowed',
+                                    background: selected ? '#007aff' : opt ? (isFactory ? '#fff3e0' : '#e8f5e9') : '#f5f5f7',
+                                    color: selected ? 'white' : opt ? '#1d1d1f' : '#ccc',
+                                    border: selected ? '2px solid #0056b3' : '1px solid #e9ecef',
+                                    margin: 1, borderRadius: 4, transition: 'all 0.1s',
+                                  }}
+                                >
+                                  {opt ? (selected ? '✓' : '○') : ''}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 </div>

@@ -436,42 +436,36 @@ export default function StoreProductsPage() {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}>
             {cart.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 16px', color: '#86868b', fontSize: 13 }}>
+              <div style={{ textAlign: 'center', padding: '40px 12px', color: '#86868b', fontSize: 13 }}>
                 장바구니가 비어있습니다
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {cart.map((item) => {
                   const cartKey = item.sph && item.cyl ? `${item.id}-${item.sph}-${item.cyl}` : `${item.id}`
                   return (
                     <div key={cartKey} style={{
-                      padding: '10px 12px', background: '#f8f9fa', borderRadius: 10, fontSize: 12,
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '5px 8px', background: '#f8f9fa', borderRadius: 6, fontSize: 11,
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 11, color: '#007aff', fontWeight: 600 }}>{item.brand}</div>
-                          <div style={{ fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                          {item.sph && item.cyl && (
-                            <div style={{ fontSize: 11, color: '#86868b', marginTop: 2 }}>
-                              SPH {item.sph} / CYL {item.cyl}
-                            </div>
-                          )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.name}
+                          {item.sph && item.cyl && <span style={{ color: '#86868b', fontWeight: 400 }}> {item.sph}/{item.cyl}</span>}
                         </div>
-                        <button
-                          onClick={() => removeItem(cartKey)}
-                          style={{ background: 'none', border: 'none', color: '#ff3b30', fontSize: 14, cursor: 'pointer', padding: '0 2px', flexShrink: 0 }}
-                        >×</button>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <button onClick={() => updateQty(cartKey, -0.5)} style={{ width: 22, height: 22, border: '1px solid #e0e0e0', borderRadius: 4, background: 'white', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                          <span style={{ width: 28, textAlign: 'center', fontWeight: 700, fontSize: 12 }}>{item.qty % 1 === 0 ? item.qty : item.qty.toFixed(1)}</span>
-                          <button onClick={() => updateQty(cartKey, 0.5)} style={{ width: 22, height: 22, border: '1px solid #e0e0e0', borderRadius: 4, background: 'white', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                        </div>
-                        <span style={{ fontWeight: 700, color: '#1d1d1f' }}>{(item.price * item.qty).toLocaleString()}원</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                        <button onClick={() => updateQty(cartKey, -0.5)} style={{ width: 18, height: 18, border: '1px solid #e0e0e0', borderRadius: 3, background: 'white', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>−</button>
+                        <span style={{ width: 22, textAlign: 'center', fontWeight: 700, fontSize: 11 }}>{item.qty % 1 === 0 ? item.qty : item.qty.toFixed(1)}</span>
+                        <button onClick={() => updateQty(cartKey, 0.5)} style={{ width: 18, height: 18, border: '1px solid #e0e0e0', borderRadius: 3, background: 'white', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>+</button>
                       </div>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#1d1d1f', flexShrink: 0, minWidth: 48, textAlign: 'right' }}>{(item.price * item.qty).toLocaleString()}</span>
+                      <button
+                        onClick={() => removeItem(cartKey)}
+                        style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 13, cursor: 'pointer', padding: '0 1px', flexShrink: 0 }}
+                      >×</button>
                     </div>
                   )
                 })}
