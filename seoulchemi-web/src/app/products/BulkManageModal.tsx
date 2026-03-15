@@ -36,7 +36,7 @@ interface BulkManageModalProps {
 }
 
 type Level = 'product' | 'productLine' | 'brand' | 'category'
-type ActionType = 'move' | 'price' | 'delete' | 'activate' | 'deactivate'
+type ActionType = 'move' | 'merge' | 'price' | 'delete' | 'activate' | 'deactivate'
 
 const overlayStyle: React.CSSProperties = {
   position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -202,7 +202,8 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
   const handleLevelChange = (newLevel: Level) => {
     setLevel(newLevel)
     setSelectedIds(new Set())
-    setAction('move')
+    // 대분류는 이동 불가 → 합치기가 기본, 상품은 합치기 불가 → 이동이 기본
+    setAction(newLevel === 'category' ? 'merge' : newLevel === 'product' ? 'move' : 'move')
     resetTargets()
   }
 
@@ -262,10 +263,51 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
     try {
       const ids = [...selectedIds]
 
-      // === MOVE (통합 이동: 내용물 이동 + 원본 비활성화) ===
+      // === MOVE (상위 분류 변경, 원본 유지) ===
       if (action === 'move') {
+        if (level === 'brand') {
+          // 브랜드 이동: 다른 대분류로 이동 (대분류만 선택)
+          if (!targetCatId) { toast.error('이동할 대분류를 선택해주세요'); return }
+          const res = await fetch('/api/brands/bulk-move', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ brandIds: ids, targetCategoryId: targetCatId }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.error)
+          toast.success(data.message)
+
+        } else if (level === 'productLine') {
+          // 품목 이동: 다른 브랜드로 이동 (대분류 + 브랜드 선택)
+          if (!targetBrandId) { toast.error('이동할 브랜드를 선택해주세요'); return }
+          const res = await fetch('/api/product-lines/bulk-move', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productLineIds: ids, targetBrandId }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.error)
+          toast.success(data.message)
+
+        } else if (level === 'product') {
+          // 상품 이동: 다른 브랜드/품목으로 이동 (대분류 + 브랜드 + 품목 선택)
+          if (!targetBrandId) { toast.error('이동할 브랜드를 선택해주세요'); return }
+          const res = await fetch('/api/products/bulk-move', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productIds: ids,
+              targetBrandId,
+              targetProductLineId: targetLineId || undefined,
+            }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.error)
+          toast.success(data.message)
+        }
+      }
+
+      // === MERGE (다른 항목으로 병합 + 원본 비활성화) ===
+      if (action === 'merge') {
         if (level === 'category') {
-          // 대분류 통합: 선택한 대분류의 브랜드를 대상 대분류로 이동
+          // 대분류 합치기: 선택한 대분류 → 대상 대분류로 브랜드 이동, 원본 비활성화
           if (!targetCatId) { toast.error('대상 대분류를 선택해주세요'); return }
           const res = await fetch('/api/categories/merge', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -276,7 +318,7 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
           toast.success(data.message)
 
         } else if (level === 'brand') {
-          // 브랜드 통합: 선택한 브랜드 → 대상 브랜드로 품목/상품 이동, 원본 비활성화
+          // 브랜드 합치기: 선택한 브랜드 → 대상 브랜드로 품목/상품 이동, 원본 비활성화
           if (!targetBrandId) { toast.error('대상 브랜드를 선택해주세요'); return }
           const res = await fetch('/api/brands/merge', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -287,37 +329,11 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
           toast.success(data.message)
 
         } else if (level === 'productLine') {
-          if (targetLineId) {
-            // 품목 통합: 선택한 품목 → 대상 품목으로 상품 이동, 원본 비활성화
-            const res = await fetch('/api/product-lines/merge', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ sourceLineIds: ids, targetLineId }),
-            })
-            const data = await res.json()
-            if (!res.ok) throw new Error(data.error)
-            toast.success(data.message)
-          } else if (targetBrandId) {
-            // 품목 이동: 선택한 품목을 다른 브랜드로 이동 (품목 자체 이동)
-            const res = await fetch('/api/product-lines/bulk-move', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ productLineIds: ids, targetBrandId }),
-            })
-            const data = await res.json()
-            if (!res.ok) throw new Error(data.error)
-            toast.success(data.message)
-          } else {
-            toast.error('대상 브랜드 또는 품목을 선택해주세요'); return
-          }
-
-        } else if (level === 'product') {
-          if (!targetBrandId && !targetLineId) { toast.error('이동 대상을 선택해주세요'); return }
-          const res = await fetch('/api/products/bulk-move', {
+          // 품목 합치기: 선택한 품목 → 대상 품목으로 상품 이동, 원본 비활성화
+          if (!targetLineId) { toast.error('대상 품목을 선택해주세요'); return }
+          const res = await fetch('/api/product-lines/merge', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              productIds: ids,
-              targetBrandId: targetBrandId || undefined,
-              targetProductLineId: targetLineId || undefined,
-            }),
+            body: JSON.stringify({ sourceLineIds: ids, targetLineId }),
           })
           const data = await res.json()
           if (!res.ok) throw new Error(data.error)
@@ -609,51 +625,99 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
               setAction(e.target.value as ActionType)
               resetTargets()
             }}>
-              <option value="move">{levelLabel} 이동</option>
+              {/* 이동: 상위 분류 변경 (대분류는 최상위라 이동 불가) */}
+              {level !== 'category' && <option value="move">{levelLabel} 이동</option>}
+              {/* 합치기: 같은 레벨 다른 항목으로 병합 + 원본 비활성화 (상품은 합치기 불가) */}
+              {level !== 'product' && <option value="merge">{levelLabel} 합치기</option>}
               {level === 'product' && <option value="price">가격 수정</option>}
               <option value="delete">삭제 (비활성화)</option>
               {level !== 'category' && <option value="activate">활성화</option>}
               {level !== 'category' && <option value="deactivate">비활성화</option>}
             </select>
 
-            {/* Move targets - cascading dropdowns */}
+            {/* Move targets: 상위 분류만 선택 */}
             {action === 'move' && (
               <>
                 <span style={{ fontSize: 12, color: '#888' }}>→</span>
 
-                {/* 대분류 target: always show for all levels */}
+                {/* 이동은 대분류부터 선택 (상위 분류 변경이므로) */}
                 <select style={selectStyle} value={targetCatId || ''} onChange={e => {
                   const v = Number(e.target.value) || null
                   setTargetCatId(v); setTargetBrandId(null); setTargetLineId(null)
                   setTargetBrands([]); setTargetLines([])
                   if (v) fetchTargetBrands(v)
                 }}>
-                  <option value="">{level === 'category' ? '대상 대분류' : '대분류'}</option>
-                  {categories.filter(c => level === 'category' ? !selectedIds.has(c.id) : true).map(c =>
+                  <option value="">대분류 선택</option>
+                  {categories.map(c =>
                     <option key={c.id} value={c.id}>{c.name}</option>
                   )}
                 </select>
 
-                {/* 브랜드 target: show for brand/productLine/product levels */}
-                {level !== 'category' && (
+                {/* 품목/상품 이동 시 브랜드 선택 */}
+                {(level === 'productLine' || level === 'product') && (
                   <select style={selectStyle} value={targetBrandId || ''} onChange={e => {
                     const v = Number(e.target.value) || null
                     setTargetBrandId(v); setTargetLineId(null); setTargetLines([])
                     if (v) fetchTargetLines(v)
                   }} disabled={!targetCatId}>
-                    <option value="">{level === 'brand' ? '대상 브랜드' : '브랜드'}</option>
+                    <option value="">브랜드 선택</option>
+                    {targetBrands.map(b =>
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    )}
+                  </select>
+                )}
+
+                {/* 상품 이동 시 품목 선택 (선택사항) */}
+                {level === 'product' && (
+                  <select style={selectStyle} value={targetLineId || ''} onChange={e => setTargetLineId(Number(e.target.value) || null)}
+                    disabled={!targetBrandId}>
+                    <option value="">품목 (선택)</option>
+                    {targetLines.map(l =>
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    )}
+                  </select>
+                )}
+              </>
+            )}
+
+            {/* Merge targets: 같은 레벨의 대상 항목 선택 */}
+            {action === 'merge' && (
+              <>
+                <span style={{ fontSize: 12, color: '#888' }}>→</span>
+
+                {/* 대분류 합치기: 대상 대분류 */}
+                <select style={selectStyle} value={targetCatId || ''} onChange={e => {
+                  const v = Number(e.target.value) || null
+                  setTargetCatId(v); setTargetBrandId(null); setTargetLineId(null)
+                  setTargetBrands([]); setTargetLines([])
+                  if (v && level !== 'category') fetchTargetBrands(v)
+                }}>
+                  <option value="">{level === 'category' ? '대상 대분류' : '대분류 선택'}</option>
+                  {categories.filter(c => level === 'category' ? !selectedIds.has(c.id) : true).map(c =>
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  )}
+                </select>
+
+                {/* 브랜드 합치기: 대상 브랜드 */}
+                {(level === 'brand' || level === 'productLine') && (
+                  <select style={selectStyle} value={targetBrandId || ''} onChange={e => {
+                    const v = Number(e.target.value) || null
+                    setTargetBrandId(v); setTargetLineId(null); setTargetLines([])
+                    if (v && level === 'productLine') fetchTargetLines(v)
+                  }} disabled={!targetCatId}>
+                    <option value="">{level === 'brand' ? '대상 브랜드' : '브랜드 선택'}</option>
                     {targetBrands.filter(b => level === 'brand' ? !selectedIds.has(b.id) : true).map(b =>
                       <option key={b.id} value={b.id}>{b.name}</option>
                     )}
                   </select>
                 )}
 
-                {/* 품목 target: show for productLine/product levels */}
-                {(level === 'productLine' || level === 'product') && (
+                {/* 품목 합치기: 대상 품목 */}
+                {level === 'productLine' && (
                   <select style={selectStyle} value={targetLineId || ''} onChange={e => setTargetLineId(Number(e.target.value) || null)}
                     disabled={!targetBrandId}>
-                    <option value="">{level === 'productLine' ? '대상 품목 (선택)' : '품목 (선택)'}</option>
-                    {targetLines.filter(l => level === 'productLine' ? !selectedIds.has(l.id) : true).map(l =>
+                    <option value="">대상 품목</option>
+                    {targetLines.filter(l => !selectedIds.has(l.id)).map(l =>
                       <option key={l.id} value={l.id}>{l.name}</option>
                     )}
                   </select>
@@ -689,10 +753,15 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
               onClick={() => {
                 let msg = ''
                 if (action === 'move') {
+                  const targetName = level === 'brand' ? categories.find(c => c.id === targetCatId)?.name
+                    : level === 'productLine' ? targetBrands.find(b => b.id === targetBrandId)?.name
+                    : targetLineId ? targetLines.find(l => l.id === targetLineId)?.name : targetBrands.find(b => b.id === targetBrandId)?.name
+                  msg = `선택한 ${selectedIds.size}개 ${levelLabel}을(를) ${targetName || '대상'}(으)로 이동하시겠습니까?`
+                } else if (action === 'merge') {
                   const targetName = level === 'category' ? categories.find(c => c.id === targetCatId)?.name
                     : level === 'brand' ? targetBrands.find(b => b.id === targetBrandId)?.name
-                    : targetLineId ? targetLines.find(l => l.id === targetLineId)?.name : targetBrands.find(b => b.id === targetBrandId)?.name
-                  msg = `선택한 ${selectedIds.size}개 ${levelLabel}을(를) ${targetName || '대상'}(으)로 이동하시겠습니까?\n(원본은 비활성화됩니다)`
+                    : targetLines.find(l => l.id === targetLineId)?.name
+                  msg = `선택한 ${selectedIds.size}개 ${levelLabel}을(를) ${targetName || '대상'}(으)로 합치시겠습니까?\n(원본은 비활성화됩니다)`
                 } else {
                   const actLabel = action === 'price' ? '가격 수정' : action === 'delete' ? '삭제' : action === 'activate' ? '활성화' : '비활성화'
                   msg = `선택한 ${selectedIds.size}개 ${levelLabel}을(를) ${actLabel}하시겠습니까?`
