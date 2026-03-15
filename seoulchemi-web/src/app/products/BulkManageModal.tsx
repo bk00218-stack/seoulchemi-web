@@ -75,7 +75,7 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
   const [filterBrandId, setFilterBrandId] = useState<number | null>(null)
   const [filterLineId, setFilterLineId] = useState<number | null>(null)
   const [searchText, setSearchText] = useState('')
-  const [showInactive, setShowInactive] = useState(false)
+  const [showInactive, setShowInactive] = useState(true)
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())

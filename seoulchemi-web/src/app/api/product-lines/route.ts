@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
           select: { id: true, name: true }
         },
         _count: {
-          select: { products: true }
+          select: { products: { where: { isActive: true } } }
         }
       },
       orderBy: { displayOrder: 'asc' }
