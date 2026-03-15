@@ -2052,6 +2052,29 @@ export default function ProductsPage() {
                         style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
                         title="브랜드 수정"
                       >✏️</span>
+                      <span
+                        className="hover-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if ((brand._count?.productLines || 0) > 0) {
+                            toast.error(`이 브랜드에 ${brand._count?.productLines}개의 품목이 있어 삭제할 수 없습니다.`)
+                            return
+                          }
+                          if (confirm(`'${brand.name}' 브랜드를 삭제하시겠습니까?`)) {
+                            fetch(`/api/brands/${brand.id}`, { method: 'DELETE' }).then(async r => {
+                              if (r.ok) {
+                                toast.success('브랜드가 삭제되었습니다.')
+                                if (selectedCategory) handleSelectCategory(selectedCategory)
+                              } else {
+                                const d = await r.json()
+                                toast.error(d.error || '삭제 실패')
+                              }
+                            })
+                          }
+                        }}
+                        style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
+                        title="브랜드 삭제"
+                      >🗑️</span>
                       <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
                         {brand._count?.productLines || 0}
                       </span>
