@@ -1904,26 +1904,90 @@ export default function ProductsPage() {
             {categories.map(cat => {
               const isActive = selectedCategory?.id === cat.id
               return (
-                <button
-                  key={cat.id}
-                  onClick={() => handleSelectCategory(cat)}
-                  style={{
-                    padding: '8px 12px',
-                    fontSize: 13,
-                    fontWeight: isActive ? 700 : 500,
-                    background: isActive ? 'var(--primary)' : '#fff',
-                    color: isActive ? '#fff' : 'var(--gray-700)',
-                    border: isActive ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {cat.name}
-                </button>
+                <div key={cat.id} style={{ display: 'flex', gap: 2, alignItems: 'stretch' }}>
+                  <button
+                    onClick={() => handleSelectCategory(cat)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      fontSize: 13,
+                      fontWeight: isActive ? 700 : 500,
+                      background: isActive ? 'var(--primary)' : '#fff',
+                      color: isActive ? '#fff' : 'var(--gray-700)',
+                      border: isActive ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
+                      borderRadius: '8px 0 0 8px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const newName = prompt('대분류명 수정', cat.name)
+                      if (newName && newName !== cat.name) {
+                        fetch(`/api/categories/${cat.id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ name: newName })
+                        }).then(async r => {
+                          if (r.ok) {
+                            toast.success('대분류명이 수정되었습니다.')
+                            const res = await fetch('/api/categories')
+                            const data = await res.json()
+                            setCategories(data.categories || [])
+                          } else {
+                            const d = await r.json()
+                            toast.error(d.error || '수정 실패')
+                          }
+                        })
+                      }
+                    }}
+                    style={{
+                      padding: '4px 6px',
+                      fontSize: 10,
+                      background: isActive ? 'var(--primary)' : '#fff',
+                      color: isActive ? 'rgba(255,255,255,0.7)' : 'var(--gray-400)',
+                      border: isActive ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
+                      borderLeft: 'none',
+                      borderRadius: '0 8px 8px 0',
+                      cursor: 'pointer',
+                    }}
+                    title="대분류 수정"
+                  >✏️</button>
+                </div>
               )
             })}
+            <button
+              onClick={() => {
+                const name = prompt('새 대분류명을 입력하세요')
+                if (name) {
+                  const code = name.toUpperCase().replace(/\s+/g, '_').slice(0, 20)
+                  fetch('/api/categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, code, displayOrder: categories.length + 1 })
+                  }).then(async r => {
+                    if (r.ok) {
+                      toast.success('대분류가 추가되었습니다.')
+                      const res = await fetch('/api/categories')
+                      const data = await res.json()
+                      setCategories(data.categories || [])
+                    } else {
+                      const d = await r.json()
+                      toast.error(d.error || '추가 실패')
+                    }
+                  })
+                }
+              }}
+              style={{
+                padding: '6px 12px', fontSize: 12, fontWeight: 500,
+                background: 'transparent', color: 'var(--primary)',
+                border: '1px dashed var(--gray-300)', borderRadius: 8,
+                cursor: 'pointer', width: '100%',
+              }}
+            >+ 대분류</button>
           </div>
           <div style={panelHeaderStyle}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--gray-800)' }}>
