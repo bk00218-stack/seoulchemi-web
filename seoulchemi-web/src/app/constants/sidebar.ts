@@ -102,7 +102,6 @@ export const STORES_SIDEBAR: SidebarMenu[] = [
       { label: '담당자 관리', href: '/stores/delivery-staff' },
       { label: '가맹점 거래내역', href: '/stores/transactions' },
       { label: '가맹점 공지사항', href: '/stores/notices' },
-      { label: '스토어 홈 설정', href: '/stores/home-settings' },
     ]
   },
   {
@@ -155,6 +154,12 @@ export const SETTINGS_SIDEBAR: SidebarMenu[] = [
       { label: '사용자 관리', href: '/settings/users' },
       { label: '프린터 설정', href: '/settings/printer' },
       { label: '착색 색상 관리', href: '/settings/tint-colors' },
+    ]
+  },
+  {
+    title: '스토어',
+    items: [
+      { label: '스토어 홈 설정', href: '/settings/store-home' },
     ]
   },
   {

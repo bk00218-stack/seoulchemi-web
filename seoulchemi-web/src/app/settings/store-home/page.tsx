@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useToast } from '@/contexts/ToastContext'
 import Layout from '../../components/Layout'
-import { STORES_SIDEBAR } from '../../constants/sidebar'
+import { SETTINGS_SIDEBAR } from '../../constants/sidebar'
 
 interface BannerItem {
   id: string
@@ -283,14 +283,14 @@ export default function StoreHomeSettingsPage() {
 
   if (loading) {
     return (
-      <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
+      <Layout sidebarMenus={SETTINGS_SIDEBAR} activeNav="설정">
         <div style={{ textAlign: 'center', padding: 60, color: '#86868b' }}>로딩 중...</div>
       </Layout>
     )
   }
 
   return (
-    <Layout sidebarMenus={STORES_SIDEBAR} activeNav="가맹점">
+    <Layout sidebarMenus={SETTINGS_SIDEBAR} activeNav="설정">
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
