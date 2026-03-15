@@ -1926,32 +1926,60 @@ export default function ProductsPage() {
                   }}
                 >
                   {cat.name}
-                  <span
-                    className="hover-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const newName = prompt('대분류명 수정', cat.name)
-                      if (newName && newName !== cat.name) {
-                        fetch(`/api/categories/${cat.id}`, {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ name: newName })
-                        }).then(async r => {
-                          if (r.ok) {
-                            toast.success('대분류명이 수정되었습니다.')
-                            const res = await fetch('/api/categories')
-                            const data = await res.json()
-                            setCategories(data.categories || [])
-                          } else {
-                            const d = await r.json()
-                            toast.error(d.error || '수정 실패')
-                          }
-                        })
-                      }
-                    }}
-                    style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
-                    title="대분류 수정"
-                  >✏️</span>
+                  <span style={{ display: 'flex', gap: 2 }}>
+                    <span
+                      className="hover-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const newName = prompt('대분류명 수정', cat.name)
+                        if (newName && newName !== cat.name) {
+                          fetch(`/api/categories/${cat.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: newName })
+                          }).then(async r => {
+                            if (r.ok) {
+                              toast.success('대분류명이 수정되었습니다.')
+                              const res = await fetch('/api/categories')
+                              const data = await res.json()
+                              setCategories(data.categories || [])
+                            } else {
+                              const d = await r.json()
+                              toast.error(d.error || '수정 실패')
+                            }
+                          })
+                        }
+                      }}
+                      style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
+                      title="대분류 수정"
+                    >✏️</span>
+                    <span
+                      className="hover-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if ((cat._count?.brands || 0) > 0) {
+                          toast.error(`이 대분류에 ${cat._count?.brands}개의 브랜드가 있어 삭제할 수 없습니다.`)
+                          return
+                        }
+                        if (confirm(`'${cat.name}' 대분류를 삭제하시겠습니까?`)) {
+                          fetch(`/api/categories/${cat.id}`, { method: 'DELETE' }).then(async r => {
+                            if (r.ok) {
+                              toast.success('대분류가 삭제되었습니다.')
+                              const res = await fetch('/api/categories')
+                              const data = await res.json()
+                              setCategories(data.categories || [])
+                              if (selectedCategory?.id === cat.id) setSelectedCategory(null)
+                            } else {
+                              const d = await r.json()
+                              toast.error(d.error || '삭제 실패')
+                            }
+                          })
+                        }
+                      }}
+                      style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
+                      title="대분류 삭제"
+                    >🗑️</span>
+                  </span>
                 </button>
               )
             })}
