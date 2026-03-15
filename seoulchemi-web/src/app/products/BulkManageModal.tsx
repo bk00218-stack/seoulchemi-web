@@ -55,7 +55,14 @@ const btnStyle = (variant: 'primary' | 'danger' | 'default' = 'default'): React.
   color: variant === 'default' ? '#333' : '#fff',
 })
 
-type Tab = 'merge' | 'lines' | 'move' | 'price' | 'action'
+type Tab = 'category' | 'merge' | 'lines' | 'move' | 'price' | 'action'
+
+interface CategoryItem {
+  id: number
+  name: string
+  isActive: boolean
+  _count?: { brands: number }
+}
 
 interface ProductLineItem {
   id: number
@@ -97,6 +104,12 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
   const [targetLineId, setTargetLineId] = useState<number | null>(null)
   const [linesAction, setLinesAction] = useState<string>('merge') // merge | delete
 
+  // Category state
+  const [categories, setCategories] = useState<CategoryItem[]>([])
+  const [sourceCatIds, setSourceCatIds] = useState<Set<number>>(new Set())
+  const [targetCatId, setTargetCatId] = useState<number | null>(null)
+  const [catAction, setCatAction] = useState<string>('merge') // merge | delete
+
   // Action state
   const [actionBrandIds, setActionBrandIds] = useState<Set<number>>(new Set())
   const [actionType, setActionType] = useState<string>('deactivate')
@@ -110,9 +123,17 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
     } catch { /* ignore */ }
   }, [categoryId])
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch('/api/categories')
+      const data = await res.json()
+      setCategories(data.categories || [])
+    } catch { /* ignore */ }
+  }, [])
+
   useEffect(() => {
-    if (isOpen) fetchBrands()
-  }, [isOpen, fetchBrands])
+    if (isOpen) { fetchBrands(); fetchCategories() }
+  }, [isOpen, fetchBrands, fetchCategories])
 
   // 브랜드 선택 시 상품 로드
   const loadProducts = async (brandId: number, setter: (p: Product[]) => void) => {
@@ -143,6 +164,32 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
   const handleSubmit = async () => {
     setLoading(true)
     try {
+      if (tab === 'category') {
+        if (sourceCatIds.size === 0) { toast.error('대분류를 선택해주세요'); return }
+        if (catAction === 'merge') {
+          if (!targetCatId) { toast.error('대상 대분류를 선택해주세요'); return }
+          const res = await fetch('/api/categories/merge', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sourceCategoryIds: [...sourceCatIds], targetCategoryId: targetCatId }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.error)
+          toast.success(data.message)
+        } else {
+          // delete each category
+          let deleted = 0
+          for (const catId of sourceCatIds) {
+            const res = await fetch(`/api/categories/${catId}`, { method: 'DELETE' })
+            if (res.ok) deleted++
+            else {
+              const d = await res.json()
+              toast.error(d.error || `대분류 삭제 실패 (ID: ${catId})`)
+            }
+          }
+          if (deleted > 0) toast.success(`${deleted}개 대분류 삭제 완료`)
+        }
+      }
+
       if (tab === 'merge') {
         if (sourceBrandIds.size === 0 || !targetBrandId) { toast.error('원본/대상 브랜드를 선택해주세요'); return }
         const res = await fetch('/api/brands/merge', {
@@ -241,6 +288,7 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
 
         {/* Tabs */}
         <div style={{ display: 'flex', borderBottom: '1px solid #eee', background: '#f5f5f5' }}>
+          <button style={tabBtnStyle(tab === 'category')} onClick={() => setTab('category')}>대분류 관리</button>
           <button style={tabBtnStyle(tab === 'merge')} onClick={() => setTab('merge')}>브랜드 통합</button>
           <button style={tabBtnStyle(tab === 'lines')} onClick={() => setTab('lines')}>품목 관리</button>
           <button style={tabBtnStyle(tab === 'move')} onClick={() => setTab('move')}>상품 이동</button>
@@ -250,6 +298,76 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
 
         {/* Body */}
         <div style={{ padding: 24, flex: 1, overflowY: 'auto', minHeight: 400 }}>
+
+          {/* ===== 대분류 관리 ===== */}
+          {tab === 'category' && (
+            <div>
+              <p style={{ color: '#666', marginTop: 0, fontSize: 13 }}>대분류를 통합(브랜드 이동)하거나 삭제할 수 있습니다.</p>
+              <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 500, display: 'block', marginBottom: 6 }}>작업</label>
+                  <select style={selectStyle} value={catAction} onChange={e => { setCatAction(e.target.value); setTargetCatId(null) }}>
+                    <option value="merge">대분류 통합</option>
+                    <option value="delete">대분류 삭제</option>
+                  </select>
+                </div>
+                {catAction === 'merge' && (
+                  <div>
+                    <label style={{ fontSize: 13, fontWeight: 500, display: 'block', marginBottom: 6 }}>대상 (합쳐질 대분류)</label>
+                    <select style={selectStyle} value={targetCatId || ''} onChange={e => setTargetCatId(Number(e.target.value) || null)}>
+                      <option value="">선택</option>
+                      {categories.filter(c => !sourceCatIds.has(c.id)).map(c => <option key={c.id} value={c.id}>{c.name} ({c._count?.brands || 0}개 브랜드)</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <label style={{ fontSize: 13, fontWeight: 500, display: 'block', marginBottom: 6 }}>
+                {catAction === 'merge' ? '원본 (합칠 대분류 선택)' : '삭제할 대분류 선택'}
+              </label>
+              <div style={{ border: '1px solid #eee', borderRadius: 8, maxHeight: 280, overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
+                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>
+                        <input type="checkbox"
+                          checked={sourceCatIds.size === categories.filter(c => c.id !== targetCatId).length && categories.filter(c => c.id !== targetCatId).length > 0}
+                          onChange={e => setSourceCatIds(e.target.checked ? new Set(categories.filter(c => c.id !== targetCatId).map(c => c.id)) : new Set())}
+                        />
+                      </th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>대분류명</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>브랜드 수</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories.filter(c => c.id !== targetCatId).map(c => (
+                      <tr key={c.id} style={{ borderTop: '1px solid #f0f0f0', background: sourceCatIds.has(c.id) ? '#f0f7f0' : 'transparent' }}>
+                        <td style={{ padding: '6px 12px' }}>
+                          <input type="checkbox" checked={sourceCatIds.has(c.id)}
+                            onChange={e => { const s = new Set(sourceCatIds); e.target.checked ? s.add(c.id) : s.delete(c.id); setSourceCatIds(s) }} />
+                        </td>
+                        <td style={{ padding: '6px 12px' }}>{c.name}</td>
+                        <td style={{ padding: '6px 12px', textAlign: 'right' }}>{c._count?.brands || 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {sourceCatIds.size > 0 && (
+                <div style={{ marginTop: 8, fontSize: 13, color: catAction === 'delete' ? '#dc3545' : '#2d5a2d' }}>
+                  {sourceCatIds.size}개 대분류 선택됨
+                  {catAction === 'merge' && targetCatId && (() => {
+                    const target = categories.find(c => c.id === targetCatId)
+                    const totalBrands = categories.filter(c => sourceCatIds.has(c.id)).reduce((sum, c) => sum + (c._count?.brands || 0), 0)
+                    return target ? ` → ${target.name}으로 브랜드 ${totalBrands}개 이동` : ''
+                  })()}
+                  {catAction === 'delete' && (() => {
+                    const hasContent = categories.filter(c => sourceCatIds.has(c.id)).some(c => (c._count?.brands || 0) > 0)
+                    return hasContent ? ' (브랜드가 있는 대분류는 삭제 불가)' : ''
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ===== 브랜드 통합 ===== */}
           {tab === 'merge' && (
@@ -601,9 +719,10 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
         <div style={{ padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button style={btnStyle('default')} onClick={onClose}>닫기</button>
           <button
-            style={btnStyle((tab === 'action' && actionType === 'delete') || (tab === 'lines' && linesAction === 'delete') ? 'danger' : 'primary')}
+            style={btnStyle((tab === 'action' && actionType === 'delete') || (tab === 'lines' && linesAction === 'delete') || (tab === 'category' && catAction === 'delete') ? 'danger' : 'primary')}
             onClick={() => {
-              const msg = tab === 'merge' ? `${sourceBrandIds.size}개 브랜드를 통합하시겠습니까?` :
+              const msg = tab === 'category' ? (catAction === 'merge' ? `${sourceCatIds.size}개 대분류를 통합하시겠습니까?` : `${sourceCatIds.size}개 대분류를 삭제하시겠습니까?`) :
+                tab === 'merge' ? `${sourceBrandIds.size}개 브랜드를 통합하시겠습니까?` :
                 tab === 'lines' ? (linesAction === 'merge' ? `${sourceLineIds.size}개 품목을 통합하시겠습니까?` : `${sourceLineIds.size}개 품목을 삭제하시겠습니까?`) :
                 tab === 'move' ? '상품을 이동하시겠습니까?' :
                 tab === 'price' ? '가격을 수정하시겠습니까?' :
