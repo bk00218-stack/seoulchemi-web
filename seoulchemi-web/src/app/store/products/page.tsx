@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import NoticePopup from '../components/NoticePopup'
 import NoticeBanner from '../components/NoticeBanner'
 import DiopterSelectModal from '../components/DiopterSelectModal'
@@ -29,9 +30,12 @@ interface Product {
 
 const PAGE_SIZE = 30
 
-export default function StoreProductsPage() {
+function StoreProductsContent() {
   const { items: cart, addItem, addItemWithDiopter, totalCount, totalPrice } = useCart()
   const isMobile = useIsMobile()
+  const searchParams = useSearchParams()
+  const categoryId = searchParams.get('categoryId')
+  const [categoryName, setCategoryName] = useState<string | null>(null)
   const [brands, setBrands] = useState<Brand[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [selectedBrand, setSelectedBrand] = useState<number | null>(null)
@@ -39,14 +43,26 @@ export default function StoreProductsPage() {
   const [loading, setLoading] = useState(true)
   const [addedProduct, setAddedProduct] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  
+
   // 도수 선택 모달
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showDiopterModal, setShowDiopterModal] = useState(false)
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [categoryId])
+
+  // 카테고리 이름 로드
+  useEffect(() => {
+    if (categoryId) {
+      fetch('/api/categories').then(r => r.json()).then(data => {
+        const cat = (data.categories || []).find((c: any) => c.id === Number(categoryId))
+        setCategoryName(cat?.name || null)
+      }).catch(() => {})
+    } else {
+      setCategoryName(null)
+    }
+  }, [categoryId])
 
   // 필터 변경 시 페이지 리셋
   useEffect(() => {
@@ -54,15 +70,17 @@ export default function StoreProductsPage() {
   }, [selectedBrand, searchTerm])
 
   const fetchData = async () => {
+    setLoading(true)
     try {
-      const res = await fetch('/api/products')
+      const params = categoryId ? `?categoryId=${categoryId}` : ''
+      const res = await fetch(`/api/products${params}`)
       const data = await res.json()
       setProducts(data.products || [])
       setBrands(data.brands?.map((b: { id: number; name: string }) => ({
         id: b.id,
         name: b.name,
         productCount: (data.products || []).filter((p: Product) => p.brandId === b.id).length
-      })) || [])
+      })).filter((b: Brand) => b.productCount > 0) || [])
     } catch (e) {
       console.error('Failed to fetch data:', e)
     } finally {
@@ -146,9 +164,19 @@ export default function StoreProductsPage() {
       <div style={{ marginBottom: isMobile ? 16 : 24 }}>
         <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
           상품 주문
+          {categoryName && (
+            <span style={{ fontSize: isMobile ? 16 : 20, fontWeight: 500, color: '#007aff', marginLeft: 8 }}>
+              · {categoryName}
+            </span>
+          )}
         </h1>
-        <p style={{ fontSize: 14, color: '#86868b', marginTop: 8 }}>
+        <p style={{ fontSize: 14, color: '#86868b', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
           원하시는 렌즈를 선택하여 주문하세요
+          {categoryId && (
+            <Link href="/store/products" style={{ fontSize: 13, color: '#007aff', textDecoration: 'none' }}>
+              ← 전체 보기
+            </Link>
+          )}
         </p>
       </div>
 
@@ -432,5 +460,13 @@ export default function StoreProductsPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function StoreProductsPage() {
+  return (
+    <Suspense fallback={<div style={{ textAlign: 'center', padding: 40, color: '#86868b' }}>로딩 중...</div>}>
+      <StoreProductsContent />
+    </Suspense>
   )
 }

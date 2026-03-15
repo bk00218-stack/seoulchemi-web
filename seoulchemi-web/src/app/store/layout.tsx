@@ -31,6 +31,7 @@ function StoreHeader() {
   }, [pathname])
 
   const navItems = [
+    { label: '홈', href: '/store', icon: '🏠' },
     { label: '상품주문', href: '/store/products', icon: '🛒' },
     { label: '주문내역', href: '/store/orders', icon: '📋' },
     { label: '잔액조회', href: '/store/account', icon: '💰' },
@@ -54,7 +55,7 @@ function StoreHeader() {
         height: 60,
       }}>
         {/* Logo */}
-        <Link href="/store/products" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Link href="/store" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{
             width: 32, height: 32, borderRadius: '50%',
             background: 'linear-gradient(135deg, #007aff, #00c7be)',
@@ -76,8 +77,8 @@ function StoreHeader() {
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '8px 16px', borderRadius: 20,
                   fontSize: 14, fontWeight: 500, textDecoration: 'none',
-                  background: pathname.startsWith(item.href) ? '#007aff' : 'transparent',
-                  color: pathname.startsWith(item.href) ? 'white' : '#1d1d1f',
+                  background: (item.href === '/store' ? pathname === '/store' : pathname.startsWith(item.href)) ? '#007aff' : 'transparent',
+                  color: (item.href === '/store' ? pathname === '/store' : pathname.startsWith(item.href)) ? 'white' : '#1d1d1f',
                   transition: 'all 0.2s',
                 }}
               >
@@ -160,8 +161,8 @@ function StoreHeader() {
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '12px 16px', borderRadius: 10,
                 fontSize: 15, fontWeight: 500, textDecoration: 'none',
-                background: pathname.startsWith(item.href) ? '#007aff' : 'transparent',
-                color: pathname.startsWith(item.href) ? 'white' : '#1d1d1f',
+                background: (item.href === '/store' ? pathname === '/store' : pathname.startsWith(item.href)) ? '#007aff' : 'transparent',
+                color: (item.href === '/store' ? pathname === '/store' : pathname.startsWith(item.href)) ? 'white' : '#1d1d1f',
                 marginBottom: 4,
               }}
             >
