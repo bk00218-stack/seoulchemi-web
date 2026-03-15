@@ -262,27 +262,52 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
     try {
       const ids = [...selectedIds]
 
-      // === MOVE ===
+      // === MOVE (통합 이동: 내용물 이동 + 원본 비활성화) ===
       if (action === 'move') {
-        if (level === 'brand') {
-          if (!targetCatId) { toast.error('이동할 대분류를 선택해주세요'); return }
-          const res = await fetch('/api/brands/bulk-move', {
+        if (level === 'category') {
+          // 대분류 통합: 선택한 대분류의 브랜드를 대상 대분류로 이동
+          if (!targetCatId) { toast.error('대상 대분류를 선택해주세요'); return }
+          const res = await fetch('/api/categories/merge', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ brandIds: ids, targetCategoryId: targetCatId }),
+            body: JSON.stringify({ sourceCategoryIds: ids, targetCategoryId: targetCatId }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.error)
+          toast.success(data.message)
+
+        } else if (level === 'brand') {
+          // 브랜드 통합: 선택한 브랜드 → 대상 브랜드로 품목/상품 이동, 원본 비활성화
+          if (!targetBrandId) { toast.error('대상 브랜드를 선택해주세요'); return }
+          const res = await fetch('/api/brands/merge', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sourceBrandIds: ids, targetBrandId }),
           })
           const data = await res.json()
           if (!res.ok) throw new Error(data.error)
           toast.success(data.message)
 
         } else if (level === 'productLine') {
-          if (!targetBrandId) { toast.error('이동할 브랜드를 선택해주세요'); return }
-          const res = await fetch('/api/product-lines/bulk-move', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productLineIds: ids, targetBrandId }),
-          })
-          const data = await res.json()
-          if (!res.ok) throw new Error(data.error)
-          toast.success(data.message)
+          if (targetLineId) {
+            // 품목 통합: 선택한 품목 → 대상 품목으로 상품 이동, 원본 비활성화
+            const res = await fetch('/api/product-lines/merge', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sourceLineIds: ids, targetLineId }),
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error)
+            toast.success(data.message)
+          } else if (targetBrandId) {
+            // 품목 이동: 선택한 품목을 다른 브랜드로 이동 (품목 자체 이동)
+            const res = await fetch('/api/product-lines/bulk-move', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productLineIds: ids, targetBrandId }),
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error)
+            toast.success(data.message)
+          } else {
+            toast.error('대상 브랜드 또는 품목을 선택해주세요'); return
+          }
 
         } else if (level === 'product') {
           if (!targetBrandId && !targetLineId) { toast.error('이동 대상을 선택해주세요'); return }
@@ -584,68 +609,55 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
               setAction(e.target.value as ActionType)
               resetTargets()
             }}>
-              {level !== 'category' && <option value="move">{levelLabel} 이동</option>}
+              <option value="move">{levelLabel} 이동</option>
               {level === 'product' && <option value="price">가격 수정</option>}
               <option value="delete">삭제 (비활성화)</option>
               {level !== 'category' && <option value="activate">활성화</option>}
               {level !== 'category' && <option value="deactivate">비활성화</option>}
             </select>
 
-            {/* Move targets per level */}
-            {action === 'move' && level === 'brand' && (
+            {/* Move targets - cascading dropdowns */}
+            {action === 'move' && (
               <>
                 <span style={{ fontSize: 12, color: '#888' }}>→</span>
-                <select style={selectStyle} value={targetCatId || ''} onChange={e => setTargetCatId(Number(e.target.value) || null)}>
-                  <option value="">대상 대분류</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </>
-            )}
 
-            {action === 'move' && level === 'productLine' && (
-              <>
-                <span style={{ fontSize: 12, color: '#888' }}>→</span>
-                <select style={selectStyle} value={targetCatId || ''} onChange={e => {
-                  const v = Number(e.target.value) || null
-                  setTargetCatId(v); setTargetBrandId(null); setTargetBrands([])
-                  if (v) fetchTargetBrands(v)
-                }}>
-                  <option value="">대분류</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-                <select style={selectStyle} value={targetBrandId || ''} onChange={e => setTargetBrandId(Number(e.target.value) || null)}
-                  disabled={!targetCatId}>
-                  <option value="">대상 브랜드</option>
-                  {targetBrands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
-              </>
-            )}
-
-            {action === 'move' && level === 'product' && (
-              <>
-                <span style={{ fontSize: 12, color: '#888' }}>→</span>
+                {/* 대분류 target: always show for all levels */}
                 <select style={selectStyle} value={targetCatId || ''} onChange={e => {
                   const v = Number(e.target.value) || null
                   setTargetCatId(v); setTargetBrandId(null); setTargetLineId(null)
                   setTargetBrands([]); setTargetLines([])
                   if (v) fetchTargetBrands(v)
                 }}>
-                  <option value="">대분류</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <option value="">{level === 'category' ? '대상 대분류' : '대분류'}</option>
+                  {categories.filter(c => level === 'category' ? !selectedIds.has(c.id) : true).map(c =>
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  )}
                 </select>
-                <select style={selectStyle} value={targetBrandId || ''} onChange={e => {
-                  const v = Number(e.target.value) || null
-                  setTargetBrandId(v); setTargetLineId(null); setTargetLines([])
-                  if (v) fetchTargetLines(v)
-                }} disabled={!targetCatId}>
-                  <option value="">브랜드</option>
-                  {targetBrands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
-                <select style={selectStyle} value={targetLineId || ''} onChange={e => setTargetLineId(Number(e.target.value) || null)}
-                  disabled={!targetBrandId}>
-                  <option value="">품목 (선택)</option>
-                  {targetLines.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                </select>
+
+                {/* 브랜드 target: show for brand/productLine/product levels */}
+                {level !== 'category' && (
+                  <select style={selectStyle} value={targetBrandId || ''} onChange={e => {
+                    const v = Number(e.target.value) || null
+                    setTargetBrandId(v); setTargetLineId(null); setTargetLines([])
+                    if (v) fetchTargetLines(v)
+                  }} disabled={!targetCatId}>
+                    <option value="">{level === 'brand' ? '대상 브랜드' : '브랜드'}</option>
+                    {targetBrands.filter(b => level === 'brand' ? !selectedIds.has(b.id) : true).map(b =>
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    )}
+                  </select>
+                )}
+
+                {/* 품목 target: show for productLine/product levels */}
+                {(level === 'productLine' || level === 'product') && (
+                  <select style={selectStyle} value={targetLineId || ''} onChange={e => setTargetLineId(Number(e.target.value) || null)}
+                    disabled={!targetBrandId}>
+                    <option value="">{level === 'productLine' ? '대상 품목 (선택)' : '품목 (선택)'}</option>
+                    {targetLines.filter(l => level === 'productLine' ? !selectedIds.has(l.id) : true).map(l =>
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    )}
+                  </select>
+                )}
               </>
             )}
 
@@ -675,8 +687,17 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
               style={btnStyle(action === 'delete' ? 'danger' : action === 'deactivate' ? 'warn' : 'primary')}
               disabled={loading || selectedIds.size === 0}
               onClick={() => {
-                const actLabel = action === 'move' ? '이동' : action === 'price' ? '가격 수정' : action === 'delete' ? '삭제' : action === 'activate' ? '활성화' : '비활성화'
-                if (confirm(`선택한 ${selectedIds.size}개 ${levelLabel}을(를) ${actLabel}하시겠습니까?`)) handleExecute()
+                let msg = ''
+                if (action === 'move') {
+                  const targetName = level === 'category' ? categories.find(c => c.id === targetCatId)?.name
+                    : level === 'brand' ? targetBrands.find(b => b.id === targetBrandId)?.name
+                    : targetLineId ? targetLines.find(l => l.id === targetLineId)?.name : targetBrands.find(b => b.id === targetBrandId)?.name
+                  msg = `선택한 ${selectedIds.size}개 ${levelLabel}을(를) ${targetName || '대상'}(으)로 이동하시겠습니까?\n(원본은 비활성화됩니다)`
+                } else {
+                  const actLabel = action === 'price' ? '가격 수정' : action === 'delete' ? '삭제' : action === 'activate' ? '활성화' : '비활성화'
+                  msg = `선택한 ${selectedIds.size}개 ${levelLabel}을(를) ${actLabel}하시겠습니까?`
+                }
+                if (confirm(msg)) handleExecute()
               }}
             >
               {loading ? '처리중...' : `실행 (${selectedIds.size})`}
