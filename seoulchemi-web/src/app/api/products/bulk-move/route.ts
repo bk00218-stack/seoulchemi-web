@@ -27,8 +27,17 @@ export async function POST(request: Request) {
 
     const result = await prisma.$transaction(async (tx) => {
       const data: Record<string, number | null> = {}
-      if (targetBrandId) data.brandId = targetBrandId
-      if (targetProductLineId !== undefined) data.productLineId = targetProductLineId
+      if (targetBrandId) {
+        data.brandId = targetBrandId
+        // 브랜드 변경 시 품목도 설정 (미지정이면 null로 초기화)
+        data.productLineId = targetProductLineId || null
+      } else if (targetProductLineId) {
+        // 품목만 변경
+        data.productLineId = targetProductLineId
+        // 품목의 브랜드로 자동 맞춤
+        const line = await tx.productLine.findUnique({ where: { id: targetProductLineId }, select: { brandId: true } })
+        if (line) data.brandId = line.brandId
+      }
 
       const updated = await tx.product.updateMany({
         where: { id: { in: productIds } },
