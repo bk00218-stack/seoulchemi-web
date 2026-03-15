@@ -1904,27 +1904,32 @@ export default function ProductsPage() {
             {categories.map(cat => {
               const isActive = selectedCategory?.id === cat.id
               return (
-                <div key={cat.id} style={{ display: 'flex', gap: 2, alignItems: 'stretch' }}>
-                  <button
-                    onClick={() => handleSelectCategory(cat)}
-                    style={{
-                      flex: 1,
-                      padding: '8px 12px',
-                      fontSize: 13,
-                      fontWeight: isActive ? 700 : 500,
-                      background: isActive ? 'var(--primary)' : '#fff',
-                      color: isActive ? '#fff' : 'var(--gray-700)',
-                      border: isActive ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
-                      borderRadius: '8px 0 0 8px',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {cat.name}
-                  </button>
-                  <button
-                    onClick={() => {
+                <button
+                  key={cat.id}
+                  className="hover-actions"
+                  onClick={() => handleSelectCategory(cat)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    fontSize: 13,
+                    fontWeight: isActive ? 700 : 500,
+                    background: isActive ? 'var(--primary)' : '#fff',
+                    color: isActive ? '#fff' : 'var(--gray-700)',
+                    border: isActive ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.15s',
+                    width: '100%',
+                  }}
+                >
+                  {cat.name}
+                  <span
+                    className="hover-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
                       const newName = prompt('대분류명 수정', cat.name)
                       if (newName && newName !== cat.name) {
                         fetch(`/api/categories/${cat.id}`, {
@@ -1944,19 +1949,10 @@ export default function ProductsPage() {
                         })
                       }
                     }}
-                    style={{
-                      padding: '4px 6px',
-                      fontSize: 10,
-                      background: isActive ? 'var(--primary)' : '#fff',
-                      color: isActive ? 'rgba(255,255,255,0.7)' : 'var(--gray-400)',
-                      border: isActive ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
-                      borderLeft: 'none',
-                      borderRadius: '0 8px 8px 0',
-                      cursor: 'pointer',
-                    }}
+                    style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
                     title="대분류 수정"
-                  >✏️</button>
-                </div>
+                  >✏️</span>
+                </button>
               )
             })}
             <button
@@ -2010,6 +2006,7 @@ export default function ProductsPage() {
               filteredBrands.map(brand => (
                 <div
                   key={brand.id}
+                  className="hover-actions"
                   onClick={() => handleSelectBrand(brand)}
                   style={{
                     ...listItemStyle(selectedBrand?.id === brand.id),
@@ -2021,11 +2018,12 @@ export default function ProductsPage() {
                       {brand.name}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                      <button
+                      <span
+                        className="hover-btn"
                         onClick={(e) => { e.stopPropagation(); setEditingBrand(brand); setShowBrandModal(true) }}
-                        style={{ background: 'none', border: 'none', fontSize: 11, cursor: 'pointer', padding: '2px 4px', color: 'var(--gray-400)', borderRadius: 3 }}
+                        style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
                         title="브랜드 수정"
-                      >✏️</button>
+                      >✏️</span>
                       <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
                         {brand._count?.productLines || 0}
                       </span>
@@ -2066,6 +2064,7 @@ export default function ProductsPage() {
               productLines.map(line => (
                 <div
                   key={line.id}
+                  className="hover-actions"
                   onClick={() => handleSelectProductLine(line)}
                   style={{
                     ...listItemStyle(selectedProductLine?.id === line.id),
@@ -2077,7 +2076,8 @@ export default function ProductsPage() {
                       {line.name}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                      <button
+                      <span
+                        className="hover-btn"
                         onClick={(e) => {
                           e.stopPropagation()
                           const newName = prompt('품목명 수정', line.name)
@@ -2096,10 +2096,11 @@ export default function ProductsPage() {
                             })
                           }
                         }}
-                        style={{ background: 'none', border: 'none', fontSize: 11, cursor: 'pointer', padding: '2px 4px', color: 'var(--gray-400)', borderRadius: 3 }}
+                        style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
                         title="품목 수정"
-                      >✏️</button>
-                      <button
+                      >✏️</span>
+                      <span
+                        className="hover-btn"
                         onClick={(e) => {
                           e.stopPropagation()
                           if ((line._count?.products || 0) > 0) {
@@ -2117,9 +2118,9 @@ export default function ProductsPage() {
                             })
                           }
                         }}
-                        style={{ background: 'none', border: 'none', fontSize: 11, cursor: 'pointer', padding: '2px 4px', color: 'var(--gray-400)', borderRadius: 3 }}
+                        style={{ fontSize: 11, cursor: 'pointer', padding: '2px 4px' }}
                         title="품목 삭제"
-                      >🗑️</button>
+                      >🗑️</span>
                       <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
                         {line._count?.products || 0}
                       </span>

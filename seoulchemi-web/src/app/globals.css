@@ -4,6 +4,10 @@
   padding: 0;
 }
 
+/* Hover actions - 마우스 올리면 수정/삭제 아이콘 표시 */
+.hover-actions .hover-btn { opacity: 0; transition: opacity 0.15s; }
+.hover-actions:hover .hover-btn { opacity: 1; }
+
 /* Toast animation */
 @keyframes toastSlideIn {
   from { transform: translateX(100%); opacity: 0; }
