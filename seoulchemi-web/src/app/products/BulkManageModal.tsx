@@ -63,7 +63,7 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
   const [loading, setLoading] = useState(false)
 
   // Merge state
-  const [sourceBrandId, setSourceBrandId] = useState<number | null>(null)
+  const [sourceBrandIds, setSourceBrandIds] = useState<Set<number>>(new Set())
   const [targetBrandId, setTargetBrandId] = useState<number | null>(null)
 
   // Move state
@@ -120,10 +120,10 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
     setLoading(true)
     try {
       if (tab === 'merge') {
-        if (!sourceBrandId || !targetBrandId) { toast.error('브랜드를 선택해주세요'); return }
+        if (sourceBrandIds.size === 0 || !targetBrandId) { toast.error('원본/대상 브랜드를 선택해주세요'); return }
         const res = await fetch('/api/brands/merge', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sourceBrandId, targetBrandId }),
+          body: JSON.stringify({ sourceBrandIds: [...sourceBrandIds], targetBrandId }),
         })
         const data = await res.json()
         if (!res.ok) throw new Error(data.error)
@@ -181,7 +181,7 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
 
   if (!isOpen) return null
 
-  const sourceBrand = brands.find(b => b.id === sourceBrandId)
+  const selectedSourceBrands = brands.filter(b => sourceBrandIds.has(b.id))
   const targetBrand = brands.find(b => b.id === targetBrandId)
 
   return (
@@ -206,32 +206,62 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
           {/* ===== 브랜드 통합 ===== */}
           {tab === 'merge' && (
             <div>
-              <p style={{ color: '#666', marginTop: 0, fontSize: 13 }}>원본 브랜드의 모든 품목·상품을 대상 브랜드로 이동하고, 원본을 비활성화합니다.</p>
-              <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: 13, fontWeight: 500, display: 'block', marginBottom: 6 }}>원본 (합칠 브랜드)</label>
-                  <select style={selectStyle} value={sourceBrandId || ''} onChange={e => setSourceBrandId(Number(e.target.value) || null)}>
-                    <option value="">선택</option>
-                    {brands.map(b => <option key={b.id} value={b.id}>{b.name} ({b._count?.products || 0}개)</option>)}
-                  </select>
-                </div>
-                <span style={{ fontSize: 20, marginTop: 20 }}>→</span>
+              <p style={{ color: '#666', marginTop: 0, fontSize: 13 }}>원본 브랜드(여러 개 선택 가능)의 모든 품목·상품을 대상 브랜드로 이동하고, 원본을 비활성화합니다.</p>
+              <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ fontSize: 13, fontWeight: 500, display: 'block', marginBottom: 6 }}>대상 (합쳐질 브랜드)</label>
                   <select style={selectStyle} value={targetBrandId || ''} onChange={e => setTargetBrandId(Number(e.target.value) || null)}>
                     <option value="">선택</option>
-                    {brands.filter(b => b.id !== sourceBrandId).map(b => <option key={b.id} value={b.id}>{b.name} ({b._count?.products || 0}개)</option>)}
+                    {brands.filter(b => !sourceBrandIds.has(b.id)).map(b => <option key={b.id} value={b.id}>{b.name} ({b._count?.products || 0}개)</option>)}
                   </select>
                 </div>
               </div>
-              {sourceBrand && targetBrand && (
-                <div style={{ background: '#f8f9fa', borderRadius: 8, padding: 16, fontSize: 14 }}>
+              <label style={{ fontSize: 13, fontWeight: 500, display: 'block', marginBottom: 6 }}>원본 (합칠 브랜드 선택)</label>
+              <div style={{ border: '1px solid #eee', borderRadius: 8, maxHeight: 250, overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
+                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>
+                        <input type="checkbox"
+                          checked={sourceBrandIds.size === brands.filter(b => b.id !== targetBrandId).length && brands.filter(b => b.id !== targetBrandId).length > 0}
+                          onChange={e => setSourceBrandIds(e.target.checked ? new Set(brands.filter(b => b.id !== targetBrandId).map(b => b.id)) : new Set())}
+                        />
+                      </th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>브랜드명</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>품목 수</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>상품 수</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {brands.filter(b => b.id !== targetBrandId).map(b => (
+                      <tr key={b.id} style={{ borderTop: '1px solid #f0f0f0', background: sourceBrandIds.has(b.id) ? '#f0f7f0' : 'transparent' }}>
+                        <td style={{ padding: '6px 12px' }}>
+                          <input type="checkbox" checked={sourceBrandIds.has(b.id)}
+                            onChange={e => { const s = new Set(sourceBrandIds); e.target.checked ? s.add(b.id) : s.delete(b.id); setSourceBrandIds(s) }} />
+                        </td>
+                        <td style={{ padding: '6px 12px' }}>{b.name}</td>
+                        <td style={{ padding: '6px 12px', textAlign: 'right' }}>{b._count?.productLines || 0}</td>
+                        <td style={{ padding: '6px 12px', textAlign: 'right' }}>{b._count?.products || 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {sourceBrandIds.size > 0 && (
+                <div style={{ marginTop: 8, fontSize: 13, color: '#2d5a2d' }}>{sourceBrandIds.size}개 브랜드 선택됨</div>
+              )}
+              {selectedSourceBrands.length > 0 && targetBrand && (
+                <div style={{ background: '#f8f9fa', borderRadius: 8, padding: 16, fontSize: 14, marginTop: 12 }}>
                   <strong>미리보기:</strong>
                   <div style={{ marginTop: 8 }}>
-                    • {sourceBrand.name}의 품목 {sourceBrand._count?.productLines || 0}개, 상품 {sourceBrand._count?.products || 0}개가
-                    <strong> {targetBrand.name}</strong>으로 이동됩니다.
+                    • {selectedSourceBrands.map(b => b.name).join(', ')} →
+                    <strong> {targetBrand.name}</strong>으로 통합
                   </div>
-                  <div>• {sourceBrand.name} 브랜드는 비활성화됩니다.</div>
+                  <div>
+                    • 총 품목 {selectedSourceBrands.reduce((sum, b) => sum + (b._count?.productLines || 0), 0)}개,
+                    상품 {selectedSourceBrands.reduce((sum, b) => sum + (b._count?.products || 0), 0)}개 이동
+                  </div>
+                  <div>• 원본 {selectedSourceBrands.length}개 브랜드는 비활성화됩니다.</div>
                 </div>
               )}
             </div>
@@ -446,7 +476,7 @@ export default function BulkManageModal({ isOpen, onClose, onComplete, toast, ca
           <button
             style={btnStyle(tab === 'action' && actionType === 'delete' ? 'danger' : 'primary')}
             onClick={() => {
-              const msg = tab === 'merge' ? '브랜드를 통합하시겠습니까?' :
+              const msg = tab === 'merge' ? `${sourceBrandIds.size}개 브랜드를 통합하시겠습니까?` :
                 tab === 'move' ? '상품을 이동하시겠습니까?' :
                 tab === 'price' ? '가격을 수정하시겠습니까?' :
                 `선택한 브랜드를 ${actionType === 'delete' ? '삭제' : actionType === 'activate' ? '활성화' : '비활성화'}하시겠습니까?`
