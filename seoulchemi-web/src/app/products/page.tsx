@@ -1953,12 +1953,19 @@ export default function ProductsPage() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: selectedBrand?.id === brand.id ? 600 : 400, fontSize: 13 }}>
+                    <span style={{ fontWeight: selectedBrand?.id === brand.id ? 600 : 400, fontSize: 13, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {brand.name}
                     </span>
-                    <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
-                      {brand._count?.productLines || 0}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditingBrand(brand); setShowBrandModal(true) }}
+                        style={{ background: 'none', border: 'none', fontSize: 11, cursor: 'pointer', padding: '2px 4px', color: 'var(--gray-400)', borderRadius: 3 }}
+                        title="브랜드 수정"
+                      >✏️</button>
+                      <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
+                        {brand._count?.productLines || 0}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))
@@ -2002,12 +2009,57 @@ export default function ProductsPage() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: selectedProductLine?.id === line.id ? 600 : 400, fontSize: 13 }}>
+                    <span style={{ fontWeight: selectedProductLine?.id === line.id ? 600 : 400, fontSize: 13, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {line.name}
                     </span>
-                    <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
-                      {line._count?.products || 0}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const newName = prompt('품목명 수정', line.name)
+                          if (newName && newName !== line.name) {
+                            fetch(`/api/product-lines/${line.id}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ name: newName })
+                            }).then(r => {
+                              if (r.ok) {
+                                toast.success('품목명이 수정되었습니다.')
+                                if (selectedBrand) handleSelectBrand(selectedBrand)
+                              } else {
+                                r.json().then(d => toast.error(d.error || '수정 실패'))
+                              }
+                            })
+                          }
+                        }}
+                        style={{ background: 'none', border: 'none', fontSize: 11, cursor: 'pointer', padding: '2px 4px', color: 'var(--gray-400)', borderRadius: 3 }}
+                        title="품목 수정"
+                      >✏️</button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if ((line._count?.products || 0) > 0) {
+                            toast.error(`이 품목에 ${line._count?.products}개의 상품이 있어 삭제할 수 없습니다.`)
+                            return
+                          }
+                          if (confirm(`'${line.name}' 품목을 삭제하시겠습니까?`)) {
+                            fetch(`/api/product-lines/${line.id}`, { method: 'DELETE' }).then(r => {
+                              if (r.ok) {
+                                toast.success('품목이 삭제되었습니다.')
+                                if (selectedBrand) handleSelectBrand(selectedBrand)
+                              } else {
+                                r.json().then(d => toast.error(d.error || '삭제 실패'))
+                              }
+                            })
+                          }
+                        }}
+                        style={{ background: 'none', border: 'none', fontSize: 11, cursor: 'pointer', padding: '2px 4px', color: 'var(--gray-400)', borderRadius: 3 }}
+                        title="품목 삭제"
+                      >🗑️</button>
+                      <span style={{ fontSize: 10, color: 'var(--gray-400)' }}>
+                        {line._count?.products || 0}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))
